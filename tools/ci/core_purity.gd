@@ -2,7 +2,8 @@ class_name CorePurity
 extends RefCounted
 ## Mechanical check of CLAUDE.md's architecture rules for core/ (rules 1 and 2; Prohibited list):
 ## no floats, no float maths, no Node or engine singletons, no frame callbacks, no unseeded
-## randomness. Comments and string literals are ignored. Run by tools/ci/run_tests.gd.
+## randomness, no file writes (the core may read content, never write). Comments and string
+## literals are ignored. Run by tools/ci/run_tests.gd.
 
 const PATTERNS: Array[String] = [
 	"\\bfloat\\b",
@@ -21,6 +22,11 @@ const PATTERNS: Array[String] = [
 	),
 	"\\b(_process|_physics_process|_ready|_input|_unhandled_input|get_tree|await)\\b",
 	"\\b(PI|TAU|INF|NAN)\\b",
+	(
+		"FileAccess\\.(WRITE|READ_WRITE|WRITE_READ)"
+		+ "|FileAccess\\.open\\([^,]*,(?!\\s*FileAccess\\.READ\\b)"
+		+ "|\\bDirAccess\\b|\\.store_\\w+\\s*\\(|\\bResourceSaver\\b|\\bConfigFile\\b"
+	),
 ]
 const LABELS: Array[String] = [
 	"float type",
@@ -32,6 +38,7 @@ const LABELS: Array[String] = [
 	"Node or engine singleton",
 	"frame callback",
 	"float constant",
+	"file write (I/O belongs to services in game/)",
 ]
 
 var _compiled: Array[RegEx] = []

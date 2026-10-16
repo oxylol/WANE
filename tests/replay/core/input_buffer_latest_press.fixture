@@ -1,0 +1,22 @@
+fixture input_buffer_latest_press
+doc BUILD.md s5 feel rules: "Buffers are generous (8 f) and the buffer always stores the latest input"; ADR-0004
+seed 1
+frames 30
+
+input
+  10 jump
+  13 jump
+end
+
+expect
+  at 9 press_age.jump=-1
+  at 10 press_age.jump=0
+  at 12 press_age.jump=2
+  # The second press replaces the first as the one served.
+  at 13 press_age.jump=0
+  at 14 press_age.jump=1
+  # Eight frames of history behind the current one: age 8 is still served, age 9 is gone.
+  at 21 press_age.jump=8
+  at 22 press_age.jump=-1
+  never 22..29 press_age.jump>=0
+end

@@ -1,0 +1,19 @@
+fixture subframe_tap_is_kept
+doc BUILD.md s1 pillar 1: "Every frame of input is honored"; s13 Layers, Input; ADR-0004 (a press and release between two ticks still reaches the core)
+seed 1
+frames 12
+
+input
+  # A press and release that both happen between two ticks.
+  4 !attack
+  # A held press: pressed on its first frame only.
+  6..8 dash
+end
+
+expect
+  at 4 held.attack=0 press_age.attack=0
+  at 5 press_age.attack=1
+  at 6 held.dash=1 press_age.dash=0
+  at 8 held.dash=1 press_age.dash=2
+  at 9 held.dash=0
+end

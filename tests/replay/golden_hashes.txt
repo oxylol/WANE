@@ -1,0 +1,5 @@
+# Golden hashes per replay fixture: <name> in:<inputs> content:<content> <end tick>:<hash> <tick>:<hash> ...
+# Regenerate with: godot --headless --path . --script tools/replay/bless.gd
+# sim_version 1
+input_buffer_latest_press in:5435ce43 content:00000000 30:836d1bee
+subframe_tap_is_kept in:c3968a3a content:00000000 12:616e0581

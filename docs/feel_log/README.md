@@ -8,3 +8,4 @@ The tuned values become the spec: when a number changes here, the same commit ch
 
 | Date | Entry | Summary |
 | --- | --- | --- |
+| 2026-10-16 | [task 1: core loop](2026-10-16-task1-core-loop.md) | Input buffer (8 f of history), latest-press rule, hitstop-safe input, replays |

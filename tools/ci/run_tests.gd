@@ -16,22 +16,42 @@ const CONTENT_ROOT: String = "res://content"
 const UNIT_ROOT: String = "res://tests/unit"
 const REPORT_DIR: String = "res://reports"
 const ALL_STAGES: Array[String] = ["compile", "content", "fixtures", "unit"]
+## The unit run is stopped, with a diagnosis, once it has printed this many engine or script
+## errors (a broken invariant asserting in a loop) or run this long; gdUnit4 slows down sharply
+## as errors pile up, and without these limits CI would only time out, with nothing to read.
+const UNIT_MAX_ERRORS: int = 50
+const UNIT_TIME_LIMIT_SECONDS: int = 600
+
+var _errors: ErrorCounter = ErrorCounter.new()
 
 
-func _init() -> void:
+# The stages run from _initialize(), not _init(): only then is this script the engine's main
+# loop, which the coverage probe (tools/ci/gd_coverage.py) needs to dump its hits at exit.
+func _initialize() -> void:
 	var stages: Array[String] = _requested_stages()
 	if stages.is_empty():
 		quit(2)
 		return
 	var failed: Array[String] = []
 	var started_usec: int = Time.get_ticks_usec()
+	OS.add_logger(_errors)
 	for stage: String in stages:
 		print("== stage: %s" % stage)
+		var errors_before: int = _errors.errors
 		var ok: bool = _run_stage(stage)
+		if _errors.errors > errors_before and stage != "compile":
+			printerr(
+				(
+					"  %d engine or script error(s) during the stage; first: %s"
+					% [_errors.errors - errors_before, _errors.first]
+				)
+			)
+			ok = false
 		print("== stage %s: %s" % [stage, "PASS" if ok else "FAIL"])
 		if not ok:
 			failed.append(stage)
 	var seconds: float = float(Time.get_ticks_usec() - started_usec) / 1000000.0
+	OS.remove_logger(_errors)
 	if failed.is_empty():
 		print("ALL STAGES PASSED (%.1f s)" % seconds)
 		quit(0)
@@ -145,8 +165,9 @@ func _stage_unit() -> bool:
 	if FileWalk.find(UNIT_ROOT, [".gd"]).is_empty():
 		print("no unit suites")
 		return true
-	# Reports live in the project folder for CI artifacts; .gdignore keeps Godot from importing
-	# the report's images as project assets.
+	# Reports live in the project folder for CI artifacts (one run's worth: reports/report_1);
+	# .gdignore keeps Godot from importing the report's images as project assets.
+	_remove_tree(ProjectSettings.globalize_path(REPORT_DIR))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(REPORT_DIR))
 	var ignore: FileAccess = FileAccess.open(REPORT_DIR.path_join(".gdignore"), FileAccess.WRITE)
 	ignore.close()
@@ -169,8 +190,86 @@ func _stage_unit() -> bool:
 		"-a",
 		UNIT_ROOT,
 	]
-	var output: Array[String] = []
-	var code: int = OS.execute(OS.get_executable_path(), args, output, true)
-	for chunk: String in output:
-		print(chunk)
-	return code == 0
+	var info: Dictionary[String, Variant] = {}
+	info.assign(OS.execute_with_pipe(OS.get_executable_path(), args, false))
+	if info.is_empty():
+		printerr("  cannot start the gdUnit4 run")
+		return false
+	var pid: int = info["pid"]
+	var stdout: FileAccess = info["stdio"]
+	var stderr: FileAccess = info["stderr"]
+	return _watch_unit_run(pid, stdout, stderr)
+
+
+## Streams the unit run's output as it arrives and stops it at the error or time limit. Returns
+## true if the run exited 0 within the limits.
+func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
+	var streams: Array[FileAccess] = [stdout, stderr]
+	var partial: Array[String] = ["", ""]
+	var watch := UnitWatch.new()
+	var started_msec: int = Time.get_ticks_msec()
+	while true:
+		var running: bool = OS.is_process_running(pid)
+		var got: int = 0
+		for i: int in range(2):
+			var chunk: PackedByteArray = streams[i].get_buffer(65536)
+			got += chunk.size()
+			partial[i] += chunk.get_string_from_utf8()
+			var lines: PackedStringArray = partial[i].split("\n")
+			partial[i] = lines[lines.size() - 1]
+			for li: int in range(lines.size() - 1):
+				watch.line(lines[li], i == 1)
+		var stop: String = ""
+		if watch.errors >= UNIT_MAX_ERRORS:
+			stop = "%d engine or script errors" % watch.errors
+		elif Time.get_ticks_msec() - started_msec > UNIT_TIME_LIMIT_SECONDS * 1000:
+			stop = "the %d s time limit" % UNIT_TIME_LIMIT_SECONDS
+		if stop != "":
+			OS.kill(pid)
+			printerr("  unit run stopped after %s" % stop)
+			printerr("  first error: %s" % watch.first_error)
+			printerr("  last test reported: %s" % watch.last_test)
+			return false
+		if not running and got == 0:
+			break
+		if got == 0:
+			OS.delay_msec(10)
+	for i: int in range(2):
+		if partial[i] != "":
+			watch.line(partial[i], i == 1)
+	return OS.get_process_exit_code(pid) == 0
+
+
+## Prints the child's lines and keeps what a diagnosis needs.
+class UnitWatch:
+	var errors: int = 0
+	var first_error: String = "(none)"
+	var last_test: String = "(none yet)"
+	var _ansi: RegEx = RegEx.create_from_string("\\x1b\\[[0-9;]*m")
+
+	func line(text: String, is_stderr: bool) -> void:
+		if is_stderr:
+			printerr(text)
+		else:
+			print(text)
+		var plain: String = _ansi.sub(text, "", true).strip_edges()
+		if plain.contains(" > test_"):
+			last_test = plain
+		var is_error: bool = plain.begins_with("SCRIPT ERROR:") or plain.begins_with("ERROR:")
+		# The two lines -d with --remote-debug to port 0 always prints (see _stage_unit).
+		if is_error and not plain.contains("emote"):
+			errors += 1
+			if first_error == "(none)":
+				first_error = plain
+
+
+static func _remove_tree(absolute: String) -> void:
+	var dir: DirAccess = DirAccess.open(absolute)
+	if dir == null:
+		return
+	dir.include_hidden = true
+	for sub: String in dir.get_directories():
+		_remove_tree(absolute.path_join(sub))
+	for file: String in dir.get_files():
+		DirAccess.remove_absolute(absolute.path_join(file))
+	DirAccess.remove_absolute(absolute)

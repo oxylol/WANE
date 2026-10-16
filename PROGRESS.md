@@ -9,8 +9,8 @@
 | # | Task | Status |
 | --- | --- | --- |
 | 0 | Repo skeleton, `.godot-version`, CI, gdUnit4, lint, requirements, PROGRESS, ADR and feel-log templates, LICENSES | done |
-| 1 | Core loop: fixed-step driver, `InputFrame` and ring buffer, split-stream RNG, state hash every 60 ticks, replay recorder and player | next |
-| 2 | Physics sweep: AABB, slopes to 45 degrees, one-way platforms, corner correction | not started |
+| 1 | Core loop: fixed-step driver, `InputFrame` and ring buffer, split-stream RNG, state hash every 60 ticks, replay recorder and player | done (eight review rounds; the last found nothing) |
+| 2 | Physics sweep: AABB, slopes to 45 degrees, one-way platforms, corner correction | in progress: redesigned after its first review (ADR-0008) |
 | 3 | Ash: ground, jump, dash, wall, pogo; one fixture per table row and per tech interaction | not started |
 | 4 | Camera | not started |
 | 5 | F3 debug overlay and frame-stepper | not started |
@@ -21,7 +21,7 @@
 
 ## Next
 
-Task 1: the deterministic core loop and the replay recorder, before any movement exists.
+Task 2: the physics sweep, reworked after review (validated slope geometry, exact swept walking, crest landings, drop-through beside walls), then Ash's movement (task 3, whose fixtures are being written alongside).
 
 ## Immaculate Checklist (BUILD.md section 15)
 
@@ -30,7 +30,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Line | Applies in Phase 1 | Status |
 | --- | --- | --- |
 | *Movement* | | |
-| Jump pressed 8 frames before landing fires on the landing frame | yes | not started |
+| Jump pressed 8 frames before landing fires on the landing frame | yes | in progress: the input ring serves an 8-frame-old press (task 1); the landing jump comes with Ash (task 3) |
 | Jump pressed 6 frames after walking off a ledge still jumps | yes | not started |
 | Tap jump and full jump differ by at least 3 tiles; release feels like a decision | yes | not started |
 | Turning around never produces a dead frame; sprite flips on the input frame | yes (the grey box's facing marker flips) | not started |
@@ -50,7 +50,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Parry succeeds on the 8-frame window against the Snuffed Knight 10 times in a row | partial: a grey-box knight dummy. BUILD.md gives only the rules (telegraph of at least 20 f, parryable sweep, unparryable red overhead), so its timings are new content values with a feel-log entry | not started |
 | Unparryable red distinguishable from parryable white at Pitch with flashes at 0 | partial: shape and outline cues on grey boxes; re-checked with Phase 2 lighting and art | not started |
 | Taking a hit is never confusing | yes | not started |
-| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | not started |
+| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | in progress: the ring merges hitstop frames and keeps every press (task 1, unit-tested); hitstop itself comes with combat (task 6) |
 | With 30 Votives active the screen stays readable | partial: the stress room's grey-box procs | not started |
 | Kindling White reached by a skilled tester in zone 2, feels earned | no: zone 2 does not exist in Phase 1 | carried |
 | A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | not started |
@@ -81,7 +81,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 
 | Gate | Status |
 | --- | --- |
-| Core coverage of at least 85% | not started: gdUnit4 has no GDScript coverage; a line-coverage instrumenter is built in task 1 |
+| Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 95.2% and CI gates at 85% |
 | Export for Windows, Linux, macOS and Deck on every merge, booting to the Hearth | carried: no export presets yet and the Hearth is not in Phase 1; the export job lands with the first presets |
 | Credits and legal screen listing Godot's third-party licenses (docs/LICENSES.md) | carried to the Phase 2 UI work |
 

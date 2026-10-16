@@ -33,6 +33,12 @@ func test_each_rule_fires() -> void:
 		"func _process(d: int) -> void:",
 		"var a: int = PI",
 		"await something",
+		"var f: FileAccess = FileAccess.open(p, FileAccess.WRITE)",
+		"f.store_buffer(bytes)",
+		"DirAccess.remove_absolute(p)",
+		"ResourceSaver.save(res, p)",
+		"var c := ConfigFile.new()",
+		"var f: FileAccess = FileAccess.open(p, 2)",
 	]
 	for code: String in cases:
 		(
@@ -47,6 +53,8 @@ func test_lookalikes_are_allowed() -> void:
 		"var r: int = Fx.div_round(1, 2) + Fx.div_floor(3, 4)\n"
 		+ "var f: InputFrame = InputFrame.new()\nvar s: int = scenario.seed_value\n"
 		+ "var x: int = 0x7FFF\nvar r2: Rng = Rng.seeded(1, 2)\n"
+		+ "var t: String = FileAccess.get_file_as_string(p)\n"
+		+ "var f: FileAccess = FileAccess.open(p, FileAccess.READ)\n"
 	)
 	assert_array(Array(_problems(code))).is_empty()
 

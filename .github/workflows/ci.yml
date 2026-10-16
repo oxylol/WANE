@@ -25,6 +25,7 @@ jobs:
           python-version: "3.13"
       - run: pip install -r tools/requirements.txt
       - run: ci/lint.sh
+      - run: python3 tools/ci/test_gd_coverage.py
 
   test:
     name: test (compile, content, fixtures, unit)
@@ -42,6 +43,8 @@ jobs:
           echo "GODOT=$godot" >> "$GITHUB_ENV"
       - name: Headless tests
         run: ci/test.sh
+      - name: Core coverage (gate 85%)
+        run: python3 tools/ci/gd_coverage.py --min 85
       - name: Upload unit test reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -74,5 +77,5 @@ jobs:
           godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Replay fixtures against the golden hashes
-        run: ci/test.sh --stage compile --stage fixtures
+      - name: Replay fixtures against the golden hashes, and the RNG and hash unit tests
+        run: ci/test.sh --stage compile --stage fixtures --stage unit

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="InputSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/input/input_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+dead_zone_inner_percent = 12
+dead_zone_outer_percent = 95
+dead_zone_release_percent = 10
+trigger_press_percent = 50
+trigger_release_gap_percent = 10
+stick_axis_x = 0
+stick_axis_y = 1
+stick_step = 8
+bindings = PackedStringArray("move_left=key:Left,pad:13", "move_right=key:Right,pad:14", "move_up=key:Up,pad:11", "move_down=key:Down,pad:12", "jump=key:Z,key:Space,pad:0", "attack=key:X,pad:2", "dash=key:C,key:Shift,axis:5:+", "spell=key:A,pad:1", "mend=key:S,axis:4:+", "vessel=key:D,pad:3", "toss=key:F,pad:10")
