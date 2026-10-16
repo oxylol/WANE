@@ -1,0 +1,78 @@
+# WANE continuous integration. BUILD.md section 13, "Testing and CI".
+# Every job runs headless with the Godot version pinned in .godot-version (ADR-0001).
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: lint (gdlint, gdformat, project rules)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r tools/requirements.txt
+      - run: ci/lint.sh
+
+  test:
+    name: test (compile, content, fixtures, unit)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Godot
+        run: |
+          godot="$(ci/setup_godot.sh linux | tail -n 1)"
+          test -x "$godot"
+          echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Headless tests
+        run: ci/test.sh
+      - name: Upload unit test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-reports
+          path: reports/
+
+  determinism:
+    name: replay determinism (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-2022
+            platform: windows
+          - os: macos-14
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Godot
+        run: |
+          godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
+          test -x "$godot"
+          echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Replay fixtures against the golden hashes
+        run: ci/test.sh --stage compile --stage fixtures

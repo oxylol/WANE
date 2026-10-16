@@ -1,0 +1,24 @@
+# Python toolchain for WANE (lint, coverage, art and audio builds). Every package, including
+# transitive dependencies, is pinned exactly; upgrade only via a tracked task (ADR-0001).
+# Install: pip install -r tools/requirements.txt
+# System library needed by CairoSVG at runtime: libcairo2 (LGPL-2.1 / MPL-1.1).
+gdtoolkit==4.5.0
+lark==1.2.2
+PyYAML==6.0.3
+docopt-ng==0.9.0
+radon==6.0.1
+mando==0.7.1
+colorama==0.4.6
+six==1.17.0
+regex==2026.9.29
+setuptools==84.0.0
+numpy==2.5.3
+pillow==12.3.0
+CairoSVG==2.9.1
+cairocffi==1.7.1
+cffi==2.1.1
+pycparser==3.11
+cssselect2==0.10.1
+defusedxml==0.7.1
+tinycss2==1.5.1
+webencodings==0.6.1

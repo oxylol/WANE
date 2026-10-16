@@ -1,0 +1,19 @@
+# Godot
+.godot/
+*.translation
+export_presets.local.cfg
+/build/
+
+# gdUnit4 reports
+/reports/
+
+# Test and tool output (contact sheets and gallery outputs that are committed live under docs/)
+/tests/out/
+/tools/out/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+.godot-import.log
