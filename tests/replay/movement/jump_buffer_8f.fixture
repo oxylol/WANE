@@ -1,0 +1,19 @@
+fixture jump_buffer_8f
+doc BUILD.md s5 Jump: "Jump buffer 8 f: Jump pressed before landing fires on landing"; s15 "Jump pressed 8 frames before landing fires on the landing frame"
+room test/flat
+frames 70
+input
+  0 jump
+  10 jump
+  # Landing is frame 33 (jump_buffer_control); this press is 8 frames earlier, in the air with
+  # the air jump already spent.
+  25 jump
+end
+expect
+  at 25 state=air air_jumps=0 vy>0
+  never 25..32 event.jump=1
+  # On the landing frame itself the body lands and the buffered jump fires: the player is never
+  # standing still on the ground.
+  at 33 event.land=1 event.jump=1 state=air vy=-3840
+  never 33..45 state=ground
+end

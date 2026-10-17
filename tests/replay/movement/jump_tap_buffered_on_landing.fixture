@@ -1,0 +1,16 @@
+fixture jump_tap_buffered_on_landing
+doc Task 3 review round 2, M3: BUILD.md s5 Jump "Min jump (tap) 2.4 tiles (78 u)", "Released after 4 f applies a 4.5x gravity multiplier"; s5 Jump buffer; player.gd jump_fresh "a jump fired on the landing frame rises exactly like one pressed on the ground". A tap buffered into the landing peaks like jump_tap (77.9 u: y 466..467): its frames count from its first airborne move, as a jump pressed on the ground does.
+room test/flat
+frames 80
+input
+  # As jump_buffer_control: ground tap, air tap, landing on frame 33.
+  0 jump
+  10 jump
+  # Tapped 2 frames before the landing, then released.
+  31 jump
+end
+expect
+  at 33 event.land=1 event.jump=1
+  mark apex 34..79 vy>=0
+  at apex-1 y>=466u y<=467u
+end

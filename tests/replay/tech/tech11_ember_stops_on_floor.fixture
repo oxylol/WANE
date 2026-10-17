@@ -1,0 +1,15 @@
+fixture tech11_ember_stops_on_floor
+doc BUILD.md s6 Ember Toss "press again to teleport to it"; docs/adr/0010 teleport fit
+room test/flat
+spawn 400 544
+frames 60
+input
+  # Thrown down-forward, the ember stops on the floor; the teleport stands the player on it.
+  0 D R toss
+  40 toss
+end
+expect
+  at 30 ember=1 ember_y>=543u
+  at 40 event.teleport=1 ember=0 y>=543u y<=544u invuln=1
+  mark land 40..41 ground=1
+end

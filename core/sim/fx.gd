@@ -14,6 +14,9 @@ const SUB: int = 256
 const HZ: int = 60
 ## Mask for 32-bit unsigned arithmetic.
 const MASK32: int = 0xFFFFFFFF
+## A diagonal's share of a straight speed (1 / sqrt(2), in thousandths): an 8-way move at 45
+## degrees covers the same distance per tick as a straight one.
+const DIAGONAL_PERMILLE: int = 707
 
 
 ## World units to sub-pixels.

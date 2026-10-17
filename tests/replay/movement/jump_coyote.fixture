@@ -1,0 +1,14 @@
+fixture jump_coyote
+doc BUILD.md s5 Jump: "Coyote time 6 f"; s15 "Jump pressed 6 frames after walking off a ledge still jumps"
+room test/cliff
+spawn 940 320
+frames 40
+input
+  0..13 R
+end
+expect
+  mark off 0..13 state=air
+  at off-1 state=ground
+  # The walk-off frame the two coyote fixtures count from.
+  at off tick=6 air_frames=0 air_jumps=1
+end

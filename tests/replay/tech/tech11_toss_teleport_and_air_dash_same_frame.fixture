@@ -1,0 +1,18 @@
+fixture tech11_toss_teleport_and_air_dash_same_frame
+doc Task 3 review round 2, M4: BUILD.md s5 Dash "Air dash: 1 per airtime"; s5 feel rules "acted on the same frame"; s6 Ember Toss "press again to teleport to it". Toss and dash pressed together in the air: the teleport goes first and the air dash goes from where it lands, so the dash is not spent on one the teleport ends the same frame.
+room test/flat
+spawn 400 544
+frames 70
+input
+  0 U R toss
+  30..43 jump
+  44 -
+  45 R toss dash
+  46..60 R
+end
+expect
+  at 44 state=air air_dashes=1
+  at 45 event.teleport=1
+  # Either the dash runs out of the teleport, or the air dash is still there.
+  never 45..46 air_dashes=0 state!=dash
+end

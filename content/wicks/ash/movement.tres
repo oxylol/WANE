@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="MovementTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/fsm/movement_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+width_u = 20
+height_u = 44
+crouch_height_u = 28
+stick_threshold = 64
+run_speed_ups = 540
+run_accel_frames = 6
+run_decel_frames = 4
+turn_keep_percent = 60
+turn_frames = 2
+corner_lift_u = 8
+corner_slide_u = 6
+jump_speed_ups = 900
+jump_min_frames = 4
+jump_release_gravity_permille = 4500
+gravity_rise_ups2 = 2400
+gravity_fall_ups2 = 3000
+apex_hang_permille = 600
+apex_hang_frames = 4
+terminal_ups = 1500
+coyote_frames = 6
+jump_buffer_frames = 8
+dash_buffer_frames = 8
+attack_buffer_frames = 8
+air_jumps = 1
+air_jump_percent = 85
+air_accel_frames = 8
+air_decel_frames = 8
+dash_distance_u = 180
+dash_frames = 9
+dash_carry_frames = 3
+dash_carry_percent = 50
+dash_invuln_first = 1
+dash_invuln_last = 7
+dash_ground_cooldown_frames = 24
+air_dashes = 1
+dash_jump_first = 5
+dash_jump_last = 9
+dash_jump_keep_percent = 100
+dash_attack_cancel_from = 6
+wall_slide_ups = 180
+wall_slide_frames = 90
+wall_jump_reach_u = 3
+wall_coyote_frames = 6
+wall_jump_up_ups = 794
+wall_jump_away_ups = 480
+wall_jump_lock_frames = 5
+wall_kick_up_ups = 900
+wall_kick_away_ups = 240
+wall_kick_lock_frames = 1
+ledge_grab_u = 10
+pogo_bounce_ups = 794
+pogo_chain_frame = 6

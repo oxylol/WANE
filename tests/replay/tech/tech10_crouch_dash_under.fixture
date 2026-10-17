@@ -1,0 +1,21 @@
+fixture tech10_crouch_dash_under
+doc BUILD.md s5 tech 10 "Crouch-dash under: crouch, then dash, keeps the 28-tall hitbox for the dash"; s5 Ground "Crouch: Height 44 -> 28"
+room test/lowgap
+spawn 600 544
+frames 50
+input
+  # Crouched (the stick straight down), then dash: it goes the way Ash faces, still crouched.
+  0..2 D
+  3 D dash
+  4..49 R
+end
+expect
+  at 2 crouch=1 height=28
+  at 3 event.dash=1 height=28 state=dash
+  # Under the 32 u gap (640..800) the box stays 28 tall the whole dash.
+  during 3..14 height=28
+  never 0..49 hit_ceiling=1
+  # Out the far side, it stands up.
+  mark stand 12..49 height=44
+  at stand x>=800u
+end

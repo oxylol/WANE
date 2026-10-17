@@ -1,0 +1,18 @@
+fixture air_reverse_keeps_momentum
+doc BUILD.md s5 Jump "Air control: full acceleration in air, 0 to max in 8 f"; docs/adr/0010 "reversed, normal air control takes over": reversing a dash-jump in the air bleeds its speed at the air rate
+room test/flat
+spawn 300 544
+frames 40
+input
+  0 R dash
+  1..3 R
+  4..14 R jump
+  15..30 L jump
+end
+expect
+  at 4 event.jump=1
+  at 14 vx=5120
+  # 288 sub-pixels a frame toward the other way: still moving right, no instant flip.
+  at 15 vx=4832 facing=-1
+  at 16 vx=4544
+end

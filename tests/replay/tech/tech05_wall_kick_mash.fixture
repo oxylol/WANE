@@ -1,0 +1,57 @@
+fixture tech05_wall_kick_mash
+doc BUILD.md s15 "Wall-kick climbs a single wall without feeling stuck": mashing jump (3 frames on, 3 off) while holding toward the wall climbs it too, and no faster than kicks timed at each apex (tech05_wall_kick_climb); docs/adr/0010 kicks
+room test/well
+spawn 760 864
+frames 130
+input
+  0..2 R jump
+  3..5 R
+  6..8 R jump
+  9..11 R
+  12..14 R jump
+  15..17 R
+  18..20 R jump
+  21..23 R
+  24..26 R jump
+  27..29 R
+  30..32 R jump
+  33..35 R
+  36..38 R jump
+  39..41 R
+  42..44 R jump
+  45..47 R
+  48..50 R jump
+  51..53 R
+  54..56 R jump
+  57..59 R
+  60..62 R jump
+  63..65 R
+  66..68 R jump
+  69..71 R
+  72..74 R jump
+  75..77 R
+  78..80 R jump
+  81..83 R
+  84..86 R jump
+  87..89 R
+  90..92 R jump
+  93..95 R
+  96..98 R jump
+  99..129 R
+end
+expect
+  # The released ground jump is cut short and the air jump follows; the first cling since the floor
+  # restores it once more. After that every press is either a kick at an apex (on the cling frame,
+  # from the buffer) or waits for one: kicks are fixed and restore nothing, so mashing climbs one
+  # full kick per apex, 24 frames apart, exactly like timed kicks.
+  at 6 event.air_jump=1
+  at 13 event.wall_kick=1
+  at 18 event.air_jump=1
+  at 25 event.wall_kick=1
+  at 49 event.wall_kick=1
+  at 73 event.wall_kick=1
+  never 19..129 event.air_jump=1
+  # Over the top, a few frames after the timed climb (whose full first jump rises higher).
+  mark top 74..129 event.land=1
+  at top y=192u state=ground
+end

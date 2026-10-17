@@ -1,0 +1,16 @@
+fixture dash_jump_down_ramp45_off_door
+doc stand on the door 1 u proud of the 45-degree ramp's plateau at its crest edge, ground dash left down the ramp and jump on dash frame 9: the dash stays on the ground off the door's end, so the jump is the dash-jump (BUILD.md s5 Dash-jump "Jump during frames 5 to 9 keeps 100% dash speed"), not the air jump (physics review 5, H1).
+room test/ramp45_door_at_crest
+spawn 400 255
+frames 40
+input
+  0..1 -
+  2 L dash
+  3..9 L
+  10 L jump
+  11..39 L jump
+end
+expect
+  never 2..9 ground=0
+  at 10 event.jump=1 air_jumps=1
+end

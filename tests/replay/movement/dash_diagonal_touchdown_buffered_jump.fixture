@@ -1,0 +1,19 @@
+fixture dash_diagonal_touchdown_buffered_jump
+doc Task 3 review round 2, L10: docs/adr/0010 Landing: "Arriving on the ground by any route counts as a landing" (a diagonal air dash that touches down and runs on along the floor), "a jump, dash or attack pressed within its buffer before landing starts on the landing frame"; BUILD.md s5 Jump "Jump buffer 8 f". A jump pressed (air jump spent) just before a down-forward air dash touches the floor fires on the touch-down frame once the dash has reached its jump frames (5 to 9), as from any dash.
+room test/flat
+spawn 400 500
+frames 40
+input
+  # Spend the air jump, then press jump again (buffered: nothing to spend), then dash down-right.
+  0 jump
+  1..3 -
+  4 jump
+  5 D R dash
+  6..20 R
+end
+expect
+  at 0 event.air_jump=1 air_jumps=0
+  at 5 event.dash=1 state=dash
+  mark touch 5..14 event.land=1
+  at touch event.jump=1
+end

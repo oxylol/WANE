@@ -1,0 +1,16 @@
+fixture air_control_after_air_reversal
+doc BUILD.md s5 Jump "Air control: 0 to max in 8 f": an earlier reversal in the air leaves no boosted acceleration behind (the ground turnaround's 2-frame catch-up is ground only and counts down)
+room test/shaft
+spawn 760 300
+frames 40
+input
+  # A stick reversal in the air 17 frames before leaving the wall.
+  0..2 L
+  3..19 R
+  20..30 L
+end
+expect
+  at 19 state=wall
+  at 20 state=air vx=-288
+  at 21 vx=-576
+end

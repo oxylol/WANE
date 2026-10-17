@@ -1,0 +1,17 @@
+fixture ground_drop_through
+doc BUILD.md s5 Ground: "Crouch ... drops through one-way platforms on down+jump"
+room test/oneway
+spawn 400 384
+frames 40
+input
+  0..4 D
+  5 D jump
+  6..20 D
+end
+expect
+  at 0 ground=1 y=384u crouch=1
+  at 5 state=air event.drop_through=1 vy>=0 y>384u
+  never 5..39 event.jump=1
+  mark floor 6..39 event.land=1
+  at floor y=544u
+end

@@ -1,0 +1,18 @@
+fixture wall_cling_slide
+doc BUILD.md s5 Wall: "Wall-cling: Holding toward a wall in air: slide at 180 u/s for up to 90 f, then normal fall"
+room test/shaft
+spawn 760 300
+frames 130
+input
+  0..129 R
+end
+expect
+  mark cling 0..20 event.wall_cling=1
+  at cling state=wall wall=1 vx=0
+  # 180 u/s is 3 u/f, 768 sub-pixels, for 90 frames.
+  during cling+1..cling+90 state=wall vy=768
+  at cling+90 y=270u+y@cling
+  # Then a normal fall, with no second cling on the same wall until something resets it.
+  at cling+91 state=air vy=981
+  never cling+91..129 state=wall
+end

@@ -1,0 +1,12 @@
+fixture land_across_ramp_rows_walks_back
+doc docs/adr/0008 decision 6 (round 3, H2): as land_across_ramp_rows_walks_on, then the player turns and holds left, and walks back down.
+room test/review_ramp12
+spawn 200 240
+frames 31
+input
+  0..19 R
+  20..30 L
+end
+expect
+  at 30 xu<300
+end

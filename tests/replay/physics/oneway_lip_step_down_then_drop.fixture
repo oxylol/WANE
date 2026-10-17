@@ -1,0 +1,18 @@
+fixture oneway_lip_step_down_then_drop
+doc walk right off a 4 u lip lying on a one-way (test/oneway_lip): the walk steps down onto the one-way and stays on the ground; then crouch and drop through it.
+room test/oneway_lip
+spawn 400 316
+frames 50
+input
+  0..19 R
+  20..24 -
+  25..27 D
+  28 D jump
+  29..49 -
+end
+expect
+  never 0..27 state=air
+  at 19 y=320u
+  at 28 event.drop_through=1
+  at 40 y>330u
+end

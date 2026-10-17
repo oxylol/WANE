@@ -43,7 +43,8 @@ func test_scenario_is_copied() -> void:
 
 
 func test_probe() -> void:
-	var sim := Simulation.new(Scenario.make(1))
+	# No player, so nothing consumes the attack press the probes read.
+	var sim := Simulation.new(Scenario.make(1, "", ""))
 	sim.step(InputFrame.make(InputFrame.ATTACK, InputFrame.ATTACK, -127, 64))
 	sim.step(InputFrame.make(InputFrame.ATTACK, 0, -127, 64))
 	assert_int(sim.probe("tick")).is_equal(2)

@@ -1,0 +1,16 @@
+fixture tech10_crouch_dash_down_forward
+doc Task 3 review round 2, M6: BUILD.md s5 tech 10 "Crouch-dash under: crouch, then dash, keeps the 28-tall hitbox for the dash"; s5 feel rules "Every cancel window is wider than it looks". Crouched, then dash with the stick down-forward (the natural input toward the gap): any ground dash with the stick down is the crouch-dash (docs/adr/0010), so it keeps the 28 u box and slides into the gap rather than standing up into its face.
+room test/lowgap
+spawn 600 544
+frames 40
+input
+  0..2 D
+  # Down-right and dash: crouched the frame before, heading for the 32 u gap at 640.
+  3 D R dash
+  4..39 D R
+end
+expect
+  at 2 crouch=1 height=28
+  at 3 event.dash=1 state=dash height=28
+  never 3..20 hit_wall=1
+end

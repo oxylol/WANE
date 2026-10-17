@@ -1,0 +1,18 @@
+fixture pogo_keeps_horizontal
+doc BUILD.md s5 Pogo: "Momentum: Horizontal speed fully preserved; vertical replaced"; s15 "Pogo keeps full horizontal speed"
+room test/spikes
+spawn 200 544
+frames 80
+input
+  0..9 R
+  10..30 R jump
+  31..39 R
+  40..79 D R attack
+end
+expect
+  at 9 vx=2304
+  mark bounce 40..79 event.pogo=1
+  at bounce vx=2304 vy=-3388
+  during bounce..bounce+10 vx=2304
+  never 0..79 event.hazard=1
+end

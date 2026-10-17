@@ -1,0 +1,15 @@
+fixture jump_terminal
+doc BUILD.md s5 Jump: "Gravity (fall) 3000 u/s^2", "Terminal velocity 1500 u/s"
+room test/shaft
+spawn 750 160
+frames 60
+input
+  0..59 -
+end
+expect
+  at 0 vy=213
+  at 1 vy=426
+  # 1500 u/s is 25 u/f (6400 sub-pixels), reached after 30 frames of 213.
+  at 29 vy=6390
+  during 30..40 vy=6400
+end

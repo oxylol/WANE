@@ -1,0 +1,17 @@
+fixture tech07_coyote_dash_on_cooldown
+doc BUILD.md s5 tech 7 coyote dash; s5 Dash "Cooldown 24 f on ground"; docs/adr/0010: in coyote time with the ground dash cooling, a dash press is the air dash at once
+room test/cliff
+spawn 760 320
+frames 50
+input
+  # A ground dash, then walk off the cliff and press dash while its cooldown still runs.
+  0 R dash
+  1..12 R
+  13 U R dash
+  14..49 R
+end
+expect
+  at 0 event.dash=1
+  # Fires on the press frame as the 8-way air dash (up-right), spending the air dash.
+  at 13 event.dash=1 state=dash air_frames=2 vx=3620 vy=-3620 air_dashes=0
+end

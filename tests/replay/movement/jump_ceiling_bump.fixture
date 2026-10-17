@@ -1,0 +1,14 @@
+fixture jump_ceiling_bump
+doc Control for the ceiling-corner nudge: overlapping the corner by 7 u (over 6) bumps the head
+room test/lip
+spawn 605 544
+frames 40
+input
+  0..30 jump
+end
+expect
+  never 0..39 nudge_x!=0
+  mark bump 1..20 hit_ceiling=1
+  # The head stops at the block's bottom (416): feet at 460.
+  at bump y=460u x=605u
+end

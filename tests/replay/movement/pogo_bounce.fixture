@@ -1,0 +1,16 @@
+fixture pogo_bounce
+doc BUILD.md s5 Pogo: "Bounce velocity 900 u/s" (tuned to 794 u/s: docs/feel_log/2026-10-17-pogo-bounce.md), "vertical replaced"
+room test/spikes
+spawn 800 300
+frames 45
+input
+  0..16 -
+  17..44 D attack
+end
+expect
+  at 17 event.attack=1 action=down action_frame=1
+  mark bounce 18..30 event.pogo=1
+  # 794 u/s up is 3388 sub-pixels a frame, replacing the fall speed.
+  at bounce vy=-3388 state=air action=none
+  never 0..44 event.hazard=1
+end

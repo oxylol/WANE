@@ -1,0 +1,20 @@
+fixture pogo_down_dash_pogo
+doc BUILD.md s5 tech 4 "pogo, dash, pogo again crosses anything"; s5 Pogo "Chain window: frame 6": pogo off the bell, air-dash down-left past it, pogo the spikes below
+room test/spikes
+spawn 1216 300
+frames 60
+input
+  0..11 D
+  12..13 D attack
+  14..16 D
+  17 D L dash
+  18..20 D L
+  21..30 D L attack
+  31..59 D L
+end
+expect
+  at 14 event.pogo=1
+  at 17 event.dash=1
+  mark second 18..40 event.pogo=1
+  never 0..59 event.hazard=1
+end

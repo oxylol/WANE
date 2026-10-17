@@ -1,0 +1,16 @@
+fixture tech11_ember_stops_on_wall
+doc BUILD.md s6 Ember Toss "a 600 u/s projectile that stops on walls; press again to teleport to it"; docs/adr/0010 teleport fit
+room test/flat
+spawn 1700 544
+frames 60
+input
+  # Throw right at the room's right wall (its face at 1888 u), wait, teleport.
+  0 R toss
+  40 toss
+end
+expect
+  mark stopped 3..39 ember_x>=1887u
+  at 30 ember=1
+  # The body fits beside the wall: its centre 10 u (half its width) back from the ember.
+  at 40 event.teleport=1 ember=0 x<=1878u x>=1876u invuln=1
+end

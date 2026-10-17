@@ -1,0 +1,16 @@
+fixture air_dash_into_ramp_crest
+doc docs/adr/0008 decision 6 (physics review round 3, H1): a hop then a level air dash right into the foot of the test/slopes ramp (column 10, x 320..352, rising to the plateau at y 512). The crest only stops the upper body, so the dash rides up the ramp and onto the plateau at full speed; it used to park below the crest for 7 frames.
+room test/slopes
+spawn 290 544
+frames 30
+input
+  0 R jump
+  1 R dash
+  2..29 R
+end
+expect
+  # 180 u in 9 f, every frame 20 u: the ramp changes no speed.
+  at 9 xu=471 state=dash
+  never 2..10 hit_wall!=0
+  at 10 xu>=440
+end

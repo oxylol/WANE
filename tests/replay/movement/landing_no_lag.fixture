@@ -1,0 +1,15 @@
+fixture landing_no_lag
+doc BUILD.md s5 Jump: "Landing: 0 f of lag; a 3 f squash animation that does not block input"
+room test/flat
+frames 50
+input
+  0..5 jump R
+  6..49 R
+end
+expect
+  mark land 1..49 event.land=1
+  # The run carries straight through the landing frame at full speed.
+  during land-2..land+5 vx=2304
+  at land x=2304+x@(land-1)
+  at land+1 x=2304+x@land
+end

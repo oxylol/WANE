@@ -1,0 +1,15 @@
+fixture pogo_hitbox_frames
+doc BUILD.md s5 Pogo: "Hitbox: 36 u wide, 24 u tall, under the player, active frames 3 to 9 of the down-strike"
+room test/flat
+spawn 400 200
+frames 30
+input
+  0..29 D attack
+end
+expect
+  at 0 action=down action_frame=1
+  during 0..1 pogo_live=0
+  during 2..8 pogo_live=1
+  during 9..12 pogo_live=0 action=down
+  at 13 action=none
+end

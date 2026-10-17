@@ -1,0 +1,17 @@
+fixture far_edge_landing_buffered_jump_keeps_stride
+doc run right on test/ledge448, jump, air jump on tick 10, then hold jump from tick 28. Tick 35 comes down on the ledge's far edge and the buffered jump fires on that landing (BUILD.md s15 "Jump pressed 8 frames before landing fires on the landing frame"), from where the landing tick's whole step ends: the tick still carries the run's 9 u across, as every other landing tick does (physics review 5, M2).
+room test/ledge448
+spawn 322 448
+frames 40
+input
+  0..3 R
+  4..8 R jump
+  9 R
+  10..14 R jump
+  15..27 R
+  28..39 R jump
+end
+expect
+  at 35 event.land=1 event.jump=1
+  at 35 x>=8u+x@34
+end

@@ -15,12 +15,16 @@ BUILD.md section 13: "Every run records seed, Wick, difficulty, pacts and the in
 
 **Verification**: `ReplayPlayer` accepts a replay only if its hashes are exactly every 60th tick plus the final tick, so even a replay shorter than a second and the tail of every replay are checked, and a replay stripped of its hashes is rejected as malformed. A replay recorded by a different `Simulation.VERSION` is reported as "recorded by an older build", and one recorded with different content as "recorded with different content"; neither is a desync. Each golden line also stores a hash of the fixture's inputs and scenario and the content hash. `tools/replay/bless.gd` refuses to re-bless when a fixture's state hashes moved while its inputs and content did not (only a code change does that) unless `Simulation.VERSION` was bumped; a changed fixture or a content change needs no bump.
 
+**Cost.** BUILD.md section 13 gives the whole fixture suite 10 seconds. Every fixture's recorded replay is encoded and decoded, and must come back exactly: its inputs, scenario, simulation version, content fingerprint and every recorded state hash. Played back, such a replay reproduces the run, because the golden check holds the simulation to the committed hashes for those very inputs, and `ReplayPlayer`'s own stepping is unit-tested (`tests/unit/core/test_replay.gd`). So a full playback of every fixture, which used to be half the suite's time, is kept for a deterministic sample: the replay system's own fixtures (`tests/replay/core/`) and every fourth fixture in path order (`FixtureRunner.PLAYBACK_EVERY`). The sample still catches anything a run does that its replay cannot reproduce, such as a probe with a side effect. With 275 fixtures the suite went from 10.4 to 11.3 s to 6.5 to 6.9 s on this container. Each sampled fixture builds two simulations, so building one has to stay cheap. It takes 1.4 ms on a 160 x 100 room, down from 14.6 ms:
+- room parsing reads each distinct tile row once, and the slope rules visit only the slope tiles, which the native byte search finds (8.9 ms to 0.3 ms);
+- the content hash digests each tuning resource with the native SHA-256 over Godot's portable `var_to_bytes` encoding, rather than feeding every byte of every property name through the state hasher (3.7 ms to 1.0 ms). Re-blessing for this change moved only the golden lines' `content:` field, never a state hash.
+
 **Fixtures (`tests/replay/**/*.fixture`)**: a small text language so that inputs and expectations are data the replay viewer can also play:
 
 ```
 fixture <unique name>
 doc <the BUILD.md section, table and row it proves>
-seed <int>   room <id>   spawn <x> <y>   wick <id>   option <key> <int>
+seed <int>   room <id>   spawn <x> <y>   wick <id|none>   option <key> <int>
 frames <N>
 input
   <frame>[..<frame>] <tokens>     # L R U D, x=<n> y=<n>, jump attack dash spell mend vessel toss,

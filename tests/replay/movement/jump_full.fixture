@@ -1,0 +1,29 @@
+fixture jump_full
+doc BUILD.md s5 Jump: "Jump velocity" (tuned to 900 u/s, docs/feel_log/2026-10-17-jump-velocity.md), "Full hold reaches 5.5 tiles (176 u)", "Gravity (rise) 2400 u/s^2", "Apex hang: Gravity x 0.6 for the 4 f around apex"
+room test/flat
+frames 60
+input
+  0..39 jump
+end
+expect
+  # 900 u/s is 15 u/f (3840 sub-pixels); the take-off frame moves the full 15 units.
+  at 0 state=air vy=-3840 y=529u event.jump=1
+  # Rise gravity 2400 u/s^2 is 171 sub-pixels a frame per frame.
+  at 1 vy=-3669
+  at 2 vy=-3498
+  mark apex 0..59 vy>=0
+  # Full hold reaches 176 u (5.5 tiles) above the floor at 544.
+  at apex-1 y>=367u y<=368u
+  # Frame 21 is the last full-gravity frame (-3840 + 21 x 171 = -249). Then the hang: four frames
+  # of 0.6 gravity centred on the apex (103 a frame rising, 128 falling): two rising frames, the
+  # frame the apex falls in (42% of the way through it), and one falling frame.
+  at apex-3 vy=-249
+  at apex-2 vy=-146
+  at apex-1 vy=-43
+  at apex vy=60
+  at apex+1 vy=188
+  # Then fall gravity, 3000 u/s^2 = 213 a frame per frame.
+  at apex+2 vy=401
+  mark land 1..59 ground=1
+  at land event.land=1
+end

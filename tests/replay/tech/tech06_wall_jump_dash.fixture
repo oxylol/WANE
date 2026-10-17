@@ -1,0 +1,20 @@
+fixture tech06_wall_jump_dash
+doc BUILD.md s5 tech 6 "Wall-jump dash: wall-jump, then dash, then wall-cling the next wall"
+room test/shaft
+spawn 1250 400
+frames 80
+input
+  0..9 R
+  # Wall-jump off the right wall (the left face of the wall at 1280 u).
+  10..15 L jump
+  # The dash as soon as the wall-jump's 5-frame lock ends, toward the left wall (832 u).
+  16 L dash
+  17..79 L
+end
+expect
+  mark cling1 0..9 event.wall_cling=1
+  at 10 event.wall_jump=1 air_dashes=1
+  at 16 event.dash=1 vx=-5120
+  mark cling2 17..79 event.wall_cling=1
+  at cling2 wall=-1 x=842u
+end

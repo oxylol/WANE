@@ -1,0 +1,15 @@
+fixture air_dash_up_1to2_ramp_rows
+doc docs/adr/0008 decision 6 (round 3, H1): a hop then a level air dash right onto a three-row 1:2 ramp (test/review_ramp12), which it climbs without stopping at a row boundary.
+room test/review_ramp12
+spawn 236 384
+frames 30
+input
+  0 R jump
+  1 R dash
+  2..29 R
+end
+expect
+  # 180 u in 9 f, every frame 20 u: the ramp changes no speed.
+  at 9 xu=417 state=dash
+  never 1..10 hit_wall!=0
+end

@@ -1,0 +1,17 @@
+fixture down_strike_missed_then_ground_strike
+doc Task 3 review round 2, L11: BUILD.md s6 Taper Down "(air only)", s5 feel rules "Buffers are generous (8 f)", s15 "Attack comes out on frame 3 from a neutral press"; docs/adr/0010 "a missed pogo never locks the jump". A down-strike that whiffs into the floor carries on for its 13 frames after landing (tech 8). A ground strike pressed the frame after landing replaces it, as the jump is freed once grounded (docs/adr/0010), instead of waiting in the buffer and ageing out.
+room test/flat
+spawn 400 520
+frames 30
+input
+  # The down-strike starts the frame before landing (frame 7), so 11 of its frames are on the floor.
+  6 D attack
+  # A neutral side strike pressed the frame after landing.
+  8 attack
+end
+expect
+  at 7 event.land=1 action=down action_frame=2
+  # Pressed on the ground: it should start (as the jump would), or at least not be lost.
+  mark slash 8..29 event.attack=1
+  at slash action=side1
+end

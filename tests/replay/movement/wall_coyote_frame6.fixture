@@ -1,0 +1,16 @@
+fixture wall_coyote_frame6
+doc Task 3 review round 2, L8: BUILD.md s5 Jump "Coyote time 6 f" and s15 "Jump pressed 6 frames after walking off a ledge still jumps"; docs/adr/0010 "6 f of wall coyote time after letting go", the ground's coyote time. Pushing away from a cling on frame 10, a jump 6 frames later (frame 16) is still the wall-jump, as a ground jump 6 frames after walking off is still the ground jump (jump_coyote_frame6).
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  10..15 L
+  16..23 L jump
+  24..39 L
+end
+expect
+  at 9 state=wall
+  at 10 state=air
+  at 16 event.wall_jump=1 event.air_jump=0
+end

@@ -1,0 +1,15 @@
+fixture dash_eight_way
+doc BUILD.md s5 Dash: "Direction: 8-way in air"
+room test/flat
+frames 30
+input
+  0..3 jump
+  4 U R dash
+end
+expect
+  # 20 u/f along the diagonal: 5120 * 707 / 1000, rounded, on each axis.
+  at 4 state=dash vx=3620 vy=-3620
+  during 4..12 vx=3620 vy=-3620
+  # Carry-over halves both axes, and gravity (171 sp/f² rising) acts from the first carry frame.
+  at 13 carry>0 vx=1810 vy=-1639
+end

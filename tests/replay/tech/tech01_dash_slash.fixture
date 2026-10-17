@@ -1,0 +1,27 @@
+fixture tech01_dash_slash
+doc BUILD.md s5 tech 1 "Dash-slash: dash into attack, frame-perfect cancel"; s5 Dash "dash is cancelable into attack from frame 6"
+room test/flat
+frames 60
+input
+  0 R dash
+  # Pressed early, on dash frame 3: the buffer fires it on frame 6, the first frame allowed.
+  2 R attack
+  3..10 R
+  # The chain carries on (side 2 from side 1's frame 6).
+  11 R attack
+  12..16 R
+  # The next dash, pressed during side 2: it waits for the ground cooldown (24 f), then cancels
+  # side 2 at once (side 2's frame 4 is long past).
+  17..19 R dash
+  20..59 R
+end
+expect
+  at 0 event.dash=1 dash_frame=1
+  never 1..4 event.attack=1
+  at 5 event.attack=1 action=side1 dash_frame=0 state=ground carry>0
+  # The cancel hands over the dash's momentum: the 50% carry-over runs under the strike.
+  at 5 vx=2560
+  at 11 event.attack=1 action=side2
+  never 12..23 event.dash=1
+  at 24 event.dash=1 action=none state=dash
+end

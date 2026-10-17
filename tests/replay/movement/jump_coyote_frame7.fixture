@@ -1,0 +1,15 @@
+fixture jump_coyote_frame7
+doc BUILD.md s5 Jump: "Coyote time 6 f" (one frame later is an air jump)
+room test/cliff
+spawn 940 320
+frames 40
+input
+  # The body walks off on frame 5 (pinned below); frame 12 is 7 frames later.
+  0..5 R
+  12 jump
+end
+expect
+  at 4 state=ground
+  at 5 state=air air_frames=0
+  at 12 event.air_jump=1 air_jumps=0 vy=-3264
+end

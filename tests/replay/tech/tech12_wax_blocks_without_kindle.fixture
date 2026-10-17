@@ -1,0 +1,14 @@
+fixture tech12_wax_blocks_without_kindle
+doc Control for tech 12: without the Kindle Votive a wax wall is a wall
+room test/wax
+spawn 700 544
+frames 40
+input
+  0 R dash
+  1..39 R
+end
+expect
+  never 0..39 event.ignite=1
+  at 8 x=790u hit_wall=1
+  during 8..39 x=790u
+end

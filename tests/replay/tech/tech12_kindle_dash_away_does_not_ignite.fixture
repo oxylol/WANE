@@ -1,0 +1,14 @@
+fixture tech12_kindle_dash_away_does_not_ignite
+doc Task 3 review round 2, L12: BUILD.md s5 tech 12 "Kindle-dash: dash through a wax wall or a Snuffed to ignite it". Standing flush against the wax wall's right face and dashing right, away from it: the dash never goes through the wax, so it does not ignite it (the dash reaches a sub-pixel further only on the side it moves toward).
+room test/wax
+spawn 842 544
+option kindle 1
+frames 30
+input
+  0 R dash
+  1..29 R
+end
+expect
+  at 0 event.dash=1
+  never 0..29 event.ignite=1
+end

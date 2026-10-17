@@ -1,0 +1,16 @@
+fixture tech08_attack_cancel_landing
+doc BUILD.md s5 tech 8 "Attack-cancel landing: landing never interrupts an attack"; s5 Jump "Landing: 0 f of lag"
+room test/flat
+frames 40
+input
+  0..2 jump
+  14 attack
+end
+expect
+  at 14 event.attack=1 action=side1 action_frame=1 state=air
+  # The strike lands on its frame 6, mid-swing: the landing changes the state, not the strike.
+  at 19 event.land=1 state=ground action=side1 action_frame=6 strike=1
+  at 20 action=side1 action_frame=7
+  at 27 action=side1 action_frame=14
+  at 28 action=none
+end

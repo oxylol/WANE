@@ -1,0 +1,27 @@
+fixture tech11_teleport_lands
+doc BUILD.md s5 Jump "Double jump: 1 per airtime"; s5 Dash "Air dash: 1 per airtime"; docs/adr/0010: a teleport onto the ground is a landing
+room test/flat
+spawn 400 544
+frames 120
+input
+  # The ember flies right and waits at standing-centre height.
+  0 R toss
+  # Jump, spend the air jump and the air dash, then teleport down to the ember.
+  20..28 jump
+  30..33 jump
+  36 L dash
+  46 toss
+  # From the ground again: a jump, then the air jump and the air dash are there.
+  70..74 jump
+  80 jump
+  86 R dash
+end
+expect
+  at 30 event.air_jump=1
+  at 36 event.dash=1
+  # The teleport stands the player on the floor: a landing, with the airtime's resources back.
+  at 46 event.teleport=1 event.land=1 state=ground air_jumps=1 air_dashes=1
+  at 70 event.jump=1
+  at 80 event.air_jump=1
+  at 86 event.dash=1
+end

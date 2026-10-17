@@ -1,0 +1,47 @@
+fixture tech03_pogo_chain
+doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards"; s5 Pogo "Pogo chains are infinite with rhythm"; s15 "10-bounce chain across the zone 1 spike pit"
+room test/pit
+spawn 200 300
+frames 420
+input
+  # Falling into the pit at run speed, the stick held down and forward.
+  0..16 D R
+  17..20 D R attack
+  21..50 D R
+  51..54 D R attack
+  55..86 D R
+  87..90 D R attack
+  91..123 D R
+  124..127 D R attack
+  128..160 D R
+  161..164 D R attack
+  165..196 D R
+  197..200 D R attack
+  201..233 D R
+  234..237 D R attack
+  238..270 D R
+  271..274 D R attack
+  275..306 D R
+  307..310 D R attack
+  311..343 D R
+  344..347 D R attack
+  348..419 R
+end
+expect
+  # Ten down-strikes, each pressed so its pogo frames (3 to 9) meet the spikes: ten bounces, each
+  # at full run speed, about 36.6 frames apart (1.64 bounces a second; docs/adr/0010 on cadence).
+  at 21 event.pogo=1 vx=2304 vy=-3388
+  at 57 event.pogo=1 vx=2304 vy=-3388
+  at 94 event.pogo=1 vx=2304 vy=-3388
+  at 131 event.pogo=1 vx=2304 vy=-3388
+  at 167 event.pogo=1 vx=2304 vy=-3388
+  at 204 event.pogo=1 vx=2304 vy=-3388
+  at 241 event.pogo=1 vx=2304 vy=-3388
+  at 277 event.pogo=1 vx=2304 vy=-3388
+  at 314 event.pogo=1 vx=2304 vy=-3388
+  at 351 event.pogo=1 vx=2304 vy=-3388
+  never 0..419 event.hazard=1
+  # Past the pit's far end (3520 u), on the floor.
+  mark land 352..419 event.land=1
+  at land x>3530u
+end

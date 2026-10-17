@@ -1,0 +1,17 @@
+fixture ground_crouch
+doc BUILD.md s5 Ground: "Crouch: Hitbox 44 to 28 tall; cannot move"
+room test/flat
+frames 40
+input
+  0..9 R
+  10..29 D
+  30..39 R
+end
+expect
+  at 10 crouch=1 height=28
+  during 10..29 crouch=1 height=28
+  # Cannot move: the run speed bleeds off at the ground deceleration and the body then holds.
+  at 13 vx=0
+  during 14..29 x=x@13
+  at 30 crouch=0 height=44 vx>0
+end

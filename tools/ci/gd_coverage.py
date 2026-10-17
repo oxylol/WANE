@@ -189,6 +189,8 @@ def main() -> int:
                     "--script",
                     "tools/ci/run_tests.gd",
                     "--",
+                    # Instrumented scripts run several times slower than real ones.
+                    "--no-time-budget",
                     "--stage",
                     "fixtures",
                     "--stage",

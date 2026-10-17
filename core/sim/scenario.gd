@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Run seed. Every random stream derives from it.
 var seed_value: int = 0
-## Wick id (content/wicks/<id>/).
+## Wick id (content/wicks/<id>/); empty for a simulation with no player (core tests).
 var wick: String = "ash"
 ## Starting room id (content/rooms/...), or "" for no room.
 var room: String = ""

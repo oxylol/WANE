@@ -1,0 +1,89 @@
+fixture tech04_pogo_dash_reset
+doc BUILD.md s5 tech 4 "Pogo-dash reset: pogo resets the air dash, so pogo, dash, pogo again crosses anything"; s5 Pogo "Cadence of about 4 bounces per second at its fastest"; s15 "10-bounce chain ... at 4 bounces/s"
+room test/pit
+spawn 200 300
+frames 330
+input
+  0..16 R
+  17..20 R D attack
+  21..22 R
+  23 R dash
+  24..33 R
+  34..37 R D attack
+  38 R dash
+  39..48 R
+  49..52 R D attack
+  53 R dash
+  54..63 R
+  64..67 R D attack
+  68 R dash
+  69..78 R
+  79..82 R D attack
+  83 R dash
+  84..93 R
+  94..97 R D attack
+  98 R dash
+  99..108 R
+  109..112 R D attack
+  113 R dash
+  114..123 R
+  124..127 R D attack
+  128 R dash
+  129..138 R
+  139..142 R D attack
+  143 R dash
+  144..153 R
+  154..157 R D attack
+  158 R dash
+  159..168 R
+  169..172 R D attack
+  173 R dash
+  174..183 R
+  184..187 R D attack
+  188 R dash
+  189..198 R
+  199..202 R D attack
+  203 R dash
+  204..213 R
+  214..217 R D attack
+  218 R dash
+  219..329 R
+end
+expect
+  # Each bounce restores the air dash; the dash two frames later spends it; the next down-strike
+  # is pressed 13 frames after the bounce. One bounce every 15 frames: 4 a second (the
+  # checklist's cadence; the chain window, frame 6, allows a faster skim: docs/feel_log
+  # 2026-10-17-pogo-chain-window), at full speed.
+  at 21 event.pogo=1 air_dashes=1
+  at 23 event.dash=1 air_dashes=0
+  at 36 event.pogo=1 air_dashes=1
+  at 38 event.dash=1 air_dashes=0
+  at 51 event.pogo=1 air_dashes=1
+  at 53 event.dash=1 air_dashes=0
+  at 66 event.pogo=1 air_dashes=1
+  at 68 event.dash=1 air_dashes=0
+  at 81 event.pogo=1 air_dashes=1
+  at 83 event.dash=1 air_dashes=0
+  at 96 event.pogo=1 air_dashes=1
+  at 98 event.dash=1 air_dashes=0
+  at 111 event.pogo=1 air_dashes=1
+  at 113 event.dash=1 air_dashes=0
+  at 126 event.pogo=1 air_dashes=1
+  at 128 event.dash=1 air_dashes=0
+  at 141 event.pogo=1 air_dashes=1
+  at 143 event.dash=1 air_dashes=0
+  at 156 event.pogo=1 air_dashes=1
+  at 158 event.dash=1 air_dashes=0
+  at 171 event.pogo=1 air_dashes=1
+  at 173 event.dash=1 air_dashes=0
+  at 186 event.pogo=1 air_dashes=1
+  at 188 event.dash=1 air_dashes=0
+  at 201 event.pogo=1 air_dashes=1
+  at 203 event.dash=1 air_dashes=0
+  at 216 event.pogo=1 air_dashes=1
+  at 218 event.dash=1 air_dashes=0
+  never 0..329 event.hazard=1
+  # Across the 3360 u pit (it ends at 3520 u) and onto the floor.
+  mark land 217..329 event.land=1
+  at land x>3530u
+end

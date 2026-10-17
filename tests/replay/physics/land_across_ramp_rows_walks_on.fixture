@@ -1,0 +1,12 @@
+fixture land_across_ramp_rows_walks_on
+doc docs/adr/0008 decision 6 (round 3, H2): the player falls holding right onto a three-row 1:2 ramp (test/review_ramp12) and lands across a tile-row boundary at frame 16. The ride-up reads the slope in the row above too, so the foot point never ends inside it, and the player walks on up the ramp.
+room test/review_ramp12
+spawn 200 240
+frames 40
+input
+  0..39 R
+end
+expect
+  never 17..39 hit_wall!=0
+  at 39 xu>=450
+end

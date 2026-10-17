@@ -1,0 +1,19 @@
+fixture tech11_toss_double_press
+doc BUILD.md s6 Ember Toss "3 f startup"; docs/adr/0010: a press during the throw's startup is used up and does nothing
+room test/flat
+spawn 400 544
+frames 30
+input
+  0 R dash
+  1 R toss
+  2 R
+  3 R toss
+  4..29 R
+end
+expect
+  at 1 event.toss=1
+  # The second press lands in the startup: no teleport the moment the ember appears, and the dash
+  # carries on.
+  never 2..29 event.teleport=1
+  at 4 ember=1 state=dash
+end

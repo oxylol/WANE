@@ -1,0 +1,18 @@
+fixture dash_down_lands_no_lag
+doc BUILD.md s5 Jump "Landing: 0 f of lag"; docs/adr/0010 "a straight-down dash ends on the floor"
+room test/flat
+spawn 400 520
+frames 30
+input
+  # A straight-down air dash meets the floor on its first frame; the stick and a jump work at once.
+  0 D dash
+  2 R jump
+  3..29 R
+end
+expect
+  at 0 event.dash=1 state=dash
+  # The dash reaches the floor on its second frame: it ends there, a landing, and the next frame's
+  # jump and stick act at once.
+  at 1 event.land=1 state=ground dash_frame=0
+  at 2 event.jump=1 vx>0
+end

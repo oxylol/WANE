@@ -1,0 +1,20 @@
+fixture dash_air_once
+doc BUILD.md s5 Dash: "Air dash: 1 per airtime"; Cooldown "resets on landing or wall-cling"
+room test/flat
+frames 80
+input
+  0..5 jump
+  6 dash
+  # A second air dash in the same airtime: pressed during the first dash and again after it, it
+  # never fires, and both presses expire before the landing.
+  14 dash
+  19 dash
+end
+expect
+  at 6 event.dash=1 air_dashes=0 state=dash
+  mark land 7..79 event.land=1
+  never 7..land event.dash=1
+  at land air_dashes=1
+  # The landing restores the air dash, and nothing buffered fires on it.
+  never land..79 event.dash=1
+end

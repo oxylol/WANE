@@ -1,0 +1,15 @@
+fixture hazard_respawn_stays_off_the_lip
+doc walking right off the chasm's edge (480 u) into the spikes, holding right throughout. Safe ground needs the same flat floor under the whole collider and 16 u beyond it each side, so the respawn is never on the ledge's lip: it used to creep to x 489 u (the collider overhanging the edge by 19 u), and the stick still held walked straight back off on the next tick, a respawn-and-fall loop every 23 frames (task 3 review 3, M3).
+room test/chasm
+spawn 300 384
+frames 200
+input
+  0..199 R
+end
+expect
+  mark die1 0..199 event.hazard=1
+  at die1 ground=1 x<=454u
+  never die1..die1+2 state=air
+  mark die2 die1+1..199 event.hazard=1
+  at die2 ground=1 x<=454u
+end

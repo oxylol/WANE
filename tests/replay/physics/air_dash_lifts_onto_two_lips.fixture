@@ -1,0 +1,31 @@
+fixture air_dash_lifts_onto_two_lips
+doc an air dash level at y 192.19 in test/air_lift_two_lips lifts onto a 2 u lip and, 4 u on, meets a second lip 1 u higher on frame 20: it steps up that one too, as a walk would, and goes its whole 20 u (physics review 5, L1).
+room test/air_lift_two_lips
+spawn 93 304
+frames 21
+input
+  0 -
+  1 dash
+  2 -
+  3 -
+  4 -
+  5 -
+  6 -
+  7 dash
+  8 jump
+  9 jump
+  10 jump
+  11 jump dash
+  12 jump
+  13 jump !jump
+  14 jump !jump
+  15 jump
+  16 jump
+  17 jump dash
+  18 jump
+  19 R jump
+  20 R
+end
+expect
+  at 20 x>=20u+x@19
+end

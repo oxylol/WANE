@@ -5,6 +5,7 @@ const GOOD: String = """
 fixture sample   # comment
 doc BUILD.md section 13
 seed 7
+wick none
 frames 20
 input
   0..2 R jump
@@ -57,11 +58,22 @@ func test_runner_passes_good_fixture() -> void:
 	assert_str(result.hash_line).contains(" 20:")
 
 
+func test_a_run_without_playback_checks_the_same_hashes() -> void:
+	# The suite plays back only a sample of fixtures in full (FixtureRunner.PLAYBACK_EVERY); the
+	# rest still record, encode and decode their replay exactly and give the same hash line.
+	var full: FixtureRunner.Result = FixtureRunner.new().run_fixture(Fixture.parse_text(GOOD))
+	var quick: FixtureRunner.Result = FixtureRunner.new().run_fixture(
+		Fixture.parse_text(GOOD), false
+	)
+	assert_bool(quick.passed).is_true()
+	assert_str(quick.hash_line).is_equal(full.hash_line)
+
+
 func test_runner_reports_failures_with_line_and_values() -> void:
 	var text: String = GOOD.replace("at first_attack tick=6", "at first_attack tick=7")
 	var result: FixtureRunner.Result = FixtureRunner.new().run_fixture(Fixture.parse_text(text))
 	assert_bool(result.passed).is_false()
-	assert_str(result.messages[0]).contains("line 15")
+	assert_str(result.messages[0]).contains("line 16")
 	assert_str(result.messages[0]).contains("actual tick=6")
 
 

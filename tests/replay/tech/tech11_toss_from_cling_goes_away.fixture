@@ -1,0 +1,16 @@
+fixture tech11_toss_from_cling_goes_away
+doc Task 3 review round 2, M7: BUILD.md s6 Ember Toss "Throw the ember as a 600 u/s projectile"; docs/adr/0010 "side strikes from a wall go away from it" (the dash too). A toss from a cling, the stick holding toward the wall to keep it, goes away from the wall like the strike and the dash.
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  10 R toss
+  11..39 R
+end
+expect
+  at 9 state=wall facing=-1
+  at 10 event.toss=1 state=wall
+  # The ember should travel away from the wall (left), well clear of the player.
+  at 20 ember=1 ember_x<=700u
+end

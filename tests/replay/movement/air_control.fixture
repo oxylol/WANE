@@ -1,0 +1,16 @@
+fixture air_control
+doc BUILD.md s5 Jump: "Air control: Full acceleration in air, 0 to max in 8 f"
+room test/flat
+frames 40
+input
+  0 jump
+  1..20 R jump
+end
+expect
+  at 0 vx=0
+  # 2304 / 8 = 288 a frame.
+  at 1 vx=288
+  at 7 vx=2016
+  at 8 vx=2304
+  during 8..20 vx=2304
+end

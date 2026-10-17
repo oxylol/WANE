@@ -1,0 +1,31 @@
+fixture tech11_ember_far_wall
+doc BUILD.md s6 Ember Toss "a 600 u/s projectile that stops on walls; press again to teleport to it": an ember stopped on the gorge's far wall face; the teleport fits the body beside it, and a cling and a kick climb out
+room test/gorge
+spawn 400 384
+frames 160
+input
+  0..5 R
+  # A full jump at the near edge, and the throw down-forward at its top.
+  6..27 jump
+  28 D R toss
+  # Back on the near side, teleport once the ember has stopped on the far wall's face (736 u).
+  80 toss
+  # Hold toward the wall: cling, kick, and over the top onto the far ledge.
+  81..99 R
+  100 R jump
+  101..159 R
+end
+expect
+  at 28 event.toss=1
+  mark stopped 31..79 ember=1 ember_x>=735u
+  at stopped ember_y>390u ember_y<560u
+  mark home 30..79 event.land=1
+  at home x<480u
+  # The body fits beside the wall, its centre half a width back from the ember.
+  at 80 event.teleport=1 ember=0 x<=726u x>=724u
+  mark cling 81..99 event.wall_cling=1
+  at 100 event.wall_kick=1
+  mark across 101..159 event.land=1
+  at across y=384u x>736u
+  never 0..159 event.hazard=1
+end

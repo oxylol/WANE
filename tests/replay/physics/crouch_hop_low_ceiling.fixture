@@ -1,0 +1,26 @@
+fixture crouch_hop_low_ceiling
+doc docs/adr/0008 (task 3 review M8): a crouched (28 u) body hopping 4 u under the low gap's ceiling is not stopped by it. The sweep read the ceiling row above the foot point's row as a floor the body had sunk into, and reported a wall in open space. This fixture asserts only the physics (no phantom wall); whether a crouched hop may move sideways is a player rule.
+room test/longgap
+spawn 600 544
+frames 80
+input
+  0..2 D
+  3 D dash
+  4..15 R
+  16 R jump
+  17 R
+  18 R jump
+  19 R
+  20 R jump
+  21 R
+  22 R jump
+  23 R
+  24 R jump
+  25 R
+  26 R jump
+  27..79 R
+end
+expect
+  at 15 crouch=1
+  during 16..27 hit_wall=0
+end

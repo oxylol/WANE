@@ -1,0 +1,18 @@
+fixture tech12_kindle_dash
+doc BUILD.md s5 tech 12 "Kindle-dash (universal with the Kindle Votive): dash through a wax wall or a Snuffed to ignite it"
+room test/wax
+spawn 700 544
+option kindle 1
+frames 40
+input
+  0 R dash
+  1..39 R
+end
+expect
+  # The wax wall (800..832) ignites as the dash reaches it, and the dash carries straight on.
+  mark lit 0..8 event.ignite=1
+  never 0..8 hit_wall=1
+  at 8 x=880u state=dash
+  # Past it, the wall stays open.
+  at 20 x>900u
+end

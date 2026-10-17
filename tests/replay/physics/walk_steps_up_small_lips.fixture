@@ -1,0 +1,19 @@
+fixture walk_steps_up_small_lips
+doc docs/adr/0008 decision 7 (physics review round 3, M1): BUILD.md s5 Ground "Corner correction: Horizontal: 8 u nudge over ledge corners" applies to walking too. Walking right from a solid box laid 1 u below the tile floor beside it steps up onto the tiles instead of stopping dead; an 8 u step is stepped up; a 9 u step is a wall.
+room test/box_steps
+spawn 200 545
+frames 170
+input
+  0..169 R
+end
+expect
+  # The 1 u lip at x 480 (the box's right edge meets the tiles at frame 32).
+  never 0..120 hit_wall!=0
+  mark lip 0..60 yu=544
+  at lip+0 xu>=470 xu<=490
+  # The 8 u step onto box B at x 960.
+  mark step 60..120 yu=536
+  at step+0 xu>=950 xu<=970
+  # Box C, 9 u higher still, stops the walk at its face (frame 121).
+  at 169 xu=1270 hit_wall=1 yu=536
+end

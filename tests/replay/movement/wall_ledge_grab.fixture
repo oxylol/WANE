@@ -1,0 +1,14 @@
+fixture wall_ledge_grab
+doc BUILD.md s5 Wall: "A ledge-grab is automatic within 10 u of a wall's top" (measured from the feet; docs/adr/0008)
+room test/well
+spawn 790 201
+frames 20
+input
+  0..19 R
+end
+expect
+  # Feet 9 u below the wall's top (192): past the plain 8 u corner lift, but holding toward the
+  # wall makes it the 10 u ledge-grab, which lifts the player onto the top at once.
+  at 0 event.ledge_grab=1 nudge_y=-9u y=192u state=ground
+  never 0..19 state=wall
+end

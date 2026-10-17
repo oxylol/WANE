@@ -1,0 +1,20 @@
+fixture dash_cancel_window
+doc BUILD.md s6 Taper: side 3 "Dash from f 5", charged-free strikes; s5 "Dash cancels any attack after frame 4"
+room test/flat
+frames 60
+input
+  # side1 then side2 then side3, each chained on its frame 6.
+  0 attack
+  5 attack
+  10 attack
+  # Dash pressed on side3's frame 2: it waits for frame 5.
+  11 dash
+end
+expect
+  at 5 action=side2 action_frame=1
+  at 10 action=side3 action_frame=1
+  never 11..13 event.dash=1
+  at 14 event.dash=1 action=none
+  # The finisher ends the chain: the next strike is side 1 again.
+  at 14 chain=side1
+end

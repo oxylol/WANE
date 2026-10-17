@@ -9,7 +9,9 @@ extends SceneTree
 ##   content   every resource under content/ loads and passes its schema's validate()
 ##   fixtures  every replay fixture under tests/replay/ passes (BUILD.md section 13)
 ##   unit      every gdUnit4 suite under tests/unit/ passes
-## The process exits 1 if any stage fails and 2 on a bad command line.
+## --no-time-budget lifts the fixture suite's 10 s budget, for runs that are slow on purpose (the
+## instrumented copy tools/ci/gd_coverage.py runs). The process exits 1 if any stage fails and 2
+## on a bad command line.
 
 const SKIP_DIRS: Array[String] = ["res://.godot", "res://addons/gdUnit4", "res://reports"]
 const CONTENT_ROOT: String = "res://content"
@@ -23,6 +25,7 @@ const UNIT_MAX_ERRORS: int = 50
 const UNIT_TIME_LIMIT_SECONDS: int = 600
 
 var _errors: ErrorCounter = ErrorCounter.new()
+var _time_budget: bool = true
 
 
 # The stages run from _initialize(), not _init(): only then is this script the engine's main
@@ -79,8 +82,14 @@ func _requested_stages() -> Array[String]:
 	var picked: Array[String] = []
 	var i: int = 0
 	while i < args.size():
+		if args[i] == "--no-time-budget":
+			_time_budget = false
+			i += 1
+			continue
 		if args[i] != "--stage" or i + 1 >= args.size():
-			printerr("usage: run_tests.gd [-- --stage <%s>]..." % "|".join(ALL_STAGES))
+			printerr(
+				"usage: run_tests.gd [-- [--no-time-budget] --stage <%s>...]" % "|".join(ALL_STAGES)
+			)
 			return []
 		var stage: String = args[i + 1]
 		if not ALL_STAGES.has(stage):
@@ -146,7 +155,21 @@ func _stage_content() -> bool:
 		for message: String in errors:
 			printerr("  %s: %s" % [path, message])
 		problems += errors.size()
-	print("validated %d content resources, %d problems" % [paths.size(), problems])
+	# Rooms are text, not resources: their schema is the room parser and the geometry rules
+	# (docs/adr/0009).
+	var rooms: Array[String] = FileWalk.find(RoomData.CONTENT_ROOT, [".room"])
+	for path: String in rooms:
+		var room_id: String = path.trim_prefix(RoomData.CONTENT_ROOT).trim_suffix(".room")
+		var room: RoomData = RoomData.load_id(room_id)
+		for message: String in room.errors:
+			printerr("  %s: %s" % [path, message])
+		problems += room.errors.size()
+	print(
+		(
+			"validated %d content resources and %d rooms, %d problems"
+			% [paths.size(), rooms.size(), problems]
+		)
+	)
 	return problems == 0
 
 
@@ -157,6 +180,8 @@ func _stage_fixtures() -> bool:
 		return true
 	var runner_script: GDScript = load(runner_path) as GDScript
 	var runner: Object = runner_script.new()
+	if not _time_budget:
+		runner.set("budget_msec", 0)
 	var ok: bool = runner.call("run_all")
 	return ok
 

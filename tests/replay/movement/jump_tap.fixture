@@ -1,0 +1,21 @@
+fixture jump_tap
+doc BUILD.md s5 Jump: "Min jump (tap)" (tuned: 4.5x release gravity after 4 f, docs/feel_log/2026-10-17-jump-release.md); s15 "Tap jump and full jump differ by at least 3 tiles"
+room test/flat
+frames 50
+input
+  0 jump
+end
+expect
+  at 0 vy=-3840
+  # Frames 1 to 4 rise at normal gravity even though the button is already up.
+  at 3 vy=-3327 jump_cut=0
+  # From frame 5 the release gravity (171 x 4.5 = 770 a frame) takes over until the apex.
+  at 4 vy=-2557 jump_cut=1
+  at 5 vy=-1787
+  mark apex 0..49 vy>=0
+  # The tap peaks at 2.4 tiles (77.9 u), 98 u (3.07 tiles) under the full jump's 176 u, and slows
+  # over five frames rather than stopping dead.
+  at apex-1 y>=466u y<=467u
+  at 7 vy<0
+  at 8 vy>=0
+end

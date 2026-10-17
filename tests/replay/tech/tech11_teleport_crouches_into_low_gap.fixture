@@ -1,0 +1,16 @@
+fixture tech11_teleport_crouches_into_low_gap
+doc Task 3 review round 2, L13: BUILD.md s6 Ember Toss "press again to teleport to it"; s5 Ground "Crouch: Hitbox 44 to 28 tall"; docs/adr/0010 "A press while the ember is out moves the body to the nearest spot around the ember where it fits, within 24 u". An ember flying through a 32 u tall gap: the standing body does not fit there, so the teleport tries a crouched one, which does, and the player arrives crouched in the gap.
+room test/lowgap
+spawn 600 544
+frames 40
+input
+  0 R toss
+  # The ember is inside the gap (640..800) on frames 6 to 21.
+  12 toss
+  13..39 -
+end
+expect
+  at 11 ember=1 ember_x>650u ember_x<790u
+  # The teleport should happen (crouched into the gap), or at least not swallow the press.
+  at 12 event.teleport=1 crouch=1 height=28
+end

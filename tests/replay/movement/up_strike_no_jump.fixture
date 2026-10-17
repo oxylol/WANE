@@ -1,0 +1,13 @@
+fixture up_strike_no_jump
+doc BUILD.md s6 Taper Up row: cancels "Dash from f 4, air attack any frame" (no jump cancel)
+room test/flat
+frames 30
+input
+  0 U attack
+  2 jump
+end
+expect
+  at 0 action=up
+  # The press waits in its 8-frame buffer; the up-strike is 16 frames long, so it expires.
+  never 0..29 event.jump=1
+end

@@ -1,0 +1,19 @@
+fixture tech12_kindle_dash_resets_air_jump
+doc BUILD.md s5 Jump "Double jump ... resets on ... dash-through"; tech 12 kindle-dash
+room test/wax
+spawn 660 544
+option kindle 1
+frames 40
+input
+  0..3 jump
+  8 jump
+  12 R dash
+  13..39 R
+end
+expect
+  at 8 event.air_jump=1 air_jumps=0
+  at 12 event.dash=1
+  # Igniting the wax wall on the way through gives the air jump back.
+  mark lit 12..21 event.ignite=1
+  at lit air_jumps=1
+end

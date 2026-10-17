@@ -4,20 +4,32 @@ extends RefCounted
 ## phase are replay fixtures in tests/replay/ ... They run headless in under 10 seconds total").
 ##
 ## For each fixture: step the simulation through the input script, check every expectation, then
-## prove determinism twice: the recorded replay must encode, decode and reproduce every state hash
-## bit-for-bit, and the hashes must match the committed golden values in [constant GOLDEN_PATH],
-## which CI checks on Linux, Windows and macOS (ADR-0006).
+## prove determinism twice: the recorded replay must survive encoding exactly (its inputs,
+## scenario, version, content and every recorded state hash), and the hashes must match the
+## committed golden values in [constant GOLDEN_PATH], which CI checks on Linux, Windows and macOS
+## (ADR-0006). The replay system's own fixtures (under tests/replay/core/) and every
+## [constant PLAYBACK_EVERY]th fixture in path order are also played back in full through
+## [ReplayPlayer] in a fresh simulation.
 ##
 ## An expectation that cannot be evaluated (a value reference outside the run, a word compared
 ## with a number, a word the key never takes) fails; nothing passes vacuously.
 
 const FIXTURE_ROOT: String = "res://tests/replay"
 const GOLDEN_PATH: String = "res://tests/replay/golden_hashes.txt"
+const CORE_FIXTURES: String = "res://tests/replay/core/"
+## One fixture in this many (in path order) is played back in full through [ReplayPlayer]. Every
+## fixture's replay is checked to decode exactly, and its hashes against the golden file: with the
+## same inputs a deterministic simulation reproduces them, so a full playback of each adds
+## nothing but its cost (half the suite's time). The sample still catches anything the run does
+## that its replay cannot reproduce, such as a probe with a side effect.
+const PLAYBACK_EVERY: int = 4
 const VERSION_PREFIX: String = "# sim_version "
 ## BUILD.md section 13 budget for the whole fixture suite.
 const SUITE_BUDGET_MSEC: int = 10000
 
 var results: Array[Result] = []
+## The suite's time limit in milliseconds; 0 for none (an instrumented coverage run).
+var budget_msec: int = SUITE_BUDGET_MSEC
 
 
 ## Outcome of one fixture.
@@ -46,9 +58,12 @@ func run_all(bless: bool = false) -> bool:
 	var golden_version: int = load_golden_version()
 	var names: Dictionary[String, String] = {}
 	var failed: int = 0
-	for path: String in FileWalk.find(FIXTURE_ROOT, [".fixture"]):
+	var paths: Array[String] = FileWalk.find(FIXTURE_ROOT, [".fixture"])
+	for i: int in range(paths.size()):
+		var path: String = paths[i]
 		var fx: Fixture = Fixture.parse_file(path)
-		var result: Result = run_fixture(fx)
+		var play_back: bool = path.begins_with(CORE_FIXTURES) or i % PLAYBACK_EVERY == 0
+		var result: Result = run_fixture(fx, play_back)
 		if names.has(result.name):
 			result.fail("duplicate fixture name (also %s)" % names[result.name])
 		names[result.name] = path
@@ -70,16 +85,17 @@ func run_all(bless: bool = false) -> bool:
 				failed += 1
 	var elapsed: int = Time.get_ticks_msec() - started
 	print("%d fixtures, %d failed, %d ms" % [results.size(), failed, elapsed])
-	if elapsed > SUITE_BUDGET_MSEC:
-		printerr("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, SUITE_BUDGET_MSEC])
+	if budget_msec > 0 and elapsed > budget_msec:
+		printerr("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
 		failed += 1
 	if bless and failed == 0:
 		return _bless(golden, golden_version)
 	return failed == 0
 
 
-## Runs one parsed fixture and checks its expectations and replay round-trip.
-func run_fixture(fx: Fixture) -> Result:
+## Runs one parsed fixture and checks its expectations and replay round-trip; with
+## [param play_back] the replay is also played back in full.
+func run_fixture(fx: Fixture, play_back: bool = true) -> Result:
 	var result := Result.new()
 	result.name = fx.name
 	result.path = fx.path
@@ -107,7 +123,7 @@ func run_fixture(fx: Fixture) -> Result:
 	if result.passed:
 		_evaluate(fx, snaps, sim, result)
 	var replay: Replay = recorder.finish(sim)
-	_check_round_trip(replay, result)
+	_check_round_trip(replay, result, play_back)
 	for e: String in sim.load_errors:
 		result.fail("load: %s" % e)
 	result.hash_line = _hash_line(replay, sim)
@@ -266,13 +282,22 @@ func _compare(actual: Variant, op: String, expected: Variant) -> bool:
 	return result
 
 
-func _check_round_trip(replay: Replay, result: Result) -> void:
+func _check_round_trip(replay: Replay, result: Result, play_back: bool) -> void:
 	var decoded: Replay = Replay.decode(replay.encode())
 	if decoded == null:
 		result.fail("replay did not decode")
 		return
-	if decoded.frames != replay.frames or not decoded.scenario.equals(replay.scenario):
+	if (
+		decoded.frames != replay.frames
+		or not decoded.scenario.equals(replay.scenario)
+		or decoded.sim_version != replay.sim_version
+		or decoded.content_hash != replay.content_hash
+		or decoded.hash_ticks != replay.hash_ticks
+		or decoded.hash_values != replay.hash_values
+	):
 		result.fail("replay round trip changed the recording")
+		return
+	if not play_back:
 		return
 	var player := ReplayPlayer.new(decoded)
 	if not player.run_to_end():

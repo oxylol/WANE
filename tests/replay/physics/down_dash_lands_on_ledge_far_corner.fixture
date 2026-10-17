@@ -1,0 +1,14 @@
+fixture down_dash_lands_on_ledge_far_corner
+doc stand at x 562 on test/ledge448 (top y 448, right edge x 608), tap jump, air dash down-right on tick 15. On tick 18 the dash's straight path meets the ledge top at x 608.12 with 9.88 u of the box over the ledge: it touches down there (the air jump and dash come back), as a fall on that path does, rather than moving across first and passing through the corner (BUILD.md s15 "Landing on a 1-pixel ledge edge lands"; physics review 5, H2).
+room test/ledge448
+spawn 562 448
+frames 24
+input
+  0 jump
+  1..14 -
+  15 D R dash
+  16..23 D R
+end
+expect
+  at 18 event.land=1
+end

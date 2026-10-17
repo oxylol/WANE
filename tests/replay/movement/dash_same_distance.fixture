@@ -1,0 +1,16 @@
+fixture dash_same_distance
+doc BUILD.md s5 Dash: "Distance 180 u in 9 f"; s15 "Dash from standstill and dash at full run reach the same distance"
+room test/flat
+frames 50
+input
+  0..9 R
+  10 R dash
+end
+expect
+  at 9 vx=2304
+  at 10 dash_frame=1 vx=5120
+  # The same 180 u plus 30 u of carry as the standstill dash in dash_distance, whatever the run
+  # speed going in.
+  at 18 x=180u+x@9
+  at 21 x=210u+x@9
+end

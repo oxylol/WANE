@@ -1,0 +1,15 @@
+fixture dash_cancels_down_strike
+doc BUILD.md s5 Dash "Dash cancels any attack after frame 4 of that attack" applied to the down-strike, whose Taper row lists only "Anything on bounce" (docs/adr/0010)
+room test/flat
+spawn 400 300
+frames 30
+input
+  0 D attack
+  # A mistimed down-strike: the dash pressed on its frame 2 waits for frame 4 and takes over.
+  1 R dash
+end
+expect
+  at 0 action=down action_frame=1
+  never 1..2 event.dash=1
+  at 3 event.dash=1 action=none state=dash vx=5120 vy=0
+end

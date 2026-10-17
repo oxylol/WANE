@@ -1,0 +1,18 @@
+fixture wall_cling_resets
+doc BUILD.md s5 Jump "Double jump ... resets on wall-cling"; s5 Dash "Cooldown ... resets on landing or wall-cling"
+room test/shaft
+spawn 700 864
+frames 60
+input
+  0..3 jump
+  8 jump
+  14 R dash
+  15..59 R
+end
+expect
+  at 8 event.air_jump=1 air_jumps=0
+  at 14 event.dash=1 air_dashes=0
+  # The dash meets the wall and clings at once, which gives both back.
+  mark cling 15..59 event.wall_cling=1
+  at cling air_jumps=1 air_dashes=1
+end

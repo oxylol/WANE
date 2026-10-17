@@ -1,0 +1,15 @@
+fixture dash_jump_keeps_speed
+doc BUILD.md s5 Dash: "Dash-jump: Jump during frames 5 to 9 keeps 100% dash speed horizontally"; s15 "Dash-jump keeps 100% of dash speed"
+room test/flat
+frames 50
+input
+  0 R dash
+  # Jump pressed on dash frame 2 waits for frame 5; held for the full jump.
+  1..39 R jump
+end
+expect
+  at 3 state=dash dash_frame=4
+  at 4 event.jump=1 vx=5120 vy=-3840 state=air
+  # The dash speed holds all the way, because the stick holds forward.
+  during 4..30 vx=5120
+end

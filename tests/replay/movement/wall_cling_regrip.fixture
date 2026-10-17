@@ -1,0 +1,19 @@
+fixture wall_cling_regrip
+doc BUILD.md s5 Wall-cling "slide at 180 u/s for up to 90 f, then normal fall": letting go for a frame and gripping again does not restart the 90 frames
+room test/shaft
+spawn 760 100
+frames 200
+input
+  0..80 R
+  81 -
+  82..199 R
+end
+expect
+  mark cling 0..20 event.wall_cling=1
+  at 81 state=air
+  # The re-grip continues the slide: 91 frames on the wall in all (the cling frame and 90 of
+  # sliding), the same as one unbroken cling, then the fall.
+  at 82 event.wall_cling=1 wall_frames=75
+  at cling+91 state=wall
+  never cling+92..199 state=wall
+end

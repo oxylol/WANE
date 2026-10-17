@@ -1,0 +1,15 @@
+fixture wall_coyote_expires
+doc docs/adr/0010 wall coyote time, its control: 7 frames after pushing away, the press is the air jump
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  10..16 L
+  17..24 L jump
+  25..39 L
+end
+expect
+  at 9 state=wall
+  at 17 event.wall_jump=0 event.air_jump=1
+end

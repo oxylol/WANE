@@ -1,0 +1,21 @@
+fixture wall_spent_still_kicks
+doc Task 3 review round 2 (behaviour for the director): (Passes: documents behaviour, a director question.) BUILD.md s5 Wall-cling "slide at 180 u/s for up to 90 f, then normal fall"; docs/adr/0010 "then lets go and cannot cling again until a landing, a wall-jump or a pogo". Observation: once spent, the 3 u reach rule still kicks off the same wall at every apex, so the spent wall can be climbed indefinitely without a cling.
+room test/shaft
+spawn 760 100
+frames 260
+input
+  0..99 R
+  100 R jump
+  101..123 R
+  124 R jump
+  125..147 R
+  149..259 R
+end
+expect
+  mark cling 0..20 event.wall_cling=1
+  at cling+91 state=air
+  at 100 event.wall_kick=1 state=air
+  at 124 event.wall_kick=1
+  never cling+91..259 state=wall
+  never cling+91..140 event.air_jump=1
+end

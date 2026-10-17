@@ -11,7 +11,10 @@ const HASH_INTERVAL: int = 60
 ## Simulation version. Bump it in the same commit as any change that moves a golden hash
 ## (tools/replay/bless.gd refuses to re-bless otherwise), so old replays report "recorded by an
 ## older build" instead of a desync.
-const VERSION: int = 1
+const VERSION: int = 3
+
+## Where a Wick's content lives: <root><wick>/movement.tres, kit.tres, taper.tres.
+const WICK_ROOT: String = "res://content/wicks/"
 
 var scenario: Scenario
 ## Ticks completed. The input applied by the n-th call to [method step] is input frame n - 1,
@@ -23,9 +26,14 @@ var input: InputRing
 ## Ticks and values of every recorded state hash, in order.
 var hash_ticks: PackedInt32Array = PackedInt32Array()
 var hash_values: PackedInt64Array = PackedInt64Array()
-## Fingerprint of the content this simulation was built from ([ContentHash]); rooms and Wicks
-## join it as they arrive (Phase 1 tasks 2 and 3).
+## Fingerprint of the content this simulation was built from: the room and the Wick's tuning
+## ([ContentHash]).
 var content_hash: int = 0
+## The room's collision, the player, and this tick's events.
+var room: RoomData
+var world: CollisionWorld
+var player: Player
+var events: SimEvents = SimEvents.new()
 ## Problems found while building the simulation (a missing room, invalid content). A simulation
 ## with load errors still runs, but tools must treat it as a failure.
 var load_errors: PackedStringArray = PackedStringArray()
@@ -35,12 +43,63 @@ func _init(p_scenario: Scenario) -> void:
 	scenario = p_scenario.copy()
 	rng = RngStreams.new(scenario.seed_value)
 	input = InputRing.new()
-	content_hash = StateHasher.new().value()
+	room = RoomData.new()
+	if scenario.room != "":
+		room = RoomData.load_id(scenario.room)
+		load_errors.append_array(room.errors)
+	world = room.build_world()
+	var content := StateHasher.new()
+	ContentHash.add_room(content, room)
+	var tuning: WorldTuning = _load_content(WorldTuning.PATH) as WorldTuning
+	if tuning == null:
+		load_errors.append("missing world tuning at %s" % WorldTuning.PATH)
+	else:
+		tuning.apply(world)
+		ContentHash.add_resource(content, tuning)
+	player = _build_player(content)
+	content_hash = content.value()
+	if player != null:
+		var sx: int = scenario.spawn_x if scenario.spawn_x >= 0 else room.spawn_x_u
+		var sy: int = scenario.spawn_y if scenario.spawn_y >= 0 else room.spawn_y_u
+		player.spawn(Fx.units(sx), Fx.units(sy))
+		player.kindle_dash = scenario.option("kindle") != 0
+
+
+func _build_player(content: StateHasher) -> Player:
+	if scenario.wick == "":
+		return null
+	var dir: String = WICK_ROOT + scenario.wick + "/"
+	var movement: MovementTuning = _load_content(dir + "movement.tres") as MovementTuning
+	var kit_tuning: KitTuning = _load_content(dir + "kit.tres") as KitTuning
+	var taper: AttackSet = _load_content(dir + "taper.tres") as AttackSet
+	for res: Resource in [movement, kit_tuning, taper]:
+		ContentHash.add_resource(content, res)
+	if movement == null or kit_tuning == null or taper == null:
+		load_errors.append("wick '%s' has incomplete content in %s" % [scenario.wick, dir])
+		return null
+	return Player.new(movement.compile(), kit_tuning.compile(), taper, world, events)
+
+
+func _load_content(path: String) -> Resource:
+	if not ResourceLoader.exists(path):
+		return null
+	var res: Resource = load(path)
+	if res != null and res.has_method("validate"):
+		var problems: PackedStringArray = res.call("validate")
+		for problem: String in problems:
+			load_errors.append("%s: %s" % [path, problem])
+	return res
 
 
 ## Advances the world by one tick with [param frame] as player one's input.
 func step(frame: InputFrame) -> void:
-	input.push(frame)
+	events.clear()
+	if player != null and player.freeze > 0:
+		input.merge(frame)
+	else:
+		input.push(frame)
+	if player != null:
+		player.step(input)
 	tick += 1
 	if tick % HASH_INTERVAL == 0:
 		hash_ticks.append(tick)
@@ -54,6 +113,12 @@ func state_hash() -> int:
 	scenario.hash_into(h)
 	rng.hash_into(h)
 	input.hash_into(h)
+	# The tile grid never changes during a run: it is content, hashed once into the content
+	# fingerprint, not here.
+	for solid: SolidBox in world.solids:
+		solid.hash_into(h)
+	if player != null:
+		player.hash_into(h)
 	return h.value()
 
 
@@ -76,13 +141,17 @@ func probe(key: String) -> Variant:
 			value = input.stick_y()
 		_:
 			value = _probe_input(key)
+			if value == null and player != null:
+				value = PlayerProbe.read(player, events, key)
 	return value
 
 
 ## The names a String-valued probe key can take (for fixture validation); empty for keys whose
 ## values are integers.
-func probe_words(_key: String) -> PackedStringArray:
-	return PackedStringArray()
+func probe_words(key: String) -> PackedStringArray:
+	if player == null:
+		return PackedStringArray()
+	return PlayerProbe.words(player, key)
 
 
 func _probe_input(key: String) -> Variant:

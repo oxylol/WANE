@@ -1,0 +1,58 @@
+fixture air_dash_rides_ramp_onto_crest_lip
+doc an air dash level along a ramp in test/air_lift_crest meets a solid box 8 u proud of its crest on frame 47: the lift counts from the floor at the box's leading edge after the ride up the slope (9.98 u from the feet before it), so the dash goes its whole 20 u (physics review 5, L1).
+room test/air_lift_crest
+spawn 600 96
+frames 48
+input
+  0 -
+  1 -
+  2 -
+  3 jump dash
+  4 jump
+  5 jump
+  6 jump
+  7 jump
+  8 jump
+  9 jump dash
+  10 jump dash !dash
+  11 jump
+  12 jump !jump
+  13 jump
+  14 jump !jump
+  15 jump !jump
+  16 jump !jump dash
+  17 jump
+  18 jump
+  19 jump
+  20 jump
+  21 jump
+  22 jump
+  23 jump
+  24 jump
+  25 jump
+  26 jump
+  27 jump
+  28 jump
+  29 jump
+  30 jump
+  31 jump
+  32 jump !jump
+  33 jump
+  34 jump
+  35 -
+  36 -
+  37 -
+  38 -
+  39 -
+  40 dash
+  41 -
+  42 L dash
+  43 L
+  44 L
+  45 L
+  46 L
+  47 L
+end
+expect
+  at 47 x>=20u+x@46
+end

@@ -1,0 +1,26 @@
+fixture dash_air_landing_restores
+doc BUILD.md s5 Jump "Double jump: 1 per airtime"; s5 Dash "Air dash: 1 per airtime"; docs/adr/0010 "any way of arriving on the ground is a landing"
+room test/flat
+spawn 400 500
+frames 70
+input
+  # Spend the air jump, then dash down-forward into the floor: the dash runs on along it.
+  2 jump
+  6 D R dash
+  7..14 R
+  # On the ground after the dash: a ground jump, then the air jump and the air dash are back.
+  30..33 jump
+  40 jump
+  46 R dash
+end
+expect
+  at 2 event.air_jump=1 air_jumps=0
+  at 6 event.dash=1 air_dashes=0
+  # The frame the dash touches the floor is a landing: the event, and both resources back, while
+  # the dash carries on along the floor.
+  mark touch 7..14 event.land=1
+  at touch state=dash ground=1 air_jumps=1 air_dashes=1
+  at 30 event.jump=1
+  at 40 event.air_jump=1
+  at 46 event.dash=1
+end

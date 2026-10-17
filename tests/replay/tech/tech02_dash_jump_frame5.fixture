@@ -1,0 +1,27 @@
+fixture tech02_dash_jump_frame5
+doc BUILD.md s5 tech 2 "Dash-jump: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide"; s5 Dash "Jump during frames 5 to 9 keeps 100% dash speed"
+room test/chasm
+spawn 380 384
+frames 120
+input
+  0 R dash
+  1..3 R
+  # Dash frame 5, the first frame of the window, right at the ledge's edge.
+  4..45 R jump
+  46 R
+  # The air jump on the way down carries the dash speed on. From frame 5, right at the edge,
+  # the dash-jump and its air jump alone only just clear the 1664 u chasm: only an air jump on
+  # tick 47 or 48 lands (with the air dash as well it is comfortable:
+  # tech02_dash_jump_frame5_air_dash).
+  47..119 R jump
+end
+expect
+  at 4 event.jump=1 vx=5120 x=480u
+  at 47 event.air_jump=1
+  during 4..47 vx=5120
+  # The far ledge starts at 2144 u: 1664 u of chasm, wider than anything without a dash-jump
+  # reaches, the Ember Toss included (tech02_control_carry_toss, tech02_control_all_resources).
+  mark land 48..119 event.land=1
+  at land y=384u x>2154u
+  never 0..119 event.hazard=1
+end

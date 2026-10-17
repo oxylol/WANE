@@ -1,0 +1,18 @@
+fixture pogo_chain_window_early_press
+doc BUILD.md s5 Pogo "Chain window: next down-strike can start on frame 6 after a bounce"; s5 feel rules "Buffers are generous (8 f)"
+room test/spikes
+spawn 1216 300
+frames 70
+input
+  0..11 D
+  12..13 D attack
+  14..16 D
+  # Pressed on bounce frame 4 (the bounce, frame 14, is frame 1): kept, and it starts on frame 6.
+  17 D attack
+  18..69 D
+end
+expect
+  at 14 event.pogo=1 since_bounce=1
+  at 17 since_bounce=4 event.attack=0
+  at 19 event.attack=1 action=down since_bounce=6
+end

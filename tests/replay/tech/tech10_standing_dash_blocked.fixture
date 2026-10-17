@@ -1,0 +1,14 @@
+fixture tech10_standing_dash_blocked
+doc Control for tech 10: a standing dash into the same 32 u gap stops at the low ceiling
+room test/lowgap
+spawn 600 544
+frames 30
+input
+  0 R dash
+  1..29 R
+end
+expect
+  at 0 event.dash=1 height=44
+  # The 44-tall box meets the ceiling's face at 640: centre 630.
+  at 9 x=630u hit_wall=1
+end

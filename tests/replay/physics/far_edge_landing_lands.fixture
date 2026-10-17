@@ -1,0 +1,15 @@
+fixture far_edge_landing_lands
+doc Physics review 4, H3: run right along a ledge (test/ledge448, top y 448, right edge x 608) and hop. On tick 25 the box starts 0.11 u above the ledge with 8.62 u of its width over it; moving across before falling (the air step's x-then-y) carried it past the edge before the fall reached the ledge. Now it lands where its straight path meets the ledge, then walks the rest of the step off the edge with coyote time (CollisionWorld.landing_contact). BUILD.md s15 "Landing on a 1-pixel ledge edge lands"
+room test/ledge448
+spawn 408 448
+frames 40
+input
+  0..3 R
+  4..8 R jump
+  9..39 R
+end
+expect
+  at 24 state=air y<448u
+  at 25 event.land=1 state=air x>608u
+  never 0..24 event.land=1
+end

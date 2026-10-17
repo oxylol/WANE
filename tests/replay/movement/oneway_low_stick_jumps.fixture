@@ -1,0 +1,15 @@
+fixture oneway_low_stick_jumps
+doc BUILD.md s5 Ground "Crouch: drops through one-way platforms on down+jump"; docs/adr/0010: drop-through needs the stick straight down, like crouch
+room test/oneway
+spawn 300 384
+frames 30
+input
+  # Running along a one-way with the analog stick a little low (about 30 degrees).
+  0..9 x=120 y=70
+  10..20 x=120 y=70 jump
+  21..29 x=120 y=70
+end
+expect
+  at 9 state=ground crouch=0 vx>0
+  at 10 event.jump=1 event.drop_through=0
+end

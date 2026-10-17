@@ -1,0 +1,11 @@
+fixture walk_up_ramp45_onto_lip_past_crest
+doc Physics review 4: run right up the four-row 45-degree ramp of test/ramp45_lip_past_crest (test/review_ramp45 with a lip) onto its plateau, where a 5 u solid lip lies 4 u past the crest (x 388): the walk steps onto it and runs on.
+room test/ramp45_lip_past_crest
+spawn 236 384
+frames 60
+input
+  0..59 R
+end
+expect
+  at 59 xu>=500
+end

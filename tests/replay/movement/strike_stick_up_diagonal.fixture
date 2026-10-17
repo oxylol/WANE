@@ -1,0 +1,17 @@
+fixture strike_stick_up_diagonal
+doc a strike with the stick just past the up diagonal (x=80 y=-81) and with a d-pad's up-right (both axes full): the vertical axis is at least as long, so both are the up-strike (4 equal sectors, the diagonal itself going vertical).
+room test/flat
+spawn 200 544
+frames 40
+input
+  0..9 R
+  10 x=80 y=-81 attack
+  11..19 x=80 y=-81
+  20..29 -
+  30 x=127 y=-127 attack
+  31..39 x=127 y=-127
+end
+expect
+  at 10 action=up
+  at 30 action=up
+end

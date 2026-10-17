@@ -1,5 +1,6 @@
 fixture subframe_tap_is_kept
 doc BUILD.md s1 pillar 1: "Every frame of input is honored"; s13 Layers, Input; ADR-0004 (a press and release between two ticks still reaches the core)
+wick none
 seed 1
 frames 12
 

@@ -22,6 +22,7 @@ expect
 end
 ```
 
+- `wick none` runs the core without a player (for fixtures about input and the loop alone); the default is Ash.
 - Frames not listed in `input` are neutral. `!jump` is a press and release within one tick; `jump !jump` is a re-press while held (released and pressed again between two ticks).
 - "Frame F" is the state after the simulation consumed input frame F.
 - `mark` names the first frame in a range where every condition holds; later lines use the name with an optional `+n` or `-n`.

@@ -1,0 +1,35 @@
+fixture tech02_respawn_does_not_keep_the_ember
+doc tech 2's chasm (1664 u) with no dash-jump of any kind: a ground dash flat past the edge, a carry-frame jump, the air jump, the air dash at its top and the ember thrown at the end of the dash fall short into the spikes. The respawn puts the ember out, so the teleport press after it goes nowhere and Ash never reaches the far ledge (task 3 review 3, H1: the ember used to outlive the respawn, and the teleport back out to it crossed the chasm).
+room test/chasm
+spawn 409 384
+frames 200
+input
+  0 R dash
+  1..8 R
+  9..28 R jump
+  29..30 R
+  31..49 R jump
+  50 R dash
+  51..57 R
+  58 R toss
+  59..99 R
+  100 R toss
+  101..117 R
+  118..137 R jump
+  138 R jump dash
+  139..199 R
+end
+expect
+  # No dash-jump anywhere: no jump or air jump while a dash runs.
+  never 0..199 event.jump=1 dash_frame>0
+  never 0..199 event.air_jump=1 dash_frame>0
+  never 0..199 event.jump=1 state=dash
+  at 9 event.jump=1 vx=2560
+  at 31 event.air_jump=1
+  at 50 event.dash=1
+  at 58 event.toss=1
+  mark die 59..99 event.hazard=1
+  at die ember=0
+  never die..199 event.teleport=1
+  never 0..199 x>2144u ground=1
+end

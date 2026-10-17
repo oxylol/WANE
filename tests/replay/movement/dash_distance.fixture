@@ -1,0 +1,17 @@
+fixture dash_distance
+doc BUILD.md s5 Dash: "Distance 180 u in 9 f (20 u/f), then 3 f of 50% speed carry-over"
+room test/flat
+frames 30
+input
+  2 dash
+end
+expect
+  at 1 x=200u
+  # 20 u/f is 5120 sub-pixels; nine frames make 180 u.
+  during 2..10 state=dash vx=5120
+  at 2 dash_frame=1 x=220u
+  at 10 dash_frame=9 x=380u
+  # Carry-over: three frames at 10 u/f.
+  during 11..13 carry>0 vx=2560 state=ground
+  at 13 x=410u
+end

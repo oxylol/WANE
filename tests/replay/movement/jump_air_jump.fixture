@@ -1,0 +1,18 @@
+fixture jump_air_jump
+doc BUILD.md s5 Jump: "Double jump: 1 per airtime, 85% of ground jump velocity" (Ash has it)
+room test/flat
+frames 80
+input
+  0..5 jump
+  12..30 jump
+  40 jump
+end
+expect
+  at 0 air_jumps=1
+  # 85% of 3840 is 3264.
+  at 12 event.air_jump=1 vy=-3264 air_jumps=0
+  # A second air jump in the same airtime does nothing.
+  at 40 event.air_jump=0 event.jump=0
+  mark land 13..79 event.land=1
+  at land air_jumps=1
+end

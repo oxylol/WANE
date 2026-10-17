@@ -1,0 +1,20 @@
+fixture landing_clamps_dash_speed
+doc BUILD.md s5 Dash "Dash-jump: the fastest horizontal movement in the game"; docs/adr/0010 "the ground slows back to run speed": a landing loses speed above run speed before a buffered jump fires, so bunny-hopping does not keep a dash-jump's speed
+room test/wide
+spawn 100 544
+frames 200
+input
+  0 R dash
+  1..3 R
+  4..8 R jump
+  9..199 R !jump
+end
+expect
+  at 4 event.jump=1 vx=5120
+  # The dash-jump keeps 20 u/f through its whole airtime.
+  during 5..30 vx=5120
+  # The landing frame drops to run speed (9 u/f), and the buffered jump leaves at run speed.
+  mark land 30..60 event.land=1
+  at land vx=2304 event.jump=1
+  at 150 vx=2304
+end

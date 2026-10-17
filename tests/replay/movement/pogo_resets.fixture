@@ -1,0 +1,18 @@
+fixture pogo_resets
+doc BUILD.md s5 Pogo: "Resets: Double jump, air dash"; s5 Dash "Air dash ... reset by pogo"
+room test/spikes
+spawn 800 200
+frames 60
+input
+  2 jump
+  5 dash
+  # The down-strike, timed so its pogo frames (3 to 9) meet the spikes.
+  34..59 D attack
+end
+expect
+  at 2 event.air_jump=1 air_jumps=0
+  at 5 event.dash=1 air_dashes=0
+  mark bounce 34..59 event.pogo=1
+  at bounce air_jumps=1 air_dashes=1
+  never 0..59 event.hazard=1
+end

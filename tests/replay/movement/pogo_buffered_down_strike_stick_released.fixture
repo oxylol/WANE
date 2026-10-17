@@ -1,0 +1,18 @@
+fixture pogo_buffered_down_strike_stick_released
+doc Task 3 review round 2, H2: BUILD.md s5 Pogo "Chain window: Next down-strike can start on frame 6 after a bounce"; s5 feel rules "Buffers are generous (8 f) and the buffer always stores the latest input". As pogo_chain_window_early_press, but the down-strike is a tap of down and attack together on bounce frame 3, then the stick is let go. The press waits for the frame-6 rule as the down-strike it was pressed as and fires there, and the second pogo bounces off the bell.
+room test/spikes
+spawn 1216 300
+frames 70
+input
+  0..11 D
+  12..13 D attack
+  14..15 -
+  # Bounce frame 3: down and attack together, for one frame.
+  16 D attack
+  17..69 -
+end
+expect
+  at 14 event.pogo=1 since_bounce=1
+  never 15..18 action=side1
+  at 19 event.attack=1 action=down since_bounce=6
+end

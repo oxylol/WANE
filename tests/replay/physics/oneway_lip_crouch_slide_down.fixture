@@ -1,0 +1,13 @@
+fixture oneway_lip_crouch_slide_down
+doc run right on the 4 u lip lying on the one-way and crouch just before its end: the crouched box slides (decelerating over 4 f) off the lip and steps down onto the one-way, still crouched and on the ground.
+room test/oneway_lip
+spawn 380 316
+frames 30
+input
+  0..9 R
+  10..29 D
+end
+expect
+  never 0..29 state=air
+  at 29 crouch=1 y=320u
+end

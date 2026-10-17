@@ -1,0 +1,22 @@
+fixture tech02_dash_jump_frame5_air_dash
+doc BUILD.md s5 tech 2 "Dash-jump: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide"; s5 Dash "Jump during frames 5 to 9 keeps 100% dash speed". A ground dash-jump on dash frame 5 at the edge, its air jump, then the air dash up-right: every air jump and air dash within 6 ticks either way of these also lands, so with all three the 1664 u chasm is cleared every time (BUILD.md s15).
+room test/chasm
+spawn 380 384
+frames 200
+input
+  0 R dash
+  1..3 R
+  4..34 R jump
+  35 R
+  36..77 R jump
+  78 R U jump dash
+  79..199 R jump
+end
+expect
+  at 4 event.jump=1 vx=5120 x=480u
+  at 36 event.air_jump=1
+  at 78 event.dash=1
+  mark land 79..199 event.land=1
+  at land y=384u x>2154u
+  never 0..199 event.hazard=1
+end

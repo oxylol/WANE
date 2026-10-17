@@ -1,0 +1,18 @@
+fixture ground_corner_lift
+doc BUILD.md s5 Ground: "Corner correction: Horizontal: 8 u nudge over ledge corners"; s15 "the corner-correction nudge is invisible"
+room test/corners
+spawn 560 544
+frames 60
+input
+  # A run-up jump at the 3-tile block (x 640..768, top 448); the feet arrive a few units under
+  # its top edge and are lifted onto it instead of catching the corner.
+  0..9 R
+  10..17 R jump
+  18..59 R
+end
+expect
+  mark lifted 0..59 nudge_y<0
+  at lifted nudge_y>=-8u
+  mark on_top lifted..59 ground=1
+  at on_top y=448u
+end

@@ -29,3 +29,17 @@ func test_null_and_nested_values() -> void:
 	var h := StateHasher.new()
 	ContentHash.add_resource(h, null)
 	assert_int(h.value()).is_not_equal(StateHasher.new().value())
+
+
+func test_a_value_inside_a_sub_resource_changes_the_hash() -> void:
+	var taper: AttackSet = load("res://content/wicks/ash/taper.tres") as AttackSet
+	var base: int = _hash(taper)
+	var b: AttackSet = taper.duplicate(true)
+	assert_int(_hash(b)).is_equal(base)
+	b.attacks[4].pogo_last += 1
+	assert_int(_hash(b)).is_not_equal(base)
+	var c: AttackSet = taper.duplicate(true)
+	var first: AttackDef = c.attacks[0]
+	c.attacks[0] = c.attacks[1]
+	c.attacks[1] = first
+	assert_int(_hash(c)).is_not_equal(base)

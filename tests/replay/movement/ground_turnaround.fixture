@@ -1,0 +1,16 @@
+fixture ground_turnaround
+doc BUILD.md s5 Ground: "Turnaround 2 f, keeps 60% speed in the new direction"; s15 "Turning around never produces a dead frame; the sprite flips on the input frame"
+room test/flat
+frames 24
+input
+  0..11 R
+  12..23 L
+end
+expect
+  at 11 vx=2304 facing=1
+  # The input frame: facing flips and the body already moves the new way at 60% (1382).
+  at 12 facing=-1 vx=-1382 x<x@11
+  at 13 vx=-1843
+  at 14 vx=-2304
+  during 12..23 vx<0 facing=-1
+end

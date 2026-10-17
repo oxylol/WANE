@@ -1,0 +1,19 @@
+fixture wall_kick
+doc BUILD.md s5 Wall: "Wall-kick (neutral): Jump without holding away: 1020 u/s up, 240 u/s away" (tuned to 900 u/s up: docs/feel_log/2026-10-17-wall-kick-velocity.md)
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  # Jump while still holding toward the wall: a kick, not a wall-jump.
+  10..39 R jump
+end
+expect
+  at 6 state=wall
+  # 900 u/s up is 3840 sub-pixels a frame (the ground jump); 240 u/s away is 1024.
+  at 10 event.wall_kick=1 event.wall_jump=0 vy=-3840 vx=-1024 facing=-1
+  # One frame of lock, then the stick toward the wall steers back at the air rate (288 a frame,
+  # BUILD.md "Air control: 0 to max in 8 f"); rising, the player does not re-cling.
+  at 11 vx=-736
+  never 11..30 state=wall
+end

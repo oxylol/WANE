@@ -1,0 +1,20 @@
+fixture tech09_control_forward_pogo
+doc Control for tech 9: the same approach and strike with the stick straight down instead of back and down. The pogo still carries Ash over the block, but facing forward: Ash lands behind it with its back to the enemy's back. Turning back is what makes the reverse pogo
+room test/shield
+spawn 350 544
+frames 80
+input
+  0 R dash
+  1..5 R
+  6..7 R jump
+  8..11 R
+  12 D attack
+  13..79
+end
+expect
+  at 6 event.jump=1 vx=5120
+  mark bounce 13..20 event.pogo=1
+  at bounce facing=1 vx>2304
+  mark land bounce+1..79 event.land=1
+  at land x>682u y=544u facing=1
+end

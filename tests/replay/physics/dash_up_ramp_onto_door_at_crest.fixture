@@ -1,0 +1,13 @@
+fixture dash_up_ramp_onto_door_at_crest
+doc Physics review 4: a ground dash up the 45-degree ramp of test/ramp45_door_at_crest (a door 1 u proud of the plateau from the crest edge, x 384). The step up counts from the floor at the box's leading edge, so the dash steps onto the door and runs on at 20 u a tick; counted from the feet, it stopped at the lip.
+room test/ramp45_door_at_crest
+spawn 300 342
+frames 14
+input
+  0..1 R
+  2 R dash
+  3..13 R
+end
+expect
+  at 13 xu>=420
+end

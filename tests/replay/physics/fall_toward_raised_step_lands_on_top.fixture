@@ -1,0 +1,12 @@
+fixture fall_toward_raised_step_lands_on_top
+doc fall holding right from (402, 91) in test/step18 (floor y 448; a block from x 640, top y 430, 18 u tall). Tick 28 starts 1.2 u above the block's top with the box's right edge 7.5 u short of it, moving 9 u across and 24.1 u down: moving across first puts it 1.5 u over the block and it lands on top. The far-edge landing (a ledge left by its far side) must not take this near side to the floor in front of the block (physics review 5, M1).
+room test/step18
+spawn 402 91
+frames 32
+input
+  0..31 R
+end
+expect
+  at 28 event.land=1
+  at 28 y=430u
+end

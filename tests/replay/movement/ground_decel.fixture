@@ -1,0 +1,15 @@
+fixture ground_decel
+doc BUILD.md s5 Ground: "Ground deceleration max to 0 in 4 f" ("Stops on a coin")
+room test/flat
+frames 30
+input
+  0..11 R
+end
+expect
+  at 11 vx=2304
+  # 2304 / 4 = 576 a frame.
+  at 12 vx=1728
+  at 14 vx=576
+  at 15 vx=0
+  during 15..29 vx=0 x=x@15
+end

@@ -1,0 +1,14 @@
+fixture air_control_leaving_wall
+doc BUILD.md s5 Jump "Air control: full acceleration in air, 0 to max in 8 f" (288 sub-pixels a frame), leaving a cling
+room test/shaft
+spawn 760 300
+frames 40
+input
+  3..19 R
+  20..30 L
+end
+expect
+  at 19 state=wall
+  at 20 state=air vx=-288
+  at 21 vx=-576
+end

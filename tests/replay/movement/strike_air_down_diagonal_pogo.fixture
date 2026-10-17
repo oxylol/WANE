@@ -1,0 +1,18 @@
+fixture strike_air_down_diagonal_pogo
+doc falling over the spikes, a strike with the stick 30 degrees below level (x=110 y=63) is a side strike, and a strike with a d-pad's down-right (both axes full) the down-strike, which bounces: strikes read 4 equal 90-degree sectors, the diagonal itself going vertical.
+room test/spikes
+spawn 800 300
+frames 40
+input
+  0..2 x=110 y=63
+  3 x=110 y=63 attack
+  4..17 x=127 y=127
+  18 x=127 y=127 attack
+  19..39 x=127 y=127
+end
+expect
+  at 3 action=side1
+  at 18 action=down
+  mark bounce 19..30 event.pogo=1
+  never 0..39 event.hazard=1
+end

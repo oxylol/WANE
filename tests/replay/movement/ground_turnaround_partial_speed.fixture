@@ -1,0 +1,14 @@
+fixture ground_turnaround_partial_speed
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s5 Ground "Turnaround 2 f, keeps 60% speed in the new direction"; s15 "Turning around never produces a dead frame; the sprite flips on the input frame". Reversed after 3 frames of acceleration (1152 sp/f): 60% the new way on the input frame, never zero.
+room test/flat
+frames 20
+input
+  0..2 R
+  3..19 L
+end
+expect
+  at 2 vx=1152 facing=1
+  at 3 facing=-1 vx=-691 x<x@2
+  never 3..19 vx>=0
+  at 8 vx=-2304
+end

@@ -1,0 +1,13 @@
+fixture walk_down_ramp45_off_door_stays_grounded
+doc walk up test/ramp45_door_at_crest onto the door 1 u proud of the plateau at its crest edge (x 384), then walk back left down the 45-degree ramp. Up, the 8 u step up counts from the floor at the leading edge; down, the step down counts from the floor at the trailing edge (the ramp under the centre is 13 u below the door's end, under the trailing edge 3 u), so neither way leaves the ground (physics review 5, H1).
+room test/ramp45_door_at_crest
+spawn 236 384
+frames 120
+input
+  0..59 R
+  60..119 L
+end
+expect
+  never 0..59 state=air
+  never 60..119 state=air
+end

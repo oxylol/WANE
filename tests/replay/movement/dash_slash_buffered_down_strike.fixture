@@ -1,0 +1,16 @@
+fixture dash_slash_buffered_down_strike
+doc Task 3 review round 2, H2: BUILD.md s5 feel rules "Buffers are generous (8 f) and the buffer always stores the latest input"; s5 tech 1 "Dash-slash: dash into attack, frame-perfect cancel"; s5 Dash "dash is cancelable into attack from frame 6"; s5 tech 4. An air dash cancelled on its frame 6 into a down-strike pressed (down and attack) on dash frame 3, the stick back to forward by the time it fires: the buffered press stays the down-strike it was.
+room test/flat
+spawn 400 300
+frames 30
+input
+  0 R dash
+  1 R
+  2 D R attack
+  3..29 R
+end
+expect
+  at 0 event.dash=1 dash_frame=1
+  never 1..4 event.attack=1
+  at 5 event.attack=1 action=down state=air carry>0 vx=2560
+end

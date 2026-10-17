@@ -1,0 +1,17 @@
+fixture dash_jump_from_box_a_lip
+doc Physics review 4: a ground dash left from x 490 on the tiles onto box A, laid 1 u below them (test/box_steps; its right edge meets the tiles at x 480), then jump on dash frame 9. The dash steps down the 1 u onto box A and stays on the ground, so the jump on frame 9 is a ground dash-jump at 15 u/f with the double jump kept, as on flat tiles (dash_jump_flat_control). Before the step down it floated 1 u over box A for the rest of the dash and the jump came out as the air jump (85%, spending the double jump).
+room test/box_steps
+spawn 490 544
+frames 40
+input
+  0..1 -
+  2 L dash
+  3..9 L
+  10 L jump
+  11..39 L jump
+end
+expect
+  # BUILD.md s5 Dash-jump: "Jump during frames 5 to 9 keeps 100% dash speed" off the ground.
+  at 10 event.jump=1 air_jumps=1
+  never 2..9 ground=0
+end

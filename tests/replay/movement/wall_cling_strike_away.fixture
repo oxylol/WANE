@@ -1,0 +1,14 @@
+fixture wall_cling_strike_away
+doc BUILD.md s6 "Attacking turns the player instantly"; docs/adr/0010: a side strike from a wall cling goes away from the wall (the stick holds toward it to keep the cling)
+room test/shaft
+spawn 760 300
+frames 30
+input
+  0..9 R
+  10 R attack
+  11..29 R
+end
+expect
+  at 9 state=wall facing=-1
+  at 10 action=side1 facing=-1 state=wall
+end

@@ -1,0 +1,166 @@
+class_name PlayerContacts
+extends RefCounted
+## What the world does to the player after its move each tick, beside the wall-cling: pogo
+## bounces (BUILD.md section 5 Pogo), hazards and the last safe ground, the hurtbox (CLAUDE.md
+## rule 8) and the Kindle Votive's dash-through (tech 12). Static helpers on a [Player], kept apart
+## from the state machine so it stays readable; the state they change is the player's.
+
+## How far apart the safe-ground check samples a floor that is not a wall tile (sub-pixels): a
+## quarter of a tile, so a gap in the floor narrower than that is the only one it could miss, and
+## no gap that narrow can hold the player's 20 u collider.
+const SAFE_SAMPLE: int = TileGrid.TILE_SP / 4
+
+
+## Bounces the player if the down-strike's live pogo box touches spikes or a pogo-able solid;
+## true if it did. The bounce answers any jump pressed while the down-strike blocked the jump: that
+## press is used up rather than firing the air jump the bounce just restored on the next tick,
+## which would cut the bounce short and spend the jump.
+static func check_pogo(pl: Player, ring: InputRing) -> bool:
+	var box: Rect2i = pl.pogo_box()
+	if box.size == Vector2i.ZERO:
+		return false
+	if not _pogo_target(pl.world, box):
+		return false
+	var b: Body = pl.body
+	pl.action_pogoed = true
+	pl.refresh_wall()
+	b.vy = -pl.p.pogo_bounce
+	pl.air_jumps_left = pl.p.air_jumps
+	pl.air_dashes_left = pl.p.air_dashes
+	pl.jump_frame = 0
+	pl.jump_cut = false
+	pl.since_bounce = 1
+	if pl.loco == Player.WALL:
+		pl.wall_side = 0
+	pl.loco = Player.AIR
+	pl.left_by_jump = true
+	if ring.has_press(InputFrame.JUMP, pl.p.jump_buffer_frames):
+		ring.consume(InputFrame.JUMP)
+	# The bounce shows where the pogo box hit: its centre.
+	pl.events.add(SimEvents.POGO, box.get_center().x, box.get_center().y)
+	# "Anything on bounce": the down-strike hands control straight back.
+	pl.action = Player.NO_ACTION
+	pl.action_frame = 0
+	return true
+
+
+static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:
+	var l: int = box.position.x
+	var t: int = box.position.y
+	var r: int = box.end.x
+	var b: int = box.end.y
+	if world.touches_spikes(l, r, t, b):
+		return true
+	for s: SolidBox in world.solids:
+		if s.enabled and s.tag == "pogo" and s.overlaps(l, r, t, b):
+			return true
+	return false
+
+
+## Spikes touching the hurtbox send the player back to the last safe ground, with the hazard
+## invulnerability; standing there again counts as a landing for the airtime's resources. An
+## ember thrown before the hazard goes out with it (the throw's cooldown runs on): left out, a
+## teleport to it would undo the send-back.
+static func check_hazards(pl: Player) -> void:
+	if pl.is_invulnerable():
+		return
+	var hurt: Rect2i = hurtbox(pl)
+	if not pl.world.touches_spikes(hurt.position.x, hurt.end.x, hurt.position.y, hurt.end.y):
+		return
+	var b: Body = pl.body
+	pl.events.add(SimEvents.HAZARD, b.x, b.y)
+	b.x = pl.safe_x
+	b.y = pl.safe_y
+	b.vx = 0
+	b.vy = 0
+	pl.action = Player.NO_ACTION
+	pl.action_frame = 0
+	pl.dash_frame = 0
+	pl.carry_frames = 0
+	pl.jump_frame = 0
+	pl.world.refresh_ground(b)
+	pl.loco = Player.GROUND if b.on_ground else Player.AIR
+	pl.wall_side = 0
+	pl.toss.active = false
+	pl.toss.flying = false
+	pl.toss.startup = 0
+	if b.on_ground:
+		pl.restore_airtime()
+	pl.invuln = pl.kit.hazard_invuln_frames
+
+
+## The hurtbox: the collider inset on every side (smaller than the sprite).
+static func hurtbox(pl: Player) -> Rect2i:
+	var b: Body = pl.body
+	var l: int = b.left() + pl.kit.hurt_inset_x
+	var r: int = b.right() - pl.kit.hurt_inset_x
+	var t: int = b.top() + pl.kit.hurt_inset_top
+	var bottom: int = b.y - pl.kit.hurt_inset_bottom
+	return Rect2i(l, t, r - l, bottom - t)
+
+
+## Remembers where the player stands if it is safe ground: flat, not a one-way, solid ground at the
+## feet's height under the whole collider and [member KitParams.safe_ground_margin] beyond it on
+## each side (a wall rising there is fine; a drop is not), and no spikes within a tile. A respawn
+## then never stands on a ledge's lip with the stick that walked off it still carrying the player
+## straight back off.
+static func note_safe_ground(pl: Player) -> void:
+	var b: Body = pl.body
+	if not b.on_ground or b.on_slope or b.ground_tile == TileGrid.ONE_WAY:
+		return
+	if b.x == pl.safe_x and b.y == pl.safe_y:
+		return
+	var margin: int = pl.kit.safe_ground_margin
+	if not _solid_under(pl.world, b.left() - margin, b.right() + margin, b.y):
+		return
+	var hurt: Rect2i = hurtbox(pl)
+	if not pl.world.touches_spikes(
+		hurt.position.x - TileGrid.TILE_SP,
+		hurt.end.x + TileGrid.TILE_SP,
+		hurt.position.y,
+		b.y + TileGrid.TILE_SP
+	):
+		pl.safe_x = b.x
+		pl.safe_y = b.y
+
+
+## True if the sub-pixel row [param y] is solid all along [param l, r): a wall tile whose top is
+## at most that row covers a tile column at once; elsewhere (a solid box laid as a floor, a
+## slope) the row is sampled every [constant SAFE_SAMPLE] and at its end.
+static func _solid_under(w: CollisionWorld, l: int, r: int, y: int) -> bool:
+	var j: int = TileGrid.cell(y)
+	var x: int = l
+	while x < r:
+		var c: int = TileGrid.cell(x)
+		var end: int = mini((c + 1) * TileGrid.TILE_SP, r)
+		if not TileGrid.is_wall(w.grid.get_tile(c, j)):
+			var sx: int = x
+			while sx < end:
+				if not w.point_solid(sx, y):
+					return false
+				sx += SAFE_SAMPLE
+			if not w.point_solid(end - 1, y):
+				return false
+		x = end
+	return true
+
+
+## With the Kindle Votive, wax solids in the dash's path this tick ignite and stop blocking
+## (BUILD.md s5 tech 12). Passing through resets the air jump ("dash-through").
+static func kindle_ahead(pl: Player) -> void:
+	if not pl.kindle_dash:
+		return
+	var b: Body = pl.body
+	var vx: int = pl.dash_vx
+	var vy: int = pl.dash_vy
+	# The box swept by this tick's dash, reaching one sub-pixel further only on the sides it moves
+	# toward, so a wall touched at the start counts but one the dash leaves behind does not.
+	var l: int = mini(b.left(), b.left() + vx) - (1 if vx < 0 else 0)
+	var r: int = maxi(b.right(), b.right() + vx) + (1 if vx > 0 else 0)
+	var t: int = mini(b.top(), b.top() + vy) - (1 if vy < 0 else 0)
+	var bottom: int = maxi(b.y, b.y + vy) + (1 if vy > 0 else 0)
+	for s: SolidBox in pl.world.solids:
+		if s.enabled and s.tag == "wax" and s.overlaps(l, r, t, bottom):
+			s.enabled = false
+			pl.air_jumps_left = pl.p.air_jumps
+			pl.events.add(SimEvents.IGNITE, (s.left + s.right) / 2, (s.top + s.bottom) / 2)

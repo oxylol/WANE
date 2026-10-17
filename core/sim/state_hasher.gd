@@ -30,8 +30,14 @@ func add_bool(v: bool) -> void:
 func add_string(s: String) -> void:
 	var bytes: PackedByteArray = s.to_utf8_buffer()
 	add_int(bytes.size())
+	# _add_word inlined: content hashing feeds every byte of every name through here.
+	var h: int = _h
 	for b: int in bytes:
-		_add_word(b)
+		var k: int = Fx.rotl32(Fx.mul32(b, _C1), 15)
+		h = Fx.rotl32(h ^ Fx.mul32(k, _C2), 13)
+		h = (Fx.mul32(h, 5) + 0xE6546B64) & Fx.MASK32
+	_h = h
+	_words += bytes.size()
 
 
 ## The finished hash, a non-negative integer below 2^32.

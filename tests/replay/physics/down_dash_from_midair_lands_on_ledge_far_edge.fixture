@@ -1,0 +1,12 @@
+fixture down_dash_from_midair_lands_on_ledge_far_edge
+doc an air dash down-right (14.14 u/f each way) from (605, 440) in test/ledge448, 8 u above the ledge top (y 448) whose right edge is x 608: the straight path meets the ledge top at x 613 with 5 u of the box still over the ledge, and the dash touches down there (physics review 5, H2).
+room test/ledge448
+spawn 605 440
+frames 12
+input
+  0 R D dash
+  1..11 R D
+end
+expect
+  at 0 event.land=1
+end

@@ -1,0 +1,17 @@
+fixture wall_cling_buffered_jump
+doc BUILD.md s5 Jump "Jump buffer 8 f"; docs/adr/0010: a jump pressed before a cling fires on the cling frame, as one pressed before landing does
+room test/shaft
+spawn 700 300
+frames 40
+input
+  # The air jump is spent at once; the second press, falling toward the wall, is buffered.
+  0 jump
+  1..7 R
+  8 R jump
+  9..39 R
+end
+expect
+  at 0 event.air_jump=1
+  mark cling 4..39 event.wall_cling=1
+  at cling event.wall_kick=1
+end

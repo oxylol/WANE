@@ -1,0 +1,15 @@
+fixture far_edge_touch_then_ground_jump
+doc Physics review 4, H3: as far_edge_landing_lands, then jump on tick 26, the tick after the box touched the ledge's far edge and walked off it. The touch was a landing, so the jump is a coyote ground jump at full speed and the air jump is kept; before, the fall had never touched the ledge and the press was the air jump (85%).
+room test/ledge448
+spawn 408 448
+frames 30
+input
+  0..3 R
+  4..8 R jump
+  9..25 R
+  26..29 R jump
+end
+expect
+  at 25 event.land=1
+  at 26 event.jump=1 event.air_jump=0 air_jumps=1 vy=-3840
+end

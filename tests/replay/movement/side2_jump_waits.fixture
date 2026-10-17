@@ -1,0 +1,15 @@
+fixture side2_jump_waits
+doc BUILD.md s6 Taper Side 2 row: cancels "Side 3 from f 6, dash from f 4" (no jump cancel, unlike Side 1); s5 feel rules "Buffers are generous (8 f)"
+room test/flat
+frames 50
+input
+  0 attack
+  5 attack
+  # Side 2 runs frames 5 to 18. A jump pressed within 8 frames of its end fires the frame it ends.
+  12 jump
+end
+expect
+  at 5 action=side2
+  never 5..18 event.jump=1
+  at 19 event.jump=1 action=none
+end

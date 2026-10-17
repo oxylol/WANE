@@ -1,0 +1,104 @@
+[gd_resource type="Resource" script_class="AttackSet" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://core/combat/attack_set.gd" id="1"]
+[ext_resource type="Script" path="res://core/combat/attack_def.gd" id="2"]
+
+[sub_resource type="Resource" id="side1"]
+script = ExtResource("2")
+id = "side1"
+startup = 2
+active = 4
+recovery = 8
+damage = 10
+knockback_ups = 120
+recoil_ups = 60
+box_x_u = 0
+box_y_u = -46
+box_w_u = 68
+box_h_u = 44
+chain_to = "side2"
+chain_from = 6
+dash_from = 4
+jump_any = true
+
+[sub_resource type="Resource" id="side2"]
+script = ExtResource("2")
+id = "side2"
+startup = 2
+active = 4
+recovery = 8
+damage = 10
+knockback_ups = 140
+box_x_u = 0
+box_y_u = -46
+box_w_u = 68
+box_h_u = 44
+chain_to = "side3"
+chain_from = 6
+dash_from = 4
+
+[sub_resource type="Resource" id="side3"]
+script = ExtResource("2")
+id = "side3"
+startup = 3
+active = 5
+recovery = 12
+damage = 16
+knockback_ups = 260
+launches = true
+box_x_u = 0
+box_y_u = -50
+box_w_u = 68
+box_h_u = 52
+dash_from = 5
+
+[sub_resource type="Resource" id="up"]
+script = ExtResource("2")
+id = "up"
+startup = 2
+active = 5
+recovery = 9
+damage = 10
+knockback_ups = 200
+box_x_u = -24
+box_y_u = -90
+box_w_u = 48
+box_h_u = 60
+dash_from = 4
+air_attack_any = true
+
+[sub_resource type="Resource" id="down"]
+script = ExtResource("2")
+id = "down"
+startup = 2
+active = 7
+recovery = 4
+damage = 10
+box_x_u = -18
+box_y_u = 0
+box_w_u = 36
+box_h_u = 24
+pogo_first = 3
+pogo_last = 9
+dash_from = 4
+air_only = true
+
+[sub_resource type="Resource" id="charged"]
+script = ExtResource("2")
+id = "charged"
+startup = 3
+active = 6
+recovery = 14
+damage = 36
+knockback_ups = 400
+box_x_u = 0
+box_y_u = -50
+box_w_u = 68
+box_h_u = 52
+dash_from = 8
+charge_frames = 24
+
+[resource]
+script = ExtResource("1")
+attacks = Array[ExtResource("2")]([SubResource("side1"), SubResource("side2"), SubResource("side3"), SubResource("up"), SubResource("down"), SubResource("charged")])
+chain_reset_frames = 20

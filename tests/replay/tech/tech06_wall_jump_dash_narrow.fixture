@@ -1,0 +1,19 @@
+fixture tech06_wall_jump_dash_narrow
+doc BUILD.md s5 tech 6 "Wall-jump dash ... then wall-cling the next wall"; s5 feel rule "No input ever waits for an animation"
+room test/shaft
+spawn 760 400
+frames 60
+input
+  0..9 R
+  10..15 L jump
+  16 L dash
+  17..59 L
+end
+expect
+  at 10 event.wall_jump=1
+  at 16 event.dash=1 vx=-5120
+  # The 128 u shaft is narrower than the dash: the dash meets the left wall (its right face at
+  # 672 u) on its fourth frame, and holding toward it clings at once instead of grinding out
+  # the dash's remaining frames against the wall.
+  at 18 x=682u event.wall_cling=1 state=wall wall=-1 air_dashes=1
+end

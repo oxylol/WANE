@@ -1,0 +1,15 @@
+fixture strike_stick_a_little_up_is_side
+doc running right with the stick a little above horizontal (x=80 y=-35, 23.6 degrees) and pressing attack: side 1. The Taper is 4-directional, so strikes read the stick in 4 equal 90-degree sectors: with the dash's 8, up and down took 135 degrees each and the side strike 45, and this was an up-strike that whiffed over an enemy ahead (task 3 review 3, M4).
+room test/flat
+spawn 200 544
+frames 30
+input
+  0..9 R
+  10 x=80 y=-35 attack
+  11..29 x=80 y=-35
+end
+expect
+  at 9 vx=2304
+  at 10 action=side1
+  at 12 vx=2304
+end

@@ -1,0 +1,19 @@
+fixture ground_slopes
+doc BUILD.md s5 Ground: "Slope handling: Up to 45 degrees, speed unchanged; no sliding on slopes"
+room test/slopes
+spawn 150 544
+frames 90
+input
+  0..59 R
+end
+expect
+  # Horizontal speed holds at 9 u/f up the 45-degree slope (x 320..352), across the plateau, down
+  # the far side and up the 1:2 slope.
+  during 5..59 vx=2304 ground=1
+  mark on_slope 0..59 slope=1
+  at on_slope x=2304+x@(on_slope-1) y<y@(on_slope-1)
+  at on_slope+1 x=2304+x@on_slope y=-2304+y@on_slope
+  # No sliding: standing still on a slope holds position.
+  mark stop 60..89 vx=0
+  during stop..89 x=x@stop y=y@stop
+end

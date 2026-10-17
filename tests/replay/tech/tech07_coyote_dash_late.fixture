@@ -1,0 +1,14 @@
+fixture tech07_coyote_dash_late
+doc BUILD.md s5 tech 7 coyote dash, the frame after coyote time: an air dash
+room test/cliff
+spawn 900 320
+frames 40
+input
+  0..16 R
+  17 U R dash
+  18..39 R
+end
+expect
+  # The seventh airborne frame: an 8-way air dash that spends the air dash, no ground cooldown.
+  at 17 event.dash=1 air_frames=7 vx=3620 vy=-3620 air_dashes=0 dash_cooldown=0
+end

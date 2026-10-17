@@ -1,0 +1,14 @@
+fixture jump_variable_height
+doc BUILD.md s5 Jump: variable height; s15 "the release feels like a decision, not a cut" (each extra frame held adds height)
+room test/flat
+frames 50
+input
+  0..9 jump
+end
+expect
+  at 9 jump_cut=0
+  at 10 jump_cut=1
+  mark apex 0..49 vy>=0
+  # Held 10 frames: between the tap (77.9 u) and the full jump (176 u).
+  at apex-1 y>=413u y<=416u
+end

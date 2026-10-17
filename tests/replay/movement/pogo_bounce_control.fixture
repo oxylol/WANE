@@ -1,0 +1,18 @@
+fixture pogo_bounce_control
+doc control for pogo_bounce_uses_up_jump_pressed_in_strike: the same pogo with no jump press keeps the bounce's 794 u/s and the air jump.
+room test/spikes
+spawn 800 300
+frames 60
+input
+  2 jump
+  3..29
+  30 D attack
+  31..59 D
+end
+expect
+  mark bounce 30..40 event.pogo=1
+  at bounce vy=-3388 air_jumps=1
+  at bounce+1 air_jumps=1 vy=-3217
+  mark top bounce..bounce+20 vy>=0
+  at top y<=378u air_jumps=1
+end

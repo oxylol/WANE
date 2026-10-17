@@ -1,0 +1,21 @@
+fixture dash_ride_reaches_walk_stop
+doc Physics review 4: a down-left air dash clings to a wall, and a dash away from it (frame 7) runs level into a 45-degree ramp under a ceiling block (test/ramp_under_block) and rides up it, stopping where a walk up the same ramp stops (x 1462; ADR-0008 decision 6: the ride stops "exactly where walking up the slope stops"). The ceiling over the path travelled limits the ride, not the ceiling over the whole path; with the latter the dash stopped at 1460 with 6 u of the frame unspent.
+room test/ramp_under_block
+spawn 1431 311
+frames 11
+input
+  0 -
+  1 U
+  2 D
+  3 L D dash
+  4 L D
+  5 L D
+  6 L
+  7 L jump dash
+  8 L jump
+  9 L jump
+  10 L jump
+end
+expect
+  at 10 xu=1462
+end

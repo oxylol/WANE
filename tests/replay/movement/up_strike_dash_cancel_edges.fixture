@@ -1,0 +1,13 @@
+fixture up_strike_dash_cancel_edges
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s6 Taper Up "Dash from f 4"; s5 Dash "Dash cancels any attack after frame 4". A dash pressed on the up-strike's frame 3 waits one frame and cancels it on frame 4.
+room test/flat
+frames 30
+input
+  0 U attack
+  2 dash
+end
+expect
+  at 0 action=up action_frame=1
+  at 2 action=up action_frame=3 state=ground
+  at 3 event.dash=1 state=dash action=none
+end

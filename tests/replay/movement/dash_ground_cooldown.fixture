@@ -1,0 +1,15 @@
+fixture dash_ground_cooldown
+doc BUILD.md s5 Dash: "Cooldown: 24 f on ground"
+room test/flat
+frames 50
+input
+  0 dash
+  # Pressed on frame 20: inside the cooldown, but within 8 frames of it ending, so it is kept and
+  # fires on frame 24, the first frame the cooldown allows.
+  20 dash
+end
+expect
+  at 0 event.dash=1
+  never 1..23 event.dash=1
+  at 24 event.dash=1 dash_frame=1
+end

@@ -1,0 +1,13 @@
+fixture jump_buffer_control
+doc BUILD.md s5 Jump: "Jump buffer 8 f" (control: the same jump and air jump with no buffered press pins the landing frame)
+room test/flat
+frames 70
+input
+  0 jump
+  10 jump
+end
+expect
+  at 10 event.air_jump=1 air_jumps=0
+  mark land 11..69 event.land=1
+  at land tick=34 state=ground
+end

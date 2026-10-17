@@ -1,0 +1,23 @@
+fixture tech02_dash_jump_frame9
+doc BUILD.md s5 tech 2 "Dash-jump"; s5 Dash "Jump during frames 5 to 9"; s5 tech 7 coyote rules
+room test/chasm
+spawn 380 384
+frames 120
+input
+  0 R dash
+  1..7 R
+  # Dash frame 9, the last frame of the window: the dash has carried the player 80 u past the
+  # edge, still inside coyote time, so it is a full ground jump and the air jump is kept.
+  8..45 R jump
+  46 R
+  # Any air jump on ticks 42 to 56 lands.
+  47..119 R jump
+end
+expect
+  at 8 event.jump=1 event.air_jump=0 vx=5120 x=560u air_jumps=1
+  at 47 event.air_jump=1
+  during 8..47 vx=5120
+  mark land 48..119 event.land=1
+  at land y=384u x>2154u
+  never 0..119 event.hazard=1
+end

@@ -1,0 +1,22 @@
+fixture tech10_crouch_dash_long_gap
+doc BUILD.md s5 Ground "Crouch: cannot move"; s5 tech 10 crouch-dash; docs/adr/0010 level rule "a crouch-only gap is at most one crouch-dash long" (director question)
+room test/longgap
+spawn 600 544
+frames 80
+input
+  0..2 D
+  3 D dash
+  4..26 R
+  # Once the cooldown ends, a second crouch-dash (stick still down) gets the player out.
+  27 D dash
+  28..79 R
+end
+expect
+  at 3 event.dash=1 crouch=1
+  # A 384 u gap is longer than one crouch-dash: crouched under the ceiling the player cannot move
+  # until the ground dash cooldown lets a second crouch-dash out (rooms must not do this).
+  during 19..26 vx=0 crouch=1 x=x@19
+  at 27 event.dash=1 crouch=1
+  mark out 28..79 crouch=0
+  at out x>1024u
+end

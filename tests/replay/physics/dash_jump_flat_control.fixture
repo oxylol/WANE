@@ -1,0 +1,15 @@
+fixture dash_jump_flat_control
+doc Physics review 4 control: the same dash-jump on flat tiles.
+room test/box_steps
+spawn 856 544
+frames 40
+input
+  0..1 -
+  2 L dash
+  3..9 L
+  10 L jump
+  11..39 L jump
+end
+expect
+  at 10 event.jump=1
+end

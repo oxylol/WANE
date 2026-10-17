@@ -1,0 +1,19 @@
+fixture oneway_buffered_drop_through
+doc Task 3 review round 2, L9: BUILD.md s5 Ground "Crouch: drops through one-way platforms on down+jump"; s5 Jump "Jump buffer 8 f: Jump pressed before landing fires on landing". Falling onto a one-way with the stick straight down and jump pressed just before landing: the buffered down+jump is the drop-through, not a jump back up.
+room test/oneway
+spawn 400 300
+frames 60
+input
+  # Spend the air jump so the late press is buffered rather than fired.
+  0 jump
+  1..10 -
+  11..21 D
+  # Jump while holding straight down, 2 frames before landing on the one-way at 384 (frame 24).
+  22 D jump
+  23..59 D
+end
+expect
+  at 24 event.land=1
+  never 24..30 event.jump=1
+  mark drop 24..30 event.drop_through=1
+end

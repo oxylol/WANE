@@ -1,0 +1,19 @@
+fixture wall_cling_down_drops
+doc BUILD.md s5 Wall: "Wall-cling cancel: Pressing down drops instantly"
+room test/shaft
+spawn 760 300
+frames 60
+input
+  0..19 R
+  # Down while still holding toward the wall.
+  20..40 D R
+  41..59 R
+end
+expect
+  at 19 state=wall
+  # The drop happens on the press frame, into a normal fall.
+  at 20 state=air wall=0 vy=981
+  # Holding down blocks the cling; letting go of down lets it grab again.
+  never 20..40 state=wall
+  at 41 state=wall
+end

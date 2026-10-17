@@ -1,0 +1,17 @@
+fixture tech07_redash_off_ledge
+doc BUILD.md s5 tech 7 coyote dash; s5 Dash "Air dash: 1 per airtime": dash, dash off a ledge never eats the second press
+room test/cliff
+spawn 840 320
+frames 40
+input
+  # A ground dash that carries off the cliff; the second dash is pressed as the first ends.
+  0 R dash
+  1..8 R
+  9 U R dash
+  10..39 R
+end
+expect
+  at 0 event.dash=1
+  # The first dash ends on frame 9; the second starts that frame, up-right, as the air dash.
+  at 9 event.dash=1 vx=3620 vy=-3620 air_dashes=0
+end

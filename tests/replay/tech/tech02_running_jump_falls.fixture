@@ -1,0 +1,16 @@
+fixture tech02_running_jump_falls
+doc Control for tech 2: a full-speed running full jump from the edge does not clear the chasm the dash-jump clears
+room test/chasm
+spawn 100 384
+frames 120
+input
+  0..42 R
+  43..90 R jump
+  91..119 R
+end
+expect
+  mark edge 0..60 event.jump=1
+  at edge vx=2304 x>470u
+  mark fall 60..119 event.hazard=1
+  at fall x<2144u
+end

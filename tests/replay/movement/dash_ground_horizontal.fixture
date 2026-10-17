@@ -1,0 +1,17 @@
+fixture dash_ground_horizontal
+doc BUILD.md s5 Dash: "horizontal on ground"; "Down-dash on ground = Melt-Slide for Tallow, nothing for others"
+room test/flat
+frames 60
+input
+  # Up-right on the ground: a horizontal dash.
+  0 U R dash
+  # Down-left on the ground after the cooldown: still horizontal, facing left. (Down alone
+  # crouches; crouch-dash is tech 10, covered in tech_crouch_dash_under.)
+  30 D L dash
+end
+expect
+  at 0 state=dash vx=5120 vy=0 facing=1
+  during 0..8 y=544u
+  at 30 state=dash vx=-5120 vy=0 facing=-1
+  during 30..38 y=544u
+end

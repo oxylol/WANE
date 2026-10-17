@@ -1,0 +1,13 @@
+fixture walk_steps_down_small_lips
+doc Physics review 4: walking LEFT down the lips that walk_steps_up_small_lips walks up: box B (8 u proud) down onto the tiles at x 960, then the tiles down onto box A (1 u lower) at x 480.
+room test/box_steps
+spawn 1100 536
+frames 90
+input
+  0..89 L
+end
+expect
+  # Down these lips, as up them (walk_steps_up_small_lips), the walk never leaves the ground.
+  never 0..89 state=air
+  never 0..89 event.land=1
+end

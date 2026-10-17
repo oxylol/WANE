@@ -1,0 +1,13 @@
+fixture jump_buffer_9f_expires
+doc BUILD.md s5 Jump: "Jump buffer 8 f" (a press 9 frames before landing has expired)
+room test/flat
+frames 70
+input
+  0 jump
+  10 jump
+  24 jump
+end
+expect
+  at 33 event.land=1 event.jump=0 state=ground
+  during 33..45 state=ground
+end

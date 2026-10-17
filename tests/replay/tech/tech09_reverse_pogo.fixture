@@ -1,0 +1,27 @@
+fixture tech09_reverse_pogo
+doc BUILD.md s5 tech 9 "Reverse pogo: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy"; s5 Pogo "Horizontal speed fully preserved". Ash dashes at an enemy-sized block (the shield faces Ash), short-hops on a dash-jump, turns back to face the block and strikes down at it while still flying forward: the bounce keeps the forward speed, so Ash sails over and lands behind the block facing its back
+room test/shield
+spawn 350 544
+frames 80
+input
+  0 R dash
+  1..5 R
+  # A short hop on dash frame 7: a dash-jump, so the dash's speed carries on.
+  6..7 R jump
+  8..11 R
+  # Back and down with the strike: Ash turns to face the block while the jump still carries
+  # forward. Any strike on ticks 9 to 14 bounces off the block and lands behind it.
+  12 L D attack
+  13..79
+end
+expect
+  at 6 event.jump=1 vx=5120
+  at 12 facing=-1 vx>0
+  # The down-strike's box finds the block's head: moving forward, facing back.
+  mark bounce 13..20 event.pogo=1
+  at bounce facing=-1 vx>2304
+  # Over the block and down behind it, its body clear of the block's back (672 u), still facing it.
+  mark land bounce+1..79 event.land=1
+  at land x>682u y=544u facing=-1
+  during bounce..land facing=-1
+end

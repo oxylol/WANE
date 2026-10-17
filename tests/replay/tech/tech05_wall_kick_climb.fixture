@@ -1,0 +1,33 @@
+fixture tech05_wall_kick_climb
+doc BUILD.md s5 tech 5 "Wall-kick climb: climb a single wall with neutral kicks"; s5 Wall-kick "Lets the player climb a single wall"; s15 "Wall-kick climbs a single wall without feeling stuck"; docs/adr/0010 kicks
+room test/well
+spawn 760 864
+frames 130
+input
+  # Holding toward the wall throughout; a full jump from the floor, then a kick pressed at each
+  # apex (the frame of the cling there), each held through its rise.
+  0..21 R jump
+  22 R
+  23..45 R jump
+  46 R
+  47..69 R jump
+  70 R
+  71..93 R jump
+  94..129 R
+end
+expect
+  at 0 event.jump=1
+  # A kick is a fixed kick (no early-release cut, no apex hang): 900 u/s up, rising 176 u, one
+  # every 24 frames.
+  at 22 event.wall_cling=1
+  at 23 event.wall_kick=1 vy=-3840
+  at 47 event.wall_kick=1 y<-170u+y@23
+  at 71 event.wall_kick=1 y<-170u+y@47
+  # Kicks restore nothing (only the first cling since the floor does): the air jump is never
+  # spent, and every press at an apex is a kick.
+  never 0..129 event.air_jump=1
+  # The third kick carries the feet over the top (192 u).
+  mark top 72..129 event.land=1
+  at top y=192u state=ground
+  never 0..129 wall_frames>1
+end

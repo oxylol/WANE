@@ -1,0 +1,12 @@
+fixture wall_ledge_grab_too_low
+doc Control for the ledge-grab: feet 12 u below the wall's top are beyond its 10 u, and the player slides
+room test/well
+spawn 790 204
+frames 20
+input
+  0..19 R
+end
+expect
+  never 0..19 event.ledge_grab=1
+  during 1..19 state=wall vy=768
+end

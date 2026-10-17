@@ -1,0 +1,18 @@
+fixture pogo_dash_jump_speed
+doc BUILD.md s5 Pogo: "A dash-jump into a pogo keeps the dash speed"
+room test/spikes
+spawn 300 544
+frames 60
+input
+  0 R dash
+  1..14 R jump
+  15..24 R
+  25..59 D R attack
+end
+expect
+  at 4 event.jump=1 vx=5120
+  mark bounce 20..50 event.pogo=1
+  # The dash speed survives the jump and the bounce, because the stick holds forward.
+  at bounce vx=5120 vy=-3388
+  never 0..59 event.hazard=1
+end

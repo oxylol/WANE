@@ -167,25 +167,25 @@ The simulation runs at a fixed 60 Hz; all numbers below are in frames (f) at 60 
 | Ground acceleration | 0 to max in 6 f | Snappy; no "skating" |
 | Ground deceleration | max to 0 in 4 f | Stops on a coin |
 | Turnaround | 2 f, keeps 60% speed in the new direction | Never a dead frame on reversal |
-| Crouch | Hitbox 44 to 28 tall; cannot move; drops through one-way platforms on down+jump |  |
+| Crouch | Hitbox 44 to 28 tall; cannot move; drops through one-way platforms on down+jump | The crouched box cannot move in the air either; crouch and drop-through need the stick straight down (docs/adr/0010) |
 | Slope handling | Up to 45°, speed unchanged; no sliding on slopes |  |
-| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared |
+| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared; on the ground the 8 u nudge steps the player up onto a lip, such as a door left open as a floor (docs/adr/0008) |
 
 ### Jump
 
 | Property | Value | Note |
 | --- | --- | --- |
-| Jump velocity | 1020 u/s | Full hold reaches 5.5 tiles (176 u) |
-| Min jump (tap) | 2.2 tiles (70 u) | Released after 4 f applies a 2.5× gravity multiplier until apex |
+| Jump velocity | 900 u/s | Full hold reaches 5.5 tiles (176 u) (tuned from 1020 u/s, which reached 225 u with this gravity; docs/feel_log/2026-10-17-jump-velocity.md) |
+| Min jump (tap) | 2.4 tiles (78 u) | Released after 4 f applies a 4.5× gravity multiplier until apex: 3 tiles under a full jump, still slowing over 5 f (docs/feel_log/2026-10-17-jump-release.md) |
 | Gravity (rise) | 2400 u/s² |  |
 | Gravity (fall) | 3000 u/s² | Falls faster than it rises |
-| Apex hang | Gravity × 0.6 for the 4 f around apex | Gives the "float" at the top that reads as control |
+| Apex hang | Gravity × 0.6 for the 4 f around apex | Gives the "float" at the top that reads as control; centred on the apex: two rising frames, the apex, one falling (docs/adr/0010) |
 | Terminal velocity | 1500 u/s |  |
 | Coyote time | 6 f | Jump after leaving a ledge |
 | Jump buffer | 8 f | Jump pressed before landing fires on landing |
-| Double jump | 1 per airtime, 85% of ground jump velocity, resets on wall-cling, pogo and dash-through | Only Ash, Pyre and the Hollow have it |
-| Air control | Full acceleration in air, 0 to max in 8 f |  |
-| Landing | 0 f of lag; a 3 f squash animation that does not block input | Landing lag is the enemy of flow |
+| Double jump | 1 per airtime, 85% of ground jump velocity, resets on wall-cling, pogo and dash-through | Only Ash, Pyre and the Hollow have it; the first cling since a landing, wall-jump or pogo resets it, not every re-grip (docs/adr/0010) |
+| Air control | Full acceleration in air, 0 to max in 8 f | Reversing in the air is air control, not the ground turnaround |
+| Landing | 0 f of lag; a 3 f squash animation that does not block input | Landing lag is the enemy of flow; any arrival on the ground (a dash, a teleport) is a landing, and speed above run speed is lost on it (docs/adr/0010) |
 
 ### Dash
 
@@ -193,8 +193,8 @@ The simulation runs at a fixed 60 Hz; all numbers below are in frames (f) at 60 
 | --- | --- | --- |
 | Distance | 180 u in 9 f (20 u/f) | Then 3 f of 50% speed carry-over |
 | Invulnerability | Frames 1 to 7 of 9 | The last 2 frames are vulnerable; the dash is an escape, not an answer to everything |
-| Cooldown | 24 f on ground, resets on landing or wall-cling | Air dash: 1 per airtime, reset by pogo |
-| Direction | 8-way in air, horizontal on ground | Down-dash on ground = Melt-Slide for Tallow, nothing for others |
+| Cooldown | 24 f on ground, resets on landing or wall-cling | Air dash: 1 per airtime, reset by pogo; in coyote time with the cooldown running, a dash is the air dash (docs/adr/0010) |
+| Direction | 8-way in air, horizontal on ground | Down-dash on ground = Melt-Slide for Tallow, nothing for others (for Ash, a ground dash with the stick down is the crouch-dash of tech 10). A buffered dash or toss goes the way the stick pointed when it was pressed, in 8 equal sectors; a strike in 4 (the Taper is 4-directional), a diagonal going up or down (docs/adr/0010) |
 | Cancel | Dash cancels any attack after frame 4 of that attack; dash is cancelable into attack from frame 6 | The "dash-slash" is a core rhythm |
 | Dash-jump | Jump during frames 5 to 9 keeps 100% dash speed horizontally | The fastest horizontal movement in the game |
 
@@ -202,9 +202,9 @@ The simulation runs at a fixed 60 Hz; all numbers below are in frames (f) at 60 
 
 | Property | Value | Note |
 | --- | --- | --- |
-| Wall-cling | Holding toward a wall in air: slide at 180 u/s for up to 90 f, then normal fall | A ledge-grab is automatic within 10 u of a wall's top |
-| Wall-jump | 900 u/s up, 480 u/s away; 5 f of locked direction, then full control | Resets double jump and air dash |
-| Wall-kick (neutral) | Jump without holding away: 1020 u/s up, 240 u/s away | Lets the player climb a single wall |
+| Wall-cling | Holding toward a wall in air: slide at 180 u/s for up to 90 f, then normal fall | A ledge-grab is automatic within 10 u of a wall's top; the 90 f count time on the wall, so re-gripping continues them; 6 f of wall coyote time after letting go (docs/adr/0010) |
+| Wall-jump | 794 u/s up, 480 u/s away; 5 f of locked direction, then full control | Resets double jump and air dash; up speed kept at 88% of the jump (docs/feel_log/2026-10-17-wall-jump-velocity.md) |
+| Wall-kick (neutral) | Jump without holding away: 900 u/s up, 240 u/s away | Lets the player climb a single wall; up speed equals the jump (docs/feel_log/2026-10-17-wall-kick-velocity.md); a fixed kick like the pogo's bounce, resetting nothing, so mashing climbs no faster than timed kicks (docs/adr/0010) |
 | Wall-cling cancel | Pressing down drops instantly |  |
 
 ### Pogo (down-strike)
@@ -213,18 +213,18 @@ The pogo is the heart of the movement system. Attacking down while airborne, on 
 
 | Property | Value | Note |
 | --- | --- | --- |
-| Bounce velocity | 900 u/s | Slightly under a jump |
+| Bounce velocity | 794 u/s | Slightly under a jump (88%; docs/feel_log/2026-10-17-pogo-bounce.md) |
 | Momentum | Horizontal speed fully preserved; vertical replaced | A dash-jump into a pogo keeps the dash speed |
 | Resets | Double jump, air dash | Pogo chains are infinite with rhythm |
 | Hitbox | 36 u wide, 24 u tall, under the player, active frames 3 to 9 of the down-strike | Generous on purpose |
-| Chain window | Next down-strike can start on frame 6 after a bounce | Cadence of about 4 bounces per second at its fastest |
+| Chain window | Next down-strike can start on frame 6 after a bounce | Cadence of about 4 bounces per second at its fastest (frame 14 was tried and reverted; the faster pogo-dash skim is a director question: docs/feel_log/2026-10-17-pogo-chain-window.md) |
 
 ### The twelve core tech interactions
 
 All of these must work for every Wick (with their overrides) and be taught by the world, never by a tutorial pop-up.
 
 1. **Dash-slash**: dash into attack, frame-perfect cancel. Taught by a tight corridor of weak enemies.
-2. **Dash-jump**: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide.
+2. **Dash-jump**: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide: since the air jump, the air dash and the Ember Toss carry every route further, that is a width only a route with a dash-jump crosses, 1664 u for Ash, 64 u past the farthest route without one (docs/adr/0010; `tools/replay/gap_reach.gd` measures it).
 3. **Pogo chain**: bounce off a line of enemies or hazards. Taught by a spike pit with Snuffed in it.
 4. **Pogo-dash reset**: pogo resets the air dash, so pogo, dash, pogo again crosses anything. Taught by a hidden room.
 5. **Wall-kick climb**: climb a single wall with neutral kicks. Taught by a well.
@@ -259,7 +259,7 @@ Combat is melee-first and directional. The player's blade (the Taper) strikes in
 | Side 2 | 2 f | 4 f | 8 f | 10 | 140 u/s | Side 3 from f 6, dash from f 4 |
 | Side 3 (finisher) | 3 f | 5 f | 12 f | 16 | 260 u/s, launches light enemies | Dash from f 5 |
 | Up | 2 f | 5 f | 9 f | 10 | 200 u/s up (juggle) | Dash from f 4, air attack any frame |
-| Down (air only) | 2 f | 7 f (pogo hitbox f 3 to 9) | 4 f | 10 | Bounces player (section 5) | Anything on bounce |
+| Down (air only) | 2 f | 7 f (pogo hitbox f 3 to 9) | 4 f | 10 | Bounces player (section 5) | Anything on bounce; dash from f 4 (section 5: dash cancels any attack; docs/adr/0010) |
 | Charged (hold 24 f) | 24 f charge, 3 f startup | 6 f | 14 f | 36 | 400 u/s, breaks guards | Dash from f 8 |
 
 - The chain resets if no attack input within 20 f of recovery ending.

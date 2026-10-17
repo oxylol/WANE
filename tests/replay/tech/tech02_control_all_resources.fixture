@@ -1,0 +1,22 @@
+fixture tech02_control_all_resources
+doc Control for tech 2: everything but the dash-jump (a full-speed run, a full jump at the last coyote frame, the air jump and the air dash, at the best timing a search over them found) falls into the chasm the dash-jump clears
+room test/chasm
+spawn 100 384
+frames 160
+input
+  0..49 R
+  50..81 R jump
+  82 R
+  83..109 R jump
+  110 R jump dash
+  111..122 R jump
+  123..159 R
+end
+expect
+  at 50 event.jump=1 vx=2304
+  at 82 event.air_jump=0
+  at 83 event.air_jump=1
+  at 110 event.dash=1
+  mark fall 60..159 event.hazard=1
+  at fall-1 x<2144u
+end

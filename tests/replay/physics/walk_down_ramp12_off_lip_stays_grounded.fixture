@@ -1,0 +1,13 @@
+fixture walk_down_ramp12_off_lip_stays_grounded
+doc walk up test/ramp12_lip_at_crest onto the 4 u lip at its crest edge (x 448), then walk back left down the 1:2 ramp: the drop off the lip's end to the ramp under the centre is 10.5 u, to the ramp under the trailing edge within the lift, so the walk stays on the ground (physics review 5, H1).
+room test/ramp12_lip_at_crest
+spawn 200 384
+frames 120
+input
+  0..59 R
+  60..119 L
+end
+expect
+  never 0..59 state=air
+  never 60..119 state=air
+end

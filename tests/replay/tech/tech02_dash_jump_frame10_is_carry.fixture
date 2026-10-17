@@ -1,0 +1,14 @@
+fixture tech02_dash_jump_frame10_is_carry
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s5 Dash "Dash-jump: Jump during frames 5 to 9 keeps 100% dash speed", "Then 3 f of 50% speed carry-over". One frame late (the first carry frame) the jump keeps only the carry speed: the window is exactly frames 5 to 9.
+room test/flat
+frames 30
+input
+  0 R dash
+  1..8 R
+  9..20 R jump
+end
+expect
+  at 8 dash_frame=9 state=dash
+  at 9 event.jump=1 vx=2560
+  during 10..20 vx=2560
+end

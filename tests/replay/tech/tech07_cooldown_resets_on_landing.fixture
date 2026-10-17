@@ -1,0 +1,19 @@
+fixture tech07_cooldown_resets_on_landing
+doc BUILD.md s5 Dash "Cooldown: 24 f on ground, resets on landing or wall-cling" (docs/adr/0010)
+room test/step
+spawn 560 544
+frames 50
+input
+  # A ground dash off a one-tile step: it lands below within the 24-frame cooldown, which the
+  # landing clears, so the second dash fires at once.
+  0 R dash
+  1..17 R
+  18 R dash
+  19..49 R
+end
+expect
+  at 0 event.dash=1 dash_cooldown=24
+  mark land 1..17 event.land=1
+  at land dash_cooldown=0 y=576u
+  at 18 event.dash=1
+end

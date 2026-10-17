@@ -1,0 +1,16 @@
+fixture pogo_beats_hazard_same_frame
+doc Task 3 review round 2, M5: BUILD.md s5 Pogo "Hitbox: 36 u wide, 24 u tall, under the player, active frames 3 to 9 of the down-strike", "Generous on purpose"; s5 feel rules "The player always gets the benefit of the doubt". A down-strike whose pogo box first goes live on the frame the hurtbox reaches the spikes: the bounce wins, and the same frame does not also send the player back to safe ground.
+room test/spikes
+spawn 800 300
+frames 40
+input
+  0..19 -
+  # Strike frame 1 on frame 20; frame 3 (the first pogo frame) is frame 22, when the feet are at
+  # 529.6 (the hurtbox, 2 u above the feet, reaches the spikes' hazard volume from 524).
+  20..39 D attack
+end
+expect
+  at 21 event.hazard=0 action=down action_frame=2
+  at 22 event.pogo=1
+  never 22..39 event.hazard=1
+end

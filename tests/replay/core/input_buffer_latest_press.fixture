@@ -1,5 +1,6 @@
 fixture input_buffer_latest_press
 doc BUILD.md s5 feel rules: "Buffers are generous (8 f) and the buffer always stores the latest input"; ADR-0004
+wick none
 seed 1
 frames 30
 

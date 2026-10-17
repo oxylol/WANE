@@ -1,0 +1,21 @@
+fixture wall_jump
+doc BUILD.md s5 Wall: "Wall-jump: 900 u/s up, 480 u/s away; 5 f of locked direction, then full control" (tuned to 794 u/s up: docs/feel_log/2026-10-17-wall-jump-velocity.md)
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  10 L jump
+  # Steering back toward the wall during the lock does nothing.
+  11..39 R jump
+end
+expect
+  at 6 state=wall
+  # 794 u/s up is 3388 sub-pixels a frame; 480 u/s away is 2048.
+  at 10 event.wall_jump=1 state=air vy=-3388 vx=-2048 facing=-1 wall_lock=5
+  during 10..14 vx=-2048 facing=-1
+  # Frame 15: control returns. In the air a reversal is ordinary air control (BUILD.md "Air
+  # control: 0 to max in 8 f", 288 a frame): the turn is immediate, the speed bleeds off.
+  at 15 vx=-1760 facing=1
+  at 16 vx=-1472
+end

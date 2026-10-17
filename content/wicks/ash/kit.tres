@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="KitTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/fsm/kit_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+hurt_inset_x_u = 3
+hurt_inset_top_u = 8
+hurt_inset_bottom_u = 2
+hazard_invuln_frames = 20
+safe_ground_margin_u = 16
+toss_speed_ups = 600
+toss_startup_frames = 3
+toss_invuln_frames = 6
+toss_cooldown_frames = 720
+toss_flight_frames = 40
+toss_linger_frames = 120
+toss_buffer_frames = 8
+toss_fit_reach_u = 24

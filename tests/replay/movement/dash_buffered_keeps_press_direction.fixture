@@ -1,0 +1,15 @@
+fixture dash_buffered_keeps_press_direction
+doc Task 3 review round 2, H2: BUILD.md s5 Dash "Direction: 8-way in air", "Dash cancels any attack after frame 4"; s5 feel rules "the buffer always stores the latest input". In the air, a side strike, then dash pressed up-right on its frame 2 and the stick let go: the dash that fires on frame 4 is the up-right dash that was pressed, not a horizontal one from the stick 2 frames later (a buffered press keeps the stick of its own frame; docs/adr/0010).
+room test/flat
+spawn 400 544
+frames 30
+input
+  0..5 jump
+  6 attack
+  7 U R dash
+  8..29 -
+end
+expect
+  at 6 action=side1 state=air
+  at 9 event.dash=1 vx=3620 vy=-3620
+end

@@ -1,0 +1,17 @@
+fixture jump_ceiling_nudge
+doc BUILD.md s5 Ground: "Corner correction: vertical: 6 u nudge around ceiling corners"; s15 "Head bumping a ceiling corner by under 6 units slides around it"
+room test/lip
+spawn 602 544
+frames 40
+input
+  0..30 jump
+end
+expect
+  # The head overlaps the ceiling block (608..768, bottom 416) by 4 u: the box slides 4 u left as
+  # it reaches it and keeps rising.
+  mark slide 1..20 nudge_x<0
+  at slide nudge_x=-4u x=598u
+  never 0..39 hit_ceiling=1
+  mark apex 1..39 vy>=0
+  at apex y<400u
+end

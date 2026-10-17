@@ -200,7 +200,8 @@ func _header(words: PackedStringArray, line_number: int) -> void:
 		"room":
 			scenario.room = words[1]
 		"wick":
-			scenario.wick = words[1]
+			# "wick none": no player, for fixtures about the core alone.
+			scenario.wick = "" if words[1] == "none" else words[1]
 		"spawn":
 			scenario.spawn_x = _int_word(words, 1, line_number)
 			scenario.spawn_y = _int_word(words, 2, line_number)

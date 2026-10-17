@@ -1,0 +1,19 @@
+fixture tech11_ember_stops_on_ceiling
+doc BUILD.md s6 Ember Toss "stops on walls; press again to teleport to it": an ember stopped on a ceiling; docs/adr/0010 teleport fit
+room test/flat
+spawn 400 544
+frames 90
+input
+  # Thrown straight up from a full jump's apex, it stops under the ceiling (its underside at 32 u).
+  0..20 jump
+  21 U jump toss
+  70 toss
+end
+expect
+  mark stopped 22..69 ember=1 ember_y<=33u
+  at stopped+1 ember_y=ember_y@stopped
+  # The body fits under the ceiling: its top on it, 22 u (half its height) below the ember's
+  # centre, then it falls.
+  at 70 event.teleport=1 ember=0 y>=76u y<=77u invuln=1
+  at 71 state=air
+end

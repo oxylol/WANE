@@ -1,0 +1,21 @@
+fixture dash_buffered_on_landing
+doc BUILD.md s5 feel rules "Buffers are generous (8 f)"; docs/adr/0010: a dash pressed before landing starts on the landing frame, as a buffered jump does
+room test/flat
+spawn 400 400
+frames 50
+input
+  # The air dash is spent at once; the second press, just before landing, waits in the buffer.
+  0 R dash
+  1..19 R
+  20 R dash
+  21..49 R
+end
+expect
+  at 0 event.dash=1 air_dashes=0
+  never 1..19 event.dash=1
+  # The landing frame: the dash event and the dash state, as a ground dash on its frame 0; its
+  # nine moving frames start on the next tick.
+  mark land 20..30 event.land=1
+  at land event.dash=1 state=dash dash_frame=0 dash_cooldown=24
+  at land+1 dash_frame=1 vx=5120
+end

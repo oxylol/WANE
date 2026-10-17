@@ -1,0 +1,18 @@
+fixture down_strike_landing_jump
+doc BUILD.md s5 tech 8 "Attack-cancel landing: landing never interrupts an attack"; s5 Jump "Landing: 0 f of lag"; docs/adr/0010: once grounded, a jump cancels the down-strike
+room test/flat
+spawn 400 520
+frames 30
+input
+  0 D attack
+  3 jump
+end
+expect
+  at 0 action=down
+  # The down-strike whiffs into the floor. Landing does not end it (tech 8), but the jump pressed
+  # on its frame 4, which the airborne strike blocks, is not locked out: it fires on the landing
+  # frame, out of the strike.
+  never 0..6 event.jump=1
+  mark land 0..10 event.land=1
+  at land event.jump=1 action=down vy<0
+end

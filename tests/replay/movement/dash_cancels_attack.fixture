@@ -1,0 +1,20 @@
+fixture dash_cancels_attack
+doc BUILD.md s5 Dash: "Dash cancels any attack after frame 4 of that attack; dash is cancelable into attack from frame 6"; s6 Taper side 1 "Dash from f 4"; s15 "Dash cancels an attack on frame 4 and the cancel never eats the next attack input"
+room test/flat
+frames 40
+input
+  0 attack
+  # The next attack and the dash are pressed together on the strike's frame 3: too early to chain
+  # and too early to cancel. The dash waits in the buffer for frame 4; the cancel must not eat the
+  # attack.
+  2 attack dash
+end
+expect
+  at 0 event.attack=1 action=side1 action_frame=1
+  at 2 action=side1 action_frame=3 strike=1
+  at 3 event.dash=1 action=none state=dash dash_frame=1
+  # Dash frame 6 is the first frame an attack may cancel the dash; the press from frame 2 is
+  # still in its 8-frame buffer and fires, continuing the chain.
+  never 4..7 event.attack=1
+  at 8 event.attack=1 action=side2 action_frame=1 state=ground carry>0
+end

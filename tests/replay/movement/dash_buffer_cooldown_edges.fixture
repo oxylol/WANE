@@ -1,0 +1,18 @@
+fixture dash_buffer_cooldown_edges
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s5 Dash "Cooldown 24 f on ground"; s5 feel rules "Buffers are generous (8 f)". A press 9 frames before the cooldown ends has expired; one 8 frames before fires on frame 24.
+room test/flat
+frames 80
+input
+  0 dash
+  15 dash
+  30 dash
+  46 dash
+end
+expect
+  at 0 event.dash=1
+  never 1..29 event.dash=1
+  at 30 event.dash=1
+  # 30 + 24 = 54: the press on 46 (8 frames earlier) fires there.
+  never 31..53 event.dash=1
+  at 54 event.dash=1
+end

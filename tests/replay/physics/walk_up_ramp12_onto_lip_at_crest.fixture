@@ -1,0 +1,11 @@
+fixture walk_up_ramp12_onto_lip_at_crest
+doc Physics review 4: run right up the 1:2 ramp of test/review_ramp12; a 4 u lip lies on its plateau from the crest edge (x 448), half the 8 u corner correction. The step up is measured from the floor at the box's leading edge, so the walk steps onto the lip and runs on; measured from the feet, it stopped below the crest.
+room test/ramp12_lip_at_crest
+spawn 200 384
+frames 60
+input
+  0..59 R
+end
+expect
+  at 59 xu>=500
+end

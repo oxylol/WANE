@@ -1,0 +1,18 @@
+fixture tech11_ember_in_flight
+doc BUILD.md s6 Ember Toss "press again to teleport to it": a press while the ember still flies teleports to where it is
+room test/flat
+spawn 400 544
+frames 40
+input
+  0 R toss
+  12 toss
+end
+expect
+  # Spawned on the throw's frame 3 at the player's centre and flying 10 u a frame from that frame.
+  at 2 ember=1 ember_x=10u+x@2
+  at 11 ember=1 ember_x=100u+x@2
+  # The press on frame 12 teleports before the ember moves that frame: the centre on it, in the
+  # air (the ember flies at centre height, 22 u above the feet).
+  at 12 event.teleport=1 ember=0 x=100u+x@2 y=544u invuln=1
+  at 13 state=ground
+end

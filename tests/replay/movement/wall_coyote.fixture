@@ -1,0 +1,17 @@
+fixture wall_coyote
+doc BUILD.md s5 Wall "Wall-jump"; s5 Jump "Coyote time 6 f"; docs/adr/0010 wall coyote time: a jump within 6 frames of pushing away from a cling is still a wall-jump
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  # Push away from the cling, and press jump 3 frames later, already more than 3 u from the wall.
+  10..12 L
+  13..20 L jump
+  21..39 L
+end
+expect
+  at 9 state=wall
+  at 10 state=air
+  at 13 event.wall_jump=1 event.air_jump=0
+end

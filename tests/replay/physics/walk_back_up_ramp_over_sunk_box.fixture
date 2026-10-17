@@ -1,0 +1,13 @@
+fixture walk_back_up_ramp_over_sunk_box
+doc docs/adr/0008 decision 5 (round 3, M1): test/slopes with a solid box (x 240..350, top 516) sunk into the ramp 4 u below the plateau (512). Walk left off the plateau onto the box, then back right: the crest wall only stops the upper body, so the walk goes along the box top and up the ramp.
+room test/review_door_ramp
+spawn 400 512
+frames 60
+input
+  0..19 L
+  20..59 R
+end
+expect
+  at 19 yu=516
+  at 59 xu>=400
+end

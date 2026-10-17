@@ -1,0 +1,15 @@
+fixture air_dash_up_45_ramp_rows
+doc docs/adr/0008 decision 6 (round 3, H1): a hop then a level air dash right onto a four-row 45-degree ramp (test/review_ramp45). BUILD.md s5 "Up to 45 degrees, speed unchanged", "180 u in 9 f": the dash climbs past every tile-row boundary without stopping.
+room test/review_ramp45
+spawn 236 384
+frames 24
+input
+  0 R jump
+  1 R dash
+  2..23 R
+end
+expect
+  # 180 u in 9 f, every frame 20 u: the ramp changes no speed.
+  at 9 xu=417 state=dash
+  never 1..10 hit_wall!=0
+end

@@ -1,0 +1,21 @@
+fixture tech11_teleport_into_cling
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s6 Ember Toss; s5 Wall-cling "Holding toward a wall in air"; docs/adr/0010 teleport fit and fresh clings. An ember stopped on the room's right wall in the air; the teleport, holding toward the wall, clings on the teleport frame, and the cling (the first since the landing) restores the spent air jump and air dash.
+room test/flat
+spawn 1700 544
+frames 80
+input
+  # Thrown up-right, the ember stops on the room's right wall (face at 1888) in the air.
+  0 U R toss
+  # A jump, the air jump and the air dash spent, then teleport holding toward the wall.
+  20..25 jump
+  28 jump
+  32 L dash
+  50 R toss
+  51..79 R
+end
+expect
+  mark stopped 3..40 ember_x>=1887u
+  at 28 event.air_jump=1
+  at 32 event.dash=1
+  at 50 event.teleport=1 event.wall_cling=1 state=wall air_jumps=1 air_dashes=1
+end

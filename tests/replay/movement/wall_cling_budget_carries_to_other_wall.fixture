@@ -1,0 +1,18 @@
+fixture wall_cling_budget_carries_to_other_wall
+doc Task 3 review round 2 (behaviour for the director): (Passes: documents behaviour, a director question.) BUILD.md s5 Wall-cling "slide at 180 u/s for up to 90 f", note "the 90 f count time on the wall, so re-gripping continues them". Letting go of one wall and drifting to the opposite wall of a narrow shaft (no wall-jump) continues the first wall's count: the second wall gives only what is left of the 90 f.
+room test/shaft
+spawn 760 100
+frames 200
+input
+  0..59 R
+  60..199 L
+end
+expect
+  mark cling 0..20 event.wall_cling=1
+  mark other 61..120 event.wall_cling=1
+  at other wall=-1
+  # The second wall's slide starts where the first stopped.
+  at other wall_frames>50
+  mark off other..199 state=air
+  at off wall_frames=91
+end

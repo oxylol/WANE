@@ -1,0 +1,14 @@
+fixture wall_kick_neutral
+doc BUILD.md s5 Wall: "Wall-kick (neutral): Jump without holding away"
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..9 R
+  10..30 jump
+end
+expect
+  at 10 event.wall_kick=1 vy=-3840 vx=-1024
+  # With the stick neutral, air deceleration (288 sp/f) stops the drift in four frames.
+  at 14 vx=0
+end

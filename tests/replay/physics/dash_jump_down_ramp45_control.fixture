@@ -1,0 +1,16 @@
+fixture dash_jump_down_ramp45_control
+doc control for dash_jump_down_ramp45_off_door: the same dash and jump from the same plateau with no door.
+room test/review_ramp45
+spawn 400 256
+frames 40
+input
+  0..1 -
+  2 L dash
+  3..9 L
+  10 L jump
+  11..39 L jump
+end
+expect
+  never 2..9 ground=0
+  at 10 event.jump=1 air_jumps=1
+end

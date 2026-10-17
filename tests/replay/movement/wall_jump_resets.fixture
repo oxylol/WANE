@@ -1,0 +1,20 @@
+fixture wall_jump_resets
+doc BUILD.md s5 Wall: "Wall-jump: Resets double jump and air dash"; s5 Double jump "resets on wall-cling"
+room test/shaft
+spawn 700 864
+frames 80
+input
+  # Jump, spend the air jump and the air dash, then fall beside the wall without clinging.
+  0..3 jump
+  8 jump
+  14 R dash
+  # The wall-jump: falling within reach of the wall, holding away.
+  40..50 L jump
+end
+expect
+  at 8 event.air_jump=1 air_jumps=0
+  at 14 event.dash=1 air_dashes=0
+  never 0..39 state=wall
+  mark wj 30..50 event.wall_jump=1
+  at wj air_jumps=1 air_dashes=1
+end

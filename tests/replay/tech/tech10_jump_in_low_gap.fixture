@@ -1,0 +1,27 @@
+fixture tech10_jump_in_low_gap
+doc BUILD.md s5 Ground "Crouch: Hitbox 44 to 28 tall; cannot move"; s5 tech 10; docs/adr/0010: the crouched box cannot move in the air either, so hopping under a low ceiling never crawls
+room test/longgap
+spawn 600 544
+frames 60
+input
+  # A crouch-dash into the 384 u gap stops inside it.
+  0..2 D
+  3 D dash
+  4..19 R
+  # From rest, holding forward and hopping: there is no headroom to stand, so the body stays
+  # crouched, and the stick does not move it.
+  20 R jump
+  21 R
+  22 R jump
+  23 R
+  24 R jump
+  25 R
+  26 R jump
+  27 R
+  28 R jump
+  29..59 R
+end
+expect
+  at 19 crouch=1 vx=0
+  during 20..59 crouch=1 height=28 vx=0 x=x@19
+end

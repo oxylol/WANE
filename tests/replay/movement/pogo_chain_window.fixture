@@ -1,0 +1,18 @@
+fixture pogo_chain_window
+doc BUILD.md s5 Pogo: "Chain window: Next down-strike can start on frame 6 after a bounce" (frame 14 was tried and reverted: docs/feel_log/2026-10-17-pogo-chain-window.md)
+room test/spikes
+spawn 1216 300
+frames 50
+input
+  0..11 D
+  12..13 D attack
+  14..16 D
+  # Held from bounce frame 4: the strike starts on frame 6.
+  17..40 D attack
+end
+expect
+  # The bounce frame counts as frame 1.
+  at 14 event.pogo=1 since_bounce=1 action=none
+  never 15..18 event.attack=1
+  at 19 event.attack=1 action=down action_frame=1 since_bounce=6
+end

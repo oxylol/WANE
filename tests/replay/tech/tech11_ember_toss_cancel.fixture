@@ -1,0 +1,37 @@
+fixture tech11_ember_toss_cancel
+doc BUILD.md s5 tech 11 "Ember-toss cancel (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm"; s6 Ember Toss "600 u/s projectile", "3 f startup", "teleport to it with 6 f of invulnerability"
+room test/gorge
+spawn 200 384
+frames 140
+input
+  # A full jump, and the air dash toward the gorge at its top.
+  0..21 jump
+  22 R dash
+  23..27 R
+  # The throw on dash frame 7, toward the far side: the dash carries on.
+  28 R toss
+  29..30 R
+  # The dash ends short of the edge (480 u); with the stick let go the player lands on the near
+  # side.
+  # Standing there once the ember has crossed the gorge and stopped in the air: teleport.
+  90 toss
+end
+expect
+  at 22 event.dash=1 state=dash
+  at 28 event.toss=1 state=dash dash_frame=7
+  during 28..30 state=dash
+  # Spawned on the throw's frame 3 at the player's centre, flying 10 u a frame.
+  at 30 ember=1 ember_x=10u+x@30
+  # Its 40 frames of flight end over the far ledge (736 u on), where it waits.
+  at 68 ember_x=770u
+  during 69..89 ember=1 ember_x=780u
+  # The player lands on the near side, short of the edge.
+  mark land 31..89 event.land=1
+  at land x<470u state=ground
+  at 90 event.teleport=1 ember=0 invuln=1 x=780u state=air
+  during 90..95 invuln=1
+  # The teleport leaves the player in the air above the far ledge; they land there.
+  mark across 91..139 event.land=1
+  at across y=384u x>746u
+  never 0..139 event.hazard=1
+end

@@ -1,0 +1,21 @@
+fixture pogo_bounce_uses_up_jump_pressed_in_strike
+doc with the air jump spent, a down-strike, and a jump pressed during it a few frames before it connects (the strike blocks the jump, so the press waits in the buffer): the bounce answers that press. It no longer fires on the tick after the bounce as the air jump the bounce just restored, which cut the bounce to half its height (62 u against 124) and spent the jump (task 3 review 3, M2; control pogo_bounce_control).
+room test/spikes
+spawn 800 300
+frames 60
+input
+  2 jump
+  3..29
+  30 D attack
+  31 D attack jump
+  32..59 D
+end
+expect
+  at 2 event.air_jump=1 air_jumps=0
+  mark bounce 30..40 event.pogo=1
+  at bounce vy=-3388 air_jumps=1
+  never bounce..bounce+20 event.air_jump=1
+  at bounce+1 air_jumps=1 vy=-3217
+  mark top bounce..bounce+20 vy>=0
+  at top y<=378u air_jumps=1
+end

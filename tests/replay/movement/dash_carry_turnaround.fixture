@@ -1,0 +1,15 @@
+fixture dash_carry_turnaround
+doc BUILD.md s15 "Turning around never produces a dead frame"; s5 Ground "Turnaround: keeps 60% speed in the new direction": reversing during the dash's carry-over ends it
+room test/flat
+spawn 400 544
+frames 30
+input
+  0 R dash
+  1..8 R
+  9..29 L
+end
+expect
+  at 8 state=dash dash_frame=9
+  # Frame 9 would be the first carry-over frame: the reversal turns the player at once instead.
+  at 9 facing=-1 vx<0 carry=0
+end

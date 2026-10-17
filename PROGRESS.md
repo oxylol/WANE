@@ -9,19 +9,19 @@
 | # | Task | Status |
 | --- | --- | --- |
 | 0 | Repo skeleton, `.godot-version`, CI, gdUnit4, lint, requirements, PROGRESS, ADR and feel-log templates, LICENSES | done |
-| 1 | Core loop: fixed-step driver, `InputFrame` and ring buffer, split-stream RNG, state hash every 60 ticks, replay recorder and player | done (eight review rounds; the last found nothing) |
-| 2 | Physics sweep: AABB, slopes to 45 degrees, one-way platforms, corner correction | in progress: redesigned after its first review (ADR-0008) |
-| 3 | Ash: ground, jump, dash, wall, pogo; one fixture per table row and per tech interaction | not started |
-| 4 | Camera | not started |
-| 5 | F3 debug overlay and frame-stepper | not started |
-| 6 | Taper, Flame, Kindling, parry, spells, hit feedback, training dummy with poise | not started |
-| 7 | Room editor plugin and grey-box zone 1 (12 rooms, 12 tech interactions in order) | not started |
-| 8 | Stress room (200 enemies, 40 procs, Pitch lighting) and perf benchmark in CI | not started |
+| 1 | Core loop: fixed-step driver, `InputFrame` and ring buffer, split-stream RNG, state hash every 60 ticks, replay recorder and player | done |
+| 2 | Physics sweep: AABB, slopes to 45 degrees, one-way platforms, corner correction | in review: fixed through five review rounds (ADR-0008); the re-review of the fifth round's fixes runs next. Committed with task 3, whose player its fixtures and tests run through |
+| 3 | Ash: ground, jump, dash, wall, pogo; one fixture per table row and per tech interaction | in review: every row and all 12 tech interactions have fixtures, with control runs; fixed through three review rounds (ADR-0010); the re-review of the third round's fixes runs next |
+| 4 | Camera | in review: fixed through four review rounds; committed next |
+| 5 | F3 debug overlay and frame-stepper | in progress, not yet committed: overlay, boxes, input history and stepper built and unit-tested (ADR-0012); wiring into the game and the filmed contact sheet remain |
+| 6 | Taper, Flame, Kindling, parry, spells, hit feedback, training dummy with poise | in progress: the Taper's strikes and the pogo are committed with task 3; Flame, hearts, Kindling, the dummy, hit feedback and slow motion are built and unit-tested but not yet integrated or committed |
+| 7 | Room editor plugin and grey-box zone 1 (12 rooms, 12 tech interactions in order) | in progress: the room format (ADR-0009) is committed; the editor's document, history and panel are built but not committed; zone 1 is not built |
+| 8 | Stress room (200 enemies, 40 procs, Pitch lighting) and perf benchmark in CI | not started (the physics bench exists: ADR-0008) |
 | 9 | Immaculate Checklist pass, Phase 1 report | not started |
 
 ## Next
 
-Task 2: the physics sweep, reworked after review (validated slope geometry, exact swept walking, crest landings, drop-through beside walls), then Ash's movement (task 3, whose fixtures are being written alongside).
+Commit task 4 (the camera), then task 5: wire the F3 overlay and the frame-stepper into the game.
 
 ## Immaculate Checklist (BUILD.md section 15)
 
@@ -30,30 +30,30 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Line | Applies in Phase 1 | Status |
 | --- | --- | --- |
 | *Movement* | | |
-| Jump pressed 8 frames before landing fires on the landing frame | yes | in progress: the input ring serves an 8-frame-old press (task 1); the landing jump comes with Ash (task 3) |
-| Jump pressed 6 frames after walking off a ledge still jumps | yes | not started |
-| Tap jump and full jump differ by at least 3 tiles; release feels like a decision | yes | not started |
-| Turning around never produces a dead frame; sprite flips on the input frame | yes (the grey box's facing marker flips) | not started |
-| Dash from standstill and at full run reach the same distance | yes | not started |
-| Dash-jump keeps 100% of dash speed and clears the zone 1 room 7 gap every time | yes, with a numbering decision: the grey-box zone teaches the tech in order, so its dash-jump reference gap is in room 2; ADR at task 7 | not started |
-| Pogo keeps full horizontal speed; 10-bounce chain across the zone 1 spike pit at 4 bounces/s | yes | not started |
-| Pogo resets air dash; pogo, dash, pogo crosses the hidden-room gap | yes | not started |
-| Wall-kick climbs a single wall without feeling stuck | yes | not started |
-| Landing on a 1-pixel ledge edge lands; nudge invisible | yes | not started |
-| Head bumping a ceiling corner by under 6 units slides around it | yes | not started |
-| Camera never shows the player within 80 units of the screen edge | yes | not started |
-| 60-second movement-only loop through zone 1 playable with eyes on the character | yes (the director plays it) | not started |
+| Jump pressed 8 frames before landing fires on the landing frame | yes | green: `jump_buffer_8f` fires on the landing frame and `jump_buffer_9f_expires` is the edge; the same on a cling (`wall_cling_buffered_jump`) and a dash's touchdown (`dash_diagonal_touchdown_buffered_jump`) |
+| Jump pressed 6 frames after walking off a ledge still jumps | yes | green: `jump_coyote_frame6` jumps, `jump_coyote_frame7` is the air jump; walking off a ledge's far edge after touching it gets the same (`far_edge_touch_then_ground_jump`) |
+| Tap jump and full jump differ by at least 3 tiles; release feels like a decision | yes | green on numbers: 77.9 u against 176 u, 3.07 tiles (`jump_tap`, `jump_full`, `jump_tap_buffered_on_landing`); whether the release feels like a decision is the director's to play |
+| Turning around never produces a dead frame; sprite flips on the input frame | yes (the grey box's facing marker flips) | green: `ground_turnaround`, `ground_turnaround_partial_speed`, `dash_carry_turnaround` |
+| Dash from standstill and at full run reach the same distance | yes | green: 210 u both (`dash_same_distance`, `dash_distance`) |
+| Dash-jump keeps 100% of dash speed and clears the zone 1 room 7 gap every time | yes, with a numbering decision: the grey-box zone teaches the tech in order, so its dash-jump reference gap is in room 2; ADR at task 7 | partial: 100% kept for the whole airtime, off a lip and off a door down a ramp too (`dash_jump_from_box_a_lip`, `dash_jump_down_ramp45_off_door`); the 1664 u test chasm is cleared by a ground dash-jump with its air jump and air dash from a broad region of timings (with the air jump alone, a 15-tick window from dash frame 9), and no route without a dash-jump of any kind crosses it, one Ember Toss included (farthest 1590 u, 64 u short; `tech02_dash_jump_frame5_air_dash`, `_frame5`, `_frame9`, `tech02_control_*`, `tech02_respawn_does_not_keep_the_ember`; reach table in ADR-0010, measured by `tools/replay/gap_reach.gd`); the zone 1 room is task 7 |
+| Pogo keeps full horizontal speed; 10-bounce chain across the zone 1 spike pit at 4 bounces/s | yes | partial: speed kept (`pogo_keeps_horizontal`, `pogo_dash_jump_speed`), ten bounces cross the 3360 u test pit (`tech03_pogo_chain`); the zone 1 pit is task 7 |
+| Pogo resets air dash; pogo, dash, pogo crosses the hidden-room gap | yes | partial: `pogo_resets`, `tech04_pogo_dash_reset` on the test gap; the hidden room is task 7 |
+| Wall-kick climbs a single wall without feeling stuck | yes | green on fixtures: 176 u every 24 f, held, tapped or mashed (`tech05_wall_kick_climb`, `tech05_wall_kick_mash`); the feel is the director's to play |
+| Landing on a 1-pixel ledge edge lands; nudge invisible | yes | partial: a fall or a diagonal dash lands from the near side by the corner lift and from the far side by the far-edge landing (`ground_corner_lift`, `far_edge_landing_lands`, `down_dash_lands_on_ledge_far_corner`, `test_physics_fuzz_lift.gd`); every nudge is recorded for the view to ease, but nothing eases it before task 5, so a step on a slope still shows as a snap of up to 18 u |
+| Head bumping a ceiling corner by under 6 units slides around it | yes | green: `jump_ceiling_nudge` slides, `jump_ceiling_bump` (7 u) bumps |
+| Camera never shows the player within 80 units of the screen edge | yes | not started: the camera is task 4, committed next |
+| 60-second movement-only loop through zone 1 playable with eyes on the character | yes (the director plays it) | not started: needs zone 1 (task 7) |
 | *Combat* | | |
-| Attack comes out on frame 3 from a neutral press, every time, including during hitstop | yes | not started |
-| Dash cancels an attack on frame 4 and never eats the next attack input | yes | not started |
-| 3-hit chain against a Tallowman reads as three impacts with rising weight | partial: a grey-box heavy dummy stands in for the Tallowman | not started |
-| Parry succeeds on the 8-frame window against the Snuffed Knight 10 times in a row | partial: a grey-box knight dummy. BUILD.md gives only the rules (telegraph of at least 20 f, parryable sweep, unparryable red overhead), so its timings are new content values with a feel-log entry | not started |
-| Unparryable red distinguishable from parryable white at Pitch with flashes at 0 | partial: shape and outline cues on grey boxes; re-checked with Phase 2 lighting and art | not started |
-| Taking a hit is never confusing | yes | not started |
-| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | in progress: the ring merges hitstop frames and keeps every press (task 1, unit-tested); hitstop itself comes with combat (task 6) |
+| Attack comes out on frame 3 from a neutral press, every time, including during hitstop | yes | partial: the strike box is live on frame 3 from a neutral press (`dash_cancels_attack`); hitstop is task 6 |
+| Dash cancels an attack on frame 4 and never eats the next attack input | yes | green: `dash_cancels_attack`, `dash_cancel_window`, `dash_cancels_down_strike` |
+| 3-hit chain against a Tallowman reads as three impacts with rising weight | partial: a grey-box heavy dummy stands in for the Tallowman | not started (task 6) |
+| Parry succeeds on the 8-frame window against the Snuffed Knight 10 times in a row | partial: a grey-box knight dummy; its timings are new content values with a feel-log entry | not started (task 6) |
+| Unparryable red distinguishable from parryable white at Pitch with flashes at 0 | partial: shape and outline cues on grey boxes; re-checked with Phase 2 lighting and art | not started (task 6) |
+| Taking a hit is never confusing | yes | not started (task 6) |
+| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | in progress: the ring merges hitstop frames and keeps every press (task 1, unit-tested); hitstop itself comes with task 6 |
 | With 30 Votives active the screen stays readable | partial: the stress room's grey-box procs | not started |
 | Kindling White reached by a skilled tester in zone 2, feels earned | no: zone 2 does not exist in Phase 1 | carried |
-| A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | not started |
+| A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | not started (task 6) |
 | *Graphics and feel* | | |
 | 60 fps in the stress room on the Deck profile with lighting on | partial: Phase 1 lights the stress room with Godot's 2D lights; the real lighting pass is Phase 2 task 1, and the gate needs Deck-class hardware (see Blocked) | not started |
 | No frame-time spike above 20 ms in a 5-minute zone 1 run | partial: the 12-room grey-box zone, not the final 60-room zone | not started |
@@ -62,7 +62,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Every attack has a smear frame | no: animation is Phase 2 | carried |
 | Landing squash and jump stretch visible and never block input | partial: grey-box squash and stretch driven by the core's timings | not started |
 | Ember flicker visible on nearby normal-mapped surfaces | no: normal maps are Phase 2 | carried |
-| Screen shake at default 50% never moves the frame more than 3 units | yes | not started |
+| Screen shake at default 50% never moves the frame more than 3 units | yes | not started (task 6) |
 | Any boss-fight frame could be the store page | no: art is Phase 2 | carried |
 | *Audio* (all five lines) | no: audio is Phase 2 task 4 | carried |
 | *Run tension* | | |
@@ -70,18 +70,19 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Vigil radius readable; kills refill it | no: the Vigil is not in Phase 1 | carried |
 | Dark thresholds distinguishable by sight | no: needs the Phase 2 lighting pass | carried |
 | Run beatable with the starting kit on Wane | no: needs a full run | carried |
-| Seeded replay reproduces bit-for-bit on Windows, Linux and Deck | partial: every fixture and grey-box zone replay on Linux, Windows and macOS CI; a full run and the Deck come later | not started |
+| Seeded replay reproduces bit-for-bit on Windows, Linux and Deck | partial: every fixture replays bit-for-bit against its golden hashes on Linux, Windows and macOS CI; a full run and the Deck come later | in progress: green for all fixtures |
 | *Process* | | |
-| Every tuning change this milestone is in the feel log | yes | not started |
-| Every new system has an ADR | yes | not started |
-| F3 overlay shows hitboxes, state, frame counter and input history | yes | not started |
-| CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | not started |
+| Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 3 (`docs/feel_log/`) |
+| Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement) |
+| F3 overlay shows hitboxes, state, frame counter and input history | yes | in progress (task 5) |
+| CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | green for unit, replay, coverage and lint; the perf gate is task 8 |
 
 ## CI gates from BUILD.md section 13 not on the checklist
 
 | Gate | Status |
 | --- | --- |
-| Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 95.2% and CI gates at 85% |
+| Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 93.6% and CI gates at 85% |
+| Replay fixtures run headless in under 10 seconds | green: the fixture stage takes about 3 s for all 173 fixtures here (building a simulation costs 1.4 ms: ADR-0006) |
 | Export for Windows, Linux, macOS and Deck on every merge, booting to the Hearth | carried: no export presets yet and the Hearth is not in Phase 1; the export job lands with the first presets |
 | Credits and legal screen listing Godot's third-party licenses (docs/LICENSES.md) | carried to the Phase 2 UI work |
 
@@ -96,4 +97,6 @@ None.
 
 ## For the director
 
-Nothing to play yet.
+- **Nothing to play in the game window yet** (the views and the camera come with task 4). The contact sheets in `docs/feel_log/` show the movement and the physics, a panel per tech.
+- **Movement**: the questions in `docs/feel_log/2026-10-17-task3-ash-movement.md` and ADR-0010 (wall-kick climb, pogo-dash cadence, ember values, low gaps, wall coyote time, tech 2's 1664 u gap, the reverse pogo needing dash speed, a spent wall still kicking, a press lost behind a strike with no cancel, the safe-ground margin, strikes read 4 ways, the jump A/B).
+- **Physics**: the ledge-grab's 10 u is measured from the feet (ADR-0008).

@@ -1,0 +1,15 @@
+fixture chain_side2_window_edges
+doc Task 3 review round 2 (an edge it pinned): BUILD.md s6 Taper Side 1 "Side 2 from f 6"; Side 2 "Side 3 from f 6"; s5 feel rules "Buffers are generous (8 f)". Each next strike pressed one frame early (frame 5) waits and starts on frame 6.
+room test/flat
+frames 40
+input
+  0 attack
+  4 attack
+  9 attack
+end
+expect
+  at 4 action=side1 action_frame=5
+  at 5 event.attack=1 action=side2 action_frame=1
+  at 9 action=side2 action_frame=5
+  at 10 event.attack=1 action=side3 action_frame=1
+end
