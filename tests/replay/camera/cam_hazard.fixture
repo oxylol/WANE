@@ -1,0 +1,12 @@
+fixture cam_hazard
+doc docs/adr/0011: a hazard respawn cuts the camera to the player
+room test/camera
+spawn 2800 2240
+frames 90
+input
+  0..40 R
+end
+expect
+  mark hit 0..40 event.hazard=1
+  at hit+1 y=2240u x<2912u
+end

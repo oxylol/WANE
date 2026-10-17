@@ -1,0 +1,11 @@
+fixture cam_stairs_run
+doc Camera review round 3: run right down a staircase of 32 u steps every 96 u (each step down is a short fall)
+room test/cam_stairs
+spawn 200 640
+frames 260
+input
+  0..259 R
+end
+expect
+  mark land 1..259 event.land=1
+end

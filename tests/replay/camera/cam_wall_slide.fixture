@@ -1,0 +1,14 @@
+fixture cam_wall_slide
+doc BUILD.md s5 Wall "Wall-cling: slide at 180 u/s for up to 90 f, then normal fall"; docs/adr/0011: a slide is a rest height that moves down with the player; the fall after it looks ahead
+room test/camera
+spawn 4470 2000
+frames 260
+input
+  0..259 R
+end
+expect
+  mark cling 0..20 event.wall_cling=1
+  during cling+1..cling+80 state=wall
+  mark land cling+80..259 event.land=1
+  at land y=3200u
+end

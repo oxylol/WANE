@@ -1,0 +1,26 @@
+fixture cam_box_59x33_roam
+doc Camera review round 2: a 59x33-tile room with one-tile borders: run to each wall, jump, double jump and up-dash at it, wall-jump off it
+room test/cam_box_59x33
+spawn 944 1024
+frames 520
+input
+  0..119 L
+  120..140 L jump
+  141 L
+  142 L jump !jump
+  143..160 L jump
+  161 U dash
+  162..199 L
+  200..380 R
+  381..400 R jump
+  401 R
+  402 R jump !jump
+  403..420 R jump
+  421 U dash
+  422..440 R
+  441..460 L jump
+  461..519 R
+end
+expect
+  at 0 facing=-1
+end

@@ -1,0 +1,14 @@
+fixture cam_fall_toss_teleport
+doc Camera review round 2: walk off the high shelf, throw the ember sideways at terminal speed and teleport back up to it 8 ticks later (a short teleport, no cut), then keep falling
+room test/camera
+spawn 5400 960
+frames 200
+input
+  0..20 R
+  50 R toss
+  60 toss
+end
+expect
+  at 50 event.toss=1
+  at 60 event.teleport=1
+end

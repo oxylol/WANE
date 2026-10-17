@@ -1,0 +1,97 @@
+fixture cam_air_spikes_pogo
+doc Camera review round 2: run off a shelf, fall 960 u at terminal speed onto a row of spikes hanging in the air (nothing under them for the probe), pogo off them
+room test/cam_air_spikes
+spawn 300 640
+frames 260
+input
+  0..79 R
+  80 D R !attack
+  81..83 D R
+  84 D R !attack
+  85..87 D R
+  88 D R !attack
+  89..91 D R
+  92 D R !attack
+  93..95 D R
+  96 D R !attack
+  97..99 D R
+  100 D R !attack
+  101..103 D R
+  104 D R !attack
+  105..107 D R
+  108 D R !attack
+  109..111 D R
+  112 D R !attack
+  113..115 D R
+  116 D R !attack
+  117..119 D R
+  120 D R !attack
+  121..123 D R
+  124 D R !attack
+  125..127 D R
+  128 D R !attack
+  129..131 D R
+  132 D R !attack
+  133..135 D R
+  136 D R !attack
+  137..139 D R
+  140 D R !attack
+  141..143 D R
+  144 D R !attack
+  145..147 D R
+  148 D R !attack
+  149..151 D R
+  152 D R !attack
+  153..155 D R
+  156 D R !attack
+  157..159 D R
+  160 D R !attack
+  161..163 D R
+  164 D R !attack
+  165..167 D R
+  168 D R !attack
+  169..171 D R
+  172 D R !attack
+  173..175 D R
+  176 D R !attack
+  177..179 D R
+  180 D R !attack
+  181..183 D R
+  184 D R !attack
+  185..187 D R
+  188 D R !attack
+  189..191 D R
+  192 D R !attack
+  193..195 D R
+  196 D R !attack
+  197..199 D R
+  200 D R !attack
+  201..203 D R
+  204 D R !attack
+  205..207 D R
+  208 D R !attack
+  209..211 D R
+  212 D R !attack
+  213..215 D R
+  216 D R !attack
+  217..219 D R
+  220 D R !attack
+  221..223 D R
+  224 D R !attack
+  225..227 D R
+  228 D R !attack
+  229..231 D R
+  232 D R !attack
+  233..235 D R
+  236 D R !attack
+  237..239 D R
+  240 D R !attack
+  241..243 D R
+  244 D R !attack
+  245..247 D R
+  248 D R !attack
+  249..251 D R
+end
+expect
+  mark p 0..259 event.pogo=1
+end

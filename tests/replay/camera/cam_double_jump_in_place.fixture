@@ -1,0 +1,16 @@
+fixture cam_double_jump_in_place
+doc camera review (docs/adr/0011): a full jump with a full air jump at the apex, in place on flat ground (BUILD.md s5: "jumps never bob it")
+room test/camera
+spawn 1600 3200
+frames 150
+input
+  0..28 jump
+  29 jump !jump
+  30..60 jump
+end
+expect
+  at 0 event.jump=1
+  at 29 event.air_jump=1
+  mark land 30..149 event.land=1
+  at land y=3200u
+end

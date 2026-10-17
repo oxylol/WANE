@@ -1,0 +1,11 @@
+fixture cam_ramp_up
+doc run up a 2240 u 45-degree ramp (BUILD.md s5 "Slope handling: up to 45 degrees, speed unchanged"), then back down: the rest keeps pace with the climb
+room test/cam_ramp
+spawn 160 2720
+frames 600
+input
+  0..300 R
+  330..599 L
+end
+expect
+end

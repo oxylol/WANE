@@ -1,0 +1,12 @@
+fixture cam_fall_airjump
+doc Camera review round 2: walk off the high shelf, fall about 40 ticks (near terminal), then a full air jump
+room test/camera
+spawn 5400 960
+frames 220
+input
+  0..20 R
+  60..80 jump
+end
+expect
+  at 60 event.air_jump=1
+end

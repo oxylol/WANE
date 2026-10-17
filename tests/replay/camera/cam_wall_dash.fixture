@@ -1,0 +1,15 @@
+fixture cam_wall_dash
+doc camera review (docs/adr/0011): dash left into the camera room's left wall
+room test/camera
+spawn 700 1920
+frames 120
+input
+  0 L dash
+  1..29 L
+  30 L dash
+  31..90 L
+end
+expect
+  at 0 event.dash=1
+  at 90 x=42u
+end

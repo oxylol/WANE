@@ -1,0 +1,20 @@
+fixture cam_step_up
+doc docs/adr/0011: landing on higher ground moves the camera up to it at the lerp
+room test/camera
+spawn 1000 1920
+frames 200
+input
+  # Onto the 160 u ledge, then a double jump onto the 320 u one.
+  0..9 R
+  10..29 R jump
+  30..51 R
+  52..70 R jump
+  71..75 R
+  76..90 R jump
+end
+expect
+  mark first 11..59 event.land=1
+  at first y=1760u
+  mark second 87..199 event.land=1
+  at second y=1600u
+end

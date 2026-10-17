@@ -1,0 +1,14 @@
+fixture cam_teleport_up_long_jump
+doc Camera review round 2: cam_teleport_up_long, then a full air jump straight after the teleport
+room test/camera
+spawn 5400 960
+frames 160
+input
+  0 U toss
+  1..12 R
+  75 toss
+  76..100 jump
+end
+expect
+  at 75 event.teleport=1
+end

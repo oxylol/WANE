@@ -1,0 +1,15 @@
+fixture cam_long_drop
+doc BUILD.md s5 feel rules "The camera never fights the player"; s5 Jump "Terminal velocity 1500 u/s"; docs/adr/0011: falling, the camera looks ahead of the fall
+room test/camera
+spawn 5400 960
+frames 220
+input
+  # Walk off the high shelf's end (5472 u) and fall 1600 u to the landing below.
+  0..20 R
+end
+expect
+  mark fall 0..40 state=air
+  mark land 40..219 event.land=1
+  at land y=2560u
+  at land-1 vy=6400
+end

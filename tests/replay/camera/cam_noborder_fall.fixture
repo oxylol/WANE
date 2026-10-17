@@ -1,0 +1,9 @@
+fixture cam_noborder_fall
+doc a straight 4800 u fall onto the grid's own bottom edge (no border tiles) in a room with no side borders: the view arrives at the edge with Ash, no backstop
+room test/cam_open_tall
+spawn 960 320
+frames 260
+input
+end
+expect
+end

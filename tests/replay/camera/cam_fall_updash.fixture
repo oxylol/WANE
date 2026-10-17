@@ -1,0 +1,12 @@
+fixture cam_fall_updash
+doc Camera review round 2: walk off the high shelf, fall about 40 ticks, then an up-dash
+room test/camera
+spawn 5400 960
+frames 220
+input
+  0..20 R
+  60 U dash
+end
+expect
+  at 60 event.dash=1
+end

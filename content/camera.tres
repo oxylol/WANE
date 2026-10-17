@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="CameraTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/camera/camera_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+view_w_u = 1920
+view_h_u = 1080
+lead_u = 60
+lead_speed_u = 4
+lead_commit_u = 120
+lead_commit_frames = 20
+dead_zone_w_u = 40
+dead_zone_h_u = 30
+vertical_lerp_permille = 80
+vertical_accel_milli_u = 3000
+look_down_delay_frames = 20
+look_down_u = 200
+look_speed_u = 8
+support_window_u = 256
+rest_rise_u = 8
+fall_lead_frames = 20
+fall_lead_speed_u = 16
+up_dash_look_u = 120
+glide_frames = 24
+glide_peak_u = 32
+glide_cut_u = 160
+edge_ease_u = 160
+edge_slack_u = 32
+edge_margin_u = 80

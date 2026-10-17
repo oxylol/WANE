@@ -1,0 +1,34 @@
+fixture cam_dither
+doc camera review (docs/adr/0011): rapid direction changes on flat ground, 6 frames each way
+room test/camera
+spawn 2400 3200
+frames 200
+input
+  0..5 L
+  6..11 R
+  12..17 L
+  18..23 R
+  24..29 L
+  30..35 R
+  36..41 L
+  42..47 R
+  48..53 L
+  54..59 R
+  60..62 L
+  63..65 R
+  66..68 L
+  69..71 R
+  72..74 L
+  75..77 R
+  78 L
+  79 R
+  80 L
+  81 R
+  82 L
+  83 R
+  84 L
+  85 R
+end
+expect
+  at 0 facing=-1
+end

@@ -1,0 +1,12 @@
+fixture cam_oneway_look_drop
+doc camera review (docs/adr/0011): look down on a one-way, then drop through and fall to the next
+room test/cam_oneways
+spawn 960 640
+frames 200
+input
+  0..59 D
+  60 D jump
+end
+expect
+  at 60 event.drop_through=1
+end

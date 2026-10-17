@@ -1,0 +1,12 @@
+fixture cam_reverse_onto_ledge
+doc Camera review round 2: run left off a shelf, reverse right in the air onto a ledge 960 u below that the probe could not see while Ash moved left
+room test/cam_rev
+spawn 1400 640
+frames 160
+input
+  0..44 L
+  45..159 R
+end
+expect
+  at 0 facing=-1
+end

@@ -1,0 +1,12 @@
+fixture cam_rev_traj
+doc Camera review round 2: trajectory: run left off a shelf, reverse right in the air
+room test/cam_rev_open
+spawn 1400 640
+frames 160
+input
+  0..44 L
+  45..159 R
+end
+expect
+  at 0 facing=-1
+end

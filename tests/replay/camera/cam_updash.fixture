@@ -1,0 +1,19 @@
+fixture cam_updash
+doc BUILD.md s5 Dash "8-way"; Jump "Double jump"; docs/adr/0011: the highest, fastest rise (jump, air jump, up-dash) stays clear of the view's edge by the follow alone
+room test/camera
+spawn 300 1920
+frames 150
+input
+  0..22 jump
+  23 jump !jump
+  24..44 jump
+  45 U dash
+  46..60 U
+end
+expect
+  at 0 event.jump=1
+  at 23 event.air_jump=1
+  at 45 event.dash=1
+  mark land 46..149 event.land=1
+  at land y=1920u
+end

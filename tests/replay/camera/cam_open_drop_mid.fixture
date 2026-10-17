@@ -1,0 +1,9 @@
+fixture cam_open_drop_mid
+doc control for cam_cling_drop_mid: the same fall onto the same shelf 380 u from the wall
+room test/cam_wallshelf
+spawn 1100 320
+frames 260
+input
+end
+expect
+end

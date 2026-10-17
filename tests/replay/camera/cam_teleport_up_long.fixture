@@ -1,0 +1,14 @@
+fixture cam_teleport_up_long
+doc camera review (docs/adr/0011): throw the ember up from the high shelf, walk off and fall about 1250 u, teleport back up (BUILD.md s6 Ember Toss; tech 11)
+room test/camera
+spawn 5400 960
+frames 160
+input
+  0 U toss
+  1..12 R
+  75 toss
+end
+expect
+  at 0 event.toss=1
+  at 75 event.teleport=1
+end

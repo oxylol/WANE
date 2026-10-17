@@ -1,0 +1,15 @@
+fixture cam_teleport_diag_long
+doc Camera review round 2: from the high shelf throw the ember up-left, walk off the right end, fall 1300 u, teleport back up-left and dash on up-left
+room test/camera
+spawn 5000 960
+frames 200
+input
+  0 U L toss
+  1..80 R
+  81 toss
+  82 U L dash
+  83..100 L
+end
+expect
+  at 81 event.teleport=1
+end

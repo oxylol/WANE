@@ -1,0 +1,9 @@
+fixture cam_noborder_fall_side
+doc the same fall flush against the grid's own left edge
+room test/cam_open_tall
+spawn 10 320
+frames 260
+input
+end
+expect
+end

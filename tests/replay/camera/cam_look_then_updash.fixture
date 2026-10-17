@@ -1,0 +1,18 @@
+fixture cam_look_then_updash
+doc Camera review round 2: look down from the ledge for a second, then jump, air jump and up-dash (cam_updash after a look)
+room test/camera
+spawn 1800 1600
+frames 200
+input
+  0..69 D
+  70..92 jump
+  93 jump !jump
+  94..114 jump
+  115 U dash
+  116..130 U
+end
+expect
+  at 70 event.jump=1
+  at 93 event.air_jump=1
+  at 115 event.dash=1
+end

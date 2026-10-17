@@ -1,0 +1,15 @@
+fixture cam_teleport_side_long_dash
+doc Camera review round 2: cam_teleport_side_long, then dash right (the way the teleport went) on the next tick
+room test/camera
+spawn 3000 3200
+frames 200
+input
+  0 R toss
+  1..100 L
+  101 toss
+  102 R dash
+  103..199 R
+end
+expect
+  at 101 event.teleport=1
+end

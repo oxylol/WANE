@@ -1,0 +1,12 @@
+fixture cam_far_spikes
+doc camera review (docs/adr/0011): run off a ledge into a spike floor far below; the respawn cuts back up to the ledge
+room test/cam_far_spikes
+spawn 300 640
+frames 200
+input
+  0..80 R
+end
+expect
+  mark hit 0..199 event.hazard=1
+  at hit yu=640
+end

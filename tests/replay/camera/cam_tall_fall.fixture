@@ -1,0 +1,12 @@
+fixture cam_tall_fall
+doc camera review (docs/adr/0011): a 5700 u fall, far past the 1024 u ground probe
+room test/cam_tall
+spawn 400 320
+frames 330
+input
+  0..45 R
+end
+expect
+  mark land 40..329 event.land=1
+  at land yu=6080
+end

@@ -1,0 +1,166 @@
+fixture cam_shaft_wall_jumps
+doc camera review (docs/adr/0011): wall-jumps between two walls 64 u apart, jumping as soon as each cling lands, climbing a 3700 u shaft (BUILD.md s5 Wall; tech 6)
+room test/cam_shaft
+spawn 512 3808
+frames 700
+input
+  0..19 L jump
+  20..29 L
+  30 R jump
+  31..37 R
+  38 L jump
+  39..45 L
+  46 R jump
+  47..53 R
+  54 L jump
+  55..61 L
+  62 R jump
+  63..69 R
+  70 L jump
+  71..77 L
+  78 R jump
+  79..85 R
+  86 L jump
+  87..93 L
+  94 R jump
+  95..101 R
+  102 L jump
+  103..109 L
+  110 R jump
+  111..117 R
+  118 L jump
+  119..125 L
+  126 R jump
+  127..133 R
+  134 L jump
+  135..141 L
+  142 R jump
+  143..149 R
+  150 L jump
+  151..157 L
+  158 R jump
+  159..165 R
+  166 L jump
+  167..173 L
+  174 R jump
+  175..181 R
+  182 L jump
+  183..189 L
+  190 R jump
+  191..197 R
+  198 L jump
+  199..205 L
+  206 R jump
+  207..213 R
+  214 L jump
+  215..221 L
+  222 R jump
+  223..229 R
+  230 L jump
+  231..237 L
+  238 R jump
+  239..245 R
+  246 L jump
+  247..253 L
+  254 R jump
+  255..261 R
+  262 L jump
+  263..269 L
+  270 R jump
+  271..277 R
+  278 L jump
+  279..285 L
+  286 R jump
+  287..293 R
+  294 L jump
+  295..301 L
+  302 R jump
+  303..309 R
+  310 L jump
+  311..317 L
+  318 R jump
+  319..325 R
+  326 L jump
+  327..333 L
+  334 R jump
+  335..341 R
+  342 L jump
+  343..349 L
+  350 R jump
+  351..357 R
+  358 L jump
+  359..365 L
+  366 R jump
+  367..373 R
+  374 L jump
+  375..381 L
+  382 R jump
+  383..389 R
+  390 L jump
+  391..397 L
+  398 R jump
+  399..405 R
+  406 L jump
+  407..413 L
+  414 R jump
+  415..421 R
+  422 L jump
+  423..429 L
+  430 R jump
+  431..437 R
+  438 L jump
+  439..445 L
+  446 R jump
+  447..453 R
+  454 L jump
+  455..461 L
+  462 R jump
+  463..469 R
+  470 L jump
+  471..477 L
+  478 R jump
+  479..485 R
+  486 L jump
+  487..493 L
+  494 R jump
+  495..501 R
+  502 L jump
+  503..509 L
+  510 R jump
+  511..517 R
+  518 L jump
+  519..525 L
+  526 R jump
+  527..533 R
+  534 L jump
+  535..541 L
+  542 R jump
+  543..549 R
+  550 L jump
+  551..557 L
+  558 R jump
+  559..565 R
+  566 L jump
+  567..573 L
+  574 R jump
+  575..581 R
+  582 L jump
+  583..589 L
+  590 R jump
+  591..597 R
+  598 L jump
+  599..605 L
+  606 R jump
+  607..613 R
+  614 L jump
+  615..621 L
+  622 R jump
+  623..629 R
+  630 L jump
+  631..637 L
+  638 R jump
+  639..645 R
+end
+expect
+  at 0 event.jump=1
+end

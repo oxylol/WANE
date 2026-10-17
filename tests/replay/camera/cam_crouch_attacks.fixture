@@ -1,0 +1,33 @@
+fixture cam_crouch_attacks
+doc Camera review round 2: crouch and strike low repeatedly (stick held straight down, attack every 10 frames): combat, not a request to look
+room test/camera
+spawn 1800 1600
+frames 120
+input
+  0..4 D
+  5 D !attack
+  6..14 D
+  15 D !attack
+  16..24 D
+  25 D !attack
+  26..34 D
+  35 D !attack
+  36..44 D
+  45 D !attack
+  46..54 D
+  55 D !attack
+  56..64 D
+  65 D !attack
+  66..74 D
+  75 D !attack
+  76..84 D
+  85 D !attack
+  86..94 D
+  95 D !attack
+  96..104 D
+end
+expect
+  at 10 crouch=1
+  at 15 event.attack=1
+  during 5..100 crouch=1
+end

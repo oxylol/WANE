@@ -1,0 +1,14 @@
+fixture cam_look_walk_off
+doc Camera review round 3: run to the end of a one-way platform, crouch with the stick down to look over the edge (BUILD.md s5 look-down), then walk off into the drop just looked at: the look eases out while the fall's look grows, so the view never swings up against Ash
+room test/cam_oneways
+spawn 960 640
+frames 220
+input
+  0..34 R
+  35..129 D
+  130..219 R
+end
+expect
+  during 40..129 state=ground crouch=1
+  mark off 130..219 state=air
+end

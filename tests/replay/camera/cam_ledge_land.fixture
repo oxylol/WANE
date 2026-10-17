@@ -1,0 +1,12 @@
+fixture cam_ledge_land
+doc camera review (docs/adr/0011): falling at terminal velocity, drift onto a ledge that enters the probe column 157 u below
+room test/cam_ledge_land
+spawn 400 320
+frames 160
+input
+  0..159 R
+end
+expect
+  mark land 40..159 event.land=1
+  at land yu=864
+end

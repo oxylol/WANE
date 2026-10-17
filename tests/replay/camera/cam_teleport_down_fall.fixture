@@ -1,0 +1,18 @@
+fixture cam_teleport_down_fall
+doc Camera review round 2: jump off a shelf's end, throw the ember straight down at the apex, air-jump back onto the shelf, run back along it, teleport down to the ember hanging in the air and fall on
+room test/cam_open
+spawn 600 640
+frames 260
+input
+  0..14 R jump
+  15 D toss
+  16..21 L
+  22 L jump
+  23..40 L jump
+  41..120 L
+  121 toss
+end
+expect
+  at 15 event.toss=1
+  at 121 event.teleport=1
+end

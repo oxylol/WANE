@@ -1,0 +1,10 @@
+fixture cam_fall_past_ledge
+doc Camera review round 3: falling straight down past a ledge with no steering (the control for cam_steer_onto_ledge_late)
+room test/cam_steer
+spawn 700 200
+frames 130
+input
+end
+expect
+  never 0..129 event.land=1
+end

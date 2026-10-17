@@ -1,0 +1,12 @@
+fixture cam_thin_floor_jumps
+doc camera review (docs/adr/0011): full jumps in place on a tall room's 1-tile bottom floor
+room test/cam_thin_floor
+spawn 1000 1888
+frames 120
+input
+  0..30 jump
+  60..90 jump
+end
+expect
+  at 0 event.jump=1
+end

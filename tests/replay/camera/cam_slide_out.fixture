@@ -1,0 +1,10 @@
+fixture cam_slide_out
+doc cling to a tall wall and keep holding toward it: the 90 f slide runs out and Ash falls along the wall to the floor
+room test/cam_wells
+spawn 720 320
+frames 330
+input
+  0..329 L
+end
+expect
+end

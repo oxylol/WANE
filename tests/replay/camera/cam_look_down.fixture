@@ -1,0 +1,16 @@
+fixture cam_look_down
+doc BUILD.md s5 feel rules "look-down on crouch hold"; s12 default pad "look-down (hold stick down)"
+room test/camera
+spawn 1890 1600
+frames 200
+input
+  # A short crouch does not look down; a held one does, and letting go looks back up.
+  10..19 D
+  40..139 D
+end
+expect
+  at 10 crouch=1
+  at 20 crouch=0
+  during 40..139 crouch=1
+  at 140 crouch=0
+end

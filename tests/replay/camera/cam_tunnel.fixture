@@ -1,0 +1,15 @@
+fixture cam_tunnel
+doc camera review (docs/adr/0011): crouch-dash into a long 32 u tunnel; stuck crouched until the next dash
+room test/cam_tunnel
+spawn 560 1280
+frames 140
+input
+  0..2 D
+  3 D dash
+  4..60 R
+  61 R dash
+  62..139 R
+end
+expect
+  at 3 event.dash=1
+end

@@ -1,0 +1,11 @@
+fixture cam_ledge_pass
+doc camera review (docs/adr/0011): a fall that passes beside a 2-tile ledge it never lands on
+room test/cam_ledge_pass
+spawn 400 320
+frames 160
+input
+  0..159 R
+end
+expect
+  never 0..159 yu=992
+end

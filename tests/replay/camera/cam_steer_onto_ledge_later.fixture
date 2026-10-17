@@ -1,0 +1,11 @@
+fixture cam_steer_onto_ledge_later
+doc Camera review round 3: steering from tick 91 is too late to reach the ledge; Ash falls past it (the look braked for a ledge that might have been the landing, then recovers)
+room test/cam_steer
+spawn 700 200
+frames 220
+input
+  91..105 R
+end
+expect
+  never 0..219 event.land=1 y=2240u
+end

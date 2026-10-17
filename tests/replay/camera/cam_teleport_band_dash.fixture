@@ -1,0 +1,16 @@
+fixture cam_teleport_band_dash
+doc Camera review round 3: a teleport that leaves Ash 87 u from the old view's edge, outside the 80 u margin but inside glide_cut_u (160 u), then a dash on the way the teleport went: the axis cuts, so the dash never needs the backstop
+room test/camera
+spawn 3000 3200
+frames 140
+input
+  0 R toss
+  1..50 L
+  51 toss
+  52 R dash
+  53..130 R
+end
+expect
+  at 51 event.teleport=1
+  at 52 event.dash=1
+end

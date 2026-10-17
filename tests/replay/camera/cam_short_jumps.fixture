@@ -1,0 +1,12 @@
+fixture cam_short_jumps
+doc camera review (docs/adr/0011): full jumps in place in a room 1056 u tall (smaller than the view) with a 1-tile floor
+room test/cam_short
+spawn 1000 1024
+frames 120
+input
+  0..30 jump
+  60..90 jump
+end
+expect
+  at 0 event.jump=1
+end

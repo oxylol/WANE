@@ -1,0 +1,12 @@
+fixture cam_slopes_run
+doc camera review (docs/adr/0011): run up a 640 u 45-degree slope and a 640 u 1:2 slope, then back down (BUILD.md s5 Ground "Slope handling")
+room test/cam_slopes
+spawn 200 1920
+frames 520
+input
+  0..240 R
+  300..519 L
+end
+expect
+  at 0 facing=1
+end

@@ -1,0 +1,13 @@
+fixture cam_look_drop_64_hold
+doc as cam_look_drop_64, and keep holding down after landing: the look carries on from where the drop left it
+room test/cam_drops
+spawn 288 960
+frames 220
+input
+  0..59 D
+  60 D jump
+  61..200 D
+end
+expect
+  at 60 event.drop_through=1
+end

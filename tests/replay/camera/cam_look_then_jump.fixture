@@ -1,0 +1,12 @@
+fixture cam_look_then_jump
+doc Camera review round 2: look down from the ledge for a second, then a full jump in place
+room test/camera
+spawn 1800 1600
+frames 160
+input
+  0..69 D
+  70..100 jump
+end
+expect
+  at 70 event.jump=1
+end

@@ -1,0 +1,54 @@
+fixture cam_wide_shaft_jumps
+doc Camera review round 3: wall-jumps up a 128 u shaft standing free in a room wider than the view: a crossing (108 u) is shorter than the lead's swing, so the lead never commits and the view sways no more than the dead zone lets it
+room test/cam_wide_shaft
+spawn 1664 2176
+frames 400
+input
+  0..15 L jump
+  16 R jump
+  17..33 R
+  34 L jump
+  35..51 L
+  52 R jump
+  53..69 R
+  70 L jump
+  71..87 L
+  88 R jump
+  89..105 R
+  106 L jump
+  107..123 L
+  124 R jump
+  125..141 R
+  142 L jump
+  143..159 L
+  160 R jump
+  161..177 R
+  178 L jump
+  179..195 L
+  196 R jump
+  197..213 R
+  214 L jump
+  215..231 L
+  232 R jump
+  233..249 R
+  250 L jump
+  251..267 L
+  268 R jump
+  269..285 R
+  286 L jump
+  287..303 L
+  304 R jump
+  305..321 R
+  322 L jump
+  323..339 L
+  340 R jump
+  341..357 R
+  358 L jump
+  359..375 L
+  376 R jump
+  377..393 R
+end
+expect
+  at 34 event.wall_jump=1
+  at 376 event.wall_jump=1
+end

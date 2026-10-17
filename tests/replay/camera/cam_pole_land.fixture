@@ -1,0 +1,14 @@
+fixture cam_pole_land
+doc Camera review round 2: run off a shelf at full speed into open air onto a 1-tile platform 1340 u below, whose column the 3 probe samples keep missing; Ash lands on it for three frames and runs off it
+room test/cam_pole
+spawn 300 640
+frames 160
+input
+  0..159 R
+end
+expect
+  at 0 facing=1
+  at 112 state=air
+  at 113 state=ground y=1984u
+  at 116 state=air
+end

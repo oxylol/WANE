@@ -1,0 +1,14 @@
+fixture cam_teleport_wall_up
+doc Camera review round 2: in the camera room's shaft, throw the ember straight up beside the wall, fall back, run off, teleport up onto the wall and cling and kick up
+room test/camera
+spawn 4460 3200
+frames 240
+input
+  0 U toss
+  1..30 L
+  60 toss
+  61..120 R jump
+end
+expect
+  at 60 event.teleport=1
+end

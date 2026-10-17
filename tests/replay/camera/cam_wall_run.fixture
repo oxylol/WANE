@@ -1,0 +1,11 @@
+fixture cam_wall_run
+doc camera review (docs/adr/0011): run left into the camera room's left wall (1-tile border)
+room test/camera
+spawn 1200 1920
+frames 220
+input
+  0..200 L
+end
+expect
+  at 200 x=42u
+end

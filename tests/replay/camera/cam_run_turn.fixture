@@ -1,0 +1,25 @@
+fixture cam_run_turn
+doc BUILD.md s5 feel rules "60 u horizontal lead in the facing direction, dead zone of 40x30 u"; docs/adr/0011: the lead swings smoothly and never pulls the camera against the player's motion
+room test/camera
+spawn 1600 3200
+frames 260
+input
+  # Run right, stop, turn on the spot, run back left.
+  0..59 R
+  90 L
+  120..159 L
+  # A running jump right, then a strike back to the left in the air: Ash turns at once, while
+  # the jump's speed bleeds off under air control (docs/adr/0010), so for a while Ash faces left
+  # and moves right. The lead must not pull the camera back against that motion.
+  180..199 R jump
+  200..203 L attack
+  204..230 L
+end
+expect
+  at 59 vx=2304
+  at 90 facing=-1
+  at 159 vx=-2304
+  at 180 event.jump=1
+  at 200 event.attack=1 facing=-1 vx>0
+  mark back 201..230 vx<0
+end

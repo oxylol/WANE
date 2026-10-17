@@ -1,0 +1,11 @@
+fixture cam_cling_drop_mid
+doc cling to a tall wall, drop, and fall 2800 u along it onto a shelf in the middle of a tall room: the view lands with Ash, no room bound involved
+room test/cam_wallshelf
+spawn 720 320
+frames 260
+input
+  0..30 L
+  31 D
+end
+expect
+end

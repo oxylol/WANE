@@ -1,0 +1,40 @@
+fixture cam_noceiling_climb
+doc the wall-kick climb of cam_shaft_climb up a wall that reaches a room top with no border tiles (the grid edge is the ceiling): no backstop
+room test/cam_noceiling
+spawn 910 1888
+frames 420
+input
+  # Holding toward the wall throughout; jump from the floor, then a kick at each apex.
+  0..21 R jump
+  22 R
+  23..44 R jump
+  45 R
+  46..67 R jump
+  68 R
+  69..90 R jump
+  91 R
+  92..113 R jump
+  114 R
+  115..136 R jump
+  137 R
+  138..159 R jump
+  160 R
+  161..182 R jump
+  183 R
+  184..205 R jump
+  206 R
+  207..228 R jump
+  229 R
+  230..251 R jump
+  252 R
+  253..274 R jump
+  275 R
+  276..297 R jump
+  298 R
+  299..320 R jump
+  321 R
+  322..343 R jump
+  344 R
+end
+expect
+end

@@ -1,0 +1,11 @@
+fixture cam_pit_fall
+doc Camera review round 2: run off a shelf and fall 5800 u to the room's one-tile bottom border (the bound brakes the camera)
+room test/cam_pit
+spawn 400 384
+frames 330
+input
+  0..40 R
+end
+expect
+  mark land 40..329 event.land=1
+end

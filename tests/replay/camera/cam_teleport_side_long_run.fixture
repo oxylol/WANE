@@ -1,0 +1,14 @@
+fixture cam_teleport_side_long_run
+doc Camera review round 2: cam_teleport_side_long, then keep running right (the way the teleport went) after it
+room test/camera
+spawn 3000 3200
+frames 200
+input
+  0 R toss
+  1..100 L
+  101 toss
+  102..199 R
+end
+expect
+  at 101 event.teleport=1
+end

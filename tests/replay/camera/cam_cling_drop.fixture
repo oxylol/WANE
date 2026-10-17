@@ -1,0 +1,11 @@
+fixture cam_cling_drop
+doc cling to a tall wall, press down to drop (BUILD.md s5 "Wall-cling cancel: pressing down drops instantly") and fall 4650 u along it: the fall look reaches as far as in the open, and the view arrives at the landing with Ash
+room test/cam_wells
+spawn 720 320
+frames 300
+input
+  0..30 L
+  31 D
+end
+expect
+end

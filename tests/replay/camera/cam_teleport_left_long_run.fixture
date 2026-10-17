@@ -1,0 +1,14 @@
+fixture cam_teleport_left_long_run
+doc Camera review round 2: throw the ember left, run right 100 frames, teleport back left, keep running left
+room test/camera
+spawn 2000 3200
+frames 200
+input
+  0 L toss
+  1..100 R
+  101 toss
+  102..199 L
+end
+expect
+  at 101 event.teleport=1
+end

@@ -1,0 +1,15 @@
+fixture cam_teleport_band_updash
+doc Camera review round 3: a 382 u up-teleport that leaves Ash 97 u from the old view's top (inside glide_cut_u), then an up-dash straight after it: the vertical axis cuts
+room test/camera
+spawn 5400 960
+frames 120
+input
+  0 U toss
+  1..12 R
+  29 toss
+  30 U dash
+end
+expect
+  at 29 event.teleport=1
+  at 30 event.dash=1
+end

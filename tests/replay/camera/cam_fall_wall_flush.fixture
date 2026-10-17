@@ -1,0 +1,9 @@
+fixture cam_fall_wall_flush
+doc a straight fall with the box flush against a tall wall: the wall is never ground, so the fall look grows as in the open
+room test/cam_wells
+spawn 650 320
+frames 260
+input
+end
+expect
+end

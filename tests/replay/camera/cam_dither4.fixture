@@ -1,0 +1,55 @@
+fixture cam_dither4
+doc Camera review round 2: run left and right alternately, 4 frames each way
+room test/camera
+spawn 2400 3200
+frames 200
+input
+  0..3 L
+  4..7 R
+  8..11 L
+  12..15 R
+  16..19 L
+  20..23 R
+  24..27 L
+  28..31 R
+  32..35 L
+  36..39 R
+  40..43 L
+  44..47 R
+  48..51 L
+  52..55 R
+  56..59 L
+  60..63 R
+  64..67 L
+  68..71 R
+  72..75 L
+  76..79 R
+  80..83 L
+  84..87 R
+  88..91 L
+  92..95 R
+  96..99 L
+  100..103 R
+  104..107 L
+  108..111 R
+  112..115 L
+  116..119 R
+  120..123 L
+  124..127 R
+  128..131 L
+  132..135 R
+  136..139 L
+  140..143 R
+  144..147 L
+  148..151 R
+  152..155 L
+  156..159 R
+  160..163 L
+  164..167 R
+  168..171 L
+  172..175 R
+  176..179 L
+end
+expect
+  at 0 facing=-1
+end

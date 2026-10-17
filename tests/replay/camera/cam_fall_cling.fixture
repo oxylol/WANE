@@ -1,0 +1,11 @@
+fixture cam_fall_cling
+doc Camera review round 2: fall down the camera room's shaft beside its right wall, then press toward the wall at speed and cling
+room test/camera
+spawn 4440 400
+frames 260
+input
+  60..259 R
+end
+expect
+  mark cling 60..120 event.wall_cling=1
+end

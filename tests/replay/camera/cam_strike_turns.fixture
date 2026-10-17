@@ -1,0 +1,22 @@
+fixture cam_strike_turns
+doc Camera review round 2: standing still, strike left and right alternately every 12 frames (facing a enemy on each side): combat turns
+room test/camera
+spawn 1600 3200
+frames 160
+input
+  0 L !attack
+  12 R !attack
+  24 L !attack
+  36 R !attack
+  48 L !attack
+  60 R !attack
+  72 L !attack
+  84 R !attack
+  96 L !attack
+  108 R !attack
+  120 L !attack
+  132 R !attack
+end
+expect
+  at 0 event.attack=1
+end

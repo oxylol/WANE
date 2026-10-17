@@ -1,0 +1,18 @@
+fixture cam_mesa_hop
+doc run right over four 160 u blocks (3, 4, 6 and 8 tiles wide), jumping onto each and running off its far side
+room test/cam_mesa
+spawn 320 1984
+frames 420
+input
+  0..13 R
+  14..29 R jump
+  30..79 R
+  80..95 R jump
+  96..149 R
+  150..165 R jump
+  166..224 R
+  225..240 R jump
+  241..419 R
+end
+expect
+end

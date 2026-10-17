@@ -1,0 +1,12 @@
+fixture cam_look_drop_64
+doc look down from a one-way for 60 ticks, then drop through onto a floor only 64 u below: the view never swings up against the drop
+room test/cam_drops
+spawn 288 960
+frames 220
+input
+  0..59 D
+  60 D jump
+end
+expect
+  at 60 event.drop_through=1
+end

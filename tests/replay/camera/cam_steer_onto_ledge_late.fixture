@@ -1,0 +1,12 @@
+fixture cam_steer_onto_ledge_late
+doc Camera review round 3: falling at terminal speed beside a ledge, Ash steers onto it late (from tick 89) with air control; the ground probe counts what air control could still reach, so the look never reaches past the ledge and the view never comes back up after the landing
+room test/cam_steer
+spawn 700 200
+frames 220
+input
+  89..103 R
+end
+expect
+  mark land 90..219 event.land=1
+  at land y=2240u
+end

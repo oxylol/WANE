@@ -1,0 +1,16 @@
+fixture cam_double_jump_ledge
+doc camera review (docs/adr/0011): the same double jump in place on the camera room's 1920 u ledge (not at the room's bottom clamp)
+room test/camera
+spawn 900 1920
+frames 150
+input
+  0..28 jump
+  29 jump !jump
+  30..60 jump
+end
+expect
+  at 0 event.jump=1
+  at 29 event.air_jump=1
+  mark land 30..149 event.land=1
+  at land y=1920u
+end

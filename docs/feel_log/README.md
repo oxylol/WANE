@@ -17,3 +17,4 @@ The tuned values become the spec: when a number changes here, the same commit ch
 | 2026-10-17 | [pogo bounce](2026-10-17-pogo-bounce.md) | 900 to 794 u/s, slightly under a jump |
 | 2026-10-17 | [pogo chain window](2026-10-17-pogo-chain-window.md) | Frame 6 to 14, reverted to 6; the pogo-dash cadence is a director question |
 | 2026-10-17 | [task 3: Ash's movement](2026-10-17-task3-ash-movement.md) | Every row and tech interaction; first-time values (wall coyote, buffers, ember, teleport reach, safe-ground margin, strike sectors); three review rounds |
+| 2026-10-17 | [task 4: camera](2026-10-17-task4-camera.md) | Rest height, dead zone, lead, looks (fall, look-down, up-dash), room bounds, teleport glide; first-time values; four review rounds |

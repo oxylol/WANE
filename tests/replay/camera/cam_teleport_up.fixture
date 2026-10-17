@@ -1,0 +1,15 @@
+fixture cam_teleport_up
+doc BUILD.md s6 Ember Toss; docs/adr/0011: a teleport straight up glides the camera up and the fall back down looks ahead to the gallery
+room test/camera
+spawn 600 1920
+frames 160
+input
+  0 U toss
+  45 toss
+end
+expect
+  at 0 event.toss=1
+  at 45 event.teleport=1 state=air
+  mark land 46..159 event.land=1
+  at land y=1920u
+end

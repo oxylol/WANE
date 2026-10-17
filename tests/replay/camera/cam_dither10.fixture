@@ -1,0 +1,28 @@
+fixture cam_dither10
+doc Camera review round 2: run left and right alternately, 10 frames each way
+room test/camera
+spawn 2400 3200
+frames 200
+input
+  0..9 L
+  10..19 R
+  20..29 L
+  30..39 R
+  40..49 L
+  50..59 R
+  60..69 L
+  70..79 R
+  80..89 L
+  90..99 R
+  100..109 L
+  110..119 R
+  120..129 L
+  130..139 R
+  140..149 L
+  150..159 R
+  160..169 L
+  170..179 R
+end
+expect
+  at 0 facing=-1
+end

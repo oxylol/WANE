@@ -1,0 +1,15 @@
+fixture cam_teleport
+doc BUILD.md s6 Ember Toss "Throw the ember as a 600 u/s projectile ... press again to teleport to it"; docs/adr/0011: after a teleport the camera glides to the player instead of cutting
+room test/camera
+spawn 2000 3200
+frames 120
+input
+  # Straight ahead along the floor; the teleport at the end of the ember's 40-frame flight.
+  0 R toss
+  45 toss
+end
+expect
+  at 0 event.toss=1
+  # The ember flew 400 u from where Ash stood when it spawned (the R press moved Ash 1.5 u).
+  at 45 event.teleport=1 x>2400u x<2402u
+end

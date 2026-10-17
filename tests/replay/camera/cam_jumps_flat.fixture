@@ -1,0 +1,23 @@
+fixture cam_jumps_flat
+doc BUILD.md s5 feel rules "The camera never fights the player"; docs/adr/0011: jumps inside the rest window do not move the camera vertically
+room test/camera
+spawn 300 1920
+frames 240
+input
+  # Two full jumps in place, then a running double jump.
+  0..30 jump
+  60..90 jump
+  120 R
+  121..140 R jump
+  141..147 R
+  148..175 R jump
+  176..200 R
+end
+expect
+  at 0 event.jump=1
+  at 60 event.jump=1
+  at 121 event.jump=1
+  at 148 event.air_jump=1
+  mark land 149..239 event.land=1
+  at land y=1920u
+end

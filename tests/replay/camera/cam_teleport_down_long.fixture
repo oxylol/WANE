@@ -1,0 +1,13 @@
+fixture cam_teleport_down_long
+doc Camera review round 2: throw the ember down the high shelf's edge (it falls 400 u), climb back... here: throw down-right off the shelf end, walk back left along the shelf, teleport down to the ember, then keep falling
+room test/camera
+spawn 5440 960
+frames 200
+input
+  0 D R toss
+  1..100 L
+  101 toss
+end
+expect
+  at 0 event.toss=1
+end

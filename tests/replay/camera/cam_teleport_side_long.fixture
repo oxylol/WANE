@@ -1,0 +1,14 @@
+fixture cam_teleport_side_long
+doc camera review (docs/adr/0011): throw the ember right, run left 100 frames, teleport back (BUILD.md s6 Ember Toss)
+room test/camera
+spawn 3000 3200
+frames 200
+input
+  0 R toss
+  1..100 L
+  101 toss
+end
+expect
+  at 0 event.toss=1
+  at 101 event.teleport=1
+end

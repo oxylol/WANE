@@ -1,0 +1,12 @@
+fixture cam_narrow_run
+doc camera review (docs/adr/0011): a room exactly the view's width (1920 u), 1-tile walls: run to each wall
+room test/cam_narrow
+spawn 960 2528
+frames 400
+input
+  0..150 L
+  151..380 R
+end
+expect
+  at 150 x=42u
+end

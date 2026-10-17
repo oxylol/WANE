@@ -1,0 +1,12 @@
+fixture cam_crouch_dash_open
+doc camera review (docs/adr/0011): crouch 14 frames then crouch-dash on open ground, releasing down at the dash (ADR-0011: a crouch-dash does not move the camera)
+room test/camera
+spawn 400 1920
+frames 90
+input
+  0..13 D
+  14 D dash
+end
+expect
+  at 14 event.dash=1
+end

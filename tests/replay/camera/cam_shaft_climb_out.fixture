@@ -1,0 +1,339 @@
+fixture cam_shaft_climb_out
+doc wall-jump up a 128 u shaft, jumping off each wall the tick Ash clings to it, then run off the top of the wall and fall: the view never rises while Ash falls
+room test/cam_shaft_w4
+spawn 1696 2176
+frames 330
+input
+  0 L jump
+  1 L jump
+  2 L jump
+  3 L jump
+  4 L jump
+  5 L jump
+  6 L jump
+  7 L jump
+  8 L jump
+  9 L jump
+  10 L jump
+  11 L jump
+  12 L jump
+  13 L jump
+  14 L jump
+  15 L
+  16 L
+  17 R jump
+  18 R jump
+  19 R jump
+  20 R jump
+  21 R jump
+  22 R jump
+  23 R jump
+  24 R jump
+  25 R jump
+  26 R jump
+  27 R jump
+  28 R jump
+  29 R
+  30 R
+  31 L jump
+  32 L jump
+  33 L jump
+  34 L jump
+  35 L jump
+  36 L jump
+  37 L jump
+  38 L jump
+  39 L jump
+  40 L jump
+  41 L jump
+  42 L jump
+  43 L
+  44 L
+  45 R jump
+  46 R jump
+  47 R jump
+  48 R jump
+  49 R jump
+  50 R jump
+  51 R jump
+  52 R jump
+  53 R jump
+  54 R jump
+  55 R jump
+  56 R jump
+  57 R
+  58 R
+  59 L jump
+  60 L jump
+  61 L jump
+  62 L jump
+  63 L jump
+  64 L jump
+  65 L jump
+  66 L jump
+  67 L jump
+  68 L jump
+  69 L jump
+  70 L jump
+  71 L
+  72 L
+  73 R jump
+  74 R jump
+  75 R jump
+  76 R jump
+  77 R jump
+  78 R jump
+  79 R jump
+  80 R jump
+  81 R jump
+  82 R jump
+  83 R jump
+  84 R jump
+  85 R
+  86 R
+  87 L jump
+  88 L jump
+  89 L jump
+  90 L jump
+  91 L jump
+  92 L jump
+  93 L jump
+  94 L jump
+  95 L jump
+  96 L jump
+  97 L jump
+  98 L jump
+  99 L
+  100 L
+  101 R jump
+  102 R jump
+  103 R jump
+  104 R jump
+  105 R jump
+  106 R jump
+  107 R jump
+  108 R jump
+  109 R jump
+  110 R jump
+  111 R jump
+  112 R jump
+  113 R
+  114 R
+  115 L jump
+  116 L jump
+  117 L jump
+  118 L jump
+  119 L jump
+  120 L jump
+  121 L jump
+  122 L jump
+  123 L jump
+  124 L jump
+  125 L jump
+  126 L jump
+  127 L
+  128 L
+  129 R jump
+  130 R jump
+  131 R jump
+  132 R jump
+  133 R jump
+  134 R jump
+  135 R jump
+  136 R jump
+  137 R jump
+  138 R jump
+  139 R jump
+  140 R jump
+  141 R
+  142 R
+  143 L jump
+  144 L jump
+  145 L jump
+  146 L jump
+  147 L jump
+  148 L jump
+  149 L jump
+  150 L jump
+  151 L jump
+  152 L jump
+  153 L jump
+  154 L jump
+  155 L
+  156 L
+  157 R jump
+  158 R jump
+  159 R jump
+  160 R jump
+  161 R jump
+  162 R jump
+  163 R jump
+  164 R jump
+  165 R jump
+  166 R jump
+  167 R jump
+  168 R jump
+  169 R
+  170 R
+  171 L jump
+  172 L jump
+  173 L jump
+  174 L jump
+  175 L jump
+  176 L jump
+  177 L jump
+  178 L jump
+  179 L jump
+  180 L jump
+  181 L jump
+  182 L jump
+  183 L
+  184 L
+  185 R jump
+  186 R jump
+  187 R jump
+  188 R jump
+  189 R jump
+  190 R jump
+  191 R jump
+  192 R jump
+  193 R jump
+  194 R jump
+  195 R jump
+  196 R jump
+  197 R
+  198 R
+  199 L jump
+  200 L jump
+  201 L jump
+  202 L jump
+  203 L jump
+  204 L jump
+  205 L jump
+  206 L jump
+  207 L jump
+  208 L jump
+  209 L jump
+  210 L jump
+  211 L
+  212 L
+  213 R jump
+  214 R jump
+  215 R jump
+  216 R jump
+  217 R jump
+  218 R jump
+  219 R jump
+  220 R jump
+  221 R jump
+  222 R jump
+  223 R jump
+  224 R jump
+  225 R
+  226 R
+  227 R
+  228 R
+  229 R
+  230 R
+  231 R
+  232 R
+  233 R
+  234 R
+  235 R
+  236 R
+  237 R
+  238 R
+  239 R
+  240 R
+  241 R
+  242 R
+  243 R
+  244 R
+  245 R
+  246 R
+  247 R
+  248 R
+  249 R
+  250 R
+  251 R
+  252 R
+  253 R
+  254 R
+  255 R
+  256 R
+  257 R
+  258 R
+  259 R
+  260 R
+  261 R
+  262 R
+  263 R
+  264 R
+  265 R
+  266 R
+  267 R
+  268 R
+  269 R
+  270 R
+  271 R
+  272 R
+  273 R
+  274 R
+  275 R
+  276 R
+  277 R
+  278 R
+  279 R
+  280 R
+  281 R
+  282 R
+  283 R
+  284 R
+  285 R
+  286 R
+  287 R
+  288 R
+  289 R
+  290 R
+  291 R
+  292 R
+  293 R
+  294 R
+  295 R
+  296 R
+  297 R
+  298 R
+  299 R
+  300 R
+  301 R
+  302 R
+  303 R
+  304 R
+  305 R
+  306 R
+  307 R
+  308 R
+  309 R
+  310 R
+  311 R
+  312 R
+  313 R
+  314 R
+  315 R
+  316 R
+  317 R
+  318 R
+  319 R
+  320 R
+  321 R
+  322 R
+  323 R
+  324 R
+  325 R
+  326 R
+  327 R
+  328 R
+  329 R
+end
+expect
+end

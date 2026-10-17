@@ -1,0 +1,12 @@
+fixture cam_down_held_in_air
+doc camera review round 2, M6 (docs/adr/0011): walk off the high shelf and hold the stick straight down through a fall of about 40 ticks. Look-down is a request made standing crouched on the ground; the stick held down in the air is not one (a camera that read the stick alone would look down 20 ticks into the fall).
+room test/camera
+spawn 5400 960
+frames 120
+input
+  0..20 R
+  21..119 D
+end
+expect
+  never 22..60 state=ground
+end

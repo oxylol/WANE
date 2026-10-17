@@ -1,0 +1,13 @@
+fixture cam_noborder
+doc Camera review round 3: a room whose left wall and floor are the grid's own edge (no border tiles; outside a room is solid): run left into the edge, crouch-look on the bottom edge, then jump; the eased bounds reach the room's edge exactly, so the margin never has to move the view
+room test/cam_noborder
+spawn 400 1280
+frames 200
+input
+  0..80 L
+  81..140 D
+  141 jump
+end
+expect
+  at 141 event.jump=1
+end
