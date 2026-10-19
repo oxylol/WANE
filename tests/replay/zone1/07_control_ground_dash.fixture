@@ -1,0 +1,24 @@
+fixture z1_07_control_ground_dash
+doc BUILD.md s5 tech 7; control for z1_07_coyote_dash: the same dash, air dash and air jump, the first dash pressed on the last frame on the ground instead of the fourth airborne frame
+room zone1/07_coyote_dash
+spawn 74 864
+frames 170
+input
+  0..57 R
+  58 R dash
+  59..92 R
+  # Frame 93 is the last frame on the ground (Ash walks off on 94): a ground dash that is not a
+  # coyote dash. Its air dash (17 later) and air jump (25 later) fall into the pit.
+  93 R dash
+  94..109 R
+  110 R dash
+  111..117 R
+  118..169 R jump
+end
+expect
+  at 92 state=ground ground=1
+  at 93 event.dash=1 state=dash air_frames=0 air_dashes=1 dash_cooldown=24
+  at 110 event.dash=1 air_dashes=0
+  mark pit 94..169 event.hazard=1
+  never 0..169 event.room=1
+end

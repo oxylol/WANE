@@ -1,0 +1,20 @@
+fixture z1_07_control_late_dash
+doc BUILD.md s5 tech 7; control for z1_07_coyote_dash: the first dash pressed on the eighth airborne frame, after coyote time, is the air dash
+room zone1/07_coyote_dash
+spawn 74 864
+frames 170
+input
+  0..57 R
+  58 R dash
+  59..100 R
+  # Frame 101 is the eighth airborne frame (Ash walked off on 94): the coyote time (6 frames) is
+  # over, so this dash is the air dash. There is no second one and the air jump alone falls short.
+  101 R dash
+  102..125 R
+  126..169 R jump
+end
+expect
+  at 101 event.dash=1 state=dash air_frames=7 air_dashes=0
+  mark pit 102..169 event.hazard=1
+  never 0..169 event.room=1
+end
