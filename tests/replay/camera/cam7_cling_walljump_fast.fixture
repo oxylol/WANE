@@ -1,0 +1,14 @@
+fixture cam7_cling_walljump_fast
+doc docs/adr/0011 (review 7, H1): a long fall onto a wall cling, then a wall-jump away one tick after the cling; the view does not rise against the fall away
+room test/cam_wells
+spawn 1100 320
+frames 160
+input
+  0..53 L
+  54..57 R jump
+  58..159 R
+end
+expect
+  at 53 event.wall_cling=1
+  at 54 event.wall_jump=1
+end

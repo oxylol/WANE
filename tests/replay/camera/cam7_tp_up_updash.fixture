@@ -1,0 +1,14 @@
+fixture cam7_tp_up_updash
+doc docs/adr/0011 (review 7, L1): toss straight up from the floor, teleport after 10 ticks, up-dash at once; the view's speed changes by no more than 3 u/f once the glide is over
+room test/camera
+spawn 300 1920
+frames 110
+input
+  0 U toss
+  10 toss
+  11 U dash
+end
+expect
+  at 10 event.teleport=1
+  at 11 event.dash=1
+end

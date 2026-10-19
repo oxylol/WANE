@@ -1,0 +1,11 @@
+fixture cam7_edge_hit
+doc docs/adr/0011 (review 7, M1): Ash against a borderless room edge, hit by the training dummy's swing; the player-hit shake must not draw him inside the margin
+room test/cam7_edge_dummy
+spawn 20 544
+frames 120
+input
+  0..119 L
+end
+expect
+  never 0..119 event.hazard=1
+end

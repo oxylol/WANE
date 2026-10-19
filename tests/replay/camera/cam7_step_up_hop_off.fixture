@@ -1,0 +1,20 @@
+fixture cam7_step_up_hop_off
+doc docs/adr/0011 (review 7, H1): up onto the 320 u ledge, then a short hop off its far side while the view still eases up to it; the view does not rise while Ash falls away
+room test/camera
+spawn 1000 1920
+frames 200
+input
+  0..9 R
+  10..29 R jump
+  30..51 R
+  52..70 R jump
+  71..75 R
+  76..90 R jump
+  112..113 R
+  114..117 R jump
+  118..199 R
+end
+expect
+  at 106 event.land=1 y=1600u
+  at 114 event.jump=1
+end

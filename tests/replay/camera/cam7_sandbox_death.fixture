@@ -1,0 +1,11 @@
+fixture cam7_sandbox_death
+doc docs/adr/0011 (review 7, H2): in the sandbox, walk to the red dummy with one heart and stand until its swing kills; Ash goes back to the spawn and the view cuts
+room sandbox
+option hearts 1
+frames 260
+input
+  0..88 R
+end
+expect
+  never 0..259 event.hazard=1
+end

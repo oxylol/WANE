@@ -1,0 +1,15 @@
+fixture cam7_crouch_charge
+doc docs/adr/0011 (review 7, H3): crouched with the stick down, a strike pressed on frame 5 and held as a charge to frame 89, released into the Charged strike; the charge hold is part of the strike and starts no look-down
+room test/camera
+spawn 1800 1600
+frames 140
+input
+  0..4 D
+  5..89 D attack
+  90..139 D
+end
+expect
+  at 5 event.attack=1
+  at 29 charge_held=25
+  at 90 event.charge_release=1
+end
