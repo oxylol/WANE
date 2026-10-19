@@ -35,6 +35,23 @@ static func reach(start_id: String) -> RoomSet:
 	return found
 
 
+## Problems with [param room]'s doors against the rooms they lead to, read from their files (the
+## room itself is taken as given, so an unsaved edit is checked). A door whose room has no file
+## is skipped: the caller reports that. The same checks as a run makes when it loads the rooms.
+static func check_doors(room: RoomData) -> PackedStringArray:
+	var found := RoomSet.new()
+	found.rooms[room.id] = room
+	found.order.append(room.id)
+	for d: RoomData.Door in room.doors:
+		if (
+			not found.rooms.has(d.target_room)
+			and FileAccess.file_exists(RoomData.path_for(d.target_room))
+		):
+			found._add(d.target_room)
+	found._check_pairs(room)
+	return found.errors
+
+
 func _add(room_id: String) -> void:
 	rooms[room_id] = RoomData.load_id(room_id)
 	order.append(room_id)
@@ -43,6 +60,8 @@ func _add(room_id: String) -> void:
 func _check_pairs(room: RoomData) -> void:
 	for d: RoomData.Door in room.doors:
 		var label: String = "%s: door '%s'" % [room.id, d.name]
+		if not rooms.has(d.target_room):
+			continue
 		var beyond: RoomData = rooms[d.target_room]
 		var back: RoomData.Door = beyond.door(d.target_door)
 		if back == null:
