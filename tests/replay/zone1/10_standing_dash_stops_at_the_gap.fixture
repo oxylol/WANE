@@ -1,0 +1,22 @@
+fixture zone1_10_standing_dash_stops_at_the_gap
+doc Control for zone 1 room 10 (tech 10): the natural attempts without the crouch-dash fail. A standing dash and then hops with the stick held toward gap B (32 u tall) stop at its face (x 950, the 44 tall body); the crouched box cannot move in the air either, but a standing one never gets in to start
+room zone1/10_crouch_dash_under
+spawn 880 960
+frames 100
+input
+  0 R dash
+  1..29 R
+  # Hops against the face: a jump with the stick held forward.
+  30 R jump
+  31..49 R
+  50 R jump
+  51..99 R
+end
+expect
+  at 0 event.dash=1 height=44
+  # The dash meets the face of the wall: centre 950 (the face at 960, half the body 10).
+  at 5 x=950u hit_wall=1 height=44
+  never 0..99 x>950u
+  never 0..99 crouch=1
+  never 0..99 event.room=1
+end

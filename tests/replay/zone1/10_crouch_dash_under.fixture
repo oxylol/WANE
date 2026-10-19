@@ -1,0 +1,31 @@
+fixture zone1_10_crouch_dash_under
+doc BUILD.md s5 tech 10 "Crouch-dash under: crouch, then dash, keeps the 28-tall hitbox. Taught by a low gap"; zone 1 room 10: the teaching route. Run from the west arrival to gap A (32 u tall, 64 long, safe), crouch-dash through it, run to gap B (128 long), crouch-dash through that, jump the pit and cross the east door
+room zone1/10_crouch_dash_under
+spawn 74 960
+frames 200
+input
+  0..37 R
+  # Down-forward and dash at gap A (x 448..512): crouched, the dash keeps the 28 u box.
+  38 D R dash
+  39..87 R
+  # The same at gap B (x 960..1088), from just before its face (x 950).
+  88 D R dash
+  89..105 R
+  # Off the landing and over the pit (x 1216..1376).
+  106 R jump
+  107..199 R
+end
+expect
+  at 38 event.dash=1 state=dash height=28
+  at 42 x>480u x<500u state=dash height=28
+  never 38..46 hit_wall=1
+  at 88 event.dash=1 state=dash height=28
+  at 92 x>1000u x<1070u state=dash height=28
+  never 88..100 hit_wall=1
+  # Out of B the body stands.
+  mark stand 90..110 height=44
+  at stand x>1088u
+  never 0..199 event.hazard=1
+  mark through 100..199 event.room=1
+  at through room=zone1_11_ember_toss_cancel x=74u
+end
