@@ -1,0 +1,13 @@
+fixture two_parries_in_a_slow
+doc Presentation review r3, M1 and H1: a second parry lands on frame 68, inside the first parry's six slow ticks (66 to 71); its slow motion must wait for its own hitstop, and its full-screen flash is shown for one frame (test_sim_driver_slow_motion).
+room test/two_parries
+frames 100
+input
+  46 L attack
+  64 attack
+end
+expect
+  at 53 event.parry=1 hearts=5
+  at 68 event.parry=1 hearts=5
+  never 0..99 event.player_hit=1
+end

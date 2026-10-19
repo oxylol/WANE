@@ -62,15 +62,45 @@ const PATH: String = "res://content/feedback.tres"
 ## Not in BUILD.md: the screen-space rule, at most one bright full-screen effect (flash or
 ## chromatic split) per this many ticks, the same window as a cell's.
 @export var vfx_screen_frames: int = 3
+## BUILD.md section 12: "the game passes the Harding test at default settings", which fails more
+## than 3 general flashes in any second. The screen-space rule above allows one in 3 ticks (20 a
+## second), so a rolling window caps it: at most [member screen_flash_max] bright full-screen
+## effects in any [member screen_flash_window_frames] ticks (a second at 60 Hz; slow motion only
+## stretches it), whatever their priority. A refused flash leaves the hit's own burst and the
+## enemy's outline cue to show it (presentation review r2, H1).
+@export var screen_flash_window_frames: int = 60
+@export var screen_flash_max: int = 3
+## Not in BUILD.md: how many ticks each effect kind lives, every one "sub-10-frame" (section 10;
+## Radiance's ring has its own below), and the one-tick marks (an ember, a telegraph) are not
+## tuned.
+@export var vfx_spark_frames: int = 6
+@export var vfx_burst_frames: int = 9
+@export var vfx_smear_frames: int = 5
 ## Not in BUILD.md: Radiance's ring, how many ticks it grows for and how far it reaches (the
 ## burst "lights the room": docs/adr/0013).
 @export var radiance_ring_frames: int = 18
 @export var radiance_ring_radius_u: float = 640.0
 
+@export_group("HUD and screen effects")
+## The grey-box Flame bar (docs/adr/0013): it shows the simulation's Flame at once, and a ghost
+## segment shows the change: it trails a spend and leads a gain, closing this many Flame a tick;
+## a gain flashes the bar for this many ticks (counting the tick of the gain; at a flash setting
+## of 0 the bar outlines instead).
+@export var hud_ghost_flame_per_tick: float = 4.0
+@export var hud_gain_flash_frames: int = 12
+## The chromatic split's offset and opacity, and the red vignette's depth (a share of the
+## screen's shorter side) and opacity.
+@export var split_offset_px: float = 6.0
+@export var split_alpha: float = 0.18
+@export var vignette_depth: float = 0.12
+@export var vignette_alpha: float = 0.5
+
 @export_group("Sparks and sound")
-## "Hit spark (3 variants), hit sound pitch randomized +-3%".
+## "Hit spark (3 variants)": 3 to 5 (section 10); the synth has a hit sound for each.
 @export var spark_variants: int = 3
-@export var hit_pitch_spread: float = 0.03
+## Section 11: "No sound repeats identically: +-3% pitch and 3 to 5 variants on everything that
+## plays more than once a second": the pitch spread every sound plays with.
+@export var sound_pitch_spread: float = 0.03
 ## BUILD.md section 11: "Hard cap of 24 simultaneous voices; a priority system drops the
 ## furthest, quietest sound first."
 @export var voice_cap: int = 24
@@ -96,12 +126,27 @@ func validate() -> PackedStringArray:
 		e.append("the enemy's hit flash must not be negative")
 	if voice_cap < 1:
 		e.append("there must be at least one voice")
-	if shake_period_frames < 2 or spark_variants < 1:
-		e.append("shake_period_frames must be at least 2 and there must be a spark variant")
+	if shake_period_frames < 2:
+		e.append("shake_period_frames must be at least 2")
+	# BUILD.md s6 (3 spark variants) and s11 (3 to 5 variants; the synth makes HIT_VARIANTS).
+	if spark_variants < 3 or spark_variants > Synth.HIT_VARIANTS:
+		e.append("spark_variants must be 3 to %d (BUILD.md s6, s11)" % Synth.HIT_VARIANTS)
+	# BUILD.md s12, the Harding limit: at most 3 full-screen flashes in 60 ticks.
+	if screen_flash_window_frames < 60 or screen_flash_max < 1 or screen_flash_max > 3:
+		e.append("the flash window must be at least 60 ticks and 1 to 3 flashes (BUILD.md s12)")
+	# BUILD.md s6, s11: hit sound pitch randomized within +-3%.
+	if sound_pitch_spread < 0.0 or sound_pitch_spread > 0.03:
+		e.append("sound_pitch_spread must be 0 to 0.03 (BUILD.md s6, s11)")
+	if vfx_spark_frames < 1 or vfx_burst_frames < 1 or vfx_smear_frames < 1:
+		e.append("every effect kind lives at least one tick")
 	for s: float in [charged_kill_time_scale, parry_time_scale]:
 		if s <= 0.0 or s > 1.0:
 			e.append("slow-motion scales must be in (0, 1]")
 			break
 	if flash_alpha <= 0.0 or flash_alpha > 1.0 or flash_default_scale < 0.0:
 		e.append("flash_alpha must be in (0, 1] and the flash scale must not be negative")
+	if hud_ghost_flame_per_tick <= 0.0 or hud_gain_flash_frames < 1:
+		e.append("the Flame bar's ghost needs a speed and a gain flash a length")
+	if split_offset_px < 0.0 or split_alpha < 0.0 or vignette_depth < 0.0 or vignette_alpha < 0.0:
+		e.append("the split and the vignette must not be negative")
 	return e

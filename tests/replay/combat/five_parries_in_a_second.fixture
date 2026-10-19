@@ -1,0 +1,20 @@
+fixture five_parries_in_a_second
+doc Presentation review r3, H1: five white swings land on frames 53, 57, 61, 65 and 69 and Ash parries every one; the hit feedback shows at most three full-screen flashes in those 60 ticks (BUILD.md section 12, the Harding test; test_presentation_review3).
+room test/five_swings
+frames 100
+input
+  46 L attack
+  50 attack
+  54 attack
+  58 attack
+  62 attack
+  66 attack
+end
+expect
+  at 53 event.parry=1
+  at 57 event.parry=1
+  at 61 event.parry=1
+  at 65 event.parry=1
+  at 69 event.parry=1
+  never 0..99 event.player_hit=1
+end

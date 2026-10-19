@@ -1,0 +1,12 @@
+fixture death_far_from_the_spawn
+doc Presentation review r3, M2: Ash (1 heart) walks from the spawn (x 100) to a red-swinging dummy at x 700 and is killed by its swing, then sent back to the spawn on that tick; the drawn player cuts there, never slides across the room (test_views).
+room test/dummy_red_far
+option hearts 1
+frames 140
+input
+  0..61 R
+end
+expect
+  at 130 hearts=1 x=649u
+  at 131 event.player_hit=1 event.death=1 hearts=5 x=100u
+end

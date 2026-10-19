@@ -33,27 +33,31 @@ func _hud() -> Hud:
 	return hud
 
 
-func test_the_flame_bar_eases_to_a_gain_and_flashes_for_twelve_ticks() -> void:
+func test_the_flame_bar_shows_the_true_value_and_a_ghost_closes_on_a_gain() -> void:
+	# Presentation review r2, M2: the fill used to ease toward the value at a literal 4 Flame a
+	# tick and showed Flame the simulation does not hold. Now the solid fill is the value; the
+	# ghost (the bright part not yet settled) closes at the tuned rate.
 	var hud: Hud = _hud()
 	hud.on_tick()
 	hud.vitals.flame.gain(33)
+	var rate: float = hud.tuning.hud_ghost_flame_per_tick
 	var flashed: int = 0
-	var filled: Array[float] = []
+	var ghosts: Array[float] = []
 	for _i: int in range(20):
 		hud.on_tick()
-		filled.append(hud.shown_flame)
+		ghosts.append(hud.ghost_flame)
 		if hud.gain_flash > 0:
 			flashed += 1
-	# The flash lasts GAIN_FLASH_TICKS counting the tick of the gain (task 6 review, L7: it was
-	# one short); the fill climbs 4 a tick and settles on the value.
-	assert_int(flashed).is_equal(Hud.GAIN_FLASH_TICKS)
-	assert_float(filled[0]).is_equal(4.0)
-	assert_float(filled[7]).is_equal(32.0)
-	assert_float(filled[8]).is_equal(33.0)
-	assert_float(filled[19]).is_equal(33.0)
+	# The flash lasts hud_gain_flash_frames counting the tick of the gain (task 6 review, L7).
+	assert_int(flashed).is_equal(hud.tuning.hud_gain_flash_frames)
+	assert_float(ghosts[0]).is_equal(rate)
+	assert_float(ghosts[7]).is_equal(rate * 8.0)
+	assert_float(ghosts[8]).is_equal(33.0)
+	assert_float(ghosts[19]).is_equal(33.0)
+	assert_int(hud.vitals.flame.value).is_equal(33)
 
 
-func test_spending_flame_drains_the_bar_without_a_flash() -> void:
+func test_spending_flame_shows_at_once_with_a_ghost_above_and_no_flash() -> void:
 	var hud: Hud = _hud()
 	hud.vitals.flame.gain(66)
 	for _i: int in range(30):
@@ -61,7 +65,35 @@ func test_spending_flame_drains_the_bar_without_a_flash() -> void:
 	assert_bool(hud.vitals.flame.spend(33)).is_true()
 	hud.on_tick()
 	assert_int(hud.gain_flash).is_equal(0)
-	assert_float(hud.shown_flame).is_equal(62.0)
+	# The fill is at 33 on the tick of the spend; the ghost (what was there) trails above it.
+	assert_int(hud.vitals.flame.value).is_equal(33)
+	assert_float(hud.ghost_flame).is_equal(66.0 - hud.tuning.hud_ghost_flame_per_tick)
+
+
+func test_a_kill_ember_at_full_flame_still_pulses_the_bar() -> void:
+	# Presentation review r2, L1: at the cap an ember arrives and the value does not change.
+	var hud: Hud = _hud()
+	hud.vitals.flame.gain(hud.vitals.flame.cap)
+	hud.on_tick()
+	for _i: int in range(30):
+		hud.on_tick()
+	assert_int(hud.gain_flash).is_zero()
+	var events := SimEvents.new()
+	events.add(SimEvents.EMBER_HOME, 0, 0)
+	hud.on_tick(events)
+	assert_int(hud.gain_flash).is_equal(hud.tuning.hud_gain_flash_frames)
+
+
+func test_the_hud_has_no_text_and_marks_the_spell_costs() -> void:
+	# Presentation review r2, L7: the only font in the repo is the embedded one, allowed for the
+	# F3 overlay alone (docs/LICENSES.md): the player-facing HUD draws no text.
+	var src: String = FileAccess.get_file_as_string("res://game/ui/hud.gd")
+	assert_bool(src.contains("draw_string") or src.contains("fallback_font")).is_false()
+	var hud: Hud = _hud()
+	hud.spell_costs = [33, 33, 66]
+	hud.on_tick()
+	await get_tree().process_frame
+	assert_int(hud.spell_costs.size()).is_equal(3)
 
 
 func test_the_hud_draws_every_heart_and_tier() -> void:

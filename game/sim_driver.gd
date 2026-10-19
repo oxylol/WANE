@@ -251,10 +251,18 @@ func _run_owed_ticks() -> void:
 ## Pauses or resumes the frame-stepper. Paused, the views draw the newest tick, the one the F3
 ## overlay shows, not a frame between ticks (task 5 review 2, L1: at 144 Hz a pause mid-dash drew
 ## the player 9 u behind its boxes until the first step).
+##
+## Resuming owes nothing: the phase left when it paused (up to a tick of negative owed time) is
+## dropped, so the first frame after it steps a tick at once and draws forward from the newest
+## state, never a fraction of a tick back toward the one before (presentation review r3, L2: at
+## 144 Hz the player was drawn up to 0.6 of a tick's motion backward on the resume frame).
 func set_paused(on: bool) -> void:
+	var was: bool = paused
 	paused = on
 	if on:
 		alpha = 1.0
+	elif was:
+		_accumulator = 0.0
 
 
 ## Polls input and advances the simulation by exactly one tick.
@@ -270,6 +278,14 @@ func step_once() -> void:
 	if _held_ticks > 0 and (sim.player == null or sim.player.freeze == 0):
 		_start_slow(_held_scale, _held_ticks)
 		_held_ticks = 0
+	if _slow_left > 0 and sim.player != null and sim.player.freeze > 0:
+		# A slow already running when a hitstop starts (a second parry inside the first one's slow
+		# motion) waits for it, like one asked for inside the hitstop: its remaining ticks are
+		# not spent where nothing moves (presentation review r2, M1).
+		_held_scale = minf(_held_scale, time_scale) if _held_ticks > 0 else time_scale
+		_held_ticks = maxi(_held_ticks, _slow_left)
+		_slow_left = 0
+		time_scale = 1.0
 	if paused:
 		alpha = 1.0
 	ticked.emit()

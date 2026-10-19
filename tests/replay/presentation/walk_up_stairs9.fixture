@@ -1,0 +1,11 @@
+fixture walk_up_stairs9
+doc walk right up a stair of 8 u lips every 9 u (presentation review r3, H1: the nudge cap forced the catch-up speed to change by 4 u in a tick where 2 u is allowed).
+room test/stairs9
+spawn 300 544
+frames 60
+input
+  0..59 R
+end
+expect
+  during 0..59 ground=1
+end

@@ -169,7 +169,7 @@ The simulation runs at a fixed 60 Hz; all numbers below are in frames (f) at 60 
 | Turnaround | 2 f, keeps 60% speed in the new direction | Never a dead frame on reversal |
 | Crouch | Hitbox 44 to 28 tall; cannot move; drops through one-way platforms on down+jump | The crouched box cannot move in the air either; crouch and drop-through need the stick straight down (docs/adr/0010) |
 | Slope handling | Up to 45°, speed unchanged; no sliding on slopes |  |
-| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared; on the ground the 8 u nudge steps the player up onto a lip, such as a door left open as a floor (docs/adr/0008); the collider moves at once and the drawn player eases onto it, from rest over 3 frames, its speed changing by at most a quarter of the nudge a frame, so no nudge (nor a staircase of them) is seen as a hop; it never falls more than twice the largest nudge behind (`content/player_view.tres`, docs/adr/0012) |
+| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared; on the ground the 8 u nudge steps the player up onto a lip, such as a door left open as a floor (docs/adr/0008); the collider moves at once and the drawn player eases onto it, from rest over 3 frames, its speed changing by at most a quarter of the nudge a frame, so no nudge (nor a staircase of them) is seen as a hop; it never falls more than two and a half times the largest nudge behind (the most a quarter-nudge speed limit allows up a staircase taken a lip a tick, which then leaves the drawn player 20 u behind it for its length; `content/player_view.tres`, docs/adr/0012) |
 
 ### Jump
 
@@ -314,7 +314,7 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 | Light hit | 2 f both | 0 | Enemy flinch frame, white flash 2 f | Hit spark (3 variants), hit sound pitch randomized ±3% |
 | Finisher | 4 f both | 1.5 u, 4 f | Launch | Slash arc smear, spark burst, bass thump |
 | Charged | 6 f both | 3 u, 6 f | Big | Brief chromatic split 1 f, slow-motion 0.8× for 8 f on kill |
-| Parry | 12 f both | 2 u, 6 f | Enemy only | Full-screen white flash 1 f, high chime, time to 0.5× for 6 f |
+| Parry | 12 f both | 2 u, 6 f | Enemy only | Full-screen white flash 1 f (at most 3 full-screen flashes in any 60 ticks, section 12), high chime, time to 0.5× for 6 f (it starts after the hitstop, also when a second parry lands inside it) |
 | Player hit | 8 f player only | 4 u, 8 f | 300 u/s away for 12 f (any action ends it), 20 f of invulnerability after the hitstop (docs/adr/0013) | Red vignette pulse, heart cracks, controller rumble 0.6 for 100 ms |
 | Kill | 3 f | 1 u, 3 f | Corpse carries momentum | Enemy ember released as a particle that flies to the player (+Flame), chalk-ink dissolve |
 | Boss phase | 20 f all | 6 u, 12 f |  | Music stinger, ambient light flips |
@@ -643,7 +643,7 @@ The HUD is the Wick. Health is the ember in their chest, Flame is the glow of th
 | Stat | Diegetic | Conventional fallback |
 | --- | --- | --- |
 | Hearts | The ember's size and brightness; cracks appear at each lost heart; at 1 heart it gutters | 5 heart icons, top-left |
-| Flame | The blade's glow from dull to lit | A vertical bar beside the hearts |
+| Flame | The blade's glow from dull to lit | A vertical bar beside the hearts, filled to the Flame Ash holds with a ghost segment for the change and a mark at each spell's cost, flashing on a gain or a kill's ember (an outline at flashes 0%); the Kindling tier as four pips, no text until the shipped UI font (docs/adr/0013) |
 | Kindling | Blade color (iron, orange, white) and trail | A small flame icon with tier |
 | Wane Clock | Ambient darkness; a sundial on the pause screen | mm:ss top-center, darkening as D rises |
 | Votives | A satchel icon that opens an inventory on hold; procs show as sparks on the blade | A scrolling icon strip, bottom |
@@ -674,7 +674,7 @@ The HUD is the Wick. Health is the ember in their chest, Flame is the glow of th
 - **Control inversion** (Wrong-singers) can be turned off; the zone then slows the player instead.
 - **Text**: 3 sizes, a dyslexia-friendly font option, no text under 18 px at 1080p, every lore note exposed to the platform screen reader.
 - **Subtitles** for all dialogue with speaker names, and visual indicators for off-screen enemy sounds (a small ink mark at the screen edge, toggleable).
-- **Photosensitivity**: the game passes the Harding test at default settings and ships a "reduce bright flashes" preset.
+- **Photosensitivity**: the game passes the Harding test at default settings and ships a "reduce bright flashes" preset. The VFX budget admits at most 3 bright full-screen effects in any 60 ticks (`screen_flash_window_frames`, `screen_flash_max` in `content/feedback.tres`), whatever their priority; a refused flash leaves the hit's burst and the enemy's outline cue.
 
 ### Performance targets
 

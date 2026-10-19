@@ -43,3 +43,7 @@ The feel log's own rejection of a 1-frame ease ("the snap one frame late") rules
 ## Open questions for the director
 
 - Look at rows 5 and 6: up a staircase of lips dashed three a frame, is two frames of the body inside the steps (the new ease) better than the old jolt as it let go? Lip staircases are a stress room (rooms climb with ramps), so the common case is rows 1 to 4, where the hitch is gone.
+
+## Correction (2026-10-19, presentation review 3, H1)
+
+"Limiting the change of speed is the only one that never jolts" held only up to the 200% cap: on a stair taken a lip a tick the cap forced the excess through at once (the speed changed by 4 u where 2 u is allowed) and left the drawn player riding 16 u off the treads. The cap is now 250%, the number at which the speed limit never gives way on any shipped staircase (walked up, walked down, dashed up, dashed down, 9 u treads); see docs/feel_log/2026-10-19-presentation-review-3.md.

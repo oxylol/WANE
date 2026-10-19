@@ -9,37 +9,86 @@ extends RefCounted
 
 const RATE: int = 44100
 
+## How many variants each sound has (BUILD.md section 11: "3 to 5 variants on everything that
+## plays more than once a second"), named base + index: "chime0".."chime2". A hit has one per
+## [member FeedbackTuning.spark_variants], up to [constant HIT_VARIANTS].
+const HIT_VARIANTS: int = 5
+const OTHER_VARIANTS: int = 3
+const BASES: Array[String] = [
+	"hit",
+	"thump",
+	"chime",
+	"heal",
+	"radiance",
+	"player_hit",
+	"telegraph",
+	"telegraph_red",
+	"kill",
+	"ember",
+]
+
 static var _cache: Dictionary[String, AudioStreamWAV] = {}
 
 
-## The sound named [param id] ("hit0".."hit2", "thump", "chime", "player_hit", "telegraph",
-## "telegraph_red", "kill", "ember").
+## The sound named [param id]: a base and a variant index ("hit0".."hit4", "thump0".."thump2",
+## "chime" for a parry, "heal" for Mend, "radiance", "player_hit", "telegraph", "telegraph_red",
+## "kill", "ember").
 static func sound(id: String) -> AudioStreamWAV:
 	if not _cache.has(id):
 		_cache[id] = _make(id)
 	return _cache[id]
 
 
+## How many variants [param base] has.
+static func variants(base: String) -> int:
+	return HIT_VARIANTS if base == "hit" else OTHER_VARIANTS
+
+
+## Variant [param v] of [param base] (wrapped into the variants it has).
+static func variant(base: String, v: int) -> AudioStreamWAV:
+	return sound("%s%d" % [base, posmod(v, variants(base))])
+
+
+## True if [param stream] is one of [param base]'s variants.
+static func is_variant_of(stream: AudioStream, base: String) -> bool:
+	for v: int in range(variants(base)):
+		if stream == variant(base, v):
+			return true
+	return false
+
+
 static func _make(id: String) -> AudioStreamWAV:
+	var base: String = id.rstrip("0123456789")
+	var v: int = id.trim_prefix(base).to_int()
+	# Each variant detunes its tones (a fifth of a semitone a step) and reseeds its noise.
+	var d: float = 1.0 + 0.012 * float(v)
 	var samples := PackedFloat32Array()
-	match id:
-		"hit0", "hit1", "hit2":
-			var v: int = id.right(1).to_int()
+	match base:
+		"hit":
 			samples = _mix(_noise(0.07, 11 + v, 0.6), _tone(0.07, 640.0 + 90.0 * v, 0.0, 0.5))
 		"thump":
-			samples = _mix(_tone(0.18, 120.0, -70.0, 0.9), _noise(0.05, 5, 0.4))
+			samples = _mix(_tone(0.18, 120.0 * d, -70.0, 0.9), _noise(0.05, 5 + v, 0.4))
 		"chime":
-			samples = _mix(_tone(0.45, 1760.0, 0.0, 0.5), _tone(0.45, 2640.0, 0.0, 0.3))
+			samples = _mix(_tone(0.45, 1760.0 * d, 0.0, 0.5), _tone(0.45, 2640.0 * d, 0.0, 0.3))
+		"heal":
+			# Mend's heal: a soft, low, rising pair, never the parry's high chime.
+			samples = _mix(_tone(0.5, 523.0 * d, 260.0, 0.35), _tone(0.5, 784.0 * d, 260.0, 0.2))
+		"radiance":
+			# The burst that lights the room: a broad bloom, a falling sub under a wide chord.
+			samples = _mix(
+				_mix(_tone(0.6, 880.0 * d, 0.0, 0.3), _tone(0.6, 1320.0 * d, 0.0, 0.25)),
+				_mix(_tone(0.5, 110.0 * d, -50.0, 0.7), _noise(0.12, 17 + v, 0.35))
+			)
 		"player_hit":
-			samples = _mix(_tone(0.22, 90.0, -40.0, 0.9), _noise(0.12, 7, 0.7))
+			samples = _mix(_tone(0.22, 90.0 * d, -40.0, 0.9), _noise(0.12, 7 + v, 0.7))
 		"telegraph":
-			samples = _tone(0.30, 420.0, 600.0, 0.35)
+			samples = _tone(0.30, 420.0 * d, 600.0, 0.35)
 		"telegraph_red":
-			samples = _mix(_tone(0.30, 300.0, 300.0, 0.35), _tone(0.30, 317.0, 300.0, 0.35))
+			samples = _mix(_tone(0.30, 300.0 * d, 300.0, 0.35), _tone(0.30, 317.0 * d, 300.0, 0.35))
 		"kill":
-			samples = _mix(_noise(0.16, 3, 0.5), _tone(0.16, 300.0, -150.0, 0.4))
+			samples = _mix(_noise(0.16, 3 + v, 0.5), _tone(0.16, 300.0 * d, -150.0, 0.4))
 		"ember":
-			samples = _tone(0.08, 1320.0, 400.0, 0.3)
+			samples = _tone(0.08, 1320.0 * d, 400.0, 0.3)
 		_:
 			push_error("Synth: no sound '%s'" % id)
 			samples = _tone(0.05, 440.0, 0.0, 0.2)

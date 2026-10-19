@@ -176,9 +176,9 @@ class LogVoices:
 	func play(
 		stream: AudioStream, _at: Vector2, _prio: int, _volume_db: float = 0.0, _pitch: float = 1.0
 	) -> bool:
-		if stream == Synth.sound("telegraph"):
+		if Synth.is_variant_of(stream, "telegraph"):
 			cues.append(Vector2i(tick, 0))
-		elif stream == Synth.sound("telegraph_red"):
+		elif Synth.is_variant_of(stream, "telegraph_red"):
 			cues.append(Vector2i(tick, 1))
 		else:
 			other += 1
@@ -318,7 +318,10 @@ func test_the_enemy_label_is_drawn_above_the_telegraph_bar() -> void:
 						highest = minf(highest, p.y)
 					assert_float(baseline).is_less(highest)
 				else:
-					assert_float(b.label_lift).is_zero()
+					# Clear of the health and poise bars (presentation review r3, L1).
+					assert_float(b.label_lift).is_equal(
+						EnemyView.BARS_GAP_PX + DebugBoxes.LABEL_CLEAR_U
+					)
 		# 24 telegraph frames and the landing frame.
 		assert_int(lifted).is_equal(25)
 

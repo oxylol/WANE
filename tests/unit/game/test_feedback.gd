@@ -77,10 +77,10 @@ func test_the_capacity_displaces_the_least_important_or_refuses() -> void:
 
 func test_effects_live_under_ten_ticks() -> void:
 	var vfx: VfxBudget = auto_free(VfxBudget.new(_tuning()))
-	for kind: int in VfxBudget.LIFETIMES:
-		assert_int(VfxBudget.LIFETIMES[kind]).is_less(10)
+	for kind: int in [VfxBudget.SPARK, VfxBudget.BURST, VfxBudget.SMEAR, VfxBudget.EMBER]:
+		assert_int(vfx.lifetime(kind)).is_less(10)
 	vfx.spawn(VfxBudget.BURST, VfxBudget.HIT, Vector2.ZERO)
-	for _i: int in range(VfxBudget.LIFETIMES[VfxBudget.BURST]):
+	for _i: int in range(vfx.lifetime(VfxBudget.BURST)):
 		vfx.step()
 	assert_int(vfx.effects.size()).is_zero()
 
@@ -101,10 +101,12 @@ func test_radiances_ring_lives_its_tuned_lifetime_and_reaches_its_tuned_radius()
 
 
 func test_synth_sounds_are_made_once_and_never_silent() -> void:
-	for id: String in ["hit0", "hit1", "hit2", "thump", "chime", "player_hit", "telegraph"]:
-		var wav: AudioStreamWAV = Synth.sound(id)
-		assert_int(wav.data.size()).is_greater(1000)
-		assert_object(Synth.sound(id)).is_same(wav)
+	for base: String in Synth.BASES:
+		for v: int in range(Synth.variants(base)):
+			var id: String = "%s%d" % [base, v]
+			var wav: AudioStreamWAV = Synth.sound(id)
+			assert_int(wav.data.size()).override_failure_message(id).is_greater(1000)
+			assert_object(Synth.sound(id)).is_same(wav)
 	assert_bool(Synth.sound("hit0").data == Synth.sound("hit1").data).is_false()
 
 
@@ -114,7 +116,7 @@ func test_voices_cut_the_least_important_furthest_quietest_sound() -> void:
 	var voices: Voices = auto_free(Voices.new(t))
 	add_child(voices)
 	voices.listener = Vector2.ZERO
-	var s: AudioStreamWAV = Synth.sound("chime")
+	var s: AudioStreamWAV = Synth.sound("chime0")
 	assert_bool(voices.play(s, Vector2(100, 0), Voices.HIT)).is_true()
 	assert_bool(voices.play(s, Vector2(900, 0), Voices.HIT)).is_true()
 	assert_bool(voices.play(s, Vector2(50, 0), Voices.PLAYER)).is_true()

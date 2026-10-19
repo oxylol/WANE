@@ -119,6 +119,9 @@ func test_a_corner_correction_nudge_never_snaps_the_drawn_player() -> void:
 		"physics/walk_up_two_lips",
 		"physics/walk_up_lip_stairs",
 		"physics/dash_up_lip_stairs",
+		"presentation/walk_down_lip_stairs",
+		"presentation/dash_down_lip_stairs",
+		"presentation/walk_up_stairs9",
 		"movement/jump_ceiling_nudge",
 		"movement/ground_corner_lift",
 	]:

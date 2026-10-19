@@ -30,11 +30,11 @@ script = ExtResource("3")
 [node name="RoomView" type="Node2D" parent="World"]
 script = ExtResource("4")
 
-[node name="EnemyView" type="Node2D" parent="World"]
-script = ExtResource("9")
-
 [node name="CombatView" type="Node2D" parent="World"]
 script = ExtResource("10")
+
+[node name="EnemyView" type="Node2D" parent="World"]
+script = ExtResource("9")
 
 [node name="PlayerView" type="Node2D" parent="World"]
 script = ExtResource("5")

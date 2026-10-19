@@ -29,6 +29,14 @@ const CUE_RISE_PX: float = 24.0
 const CUE_BAR_PX: float = 6.0
 const JAG_TOOTH_PX: float = 8.0
 const JAG_DEPTH_PX: float = 5.0
+## The z index of the cue layer: above the VFX budget's (z 0), so no effect covers a telegraph
+## (presentation review r2, L10; BUILD.md section 15: "the player and every enemy telegraph are
+## visible" with 30 Votives).
+const CUE_Z: int = 1
+## The cue's outline around the body.
+const CUE_OUTLINE_PX: float = 3.0
+## The health bar's gap above the body; the poise bar sits 4 px under it, both 3 px thick.
+const BARS_GAP_PX: float = 16.0
 ## Health is tan, never red: red is the unparryable cue (BUILD.md section 15), and the bar sits
 ## where a telegraph raises its cue bar.
 const HP := Color(0.85, 0.75, 0.6)
@@ -41,6 +49,8 @@ var flash_scale: float = 1.0
 var shown: Array[Shown] = []
 var _alpha: float = 1.0
 var _before: Array[Rect2] = []
+## The telegraph cues and the live swings, drawn on their own layer above the effects.
+var _cues: Node2D
 
 
 ## One enemy as the latest tick left it: a snapshot, so the view never holds the simulation's
@@ -62,6 +72,13 @@ class Shown:
 func _init(p_tuning: FeedbackTuning = null) -> void:
 	tuning = p_tuning if p_tuning != null else load(FeedbackTuning.PATH) as FeedbackTuning
 	flash_scale = tuning.flash_default_scale
+
+
+func _ready() -> void:
+	_cues = Node2D.new()
+	_cues.z_index = CUE_Z
+	add_child(_cues)
+	_cues.draw.connect(_draw_cues)
 
 
 ## Reads the latest tick's enemies. (It takes the simulation rather than the enemy list: a typed
@@ -184,6 +201,8 @@ func shows_hit_outline(s: Shown) -> bool:
 func show_at(alpha: float) -> void:
 	_alpha = alpha
 	queue_redraw()
+	if _cues != null:
+		_cues.queue_redraw()
 
 
 ## Shows [param sim]'s enemies as they are now, with no interpolation (tools that draw one state).
@@ -195,8 +214,32 @@ func show_now(sim: Simulation) -> void:
 
 func _draw() -> void:
 	for i: int in range(shown.size()):
+		_draw_enemy(shown[i], _box_at(i))
+
+
+## Enemy [param i]'s collider between the last two ticks.
+func _box_at(i: int) -> Rect2:
+	var s: Shown = shown[i]
+	return Rect2(_before[i].position.lerp(s.box.position, _alpha), s.box.size)
+
+
+## The cues, on their own layer: the telegraph's raised bar and outline and the live swing.
+func _draw_cues() -> void:
+	for i: int in range(shown.size()):
 		var s: Shown = shown[i]
-		_draw_enemy(s, Rect2(_before[i].position.lerp(s.box.position, _alpha), s.box.size))
+		if not s.alive:
+			continue
+		var box: Rect2 = _box_at(i)
+		if s.telegraph >= 0.0:
+			var cue: Color = WHITE_CUE if s.parryable else RED_CUE
+			_cues.draw_colored_polygon(cue_bar(box, s.telegraph, s.parryable), cue)
+			_cues.draw_polyline(cue_outline(box, s.parryable), cue, CUE_OUTLINE_PX)
+		if s.attack.size != Vector2.ZERO:
+			# The live swing keeps the cue's colour and shape through its active frames.
+			_cues.draw_rect(s.attack, WHITE_SWING if s.parryable else RED_SWING)
+			_cues.draw_polyline(
+				cue_outline(s.attack, s.parryable), WHITE_CUE if s.parryable else RED_CUE, 2.0
+			)
 
 
 func _draw_enemy(s: Shown, at: Rect2) -> void:
@@ -212,19 +255,9 @@ func _draw_enemy(s: Shown, at: Rect2) -> void:
 	# The facing side.
 	var eye_x: float = box.end.x - 8.0 if s.facing > 0 else box.position.x + 2.0
 	draw_rect(Rect2(eye_x, box.position.y + 10.0, 6.0, 6.0), Color(0.1, 0.1, 0.12))
-	if s.telegraph >= 0.0:
-		var cue: Color = WHITE_CUE if s.parryable else RED_CUE
-		draw_colored_polygon(cue_bar(box, s.telegraph, s.parryable), cue)
-		draw_polyline(cue_outline(box, s.parryable), cue, 3.0)
-	if s.attack.size != Vector2.ZERO:
-		# The live swing keeps the cue's colour and shape through its active frames.
-		draw_rect(s.attack, WHITE_SWING if s.parryable else RED_SWING)
-		draw_polyline(
-			cue_outline(s.attack, s.parryable), WHITE_CUE if s.parryable else RED_CUE, 2.0
-		)
 	if shows_hit_outline(s):
 		draw_rect(box, HIT_OUTLINE, false, 3.0)
 	var w: float = box.size.x
-	var top: float = box.position.y - 16.0
+	var top: float = box.position.y - BARS_GAP_PX
 	draw_rect(Rect2(box.position.x, top, w * s.hp, 3), HP)
 	draw_rect(Rect2(box.position.x, top + 4, w * s.poise, 3), POISE)
