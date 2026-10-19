@@ -1,0 +1,11 @@
+fixture cam5_reverse_onto_ledge
+doc (camera review 5, H1: falling leftward past a ledge's end and reversing onto it: the fall look must stop at the ledge (it ran 459 u past it, and the view came back up 115 u after the landing))
+room test/cam5_lg_w4_t2
+spawn 1100 2572
+frames 120
+input
+  0..22 L
+  23..119 R
+end
+expect
+end

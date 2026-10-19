@@ -71,7 +71,6 @@ var wall_side: int = 0
 var wall_frames: int = 0
 var wall_spent: bool = false
 var wall_lock: int = 0
-var no_cling_until_down_released: bool = false
 ## The next cling is the first since a landing, wall-jump or pogo: it restores the air jump and
 ## air dash and starts a fresh slide. Later clings (re-gripping, or the cling at the top of each
 ## kick of a climb) continue the slide and restore nothing (docs/adr/0010).
@@ -94,6 +93,16 @@ var action_pogoed: bool = false
 var since_bounce: int = LONG_AGO
 
 var invuln: int = 0
+## After a hazard send-back, the stick direction held through it, ignored until the stick is let go
+## or turned (docs/adr/0010): a stick still held toward the hazard never walks the player straight
+## back into it.
+var stick_hold_x: int = 0
+## An attack press that a dash cancelling a strike took over: it fires as soon as the dash allows
+## a strike (dash frame 6), in the direction it was pressed (BUILD.md s15: the cancel "never eats
+## the next attack input").
+var queued_attack: bool = false
+## The stick on the frame that press was made (raw, as the ring keeps it).
+var queued_attack_stick: Vector2i = Vector2i.ZERO
 ## Frames left in a ground turnaround's catch-up (speed returns from 60% to full over
 ## turn_frames).
 var turn_left: int = 0
@@ -167,6 +176,11 @@ func step(ring: InputRing) -> void:
 		return
 	var dx: int = _dir_x(ring)
 	var dy: int = _dir_y(ring)
+	if stick_hold_x != 0:
+		if dx == stick_hold_x:
+			dx = 0
+		else:
+			stick_hold_x = 0
 	_tick_timers()
 	_advance_action()
 	_turn(dx)
@@ -282,15 +296,26 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 	ring.consume(InputFrame.DASH)
 	if atk != null:
 		# A cancelled strike ends like a finished one: the chain carries on for
-		# chain_reset_frames, so slash, dash, slash keeps the 3-hit rhythm (docs/adr/0010).
+		# chain_reset_frames, so slash, dash, slash keeps the 3-hit rhythm (docs/adr/0010). An
+		# attack already pressed for the next strike waits for the dash to allow it, however long
+		# the dash takes to get there.
 		_end_action()
+		var age: int = ring.press_age(InputFrame.ATTACK, p.attack_buffer_frames)
+		if age >= 0:
+			var f: InputFrame = ring.frame_at(age)
+			queued_attack = true
+			queued_attack_stick = Vector2i(f.stick_x, f.stick_y)
+			ring.consume(InputFrame.ATTACK)
 	var dir := Vector2i(dx if dx != 0 else facing, 0)
 	if not grounded:
 		dir = Vector2i(dx, dy)
 		if dir == Vector2i.ZERO:
 			dir = Vector2i(facing, 0)
-		if loco == WALL and dir.x == wall_side:
-			dir.x = -wall_side
+		var wall: int = (
+			wall_side if loco == WALL else PlayerWall.met(self, _dir_x(ring), _dir_y(ring))
+		)
+		if wall != 0 and dir.x == wall:
+			dir.x = -wall
 	if dir.x != 0:
 		facing = dir.x
 	var speed: int = p.dash_speed
@@ -344,7 +369,7 @@ func end_dash(carry: bool) -> void:
 func _try_jump(ring: InputRing, dx: int, dy: int) -> void:
 	if not ring.has_press(InputFrame.JUMP, p.jump_buffer_frames):
 		return
-	if not _strike_allows_jump() or not _room_to_rise(dy, dx):
+	if not strike_allows_jump() or not _room_to_rise(dy, dx):
 		return
 	var keep_vx: int = 0
 	var from_dash: bool = loco == DASH
@@ -363,25 +388,34 @@ func _try_jump(ring: InputRing, dx: int, dy: int) -> void:
 		ring.consume(InputFrame.JUMP)
 		if from_dash:
 			end_dash(false)
-		_start_jump(p.jump_speed, SimEvents.JUMP)
+		start_jump(p.jump_speed, SimEvents.JUMP)
 		if from_dash:
 			body.vx = keep_vx
 		return
-	var side: int = _wall_side_near()
+	_jump_in_air(ring, dx, dy, from_dash, keep_vx)
+
+
+## A jump in the air: off a wall in reach, else the air jump. [param keep_vx] is a dash-jump's
+## kept speed when [param from_dash].
+func _jump_in_air(ring: InputRing, dx: int, dy: int, from_dash: bool, keep_vx: int) -> void:
+	var side: int = PlayerWall.side_near(self)
+	if side == 0 and PlayerWall.met(self, dx, dy) != 0:
+		# Reaching a wall this tick: the press stays in the buffer for the cling after this tick's
+		# move, which kicks off the wall with it (as a jump pressed just before a cling does),
+		# rather than spending the air jump a tick early (movement review 4, M5).
+		return
+	if side == 0 and air_jumps_left <= 0:
+		return
+	ring.consume(InputFrame.JUMP)
+	if from_dash:
+		end_dash(false)
 	if side != 0:
-		ring.consume(InputFrame.JUMP)
-		if from_dash:
-			end_dash(false)
-		_wall_jump(side, dx)
+		PlayerWall.jump_off(self, side, dx)
 		return
-	if air_jumps_left > 0:
-		ring.consume(InputFrame.JUMP)
-		if from_dash:
-			end_dash(false)
-		air_jumps_left -= 1
-		_start_jump(p.air_jump_speed, SimEvents.AIR_JUMP)
-		if from_dash:
-			body.vx = keep_vx
+	air_jumps_left -= 1
+	start_jump(p.air_jump_speed, SimEvents.AIR_JUMP)
+	if from_dash:
+		body.vx = keep_vx
 
 
 ## Every jump rises: with a ceiling flush on the head there is no room, and the press waits in the
@@ -395,15 +429,16 @@ func _room_to_rise(dy: int, dx: int) -> bool:
 
 ## A strike blocks the jump unless its row lists a jump cancel ("jump any frame"), or it is an
 ## air-only strike (the down-strike) that has reached the ground: a missed pogo never locks the
-## jump (docs/adr/0010).
-func _strike_allows_jump() -> bool:
+## jump (docs/adr/0010). [param landed] says it landed this tick, even if the rest of the
+## landing's step then walked it off the edge.
+func strike_allows_jump(landed: bool = false) -> bool:
 	var atk: AttackDef = current_attack()
 	if atk == null or atk.jump_any:
 		return true
-	return atk.air_only and loco == GROUND
+	return atk.air_only and (loco == GROUND or landed)
 
 
-func _start_jump(speed: int, kind: String) -> void:
+func start_jump(speed: int, kind: String) -> void:
 	loco = AIR
 	left_by_jump = true
 	wall_coyote = 0
@@ -424,35 +459,6 @@ func _start_jump(speed: int, kind: String) -> void:
 	events.add(kind, body.x, body.y, speed)
 
 
-## Holding away is a wall-jump, which restores the air jump and air dash (BUILD.md: "Resets double
-## jump and air dash") and makes the next cling fresh. Anything else is a kick: a fixed kick, like
-## the pogo's bounce (no early-release cut, no apex hang), that restores nothing (its row lists no
-## reset). So a climb is one full kick per apex however the button is pressed: timed kicks and
-## mashing climb at the same rate (docs/adr/0010).
-func _wall_jump(side: int, dx: int) -> void:
-	var away: int = -side
-	if dx == away:
-		_start_jump(p.wall_jump_up, SimEvents.WALL_JUMP)
-		body.vx = away * p.wall_jump_away
-		wall_lock = p.wall_jump_lock
-		air_jumps_left = p.air_jumps
-		air_dashes_left = p.air_dashes
-		refresh_wall()
-	else:
-		_start_jump(p.wall_kick_up, SimEvents.WALL_KICK)
-		jump_frame = 0
-		body.vx = away * p.wall_kick_away
-		wall_lock = p.wall_kick_lock
-	facing = away
-
-
-## A landing, a wall-jump or a pogo: the next cling is fresh.
-func refresh_wall() -> void:
-	wall_fresh = true
-	wall_spent = false
-	wall_frames = 0
-
-
 func _drop_through() -> void:
 	world.drop_through(body)
 	loco = AIR
@@ -463,23 +469,6 @@ func _drop_through() -> void:
 
 func _in_coyote() -> bool:
 	return (loco == AIR or loco == DASH) and not left_by_jump and air_frames <= p.coyote_frames
-
-
-## The side (-1, 1) of a clingable wall a wall-jump may push off, preferring the one clung to:
-## while clinging, within wall coyote time of letting go of one, or while falling within reach of
-## a wall. Not while rising, or mashing jump beside a wall would climb it at jump speed
-## (docs/adr/0010).
-func _wall_side_near() -> int:
-	if wall_side != 0 and world.wall_near(body, wall_side, p.wall_jump_reach):
-		return wall_side
-	if wall_coyote > 0:
-		return wall_coyote_side
-	if body.vy < 0:
-		return 0
-	for side: int in [facing, -facing]:
-		if world.wall_near(body, side, p.wall_jump_reach):
-			return side
-	return 0
 
 
 # --- strikes ---------------------------------------------------------------------------------
@@ -579,11 +568,11 @@ func _move_air(ring: InputRing, dx: int, dy: int) -> void:
 		jump_fresh = false
 	else:
 		body.vy = mini(body.vy + _gravity(ring), p.terminal)
-	var contact: int = world.landing_contact(body, body.vx, body.vy)
+	var lift: int = p.ledge_grab if dx != 0 and dx == signi(body.vx) else p.corner_lift
+	var contact: int = world.landing_contact(body, body.vx, body.vy, lift, p.corner_slide)
 	if contact != CollisionQueries.NONE:
 		_land_in_stride(ring, dx, dy, contact)
 		return
-	var lift: int = p.ledge_grab if dx != 0 and dx == signi(body.vx) else p.corner_lift
 	world.move_x(body, body.vx, lift, p.corner_slide)
 	if body.hit_wall != 0 and dx != body.hit_wall:
 		body.vx = 0
@@ -607,7 +596,7 @@ func _land_in_stride(ring: InputRing, dx: int, dy: int, contact: int) -> void:
 	world.move_y(body, body.vy)
 	_arrive()
 	_walk_rest(rest)
-	_landing_actions(ring, dx, dy)
+	_landing_actions(ring, dx, dy, true, true)
 
 
 ## Walks the part of a landing tick's step left after touching down; walking off the edge leaves
@@ -667,14 +656,20 @@ func _update_jump_release(ring: InputRing) -> void:
 
 func _move_dash(ring: InputRing, dx: int, dy: int) -> void:
 	PlayerContacts.kindle_ahead(self)
-	# A level dash on the ground walks it, following slopes up and down; that includes a level air
-	# dash once it has touched down.
-	if (dash_grounded or dash_landed) and dash_vy == 0 and body.on_ground:
+	# A dash on the ground walks it, following slopes up and down and stepping up lips: a level
+	# dash, and an air dash once it has touched down (a diagonal one runs on along the floor, and
+	# goes on down at once if that walk runs off the floor's end).
+	if (dash_grounded or dash_landed) and dash_vy >= 0 and body.on_ground:
 		body.vx = dash_vx
 		body.vy = 0
 		world.walk(body, dash_vx, p.corner_lift)
 		if body.on_ground:
 			air_frames = 0
+		elif dash_vy > 0:
+			body.vy = dash_vy
+			world.move_y(body, dash_vy, p.corner_slide)
+			if body.on_ground:
+				body.vy = 0
 		return
 	body.vx = dash_vx
 	body.vy = dash_vy
@@ -682,7 +677,7 @@ func _move_dash(ring: InputRing, dx: int, dy: int) -> void:
 	# along it for the rest of the tick's step.
 	var contact: int = CollisionQueries.NONE
 	if dash_vx != 0 and dash_vy > 0 and not body.on_ground:
-		contact = world.landing_contact(body, dash_vx, dash_vy)
+		contact = world.landing_contact(body, dash_vx, dash_vy, p.corner_lift, p.corner_slide)
 	if contact != CollisionQueries.NONE:
 		world.move_x(body, contact)
 		world.move_y(body, dash_vy)
@@ -697,43 +692,38 @@ func _move_dash(ring: InputRing, dx: int, dy: int) -> void:
 			# with no lag (BUILD.md: "Landing: 0 f of lag").
 			end_dash(false)
 			_land(ring, dx, dy)
-		elif not dash_grounded and not dash_landed:
-			# A diagonal air dash runs on along the floor, but the airtime ends here: the air jump
-			# and air dash come back on the frame it touches down, and a buffered jump fires on
-			# that frame, from where the step ends, if the dash has reached its jump frames (a
-			# dash-jump, as from any dash).
+			return
+		# A diagonal air dash runs on along the floor, but the airtime ends the first time it
+		# touches down: the air jump and air dash come back on that frame, and a buffered jump
+		# fires on it, from where the step ends, if the dash has reached its jump frames (a
+		# dash-jump, as from any dash). Every touch-down on a far edge walks the rest of the
+		# tick's step, the first or a later one (down a staircase).
+		var first: bool = not dash_grounded and not dash_landed
+		if first:
 			dash_landed = true
 			_touch_down()
-			if contact != CollisionQueries.NONE:
-				_walk_rest(dash_vx - contact)
+		if contact != CollisionQueries.NONE:
+			_walk_rest(dash_vx - contact)
+		if first:
 			_try_jump(ring, dx, dy)
-	elif _dash_meets_cling_wall(dx):
+	elif PlayerWall.dash_meets(self, dx, dy):
 		# An air dash that meets a wall the stick holds toward clings at once, rather than
 		# grinding out its remaining frames against it (tech 6; docs/adr/0010).
 		end_dash(false)
-		_start_cling(dx, ring)
-
-
-## The air dash was stopped this tick by a clingable wall on the side the stick holds, and is
-## not rising (a cling, like any cling, starts only on the way down or level).
-func _dash_meets_cling_wall(dx: int) -> bool:
-	if dx == 0 or body.hit_wall != dx or dash_vy < 0:
-		return false
-	if wall_spent or no_cling_until_down_released:
-		return false
-	return world.wall_near(body, dx, 1)
+		PlayerWall.cling(self, dx, ring)
 
 
 func _move_wall(ring: InputRing, dx: int, dy: int) -> void:
 	wall_frames += 1
 	var leave: bool = dx != wall_side or dy > 0 or wall_frames > p.wall_slide_frames
 	if leave:
-		if dy > 0:
-			no_cling_until_down_released = true
-		elif wall_frames > p.wall_slide_frames:
-			wall_spent = true
-		else:
-			_start_wall_coyote()
+		# Down drops off at once, with no wall coyote time; it clings again only once down is let
+		# go ([method _after_move]).
+		if dy <= 0:
+			if wall_frames > p.wall_slide_frames:
+				wall_spent = true
+			else:
+				PlayerWall.let_go(self)
 		loco = AIR
 		wall_side = 0
 		_move_air(ring, dx, dy)
@@ -748,18 +738,9 @@ func _move_wall(ring: InputRing, dx: int, dy: int) -> void:
 		_land(ring, dx, dy)
 	elif not world.wall_near(body, wall_side, 1):
 		# Slid off the wall's end.
-		_start_wall_coyote()
+		PlayerWall.let_go(self)
 		loco = AIR
 		wall_side = 0
-
-
-## Let go of a cling without jumping: a jump within the wall coyote time still pushes off it.
-func _start_wall_coyote() -> void:
-	# Counted down at the start of each tick, so a jump up to wall_coyote_frames ticks after
-	# letting go still pushes off, as a jump up to coyote_frames ticks after walking off a ledge
-	# still jumps.
-	wall_coyote = p.wall_coyote_frames + 1
-	wall_coyote_side = wall_side
 
 
 ## Arriving on the ground by any route (a fall, a wall slide, a straight-down dash, a teleport):
@@ -787,14 +768,18 @@ func _arrive() -> void:
 
 
 ## A jump, dash or strike pressed within its buffer before the landing starts on its frame.
-func _landing_actions(ring: InputRing, dx: int, dy: int, after_move: bool = true) -> void:
-	if ring.has_press(InputFrame.JUMP, p.jump_buffer_frames) and _strike_allows_jump():
+## [param walked_on] says the landing's step went on after touching down (see
+## [method _land_in_stride]).
+func _landing_actions(
+	ring: InputRing, dx: int, dy: int, after_move: bool = true, walked_on: bool = false
+) -> void:
+	if ring.has_press(InputFrame.JUMP, p.jump_buffer_frames) and strike_allows_jump(walked_on):
 		ring.consume(InputFrame.JUMP)
 		# Down and jump onto a one-way platform drops through it, as on the ground.
 		if dy > 0 and dx == 0 and world.can_drop_through(body):
 			_drop_through()
 			return
-		_start_jump(p.jump_speed, SimEvents.JUMP)
+		start_jump(p.jump_speed, SimEvents.JUMP)
 		return
 	_try_dash(ring, after_move)
 	if loco == GROUND:
@@ -820,50 +805,22 @@ func restore_airtime() -> void:
 	ground_dash_cooldown = 0
 	wall_coyote = 0
 	wall_coyote_side = 0
-	refresh_wall()
+	PlayerWall.refresh(self)
 
 
 # --- after the move --------------------------------------------------------------------------
 
 
 func _after_move(ring: InputRing, dx: int, dy: int) -> void:
-	if dy <= 0:
-		no_cling_until_down_released = false
-	if loco == AIR and body.vy >= 0 and dx != 0 and not wall_spent:
-		if not no_cling_until_down_released and world.wall_near(body, dx, 1):
-			_start_cling(dx, ring)
+	# Holding down never clings, a d-pad diagonal included (BUILD.md s5 Wall: "Pressing down
+	# drops instantly").
+	if loco == AIR and body.vy >= 0 and dx != 0 and dy <= 0 and not wall_spent:
+		if world.wall_near(body, dx, 1):
+			PlayerWall.cling(self, dx, ring)
 	# A pogo box and the hurtbox reaching the spikes on the same frame is a bounce: the benefit of
 	# the doubt goes to the player.
 	if not PlayerContacts.check_pogo(self, ring):
-		PlayerContacts.check_hazards(self)
-
-
-## Starts a cling on [param side]. The first cling since a landing, wall-jump or pogo restores the
-## air jump and air dash (BUILD.md: "resets on wall-cling") and starts a fresh 90 f slide; a
-## re-grip continues the slide it interrupted. Every cling clears the ground dash cooldown
-## ("resets on landing or wall-cling"). A jump pressed before the cling fires on the cling frame,
-## as one pressed before landing does.
-func _start_cling(side: int, ring: InputRing) -> void:
-	loco = WALL
-	wall_side = side
-	wall_coyote = 0
-	wall_coyote_side = 0
-	if wall_fresh:
-		wall_fresh = false
-		wall_frames = 0
-		air_jumps_left = p.air_jumps
-		air_dashes_left = p.air_dashes
-	ground_dash_cooldown = 0
-	body.vx = 0
-	body.vy = mini(body.vy, p.wall_slide_speed)
-	jump_frame = 0
-	jump_cut = false
-	carry_frames = 0
-	facing = -side
-	events.add(SimEvents.WALL_CLING, body.x, body.y, side)
-	if ring.has_press(InputFrame.JUMP, p.jump_buffer_frames) and _strike_allows_jump():
-		ring.consume(InputFrame.JUMP)
-		_wall_jump(side, _dir_x(ring))
+		PlayerContacts.check_hazards(self, ring)
 
 
 ## The hurtbox: the collider inset on every side (smaller than the sprite; CLAUDE.md rule 8).
@@ -942,6 +899,9 @@ func hash_into(h: StateHasher) -> void:
 		apex_hang_left,
 		wall_coyote,
 		wall_coyote_side,
+		stick_hold_x,
+		queued_attack_stick.x,
+		queued_attack_stick.y,
 	]:
 		h.add_int(v)
 	for b: bool in [
@@ -953,7 +913,7 @@ func hash_into(h: StateHasher) -> void:
 		jump_cut,
 		jump_fresh,
 		wall_spent,
-		no_cling_until_down_released,
+		queued_attack,
 		action_pogoed,
 		kindle_dash,
 		apex_hang_used,

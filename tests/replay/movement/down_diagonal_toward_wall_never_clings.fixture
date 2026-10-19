@@ -1,0 +1,12 @@
+fixture down_diagonal_toward_wall_never_clings
+doc (movement review 4, L3) falling with a d-pad's down-right held into a clingable wall. BUILD.md s5 Wall "Wall-cling cancel: Pressing down drops instantly"; with down held the cling still starts for one tick (a wall_cling event, the fresh cling's air jump and air dash restored, facing flipped away), then drops on the next.
+room test/shaft
+spawn 760 300
+frames 20
+input
+  0..19 x=127 y=127
+end
+expect
+  never 0..19 event.wall_cling=1
+  never 0..19 state=wall
+end

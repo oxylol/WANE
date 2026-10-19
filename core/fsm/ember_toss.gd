@@ -48,8 +48,18 @@ func try_start(pl: Player, ring: InputRing) -> void:
 	startup = 1
 	dir_x = d.x
 	dir_y = d.y
-	if pl.loco == Player.WALL and dir_x == pl.wall_side:
-		dir_x = -pl.wall_side
+	# Thrown from a wall, or on the tick the player reaches one ([method PlayerWall.met]), a
+	# throw toward the wall goes away from it.
+	var thr: int = pl.p.stick_threshold
+	var wall: int = (
+		pl.wall_side
+		if pl.loco == Player.WALL
+		else PlayerWall.met(
+			pl, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+		)
+	)
+	if wall != 0 and dir_x == wall:
+		dir_x = -wall
 	if dir_x == 0 and dir_y == 0:
 		dir_x = pl.facing
 	cooldown = pl.kit.toss_cooldown
@@ -59,8 +69,10 @@ func try_start(pl: Player, ring: InputRing) -> void:
 ## Advances the throw and the ember by one tick (after the player has moved).
 func step(pl: Player) -> void:
 	cooldown = maxi(cooldown - 1, 0)
+	# "3 f startup", counted as the Taper's are: frames 1 to 3 wind up and the ember is out on
+	# frame 4 (the press is frame 1; movement review 4, L2).
 	if startup > 0:
-		if startup >= pl.kit.toss_startup:
+		if startup > pl.kit.toss_startup:
 			_spawn(pl)
 			startup = 0
 		else:

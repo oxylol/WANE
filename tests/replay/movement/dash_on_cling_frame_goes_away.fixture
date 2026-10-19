@@ -1,0 +1,23 @@
+fixture dash_on_cling_frame_goes_away
+doc (movement review 4, M5) on the first cling after a kick (not fresh, so it restores nothing), the dash pressed on the tick the cling begins, stick toward the wall. Read before the move, while Ash is still in the air, it is an air dash toward the wall: it moves nowhere, meets the wall and clings, and the air dash is gone. One tick later (on the wall) the same press dashes away from the wall (docs/adr/0010 Dash: "a dash ... from a wall ... goes away from it").
+room test/shaft
+spawn 760 300
+frames 60
+input
+  0..5 R
+  6..9 R
+  10 R jump
+  11..32 R
+  33 R dash
+  34..59 R
+end
+expect
+  at 6 event.wall_cling=1
+  at 10 event.wall_kick=1
+  at 32 state=air air_dashes=1
+  # The kick's apex cling (a re-grip, restoring nothing) begins on frame 33, the dash pressed with it.
+  at 33 event.dash=1
+  # Away from the wall, and the air dash spent on a real dash.
+  at 34 x<x@33
+  at 38 x<=-60u+x@33
+end

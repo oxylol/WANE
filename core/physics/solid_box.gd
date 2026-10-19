@@ -4,6 +4,9 @@ extends RefCounted
 ## platform that can be switched off. Edges are in sub-pixels; the box covers [left, right) x
 ## [top, bottom). A disabled box is ignored by every query.
 
+## Tags of boxes the game can take away during a run: wax burns (BUILD.md s5 tech 12).
+const FRAGILE_TAGS: Array[String] = ["wax"]
+
 var left: int = 0
 var top: int = 0
 var right: int = 0
@@ -22,6 +25,11 @@ static func make(l: int, t: int, r: int, b: int) -> SolidBox:
 	s.right = r
 	s.bottom = b
 	return s
+
+
+## True if the game can take this box away during a run (it is never safe ground).
+func fragile() -> bool:
+	return FRAGILE_TAGS.has(tag)
 
 
 ## True if this box overlaps [l, r) x [t, b).

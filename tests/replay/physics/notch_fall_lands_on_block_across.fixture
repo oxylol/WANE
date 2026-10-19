@@ -1,0 +1,12 @@
+fixture notch_fall_lands_on_block_across
+doc (physics review 6, M1) fall holding right from (560, 305) in test/notch19 (a tile ledge, top y 384, ends at x 640; a 19 u notch; a door from x 659 whose top, y 374, is 10 u above the ledge). Tick 13 starts at (645.5, 380.7): the feet 6.7 u below the door's top, the box 4.5 u over the ledge, moving 9 u across and 11.65 u down. Moving across first meets the door's face and the ledge-grab (10 u, the stick holds toward it) lifts the box onto the door; the far-edge landing instead puts it on the ledge's edge, 10 u below the door's top, against its face.
+room test/notch19
+spawn 560 305
+frames 20
+input
+  0..19 R
+end
+expect
+  at 12 y<374u+7u
+  at 13 y=374u
+end

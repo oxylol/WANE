@@ -25,7 +25,7 @@ expect
   at 98 event.dash=1
   at 114 event.toss=1
   at 144 event.teleport=1
-  mark fall 145..259 event.hazard=1
-  at fall-1 x<2144u
-  never 0..259 x>2144u ground=1
+  mark below 145..259 y>394u
+  at below x<2144u
+  never 0..259 x>=2144u ground=1
 end

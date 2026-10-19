@@ -21,21 +21,23 @@ func _hash(pl: Player) -> int:
 	return h.value()
 
 
-## Changes [param field] of [param obj] from [param old]; false for a type it cannot change.
-func _nudge(obj: Object, field: String, old: Variant) -> bool:
+## Values to try in place of [param old], one per part of it that must reach the hash (both
+## components of a vector); empty for a type the audit does not know.
+func _changes(old: Variant) -> Array[Variant]:
 	match typeof(old):
 		TYPE_INT:
 			var i: int = old
-			obj.set(field, i + 7)
+			return [i + 7]
 		TYPE_BOOL:
 			var b: bool = old
-			obj.set(field, not b)
+			return [not b]
 		TYPE_STRING:
 			var s: String = old
-			obj.set(field, s + "x")
-		_:
-			return false
-	return true
+			return [s + "x"]
+		TYPE_VECTOR2I:
+			var v: Vector2i = old
+			return [v + Vector2i(7, 0), v + Vector2i(0, 7)]
+	return []
 
 
 func test_every_player_field_is_in_the_state_hash() -> void:
@@ -47,16 +49,19 @@ func test_every_player_field_is_in_the_state_hash() -> void:
 		var field: String = props[i]["name"]
 		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE == 0 or NOT_STATE.has(field):
 			continue
-		var hash_was: int = _hash(pl)
 		var old: Variant = pl.get(field)
-		if not _nudge(pl, field, old):
+		var changes: Array[Variant] = _changes(old)
+		if changes.is_empty():
 			fail("field '%s' has a type the hash audit does not know" % field)
 			return
-		var hash_now: int = _hash(pl)
-		pl.set(field, old)
-		if hash_now == hash_was:
-			fail("Player.%s is not part of the state hash" % field)
-			return
+		for changed: Variant in changes:
+			var hash_was: int = _hash(pl)
+			pl.set(field, changed)
+			var hash_now: int = _hash(pl)
+			pl.set(field, old)
+			if hash_now == hash_was:
+				fail("Player.%s is not part of the state hash" % field)
+				return
 		checked += 1
 	assert_int(checked).is_greater(30)
 
@@ -69,16 +74,19 @@ func test_ember_toss_fields_are_in_the_state_hash() -> void:
 		var field: String = props[i]["name"]
 		if usage & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
 			continue
-		var h1 := StateHasher.new()
-		toss.hash_into(h1)
 		var old: Variant = toss.get(field)
-		assert_bool(_nudge(toss, field, old)).is_true()
-		var h2 := StateHasher.new()
-		toss.hash_into(h2)
-		toss.set(field, old)
-		if h2.value() == h1.value():
-			fail("EmberToss.%s is not part of the state hash" % field)
-			return
+		var changes: Array[Variant] = _changes(old)
+		assert_bool(changes.is_empty()).is_false()
+		for changed: Variant in changes:
+			var h1 := StateHasher.new()
+			toss.hash_into(h1)
+			toss.set(field, changed)
+			var h2 := StateHasher.new()
+			toss.hash_into(h2)
+			toss.set(field, old)
+			if h2.value() == h1.value():
+				fail("EmberToss.%s is not part of the state hash" % field)
+				return
 
 
 func test_teleport_offsets_are_nearest_first_with_straight_lines_first() -> void:

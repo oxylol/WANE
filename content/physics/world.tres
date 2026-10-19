@@ -5,3 +5,4 @@
 [resource]
 script = ExtResource("1")
 spike_inset_u = 12
+join_band_u = 12

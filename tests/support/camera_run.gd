@@ -11,6 +11,10 @@ var events: Array[PackedStringArray] = []
 ## The look-down and the fall's look-ahead on each tick.
 var looks: PackedFloat32Array = PackedFloat32Array()
 var fall_looks: PackedFloat32Array = PackedFloat32Array()
+## The way the lead points on each tick.
+var leads: PackedInt32Array = PackedInt32Array()
+## The last support's height (feet, y down) on each tick.
+var supports: PackedFloat32Array = PackedFloat32Array()
 var rig: CameraRig
 var room: Rect2
 var errors: PackedStringArray = PackedStringArray()
@@ -91,6 +95,8 @@ static func play_fixture(fx: Fixture, camera: CameraRig) -> CameraRun:
 		run.previous.append(run.rig.previous)
 		run.looks.append(run.rig._look)
 		run.fall_looks.append(run.rig._fall_lead)
+		run.leads.append(run.rig._lead_dir)
+		run.supports.append(run.rig._support_y)
 		run.gliding.append(run.rig.gliding())
 		run.events.append(PackedStringArray(sim.events.kinds))
 	return run

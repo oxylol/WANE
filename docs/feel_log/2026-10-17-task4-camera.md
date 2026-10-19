@@ -52,11 +52,12 @@ BUILD.md's four numbers are kept: the 60 u lead, the 40×30 u dead zone, the 0.0
 | Fall look-ahead, and how fast it grows | none | 20, 16 | ticks of fall, u per tick |
 | Ground probe below a fall | none | the fall's own path, 20 ticks ahead (the first round's 1024 u straight down is gone) | ticks |
 | Lead commits to a turn after (never between a wall contact and the next landing) | none | 120 travelled (`lead_commit_u`), or 20 | u, ticks |
+| ... unless that far from the last wall touched (`lead_wall_release_u`) | none | 400 | u |
 | Up-dash look | none | 120 | u |
 | Teleport glide length, and its peak speed | none | 24, 32 | ticks, u per tick |
 | A teleport cuts an axis on which the old view leaves Ash nearer its edge than | none | 160 | u |
 | Room-edge ease | none | 160 | u |
-| Vertical bounds grown past the margin (`edge_slack_u`) | none | 32 | u |
+| Vertical bounds grown past the margin (`edge_slack_u`) | none | 32, then 48 (fifth review) | u |
 
 BUILD.md section 5's camera rule now names these behaviours.
 
@@ -91,9 +92,11 @@ ADR-0011 has the full reasoning. Every "before" below was measured on the fixtur
   - Now the margin is never needed (rows 8 and 9), and the view slows into an edge instead of stopping.
   - The ease now reaches the bound (third review): it used to approach it exponentially, so in a room whose edge is the grid's own (no border tiles) Ash stood 0.2 u inside the margin on every tick.
   - **32 u of vertical slack** (fourth review). The vertical follow eases, so a fall onto a borderless bottom edge or a climb into a borderless top reached the bound 13 to 20 u after Ash reached the margin, and the backstop moved the view (13 u a tick in one tick). A tile more lets the follow ease in and arrive with Ash (row 23). Across, the follow is rigid and needs none.
+  - **48 u** (fifth review, M2). A jump, the air jump and an up-dash into a borderless top from a platform 16 or 17 rows below it reached the margin first: the window held the view still until the climb was 256 u up, and the up-dash outran the ease. 40 u did not clear that sweep (18 of 6144 runs, 16:9 and 21:9 only); 48 u clears it.
 - **Lead swing of 4 u a tick, committed after 120 u or 20 ticks.** A turn after a run moves the view 80 u relative to Ash (the lead's 120 u less what the dead zone takes) and never against the player (row 1). Turning back and forth in place used to swing the lead each time, so the view moved further than Ash (156 u against 136 u); now it follows only a turn Ash commits to, and never moves more than Ash does (row 15).
   - The commit distance was the dead zone's width (40 u) until the third review: every 108 u crossing of a narrow shaft committed it and added the swing to Ash's speed, so the world swayed sideways three times a second during a climb. At the lead's whole swing (120 u) a 108 u crossing never commits it (row 20). A turn-and-run commits a few ticks later and the view still swings its 80 u.
   - The fourth review found shafts wider than 140 u still swaying (5 to 9 swings across 140 ticks, the view up to 4 u a tick faster than Ash). No distance tells a shaft crossing from a turn; a wall does. No turn commits between touching a wall and next landing, so across a shaft of any width the view moves no faster than Ash (row 24; swept from 96 to 288 u). The 120 u is `lead_commit_u` in `content/camera.tres`, no longer twice the lead in code.
+  - **400 u from the wall** (fifth review, L1). With no turn committing until the next landing, a wall-jump away and a 1220 u drift across an open room kept the lead pointing back at the wall for 136 ticks: 880 u visible ahead of Ash instead of 1000. Past 400 u from the last wall touched, a turn commits again. 400 u is wider than any shaft the climbs use (96 to 288 u), so a climb still never swings the lead.
 - **An up-dash look of 120 u.** An up-dash out of a jump and an air jump showed 119 u above the head, six ticks of the dash; now at least 161 u (row 16).
 - **A double jump returns.** Back on the ground the view comes back to where it was, instead of resting the dead zone's half-height (15 u) above it.
 - **Teleport glide of 24 ticks at up to 32 u a tick.**

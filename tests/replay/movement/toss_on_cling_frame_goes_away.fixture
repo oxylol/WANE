@@ -1,0 +1,16 @@
+fixture toss_on_cling_frame_goes_away
+doc (movement review 4, M5) the toss pressed on the tick the cling begins (stick toward the wall, as the cling needs). The press is read before the move, while Ash is still in the air, so the ember is thrown into the wall it clings to, stops at once beside Ash, and the 12 s cooldown is spent: the same throw one tick later goes away from the wall (tech11_toss_from_cling_goes_away; docs/adr/0010 Ember Toss "From a wall cling it goes away from the wall").
+room test/shaft
+spawn 760 300
+frames 40
+input
+  0..5 R
+  6 R toss
+  7..39 R
+end
+expect
+  at 6 event.wall_cling=1 state=wall event.toss=1
+  # Away from the wall: the ember is left of Ash once it has flown.
+  at 20 ember=1 ember_x<x@20
+  at 20 ember_x<=-60u+x@20
+end

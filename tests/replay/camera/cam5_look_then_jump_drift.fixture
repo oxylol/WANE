@@ -1,0 +1,12 @@
+fixture cam5_look_then_jump_drift
+doc (camera review 5, M1: a look-down in a shaft, then a jump: the view must not stop dead at the apex nor drift after the landing (44 u))
+room test/cam5_ld_shaft4_d8
+spawn 950 640
+frames 224
+input
+  0..59 D
+  60..74 R jump
+  75..90 R
+end
+expect
+end

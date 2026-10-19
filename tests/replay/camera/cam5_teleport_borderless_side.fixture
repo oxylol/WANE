@@ -1,0 +1,14 @@
+fixture cam5_teleport_borderless_side
+doc (camera review 5, M3: a teleport near a borderless side edge, then a dash toward it: no backstop (it needed it for 18 ticks))
+room test/cam_noborder
+spawn 120 1280
+frames 211
+input
+  0 U toss
+  1..110 R
+  111 toss
+  112 L dash
+  113..171 L
+end
+expect
+end

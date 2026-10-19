@@ -1,0 +1,63 @@
+fixture cam5_air_jump_above_floor
+doc (camera review 5, H2: a 384 u fall and an air jump just above the floor: the view must not keep sinking against the rise (it sank 90 u))
+room test/cam5_ld_open_d12
+spawn 900 640
+frames 260
+input
+  0 R
+  1 R
+  2 R
+  3 R jump
+  4 R jump
+  5 R jump
+  6 R jump
+  7 R jump
+  8 R jump
+  9 R jump
+  10 R jump
+  11 R jump
+  12 R jump
+  13 R jump
+  14 R jump
+  15 R jump
+  16 R jump
+  17 R jump
+  18 R
+  19 R
+  20 R
+  21 R
+  22 R
+  23 R
+  24 R
+  25 R
+  26 R
+  27 R
+  28 R
+  29 R
+  30 R
+  31 R
+  32 R
+  33 R
+  34 R
+  35 R
+  36 R
+  37 R
+  38 R
+  39 R
+  55 R jump
+  56 R jump
+  57 R jump
+  58 R jump
+  59 R jump
+  60 R jump
+  61 R jump
+  62 R jump
+  63 R jump
+  64 R jump
+  65 R jump
+  66 R jump
+  67 R jump
+  68 R jump
+end
+expect
+end

@@ -17,7 +17,7 @@ The feel log has one entry per number tuned. This ADR records the rules. The sec
 
 ## Decision
 
-**Structure.** `core/fsm/player.gd` runs locomotion (ground, air, dash, wall) and a strike layer (the Taper) side by side. The Ember Toss (`ember_toss.gd`) runs beside both and never cancels either: that is what makes tech 11 possible. `player_contacts.gd` holds what the world does to the player after its move (pogo bounces, hazards, the hurtbox, safe ground, the Kindle dash-through). Each tick, in this order:
+**Structure.** `core/fsm/player.gd` runs locomotion (ground, air, dash, wall) and a strike layer (the Taper) side by side. The Ember Toss (`ember_toss.gd`) runs beside both and never cancels either: that is what makes tech 11 possible. `player_contacts.gd` holds what the world does to the player after its move (pogo bounces, hazards, the hurtbox, safe ground, the Kindle dash-through). `player_wall.gd` holds the wall's rules (the cling, the kick and the wall-jump, letting go with wall coyote time, and which wall a press means), and `player_strikes.gd` which strike a press starts, the chain and its cancels. Each tick, in this order:
 1. timers;
 2. strike advance;
 3. facing;
@@ -90,7 +90,7 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
 - **Cancels**:
   - A strike's "dash from f N" column is the first frame the dash may cancel it. The down-strike, whose row lists only "anything on bounce", takes section 5's general "dash cancels any attack after frame 4", so a mistimed pogo can be escaped.
   - A cancelled strike ends like a finished one: the chain carries on for its 20 frames, so slash, dash, slash keeps the three-hit rhythm.
-  - The cancel spends only the dash press; an attack pressed before it stays buffered and fires on the dash's frame 6 (checklist: "never eats the next attack input").
+  - The cancel spends only the dash press; an attack pressed before it stays buffered and fires on the dash's frame 6 (checklist: "never eats the next attack input"). However old that press is: the dash takes it over (`Player.queued_attack`, with the stick it was pressed with), so it fires on frame 6 even when frame 6 is more than the 8-frame buffer after the press. An attack pressed on side 1's frame 2 and a dash on its frame 6 used to lose the attack (fourth review, L1; `dash_cancel_keeps_earlier_attack`). A jump out of the dash before frame 6 drops it.
 - **Dash-jump**: a jump on frames 5 to 9 of any dash keeps 100% of the dash's horizontal speed. That includes the air dash: an air jump on its frames 5 to 9 is an air dash-jump and keeps its 20 u/f (BUILD.md's row names no kind of dash; the third review found tech 2's controls were air dash-jumps).
 - **On the ground** a level dash walks: it follows slopes up and down and steps up the corner lift (8 u), as running does (ADR-0008). A level air dash walks too once it has touched down; before, it swept as if airborne and stopped dead at the first ramp row it met.
 - **Into a wall**: an air dash that meets a clingable wall the stick holds toward, while not rising, clings at once instead of grinding out its frames (tech 6).
@@ -104,7 +104,7 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
   - Later clings restore nothing and continue the slide where it stopped. That covers re-gripping after letting go, and the cling at the top of each kick of a climb.
   - Every cling clears the ground dash cooldown.
 - **Leaving a cling.**
-  - Pressing down drops off at once and blocks a new cling until down is released.
+  - Holding down never clings, a d-pad diagonal included: pressing down drops off at once, and no cling starts while down is held (BUILD.md "Pressing down drops instantly"). A down-diagonal into a wall used to cling for a tick, flipping the sprite twice and restoring the air jump and dash (fourth review, L3; `down_diagonal_toward_wall_never_clings`).
   - A jump pressed before a cling fires on the cling frame, as one pressed before landing does.
   - Letting go without jumping (stick released or pushed away, or sliding off the wall's end) starts 6 frames of **wall coyote time** (`wall_coyote_frames`), in which a jump still pushes off that wall. It is counted as the ground's coyote time is: a jump on the 6th frame after letting go still pushes off, one on the 7th is the air jump (`wall_coyote_frame6`, `wall_coyote_expires`). It used to run out a frame early.
 - **Wall-jump or wall-kick**: holding away is a wall-jump (5-frame lock); anything else is a kick (1-frame lock).
@@ -117,6 +117,11 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
   - a fall within 3 u of a wall (`wall_jump_reach_u`; the reach covers a player who falls past a wall without holding toward it, the coyote time a player who lets go of one).
 
   A press while rising beside a wall is an air jump instead.
+- **A press on the tick the player reaches a wall** is a press on the wall (`PlayerWall.met`): a clingable wall the stick holds toward, within the reach now or after this tick's move across, while not rising after this tick's gravity, the slide not spent and down not held. The cling starts after the tick's move, so such presses used to be read with air rules (fourth review, M5):
+  - a jump spent the air jump a tick before it could kick; now it waits in the buffer for the cling this very tick and kicks off it (`jump_on_cling_frame_kicks`);
+  - a dash went into the wall, moved nowhere and spent the air dash; now it goes away from the wall, as from a cling (`dash_on_cling_frame_goes_away`);
+  - a side strike turned Ash toward the wall and put its box inside the wall for 14 frames; now it goes away (`strike_on_cling_frame_goes_away`);
+  - a throw went into the wall and spent the cooldown; now it goes away (`toss_on_cling_frame_goes_away`).
 - **Climbing** (tech 5): a climb is one full kick per apex. Mashing jump buffers each press into the next apex's cling, and kicks restore no air jump to spend between them. So mashing and timed kicks climb at the same rate, about 176 u every 24 frames, and mashing still climbs (`tech05_wall_kick_climb`, `tech05_wall_kick_mash`).
 - **Ledge-grab**: holding toward a wall in the air raises the corner correction from 8 u to 10 u, measured from the feet (ADR-0008, director question).
 
@@ -125,7 +130,7 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
   - its row lists a jump cancel (Side 1: "jump any frame"); or
   - it is the air-only down-strike and the player is on the ground, so a missed pogo never locks the jump after landing.
 
-  The up-strike's "air attack any frame" is a cancel into another air strike, not a jump.
+  The up-strike's "air attack any frame" is a cancel into another air strike, not a jump, and not into itself: an up press every 3 frames restarted it each time, a fresh box every third frame (fourth review, M6; `up_strike_never_cancels_itself`).
 - **Landing** never interrupts a strike (tech 8).
 - **Turning.** Side strikes turn the player instantly and do not slow a run (BUILD.md section 6). On a wall they go away from it: the stick holds toward the wall to keep the cling.
 - **Side 3's startup.** BUILD.md's Taper table gives the finisher 3 frames of startup, and its feel rules say "no move has more than 2 frames of startup unless it has armor". The table stands, and the finisher gets armor through its startup: a hit on those frames does not interrupt it (task 6, which adds hits to the player, builds it; third review, L7). Spells (section 6's spell table, 3 to 6 frames) are not moves in that rule's sense: each is a deliberate cast with its own startup in its own table.
@@ -152,13 +157,17 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
 - Spikes touching the hurtbox send the player back to the last safe ground with 20 frames of invulnerability. Safe ground is a flat, non-one-way floor with no spikes within a tile, the same flat floor running under the whole collider and 16 u beyond it on each side (`safe_ground_margin_u` in `kit.tres`, not in BUILD.md); until the player first stands on safe ground, the spawn point is used. Standing there again restores the airtime's resources.
   - The margin keeps a respawn off a ledge's lip: safe ground used to be any flat floor the box touched, so walking off an edge into spikes respawned Ash with the collider overhanging the edge by 19 u, and the stick that walked off carried Ash straight back in on the next tick, a loop every 23 frames (third review, M3; `hazard_respawn_stays_off_the_lip`). A platform narrower than 52 u is never safe ground: a respawn goes back to the last one wide enough.
   - An ember thrown before the hazard goes out with the send-back (the throw's cooldown runs on). Left out, a teleport to it undid the send-back with the air jump and dash the respawn had restored, and crossed tech 2's chasm with no dash-jump (third review, H1; `toss_ember_goes_out_on_hazard_respawn`, `tech02_respawn_does_not_keep_the_ember`).
+  - A stick held through the send-back is ignored until it is let go or turned (`Player.stick_hold_x`). The margin alone only stretched the loop: holding right walked Ash back off the edge 8 frames after the respawn, inside the invulnerability, and beside floor spikes the send-back came every 20 frames (fourth review, M1; `hazard_loop_stick_held_pit`, `_floor_spikes`).
+  - Every press still buffered is used up by the send-back, so a jump or dash pressed over the pit never fires at the safe ground (fourth review, M2; `hazard_respawn_drops_stale_jump`, `_dash`).
+  - Safe ground must last and have room to stand: never on a box the game can take away (wax, `SolidBox.fragile`), whose burning made an endless send-back to open air over spikes (M3; `safe_ground_never_on_wax`), and never where a standing body does not fit, such as a crawl gap a standing Ash was put back into, 12 u into its ceiling (M4; `safe_ground_never_in_crawl_gap`).
 - The hurtbox is the collider inset 3 u at the sides, 8 u at the top and 2 u at the feet (CLAUDE.md rule 8).
 - The dash's invulnerable frames also ignore hazards.
 
 **Ember Toss** (BUILD.md section 6).
 - **The throw.**
   - A press throws the ember in the stick's 8-way direction on the frame it was pressed (facing when neutral). From a wall cling it goes away from the wall, as side strikes and dashes do; thrown into the wall, it stopped 9 u from the player and spent the cooldown (`tech11_toss_from_cling_goes_away`).
-  - It spawns at the player's centre on the throw's frame 3 and flies 600 u/s until a wall, a floor or a ceiling, or for 40 frames, then waits 120 frames.
+  - Thrown on the tick the player reaches a wall it goes away from it too (see Wall).
+  - It is out at the player's centre on the throw's frame 4 and flies 600 u/s until a wall, a floor or a ceiling, or for 40 frames, then waits 120 frames. "3 f startup" counts as the Taper's does: frames 1 to 3 wind up, so the ember appeared a frame early until the fourth review (L2).
   - A press during the 3-frame startup does nothing (it is used up), so a double press cannot teleport the moment the ember appears.
 - **The teleport.**
   - A press while the ember is out moves the body to the nearest spot around the ember where it fits, within 24 u (`toss_fit_reach_u`).
@@ -171,19 +180,20 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
 
 **Kindle-dash** (tech 12, with the Kindle Votive): wax solids in the dash's path ignite and stop blocking, and passing through restores the air jump (BUILD.md "dash-through"). The path is the box the dash sweeps this tick, reaching one sub-pixel further only on the sides it moves toward: wax touched at the start of a dash into it ignites, wax the dash leaves behind does not (`tech12_kindle_dash_away_does_not_ignite`).
 
-**Tech 2's gap.** "A gap exactly one dash-jump wide" must not be crossable without a dash-jump. A jump on frames 5 to 9 of any dash is a dash-jump, the air dash's included (see Dash). The first version of this rule searched only routes that start with a run and set the gap at 1152 u. The second review found a route it missed: a ground dash runs flat past the edge (a ground dash does not fall), and a coyote jump on one of its carry-over frames keeps the carry's 10 u/f for the whole airtime. The third found that the routes then labelled "without a dash-jump" fired their air jump on the air dash's frame 9, an air dash-jump, and that the Ember Toss (0 Flame: BUILD.md section 6) carries a crossing further: no Flame gate keeps it out of the room. `tools/replay/gap_reach.gd` searches every route, coarse and then tick by tick around the best plan, and a toss route from its route's best plan, the throw, the teleport, the air jump and the air dash in turn until nothing improves; on a chasm with no far side. The reach is how far past the edge the feet stay at or above the ledge's height:
+**Tech 2's gap.** "A gap exactly one dash-jump wide" must not be crossable without a dash-jump. A jump on frames 5 to 9 of any dash is a dash-jump, the air dash's included (see Dash). The first version of this rule searched only routes that start with a run and set the gap at 1152 u. The second review found a route it missed: a ground dash runs flat past the edge (a ground dash does not fall), and a coyote jump on one of its carry-over frames keeps the carry's 10 u/f for the whole airtime. The third found that the routes then labelled "without a dash-jump" fired their air jump on the air dash's frame 9, an air dash-jump, and that the Ember Toss (0 Flame: BUILD.md section 6) carries a crossing further: no Flame gate keeps it out of the room. `tools/replay/gap_reach.gd` searches every route, coarse and then tick by tick around the best plan, and a toss route from its route's best plan, the throw, the teleport, the air jump and the air dash in turn until nothing improves; on a chasm with no far side. The reach is how far past the edge the body's centre gets with the feet no lower than the ledge-grab (10 u) below the ledge's height: meeting the far face there, the grab lifts the body on (fourth review, H1). The test chasm's far face is smooth below the lip and the chasm 1504 u deep, so nothing in it can be clung to, pogoed off or climbed toward the far side, and only a route that reaches the ledge from the air crosses:
 
 | Route | Reach past the edge |
 | --- | --- |
 | No dash-jump of any kind: a run, a full jump at the last coyote frame, the air jump, the air dash | 1201 u |
-| No dash-jump of any kind: a ground dash, a carry-frame jump, the air jump, the air dash | 1323 u |
-| ... and one Ember Toss (up-right, after the air dash; the teleport 30 ticks later) | 1590 u |
+| ... and one Ember Toss (straight ahead, after the air jump; the teleport 43 ticks later) | 1497 u |
+| No dash-jump of any kind: a ground dash, a carry-frame jump, the air jump, the air dash | 1333 u |
+| ... and one Ember Toss (up-right, after the air dash; the teleport 33 ticks later) | 1595 u |
 | A plain ground dash-jump, nothing else | 1029 u |
-| A ground dash, a carry-frame jump, the air dash and an air dash-jump (the air jump on its frame 9) | 1539 u |
+| A ground dash, a carry-frame jump, the air dash and an air dash-jump (the air jump on its frame 9; third review, before the grab was counted) | 1539 u |
 | A ground dash-jump and its air jump | up to 1809 u |
-| A ground dash-jump, its air jump and the air dash | up to 2223 u |
+| A ground dash-jump, its air jump and the air dash | up to 2243 u |
 
-A random multi-start search and a perturbation search around the toss route's best plan found nothing farther than 1590 u. A gap the plain dash-jump alone clears is crossed by any route with the air jump, the air dash or the toss, so the dash-jump cannot be needed on its own. The test chasm is 1664 u (52 tiles): a crossing needs a reach past 1654 u (the gap less half the body's width), 64 u more than the farthest route without a dash-jump with the toss (`tech02_control_carry_toss`, `tech02_control_carry_jump` and `tech02_control_all_resources` fall). A ground dash-jump clears it with its air jump alone in a 15-tick window from dash frame 9 and a 2-tick window from frame 5 (`tech02_dash_jump_frame9`, `_frame5`), and with the air dash as well from anywhere in a broad region: every air jump and air dash within 6 ticks of `tech02_dash_jump_frame5_air_dash`'s lands. At 1600 u (the second review's width) the toss route fell short of crossing by less than a unit. Task 7's zone-1 room 7 must keep that width, or close the toss's or the air dash's extra reach some other way and be searched again.
+The third review's random multi-start search and a perturbation search around the toss route's best plan found nothing farther than that route (1590 u then, before the grab was counted). A gap the plain dash-jump alone clears is crossed by any route with the air jump, the air dash or the toss, so the dash-jump cannot be needed on its own. The test chasm is 1664 u (52 tiles): a crossing needs a reach past 1654 u (the gap less half the body's width), 59 u more than the farthest route without a dash-jump, the toss included (`tech02_control_carry_toss`, `tech02_control_carry_jump` and `tech02_control_all_resources` fall; `tech02_control_pogo_floor` and `tech02_control_toss_wall_kick` find nothing in the chasm to use). A ground dash-jump clears it with its air jump alone in a 15-tick window from dash frame 9 and a 2-tick window from frame 5 (`tech02_dash_jump_frame9`, `_frame5`), and with the air dash as well from anywhere in a broad region: every air jump and air dash within 6 ticks of `tech02_dash_jump_frame5_air_dash`'s lands. At 1600 u (the second review's width) the toss route fell short of crossing by less than a unit. Task 7's zone-1 room 7 must keep that width, or close the toss's or the air dash's extra reach some other way and be searched again.
 
 ## Alternatives considered
 
@@ -207,8 +217,9 @@ Every row here follows BUILD.md's feel rules: never a dead frame, no input waits
 ## Consequences
 
 - Every row and tech has a fixture under `tests/replay/movement/` and `tests/replay/tech/`, including one per finding of the first, second and third task-3 reviews.
-- The contact sheet draws no strike or pogo boxes (third review, L8): the F3 overlay (task 5) draws them, and the sheet will take them from it.
+- The contact sheet draws no strike or pogo boxes (third review, L8): the F3 overlay (task 5) draws them, and `film.gd --overlay on` films them.
 - `tests/unit/core/fsm/test_player_state.gd` checks that every field of the player and the ember toss is in the state hash.
+- The fourth review's fixes moved 30 committed fixtures' paths (each fixture played tick by tick against the code before them), every one by a rule above and every one still meeting its expectations: the ember out on the throw's frame 4, so a teleport lands up to 10 u short of where it did (five tech-11 and fourteen camera teleport fixtures; 25 u in `cam_fall_toss_teleport`); a stick held through a hazard send-back ignored (`cam_hazard`, and the three spike-chasm fixtures, now on `spike_chasm.room`); a jump pressed on the tick of reaching a wall kicking off it on the cling instead of spending the air jump (`cam_shaft_climb`, `cam_noceiling_climb`: the air jump comes later in each climb); and tech 2's controls falling into the deeper chasm. `Simulation.VERSION` went to 4 with the re-bless (ADR-0006): the state hash also gained the stick hold and the dash's queued attack.
 - Director questions:
   - the ledge-grab measurement;
   - the pogo cadence: a faster pogo-dash skim than "about 4 a second";
@@ -221,4 +232,6 @@ Every row here follows BUILD.md's feel rules: never a dead frame, no input waits
   - a coyote dash is a ground dash and ignores the stick's vertical direction;
   - side 2, side 3 and the up-strike have no jump cancel (BUILD.md section 6), so a jump pressed in their first frames ages out of its 8-frame buffer before they end (14 to 20 frames) and is lost; a buffer that waits for the strike to end is the alternative. The same holds for a strike pressed during a strike with no cancel into it: in the air, a down-strike pressed on side 1's frame 3 waits for side 1's 14 frames, outlives its buffer and never comes out (third review, L6). Side 1 into up or down, and side 2 or 3 into anything off the chain, behave this way;
   - the reverse pogo needs a dash's speed: from a run, turning back bleeds the speed within 8 frames, leaving too little to clear an enemy-sized target;
-  - the jump: 900 u/s with BUILD.md's gravity rises in 0.375 s; the reviewer suggests an A/B against 1020 u/s with gravity about 2956 u/s^2, which keeps the 176 u height and rises in 0.35 s.
+  - the jump: 900 u/s with BUILD.md's gravity rises in 0.375 s; the reviewer suggests an A/B against 1020 u/s with gravity about 2956 u/s^2, which keeps the 176 u height and rises in 0.35 s;
+  - a jump tapped on the tick after a bounce is the air jump, released at once: the bounce's rise is cut to about half, and the air jump spent (fourth review, L4). A press on the bounce frame or before is used up by the bounce; one after it jumps, as an air jump always does. A tap one tick late reads as wanting a higher bounce; the alternative is a few ticks after a bounce in which a jump press adds to the bounce instead of cutting it;
+  - after a hazard send-back, a stick held through it is ignored until let go or turned: no loop back into the hazard, at the cost of standing still when the player meant to walk on.

@@ -66,6 +66,7 @@ static func _number(pl: Player, key: String) -> Variant:
 		"wall_frames": pl.wall_frames,
 		"wall_lock": pl.wall_lock,
 		"action_frame": pl.action_frame,
+		"action_dir": pl.action_dir,
 		"strike": 1 if pl.strike_box().size != Vector2i.ZERO else 0,
 		"pogo_live": 1 if pl.pogo_box().size != Vector2i.ZERO else 0,
 		"since_bounce": pl.since_bounce,

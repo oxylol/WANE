@@ -1,0 +1,10 @@
+fixture cam5_open_drop
+doc (camera review 5, M4: control for cam5_climb_drop: the same drop without the climb)
+room test/cam5_pl_w2_h16_d30
+spawn 1500 2538
+frames 200
+input
+  0..199 R
+end
+expect
+end

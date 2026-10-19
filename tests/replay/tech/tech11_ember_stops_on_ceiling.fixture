@@ -12,8 +12,8 @@ end
 expect
   mark stopped 22..69 ember=1 ember_y<=33u
   at stopped+1 ember_y=ember_y@stopped
-  # The body fits under the ceiling: its top on it, 22 u (half its height) below the ember's
-  # centre, then it falls.
-  at 70 event.teleport=1 ember=0 y>=76u y<=77u invuln=1
+  # The body fits under the ceiling: its top within a unit of it (the fit moves in whole units
+  # from the ember, half the body's height below its centre), then it falls.
+  at 70 event.teleport=1 ember=0 y>=76u y<=78u invuln=1
   at 71 state=air
 end

@@ -10,8 +10,9 @@ extends GdUnitTestSuite
 const VIEWS: Array[Vector2] = [
 	Vector2(1920, 1080), Vector2(1920, 1200), Vector2(1920, 1440), Vector2(2520, 1080)
 ]
-## Floating-point slack for comparisons of view travel.
-const EPS: float = 0.0001
+## Floating-point slack for comparisons of view travel: views are float32 vectors, which at
+## y = 4096 u resolve 0.0005 u (camera review 5, L2: a 3 u change measured 3.000244).
+const EPS: float = 0.001
 ## The most the view may travel up while Ash drops onto ground after a look (rounding only).
 const DROP_RISE_U: float = 1.0
 
@@ -204,7 +205,10 @@ func test_wall_jumping_up_a_shaft_of_any_width_never_outruns_ash_across() -> voi
 
 func test_the_view_never_rises_while_ash_falls_after_a_climb() -> void:
 	# M2: climbing out of a shaft leaves the view behind; running off the top, the view kept
-	# easing up at 5 u a tick while Ash fell. The adopted fixture and every shaft width.
+	# easing up at 5 u a tick while Ash fell. The adopted fixture and every shaft width. Falling at
+	# or below the last support the view never rises; above it (the way down of a kick or hop
+	# that lands higher) its rise only shrinks, by at least the acceleration limit a tick (camera
+	# review 5, M1: stopping it dead there made a staircase stutter).
 	var fixtures: Array[Fixture] = [
 		Fixture.parse_file("res://tests/replay/camera/cam_shaft_climb_out.fixture")
 	]
@@ -214,9 +218,15 @@ func test_the_view_never_rises_while_ash_falls_after_a_climb() -> void:
 	for fx: Fixture in fixtures:
 		for view: Vector2 in VIEWS:
 			var run: CameraRun = _run(fx, view)
+			var accel: float = run.rig.tuning.vertical_accel_milli_u / 1000.0
 			for f: int in range(1, run.centers.size()):
 				var s: CameraSubject = run.subjects[f]
-				if not s.supported and s.vy > 0.0 and run.velocity(f).y < -EPS:
+				var v: float = run.velocity(f).y
+				var above: bool = s.box.end.y < run.supports[f - 1] - 0.5
+				var shrinks: bool = v >= minf(run.velocity(f - 1).y + accel, 0.0) - EPS
+				if above and run.velocity(f - 1).y < 0.0 and shrinks:
+					continue
+				if not s.supported and s.vy > 0.0 and v < -EPS:
 					problems.append(
 						(
 							"%s at %s: tick %d rises %.2f"

@@ -1,0 +1,17 @@
+fixture far_edge_downstrike_buffered_jump
+doc (physics review 6, M4) far_edge_landing_lands with a missed down-strike: hop right off test/ledge448, down-strike on tick 21 (it hits nothing), press jump on tick 23. Tick 25 is the far-edge landing that walks the rest of its step off the ledge. A missed pogo never locks the jump (docs/adr/0010) and a jump pressed before landing fires on the landing frame (BUILD.md s15): the buffered jump must fire on tick 25, as on an ordinary landing tick.
+room test/ledge448
+spawn 408 448
+frames 44
+input
+  0..3 R
+  4..8 R jump
+  9..20 R
+  21 R D attack
+  22 R D
+  23..43 R jump
+end
+expect
+  at 25 event.land=1
+  at 25 event.jump=1
+end

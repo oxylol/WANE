@@ -1,0 +1,21 @@
+fixture safe_ground_never_on_wax
+doc (movement review 4, M3) a kindle down-dash burns a wax bridge over spikes that Ash stood on and falls into the spikes. Safe ground is never noted on a box the game can take away, so the send-back goes to ground that is still there, not the bridge's old top over the spikes (which made an endless respawn loop with no input).
+room test/wax_bridge_spikes
+spawn 200 320
+option kindle 1
+frames 400
+input
+  0..50 R
+  51..60
+  61..75 jump
+  76 D dash
+  77..399
+end
+expect
+  at 60 ground=1
+  mark lit 76..90 event.ignite=1
+  mark die1 lit..399 event.hazard=1
+  # Back on ground that is still there, never on the burnt bridge's old top: no second fall.
+  at die1 ground=1
+  never die1+1..399 event.hazard=1
+end

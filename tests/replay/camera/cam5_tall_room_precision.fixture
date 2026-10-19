@@ -1,0 +1,19 @@
+fixture cam5_tall_room_precision
+doc (camera review 5, L2: a tall room (y about 4100 u) where float32 views measured 3.000244 u for a 3 u speed change)
+room test/cam5_fz_27
+spawn 2057 320
+frames 260
+input
+  0..4 L
+  5..22 L
+  23..51 L
+  59..84 L
+  85..113 R
+  158..175 L
+  176..201 L
+  202..229 L
+  230..253 R
+  254..256 R
+end
+expect
+end

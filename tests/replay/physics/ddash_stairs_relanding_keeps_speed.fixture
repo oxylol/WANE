@@ -1,0 +1,12 @@
+fixture ddash_stairs_relanding_keeps_speed
+doc (physics review 6, M2) a down-right air dash from (292, 193) down test/ddash_stairs: it touches down on the first steps and runs off them; on dash frame 8 (tick 7) it comes down on the far edge of the step at x 369..388 (top y 257). Every dash frame carries the dash's 14.14 u across (BUILD.md s5 Dash: 180 u in 9 f); the re-landing took the far-edge contact (3.9 u) and dropped the rest of the tick's step.
+room test/ddash_stairs
+spawn 292 193
+frames 12
+input
+  0 R D dash
+  1..11 R D
+end
+expect
+  at 7 x>=14u+x@6
+end

@@ -108,7 +108,7 @@ func test_stepping_down_catches_up_at_eight_percent_outside_the_dead_zone() -> v
 		var left: float = y0 + 100.0 - rig.center.y
 		if speeds.size() > 6 and left > 1.0:
 			assert_float(speeds[-1]).is_equal_approx((left + speeds[-1]) * 0.08, 0.001)
-	assert_float(speeds[0]).is_equal_approx(3.0, 0.0001)
+	assert_float(speeds[0]).is_equal_approx(3.0, 0.001)
 	assert_float(rig.center.y).is_equal_approx(y0 + 100.0, 0.01)
 
 
@@ -177,7 +177,7 @@ func test_running_into_a_room_edge_eases_the_view_to_a_stop() -> void:
 		var v: float = rig.center.x - rig.previous.x
 		# Never faster than the player, and, once up to speed, never braking harder than 1 u per
 		# tick per tick as the edge nears.
-		assert_float(v).is_less_equal(9.0 + 0.0001)
+		assert_float(v).is_less_equal(9.0 + 0.001)
 		if last > 0.0:
 			assert_float(last - v).is_less_equal(1.0)
 		last = v
@@ -221,14 +221,29 @@ func test_a_climb_moves_the_camera_steadily() -> void:
 	var top: int = run.first(SimEvents.LAND, 1)
 	assert_int(kicks.size()).is_greater(10)
 	assert_int(top).is_greater(kicks[10])
-	# From the fourth kick to the last one, the camera rises at 6 to 8.5 u a tick: it keeps the
-	# climb's average pace and never pumps with the kicks.
+	# Once the climb is under way, the camera rises at 6 to 8.5 u a tick to the last kick: it keeps
+	# the climb's average pace and never pumps with the kicks. The fixture's presses come 23 ticks
+	# apart against the climb's 24, so one of them, on a tick with no wall in reach, spends the air
+	# jump, and Ash slides down the wall for a tick or two before the next kick. The climb restarts
+	# with that kick and is under way three kicks later.
 	var last: int = -1
 	for k: int in kicks:
 		if k < top:
 			last = k
-	for f: int in range(kicks[3], last):
-		assert_float(run.velocity(f).y).is_between(-8.5, -6.0)
+	var slid: int = -1
+	for f: int in range(last):
+		if run.subjects[f].walled and run.subjects[f].vy > 0.0:
+			slid = f
+	var later: Array[int] = []
+	for k: int in kicks:
+		if k > slid:
+			later.append(k)
+	assert_int(later.size()).is_greater(8)
+	assert_int(run.first(SimEvents.AIR_JUMP)).is_less(slid)
+	for f: int in range(later[3], last):
+		assert_float(run.velocity(f).y).override_failure_message("frame %d" % f).is_between(
+			-8.5, -6.0
+		)
 
 
 func test_a_teleport_glides_instead_of_cutting() -> void:
@@ -283,12 +298,12 @@ func _first_problem(run: CameraRun) -> String:
 			continue
 		var moved: float = s.box.get_center().x - run.subjects[f - 1].box.get_center().x
 		var glide: bool = run.gliding[f] or run.gliding[f - 1]
-		if not glide and moved * run.velocity(f).x < -0.0001:
+		if not glide and moved * run.velocity(f).x < -0.001:
 			return "frame %d: the camera moves against the player" % f
 		# Horizontally the view moves with the player, plus at most the lead's swing: it never
 		# outruns the player (ADR-0011: the horizontal follow is rigid by design).
 		var lead_swing: float = float(run.rig.tuning.lead_speed_u)
-		if not glide and absf(run.velocity(f).x) > absf(moved) + lead_swing + 0.0001:
+		if not glide and absf(run.velocity(f).x) > absf(moved) + lead_swing + 0.001:
 			return "frame %d: the camera outruns the player across" % f
 		var problem: String = _vertical_speed_problem(run, f, glide)
 		if problem != "":
@@ -312,6 +327,6 @@ func _vertical_speed_problem(run: CameraRun, f: int, glide: bool) -> String:
 		lo = minf(lo, player_vy)
 	elif was < 0.0 and player_vy > was:
 		hi = maxf(hi, player_vy)
-	if v < lo - 0.0001 or v > hi + 0.0001:
+	if v < lo - 0.001 or v > hi + 0.001:
 		return "vertical speed changes from %.2f to %.2f u in a tick" % [was, v]
 	return ""

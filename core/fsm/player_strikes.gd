@@ -8,18 +8,25 @@ extends RefCounted
 
 ## Starts the strike a buffered attack press asks for, if the current state lets it: up with the
 ## stick up, the down-strike with it down in the air, else the next side strike of the chain. The
-## stick is read 4-way ([method PlayerInput.dir4]) on the frame the press was made.
+## stick is read 4-way ([method PlayerInput.dir4]) on the frame the press was made. A press a dash
+## took over when it cancelled a strike ([member Player.queued_attack]) counts as buffered for as
+## long as the dash and its carry-over last.
 static func try_attack(pl: Player, ring: InputRing) -> void:
 	var p: MovementParams = pl.p
-	if not ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames):
+	if pl.queued_attack and pl.loco != Player.DASH and pl.carry_frames <= 0:
+		# The dash that took the press over ended without allowing it (a jump out of it).
+		pl.queued_attack = false
+	var queued: bool = pl.queued_attack
+	if not queued and not ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames):
 		return
-	var pressed: Vector2i = PlayerInput.press_dir4(
-		ring, InputFrame.ATTACK, p.attack_buffer_frames, p.stick_threshold
-	)
-	var dy: int = pressed.y
+	var stick: Vector2i = pl.queued_attack_stick
+	if not queued:
+		var f: InputFrame = ring.frame_at(ring.press_age(InputFrame.ATTACK, p.attack_buffer_frames))
+		stick = Vector2i(f.stick_x, f.stick_y)
+	var dy: int = PlayerInput.dir4(stick.x, stick.y, p.stick_threshold).y
 	# A side strike turns to the stick's side wherever it leans, even down on the ground (a d-pad
 	# diagonal reads as down there, and there is no down-strike on the ground).
-	var dx: int = pl.press_dir(ring, InputFrame.ATTACK, p.attack_buffer_frames).x
+	var dx: int = PlayerInput.dir8(stick.x, stick.y, p.stick_threshold).x
 	var airborne: bool = pl.loco != Player.GROUND
 	var want: String = pl.chain_next
 	if dy < 0:
@@ -31,7 +38,9 @@ static func try_attack(pl: Player, ring: InputRing) -> void:
 		var chained: bool = (
 			atk.chain_to != "" and want == atk.chain_to and pl.action_frame >= atk.chain_from
 		)
-		var air_swap: bool = atk.air_attack_any and airborne
+		# "Air attack any frame": into another air strike, never into itself (movement review 4,
+		# M6: up-strikes back to back were a new box every 3 frames).
+		var air_swap: bool = atk.air_attack_any and airborne and want != atk.id
 		# A down-strike that missed and reached the ground gives way to a ground strike, as it
 		# gives way to the jump (docs/adr/0010).
 		var landed_swap: bool = atk.air_only and pl.loco == Player.GROUND
@@ -43,11 +52,22 @@ static func try_attack(pl: Player, ring: InputRing) -> void:
 		if pl.dash_frame < p.dash_attack_cancel_from:
 			return
 		pl.end_dash(true)
-	ring.consume(InputFrame.ATTACK)
+	if queued:
+		pl.queued_attack = false
+	else:
+		ring.consume(InputFrame.ATTACK)
 	# A side strike turns the player to the stick, except on a wall: the stick holds toward the
-	# wall to keep the cling, and the strike goes away from it (the way the player faces).
-	if want.begins_with("side") and dx != 0 and pl.loco != Player.WALL:
-		pl.facing = dx
+	# wall to keep the cling, and the strike goes away from it (the way the player faces). On the
+	# tick the player reaches a wall the strike goes away from it too ([method PlayerWall.met]).
+	var thr: int = p.stick_threshold
+	var wall: int = PlayerWall.met(
+		pl, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+	)
+	if want.begins_with("side"):
+		if wall != 0:
+			pl.facing = -wall
+		elif dx != 0 and pl.loco != Player.WALL:
+			pl.facing = dx
 	start(pl, want)
 
 

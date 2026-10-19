@@ -84,14 +84,17 @@ static func of(sim: Simulation, ahead_frames: int = 0) -> CameraSubject:
 
 ## How far below the feet the first floor is along the player's path over the next
 ## [param frames] ticks, the path keeping the horizontal speed it has and falling under the
-## Wick's gravity, its horizontal travel stopped by a wall. Each tick's step is checked as one
-## box spanning all of it, so ground between the ticks is never missed, and ledges the path
-## passes above are not counted. The box is widened on each side by how far air control could
-## still steer the player that way by then ([method _steer_reach]), up to the first wall or solid
-## box at the player's height there ([method _clear_beside]): the camera cannot know the stick's
-## future, so a ledge the player could still steer onto counts as the ground the fall lands on,
-## and the look never reaches past it, while a wall beside the fall (a cling let go, a shaft) is
-## not ground. Read-only queries: the camera never writes the core.
+## Wick's gravity, its horizontal travel held up by a wall for as long as the wall is there (the
+## player keeps the speed while the stick holds that way, so a wall that ends lets the path on).
+## Each tick's step is checked as one box spanning all of it, so ground between the ticks is never
+## missed, and ledges the path passes above are not counted. The box is widened on each side by how
+## far air control could still steer the player that way by then ([method _steer_reach]), up to
+## the first wall or solid box at the player's height there ([method _clear_beside]): the camera
+## cannot know the stick's future, so a ledge the player could still steer onto counts as the
+## ground the fall lands on, and the look never reaches past it, while a wall beside the fall (a
+## cling let go, a shaft) is not ground. A ledge top up to the ledge-grab above the feet in the
+## widened part counts too: steering into its side lifts the player onto it (camera review 5,
+## H1). Read-only queries: the camera never writes the core.
 static func _ground_ahead(world: CollisionWorld, pl: Player, frames: int) -> float:
 	var b: Body = pl.body
 	var x: int = b.x
@@ -108,15 +111,25 @@ static func _ground_ahead(world: CollisionWorld, pl: Player, frames: int) -> flo
 			)
 		):
 			nx = x
-			pvx = 0
 		var ny: int = y + pvy
 		if pvy > 0:
-			var l: int = mini(x, nx) - b.half_w
-			var r: int = maxi(x, nx) + b.half_w
+			var near_l: int = mini(x, nx) - b.half_w
+			var near_r: int = maxi(x, nx) + b.half_w
 			var top: int = y - b.height
-			l -= _clear_beside(world, l, top, y, -1, _steer_reach(pl, b.vx, -1, k))
-			r += _clear_beside(world, r, top, y, 1, _steer_reach(pl, b.vx, 1, k))
+			var l: int = (
+				near_l - _clear_beside(world, near_l, top, y, -1, _steer_reach(pl, b.vx, -1, k))
+			)
+			var r: int = (
+				near_r + _clear_beside(world, near_r, top, y, 1, _steer_reach(pl, b.vx, 1, k))
+			)
 			var floor_y: int = world.floor_top_in(l, r, y, ny)
+			if floor_y == CollisionQueries.NONE:
+				var grab: int = pl.p.ledge_grab
+				if (
+					world.floor_top_in(l, near_l, y - grab, y) != CollisionQueries.NONE
+					or world.floor_top_in(near_r, r, y - grab, y) != CollisionQueries.NONE
+				):
+					floor_y = y
 			if floor_y != CollisionQueries.NONE:
 				return float(floor_y - b.y) / Fx.SUB
 		x = nx
@@ -158,15 +171,18 @@ static func _clear_beside(
 
 ## How much further toward [param dir] air control could carry a player moving at [param vx] in
 ## [param ticks] ticks than that speed alone: accelerating at the air acceleration until the
-## speed that way reaches run speed (BUILD.md "Air control: 0 to max in 8 f"), in sub-pixels.
+## speed that way reaches run speed (BUILD.md "Air control: 0 to max in 8 f"), in sub-pixels, plus
+## the ledge-grab's reach. The player's speed changes before each tick's move, so the travel is
+## the sum a + 2a + ... per tick (camera review 5, H1: a*k^2/2 fell short by a*k/2).
 static func _steer_reach(pl: Player, vx: int, dir: int, ticks: int) -> int:
 	var gain: int = pl.p.run_speed - vx * dir
 	if gain <= 0:
 		return 0
 	var accel: int = pl.p.air_accel
-	if accel * ticks <= gain:
-		return Fx.div_floor(accel * ticks * ticks, 2)
-	return gain * ticks - Fx.div_floor(gain * gain, 2 * accel)
+	var full: int = gain / accel
+	if ticks <= full:
+		return Fx.div_floor(accel * ticks * (ticks + 1), 2) + pl.p.ledge_grab
+	return Fx.div_floor(accel * full * (full + 1), 2) + gain * (ticks - full) + pl.p.ledge_grab
 
 
 ## The point the camera aims at before its lead: the centre of a standing player.

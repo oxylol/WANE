@@ -20,15 +20,15 @@ expect
   at 22 event.dash=1 state=dash
   at 28 event.toss=1 state=dash dash_frame=7
   during 28..30 state=dash
-  # Spawned on the throw's frame 3 at the player's centre, flying 10 u a frame.
-  at 30 ember=1 ember_x=10u+x@30
-  # Its 40 frames of flight end over the far ledge (736 u on), where it waits.
-  at 68 ember_x=770u
-  during 69..89 ember=1 ember_x=780u
+  # Out on the throw's frame 4 at the player's centre, flying 10 u a frame.
+  at 31 ember=1 ember_x=10u+x@31
+  # Its 40 frames of flight end over the far ledge, where it waits.
+  at 69 ember_x=780u
+  during 70..89 ember=1 ember_x=790u
   # The player lands on the near side, short of the edge.
   mark land 31..89 event.land=1
   at land x<470u state=ground
-  at 90 event.teleport=1 ember=0 invuln=1 x=780u state=air
+  at 90 event.teleport=1 ember=0 invuln=1 x=790u state=air
   during 90..95 invuln=1
   # The teleport leaves the player in the air above the far ledge; they land there.
   mark across 91..139 event.land=1

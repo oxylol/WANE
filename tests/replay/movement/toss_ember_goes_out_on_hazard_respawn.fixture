@@ -1,6 +1,6 @@
 fixture toss_ember_goes_out_on_hazard_respawn
 doc an ember thrown over the chasm, then a fall into the spikes: the hazard sends Ash back to safe ground and the ember goes out with it (its 12 s cooldown runs on), so the toss press after the respawn neither teleports back out over the chasm nor throws again. Left out, the ember undid the send-back: the teleport took Ash 650 u past the edge with the air jump and dash the respawn restored (task 3 review 3, H1).
-room test/chasm
+room test/spike_chasm
 spawn 100 384
 frames 140
 input

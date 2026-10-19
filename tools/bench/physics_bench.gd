@@ -7,7 +7,9 @@ extends SceneTree
 ## - ledges: platforms three tiles wide with one-tile pits, so bodies keep walking off ledges
 ##   (a body that falls to the floor below is put back above the platforms);
 ## each with no solid boxes and with 20 (doors and wax walls out of the bodies' way, which every
-## query still has to look at).
+## query still has to look at). Bodies move as enemies do (no corner lift) and as the player does
+## (the 8 u lift and 6 u slide, and in the air the far-edge landing first, which tries the plain
+## step on a copy of the body: physics review 6, L3).
 ##
 ##   godot --headless --path . --script tools/bench/physics_bench.gd
 
@@ -22,14 +24,16 @@ func _initialize() -> void:
 		"slopes": _slope_rows(),
 		"ledges": _ledge_rows(),
 	}
-	print("ground   solids  speed   ms per tick")
+	print("ground   solids  speed  mover   ms per tick")
 	for ground: String in grounds:
 		var rows: Array[String] = []
 		rows.assign(grounds[ground])
 		for solids: int in [0, 20]:
 			for speed: int in [9, 20]:
-				var ms: float = _run(rows, speed, solids, ground == "ledges")
-				print("%-8s %6d  %2d u/f  %5.2f" % [ground, solids, speed, ms])
+				for lift: int in [0, 8]:
+					var ms: float = _run(rows, speed, solids, ground == "ledges", lift)
+					var mover: String = "player" if lift > 0 else "enemy"
+					print("%-8s %6d  %2d u/f  %-6s  %5.2f" % [ground, solids, speed, mover, ms])
 	quit(0)
 
 
@@ -67,7 +71,7 @@ func _ledge_rows() -> Array[String]:
 	return rows
 
 
-func _run(rows: Array[String], speed: int, solid_count: int, respawn: bool) -> float:
+func _run(rows: Array[String], speed: int, solid_count: int, respawn: bool, lift_u: int) -> float:
 	var grid: TileGrid = TileGrid.from_rows(PackedStringArray(rows))
 	var problems: PackedStringArray = grid.validate()
 	if not problems.is_empty():
@@ -87,16 +91,27 @@ func _run(rows: Array[String], speed: int, solid_count: int, respawn: bool) -> f
 	dirs.resize(BODIES)
 	dirs.fill(1)
 	var floor_y: int = Fx.units(320)
+	var lift: int = Fx.units(lift_u)
+	var slide: int = Fx.units(6) if lift_u > 0 else 0
 	var start: int = Time.get_ticks_usec()
 	for _t: int in range(TICKS):
 		for i: int in range(BODIES):
 			var b: Body = bodies[i]
 			b.clear_contacts()
+			var dx: int = dirs[i] * Fx.units(speed)
 			if b.on_ground:
-				w.walk(b, dirs[i] * Fx.units(speed))
+				w.walk(b, dx, lift)
 			else:
-				w.move_x(b, dirs[i] * Fx.units(speed))
-				w.move_y(b, Fx.units(8))
+				var contact: int = CollisionQueries.NONE
+				if lift > 0:
+					contact = w.landing_contact(b, dx, Fx.units(8), lift, slide)
+				if contact != CollisionQueries.NONE:
+					w.move_x(b, contact)
+					w.move_y(b, Fx.units(8))
+					w.walk(b, dx - contact, lift)
+				else:
+					w.move_x(b, dx, lift, slide)
+					w.move_y(b, Fx.units(8), slide)
 			if b.hit_wall != 0:
 				dirs[i] = -dirs[i]
 			if respawn and b.y >= floor_y:

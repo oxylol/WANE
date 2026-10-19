@@ -1,0 +1,23 @@
+fixture cam5_notch_landing
+doc (camera review 5, H1: a fall beside a wall that ends in a notch the path carries on into: the fall look must stop at the ground there (416 u past it, and 92 u back up))
+room test/cam5_fz_38
+spawn 305 320
+frames 260
+input
+  0..25 R
+  26..32 R
+  33..53 R
+  54..67 R
+  68..91 R
+  92..119 R
+  120..125 L
+  147..164 L
+  165..191 R
+  192..200 R
+  201..226 R
+  227..231 R
+  232..256 R
+  257..259 L
+end
+expect
+end

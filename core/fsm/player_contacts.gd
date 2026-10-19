@@ -23,7 +23,7 @@ static func check_pogo(pl: Player, ring: InputRing) -> bool:
 		return false
 	var b: Body = pl.body
 	pl.action_pogoed = true
-	pl.refresh_wall()
+	PlayerWall.refresh(pl)
 	b.vy = -pl.p.pogo_bounce
 	pl.air_jumps_left = pl.p.air_jumps
 	pl.air_dashes_left = pl.p.air_dashes
@@ -60,8 +60,10 @@ static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:
 ## Spikes touching the hurtbox send the player back to the last safe ground, with the hazard
 ## invulnerability; standing there again counts as a landing for the airtime's resources. An
 ## ember thrown before the hazard goes out with it (the throw's cooldown runs on): left out, a
-## teleport to it would undo the send-back.
-static func check_hazards(pl: Player) -> void:
+## teleport to it would undo the send-back. Every press still buffered is used up, so nothing
+## pressed over the hazard fires at the safe ground, and a stick held through the send-back is
+## ignored until it is let go or turned (movement review 4, M1 and M2).
+static func check_hazards(pl: Player, ring: InputRing) -> void:
 	if pl.is_invulnerable():
 		return
 	var hurt: Rect2i = hurtbox(pl)
@@ -87,6 +89,10 @@ static func check_hazards(pl: Player) -> void:
 	if b.on_ground:
 		pl.restore_airtime()
 	pl.invuln = pl.kit.hazard_invuln_frames
+	pl.queued_attack = false
+	for bit: int in InputFrame.BUTTONS:
+		ring.consume(bit)
+	pl.stick_hold_x = PlayerInput.axis(ring.stick_x(), pl.p.stick_threshold)
 
 
 ## The hurtbox: the collider inset on every side (smaller than the sprite).
@@ -103,7 +109,9 @@ static func hurtbox(pl: Player) -> Rect2i:
 ## feet's height under the whole collider and [member KitParams.safe_ground_margin] beyond it on
 ## each side (a wall rising there is fine; a drop is not), and no spikes within a tile. A respawn
 ## then never stands on a ledge's lip with the stick that walked off it still carrying the player
-## straight back off.
+## straight back off. The ground must also last (no box the game can take away, such as wax a
+## kindle-dash burns) and have room to stand (not a crawl gap), so a send-back always lands a
+## standing player on something (movement review 4, M3 and M4).
 static func note_safe_ground(pl: Player) -> void:
 	var b: Body = pl.body
 	if not b.on_ground or b.on_slope or b.ground_tile == TileGrid.ONE_WAY:
@@ -112,6 +120,10 @@ static func note_safe_ground(pl: Player) -> void:
 		return
 	var margin: int = pl.kit.safe_ground_margin
 	if not _solid_under(pl.world, b.left() - margin, b.right() + margin, b.y):
+		return
+	if _fragile_under(pl.world, b.left() - margin, b.right() + margin, b.y):
+		return
+	if b.height != pl.p.height and not pl.world.headroom(b, pl.p.height):
 		return
 	var hurt: Rect2i = hurtbox(pl)
 	if not pl.world.touches_spikes(
@@ -143,6 +155,15 @@ static func _solid_under(w: CollisionWorld, l: int, r: int, y: int) -> bool:
 				return false
 		x = end
 	return true
+
+
+## True if a box the game can take away ([method SolidBox.fragile]) holds up any of the sub-pixel
+## row [param y] along [param l, r).
+static func _fragile_under(w: CollisionWorld, l: int, r: int, y: int) -> bool:
+	for s: SolidBox in w.solids:
+		if s.enabled and s.fragile() and s.overlaps(l, r, y, y + 1):
+			return true
+	return false
 
 
 ## With the Kindle Votive, wax solids in the dash's path this tick ignite and stop blocking

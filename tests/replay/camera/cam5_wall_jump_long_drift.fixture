@@ -1,0 +1,12 @@
+fixture cam5_wall_jump_long_drift
+doc (camera review 5, L1: a wall-jump away and a 1220 u drift: the lead must turn with Ash once Ash is 400 u from the wall)
+room test/cam_wells
+spawn 1100 320
+frames 300
+input
+  0..60 L
+  61..63 R jump
+  64..299 R
+end
+expect
+end

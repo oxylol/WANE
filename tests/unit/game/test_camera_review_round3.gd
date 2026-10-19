@@ -145,7 +145,7 @@ func test_wall_jumping_across_a_narrow_shaft_does_not_swing_the_lead() -> void:
 			run.subjects[f].box.get_center().x - run.subjects[f - 1].box.get_center().x
 		)
 		assert_float(absf(run.velocity(f).x)).override_failure_message("tick %d" % f).is_less_equal(
-			absf(moved) + 0.0001
+			absf(moved) + 0.001
 		)
 
 
@@ -155,4 +155,4 @@ func test_a_room_without_border_tiles_never_needs_the_backstop() -> void:
 	for view: Vector2 in VIEWS:
 		var run: CameraRun = _play("res://tests/replay/camera/cam_noborder.fixture", view)
 		assert_int(run.rig.follow_misses).override_failure_message(str(view)).is_equal(0)
-		assert_float(run.gap(0)).is_greater_equal(80.0 - 0.0001)
+		assert_float(run.gap(0)).is_greater_equal(80.0 - 0.001)

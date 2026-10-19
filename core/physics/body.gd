@@ -39,6 +39,17 @@ static func make(cx: int, bottom: int, p_half_w: int, p_height: int) -> Body:
 	return b
 
 
+## A copy of the box, its velocity and its ground contact (for trying a move without making it).
+func copy() -> Body:
+	var b := Body.make(x, y, half_w, height)
+	b.vx = vx
+	b.vy = vy
+	b.on_ground = on_ground
+	b.ground_tile = ground_tile
+	b.on_slope = on_slope
+	return b
+
+
 func left() -> int:
 	return x - half_w
 

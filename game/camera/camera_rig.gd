@@ -44,6 +44,8 @@ var focus: Vector2 = Vector2.ZERO
 var _base: Vector2 = Vector2.ZERO
 ## The follow's vertical speed last tick (for the acceleration limit).
 var _vy: float = 0.0
+## The player's vertical speed last tick: whether the player stopped or turned this tick.
+var _player_vy: float = 0.0
 ## The dead-zone anchors: the horizontal focus and the vertical rest focus the view holds to.
 var _anchor: Vector2 = Vector2.ZERO
 var _lead: float = 0.0
@@ -62,6 +64,8 @@ var _raised: bool = false
 ## Ash has touched a wall since last standing on the ground: turns do not commit the lead until
 ## Ash stands again (a shaft climb faces each wall in turn without choosing a way to go).
 var _off_wall: bool = false
+## Where Ash last touched a wall (across).
+var _wall_x: float = 0.0
 ## Ash stood on the ground last tick (continuous ground carries the rest height directly).
 var _grounded: bool = false
 ## The last support height (feet), and the rest height easing toward it.
@@ -126,6 +130,11 @@ func step(s: CameraSubject, room: Rect2) -> void:
 		# Smootherstep: the glide starts and ends with no speed and no acceleration.
 		var eased: float = t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
 		c += _glide_from * (1.0 - eased)
+		# Across, a glide yields to the margin: a player who outruns it toward the view's edge
+		# (a dash toward an edge with no border tile, where the follow itself holds the player on
+		# the margin) takes the view along, as the rigid follow across would (camera review 5, M3).
+		var margin: float = float(tuning.edge_margin_u)
+		c.x = _keep_player_clear(c, s.box, margin).x
 	center = _clear_player(c, s.box)
 
 
@@ -138,12 +147,16 @@ func _start_glide(s: CameraSubject, room: Rect2) -> void:
 	_place(s, room)
 	var start: Vector2 = old
 	var clear: Vector2 = _keep_player_clear(old, s.box, float(tuning.glide_cut_u))
+	# Where the room's bound holds the follow itself with the player within glide_cut_u of the
+	# view's edge (an edge with no border tile), any glide inward would carry the player past the
+	# margin: that axis cuts too (camera review 5, M3).
+	var held: Vector2 = _keep_player_clear(_base, s.box, float(tuning.glide_cut_u))
 	# The view cuts all the way to the follow: cutting only to the margin would leave the player
 	# on it, and a glide from just outside it starts too slowly for a dash or an up-dash onward
 	# (the follow trails a sudden move by the dead zone and its acceleration's lag).
-	if not is_equal_approx(clear.x, old.x):
+	if not is_equal_approx(clear.x, old.x) or not is_equal_approx(held.x, _base.x):
 		start.x = _base.x
-	if not is_equal_approx(clear.y, old.y):
+	if not is_equal_approx(clear.y, old.y) or not is_equal_approx(held.y, _base.y):
 		start.y = _base.y
 	if start != old:
 		previous = start
@@ -174,6 +187,7 @@ func _place(s: CameraSubject, room: Rect2) -> void:
 	focus = _anchor
 	_base = _bounded(_anchor, room)
 	_vy = 0.0
+	_player_vy = s.vy
 
 
 func _track(s: CameraSubject, room: Rect2) -> void:
@@ -200,27 +214,42 @@ func _track(s: CameraSubject, room: Rect2) -> void:
 	var bounds: Vector2 = _speed_bounds(s.vy, accel)
 	var vy: float = clampf((target.y - _base.y) * lerp_w, bounds.x, bounds.y)
 	if not s.supported and s.vy > 0.0:
-		# Ash is falling: the view never rises against the fall, even while it is still catching up
-		# from below (a climb it lagged, then a walk off the top).
-		vy = maxf(vy, 0.0)
+		if s.box.end.y >= _support_y - 0.5 or _vy >= 0.0:
+			# Ash is falling at or below the last support: the view never rises against the fall,
+			# even while it is still catching up from below (a climb it lagged, then a walk off
+			# the top).
+			vy = maxf(vy, 0.0)
+		else:
+			# The way down of a hop that lands higher (a staircase, a ramp's crest): the view's
+			# rise only shrinks, by at least the acceleration limit a tick, rather than stopping
+			# dead at every apex (camera review 5, M1).
+			vy = maxf(vy, minf(_vy + accel, 0.0))
+	elif not s.supported and s.vy < 0.0:
+		# Ash is rising: the view never sinks against the rise, even while it is still catching up
+		# with a fall it lagged (an air jump just above the floor; camera review 5, H2).
+		vy = minf(vy, 0.0)
 	c.y += vy
 	var clear: Vector2 = _clear_player(c, s.box)
 	_vy = clear.y - _base.y
 	_base = clear
+	_player_vy = s.vy
 
 
 ## The vertical speeds the view may take this tick: within the acceleration of last tick's, except
 ## that a view outrunning the player (falling faster than the player now falls, or rising faster
-## than the player now rises: a landing, a cling, a bounce, an up-dash out of a fall) may slow at
-## once to the player's own speed, or turn with it. It never carries on against the player, and a
-## jump or a kick, which the view lags anyway, loosens nothing.
+## than the player now rises) may slow at once to the player's own speed. It turns with the player
+## at once only when the player turned, from moving the view's way (a bounce, a cling, an up-dash
+## out of a fall); otherwise it may stop at once but no more. A jump out of a held look-down, the
+## view still sinking into the look, stops the view and does not snap it into a rise (camera
+## review 5). It never carries on against the player, and a jump or a kick, which the view lags
+## anyway, loosens nothing.
 func _speed_bounds(player_vy: float, accel: float) -> Vector2:
 	var lo: float = _vy - accel
 	var hi: float = _vy + accel
 	if _vy > 0.0 and player_vy < _vy:
-		lo = minf(lo, player_vy)
+		lo = minf(lo, player_vy if _player_vy > 0.0 else maxf(player_vy, 0.0))
 	elif _vy < 0.0 and player_vy > _vy:
-		hi = maxf(hi, player_vy)
+		hi = maxf(hi, player_vy if _player_vy < 0.0 else minf(player_vy, 0.0))
 	return Vector2(lo, hi)
 
 
@@ -248,12 +277,14 @@ func _update_lead(s: CameraSubject) -> void:
 ## since turning (the lead's whole swing), or kept facing it
 ## [member CameraTuning.lead_commit_frames] ticks: turning back and forth in place, or striking
 ## both ways in a fight, leaves the lead (and the view) where it is. Between touching a wall and
-## next standing on the ground no turn commits: a cling faces Ash away from the wall it holds, so
-## a climb up a shaft of any width turns at every wall without choosing a way to go.
+## next standing on the ground no turn commits, unless Ash gets
+## [member CameraTuning.lead_wall_release_u] from that wall: a cling faces Ash away from the wall
+## it holds, so a climb up a shaft turns at every wall without choosing a way to go.
 func _commit_turn(s: CameraSubject, x: float) -> void:
 	if s.walled:
 		_off_wall = true
-	elif s.on_ground:
+		_wall_x = x
+	elif s.on_ground or absf(x - _wall_x) > float(tuning.lead_wall_release_u):
 		_off_wall = false
 	var dir: int = signi(s.facing)
 	if dir == _lead_dir or dir == 0 or _off_wall:
@@ -305,13 +336,21 @@ func _update_looks(s: CameraSubject, anchor_drop: float) -> void:
 	var look_target: float = (
 		float(tuning.look_down_u) if _look_ticks >= tuning.look_down_delay_frames else 0.0
 	)
+	if s.looking_down and _look > 0.0:
+		# A look still showing when Ash asks again (down held through a drop and the landing)
+		# carries on without the delay, rather than easing out and back in (camera review 5, H3).
+		look_target = float(tuning.look_down_u)
 	_look = move_toward(_look, look_target, float(tuning.look_speed_u))
 	if not s.on_ground and s.vy < 0.0:
 		# Leaving the ground upward (a jump) ends a look at once, like the end of a fall's: the
 		# view, which eases, turns back to the player now rather than finishing the look while
 		# they rise.
 		_look = 0.0
-	var falling: bool = not s.supported and s.vy > 0.0 and s.box.end.y >= _rest_y(s)
+	# The look starts once the feet fall below the last support (camera review 5, M4: from the
+	# eased rest, which lags a climb, a drop over the top of a wall went 250 u with no look).
+	var falling: bool = (
+		not s.supported and s.vy > 0.0 and s.box.end.y >= minf(_rest_y(s), _support_y)
+	)
 	if falling:
 		var fall_target: float = minf(s.vy * tuning.fall_lead_frames, maxf(s.ground_below, 0.0))
 		_fall_lead = move_toward(_fall_lead, fall_target, float(tuning.fall_lead_speed_u))

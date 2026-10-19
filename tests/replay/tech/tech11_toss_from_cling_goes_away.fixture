@@ -12,5 +12,5 @@ expect
   at 9 state=wall facing=-1
   at 10 event.toss=1 state=wall
   # The ember should travel away from the wall (left), well clear of the player.
-  at 20 ember=1 ember_x<=700u
+  at 21 ember=1 ember_x<=700u
 end

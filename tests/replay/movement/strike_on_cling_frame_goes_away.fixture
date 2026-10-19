@@ -1,0 +1,14 @@
+fixture strike_on_cling_frame_goes_away
+doc (movement review 4, M5) a side strike pressed on the tick the cling begins (stick toward the wall, as a cling needs) is a strike from the wall: it goes away from the wall, the way Ash faces once clinging, as one pressed a tick later would. Started as an air strike before the move, it used to turn Ash toward the wall and put its box inside the wall for 14 frames while the sprite faced the room.
+room test/shaft
+spawn 760 300
+frames 30
+input
+  0..5 R
+  6 R attack
+  7..29 R
+end
+expect
+  at 6 event.wall_cling=1 state=wall facing=-1 action=side1 action_dir=-1
+  at 8 strike=1 state=wall facing=-1 action_dir=-1
+end

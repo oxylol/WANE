@@ -11,6 +11,7 @@ end
 expect
   mark edge 0..60 event.jump=1
   at edge vx=2304 x>470u
-  mark fall 60..119 event.hazard=1
-  at fall x<2144u
+  mark below 60..119 y>394u
+  at below x<2144u
+  never 0..119 x>=2144u ground=1
 end

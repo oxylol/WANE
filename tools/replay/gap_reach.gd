@@ -1,8 +1,14 @@
 extends SceneTree
 ## How far past a ledge's edge each way of crossing a gap carries the player (BUILD.md section 5,
 ## tech 2: "a gap exactly one dash-jump wide"; docs/adr/0010). The reach is the farthest x of the
-## player's centre with the feet at or above the ledge's height, on a room with no far side; a gap
-## of width W is crossable when the reach is more than W minus half the body's width.
+## player's centre with the feet no lower than the ledge-grab's reach below the ledge's height, on
+## a room with no far side; a gap of width W is crossable when the reach is more than W minus half
+## the body's width: the body then meets the far ledge's face with its feet within the grab, and
+## the grab lifts it on. Tech 2's gap (tests/replay/rooms/chasm.room) gives nothing else to use:
+## its far face is smooth below the lip, so there is no cling or kick, and it is too deep to pogo
+## off or climb out of on the far side (movement review 4, H1). An ember thrown at that face
+## stops on it below the lip, and the teleport's fit puts the body beside the face, not on the
+## ledge, so a toss counts only through where the body goes after it.
 ##
 ##   godot --headless --path . --script tools/replay/gap_reach.gd -- [route]...
 ##
@@ -233,14 +239,15 @@ func _best(plans: Array[Plan], route: String) -> Plan:
 	return best
 
 
-## The farthest x (units) with the feet at or above the ledge, or -1 if the plan is not the route
-## it claims to be (a jump fired during any dash in a route without a dash-jump).
+## The farthest x (units) with the feet at or above the ledge's height plus the ledge-grab, or -1
+## if the plan is not the route it claims to be (a jump fired during any dash in a route without a
+## dash-jump).
 func _reach(p: Plan, route: String) -> int:
 	var sc: Scenario = Scenario.make(1, ROOM)
 	sc.spawn_x = p.x0
 	sc.spawn_y = LEDGE_U
 	var sim := Simulation.new(sc)
-	var ledge: int = Fx.units(LEDGE_U)
+	var ledge: int = Fx.units(LEDGE_U) + sim.player.p.ledge_grab
 	var best: int = 0
 	var no_dash_jump: bool = route.begins_with("carry") or route.begins_with("run")
 	for t: int in range(FRAMES):

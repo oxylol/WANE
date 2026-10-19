@@ -17,6 +17,9 @@ expect
   at 82 event.air_jump=0
   at 83 event.air_jump=1
   at 110 event.dash=1
-  mark fall 60..159 event.hazard=1
-  at fall-1 x<2144u
+  # Short of the far ledge: below its lip (with the ledge-grab's 10 u to spare) before reaching
+  # its face, and never standing on it.
+  mark below 60..159 y>394u
+  at below x<2144u
+  never 0..159 x>=2144u ground=1
 end

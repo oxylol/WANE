@@ -1,6 +1,6 @@
-# test/review_ramp45 with a door sunk into the ramp, its top (y 340) flush with the ramp's surface
-# at its downhill face (x 300) and buried under it everywhere else.
-room test/ramp45_sunk_door
+# Physics review 6, H1: a door buried 1 u under a 45-degree ramp (its top y 341, the ramp's
+# surface y 340 at its downhill face x 300). Refused at load (core/rooms/room_joins.gd).
+room test/invalid_buried_door
 size 40 14
 spawn 150 384
 tiles
@@ -19,4 +19,4 @@ tiles
 ########################################
 ########################################
 end
-solid 300 340 340 380
+solid 300 341 340 380

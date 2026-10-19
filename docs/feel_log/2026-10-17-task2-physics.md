@@ -18,9 +18,9 @@
   6. crouch-drop through a one-way, refused beside a wall;
   7. walking up a ramp to a closed door and back down;
   8. walking along a solid box's top onto the slope that rises out of it, and back;
-  9. a solid box sunk into a ramp 4 u under its crest: walking down onto it and back up onto the plateau;
+  9. a solid box 4 u under a ramp's crest, its top meeting the ramp flush: walking down onto it and back up onto the plateau;
   10. walking over lips: a floor 1 u below the tiles beside it and a box 8 u proud of the floor are stepped up; a box 9 u above that stops the walk; walking back, every lip is stepped down on the ground;
-  11. the player's hop off a ledge's far edge (the fixture `far_edge_landing_lands`, played through the simulation): the box comes down on the very edge, lands where its straight path meets the ledge (drawn green), then walks the rest of the tick off it. The fifth review found the earlier panel showed an ordinary landing 12 u onto the ledge; the tool now fails unless the landing tick ends off the ledge's end.
+  11. the player's hop off a ledge's far edge (the fixture `far_edge_landing_lands`, played through the simulation): the box comes down with 8.6 of its 20 u over the ledge's far end, lands where its straight path meets the ledge (drawn green), then walks the rest of the tick off it. The fifth review found the earlier panel showed an ordinary landing 12 u onto the ledge; the tool now fails unless the landing tick ends off the ledge's end.
 
 ## Change
 

@@ -20,7 +20,7 @@ expect
   at 44 event.dash=1
   # The air jump on the air dash's frame 9: an air dash-jump at 20 u/f.
   at 52 event.air_jump=1 vx=5120
-  mark fall 10..169 event.hazard=1
-  at fall-1 x<2144u
-  never 0..169 event.land=1
+  mark below 10..169 y>394u
+  at below x<2144u
+  never 0..169 x>=2144u ground=1
 end

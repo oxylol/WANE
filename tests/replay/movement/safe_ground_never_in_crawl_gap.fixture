@@ -1,0 +1,21 @@
+fixture safe_ground_never_in_crawl_gap
+doc (movement review 4, M4) safe ground is never noted where a standing body does not fit: Ash crouches through tech 10's 32 u crawl gap, crouch-dashes out and walks into floor spikes past the exit. The send-back puts a standing Ash on the last ground with room to stand, before the gap; it used to put a standing 44 u body into the 32 u gap, stuck in its ceiling.
+room test/crawl_gap_spikes
+spawn 600 544
+frames 120
+input
+  0..2 D
+  3 D dash
+  4..26 R
+  27 D dash
+  28..119 R
+end
+expect
+  at 3 event.dash=1 crouch=1
+  during 19..26 crouch=1 ground=1
+  mark die 28..119 event.hazard=1
+  # Sent back standing to ground with room to stand (x 600, before the gap), not into the 32 u
+  # gap where a standing body would sit 12 u into its ceiling.
+  at die height=44 ground=1 x=600u
+  never die+1..119 event.hazard=1
+end

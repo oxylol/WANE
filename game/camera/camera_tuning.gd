@@ -21,6 +21,11 @@ const WICKS_ROOT: String = "res://content/wicks/"
 ## way in a fight, does not swing the view.
 @export var lead_commit_u: int = 120
 @export var lead_commit_frames: int = 20
+## No turn commits between touching a wall and next standing on the ground (a climb up a shaft
+## turns at every wall), unless Ash has gone this far from the last wall touched (not in BUILD.md;
+## camera review 5, L1): a wall-jump away and a long drift across an open room turns the view with
+## Ash, while every shaft narrower than this still climbs without the lead swinging.
+@export var lead_wall_release_u: int = 400
 ## The dead zone the camera's focus may move in without the camera moving.
 @export var dead_zone_w_u: int = 40
 @export var dead_zone_h_u: int = 30
@@ -59,11 +64,13 @@ const WICKS_ROOT: String = "res://content/wicks/"
 @export var glide_cut_u: int = 160
 ## The view eases into the room's bounds (grown by the edge margin) over this many units.
 @export var edge_ease_u: int = 160
-## Vertically the bounds are grown this much further (not in BUILD.md: a tile). The vertical
-## follow eases (the lerp and the acceleration limit), so it reaches a bound a little after the
-## player does; this keeps the margin at an edge with no border tile (a room's opening onto the
-## next) when the player falls onto it or climbs into it. Across, the follow is rigid.
-@export var edge_slack_u: int = 32
+## Vertically the bounds are grown this much further (not in BUILD.md: a tile and a half). The
+## vertical follow eases (the lerp and the acceleration limit), so it reaches a bound a little
+## after the player does; this keeps the margin at an edge with no border tile (a room's opening
+## onto the next) when the player falls onto it or climbs into it. 32 u was enough for a fall and
+## a jump, but not for a jump, the air jump and an up-dash into a top edge from a platform 16 or 17
+## rows below it (camera review 5, M2), which 48 u clears. Across, the follow is rigid.
+@export var edge_slack_u: int = 48
 ## The player's box is never closer than this to the edge of the view (section 15).
 @export var edge_margin_u: int = 80
 
@@ -90,8 +97,13 @@ func validate() -> PackedStringArray:
 		)
 	if look_down_delay_frames < 0 or look_down_u < 0 or lead_commit_frames < 0:
 		errors.append("look-down and lead-commit values cannot be negative")
-	if lead_commit_u < 0 or edge_slack_u < 0:
-		errors.append("lead_commit_u and edge_slack_u cannot be negative")
+	if lead_commit_u < 0 or edge_slack_u < 0 or lead_wall_release_u < lead_commit_u:
+		errors.append(
+			(
+				"lead_commit_u and edge_slack_u cannot be negative, nor lead_wall_release_u under"
+				+ " lead_commit_u"
+			)
+		)
 	errors.append_array(_margin_errors(_largest_collider()))
 	return errors
 

@@ -1,0 +1,26 @@
+fixture tech02_control_pogo_floor
+doc control for tech 2 (movement review 4, H1): a run off the edge and down-strikes all the way, the route that pogoed across the old chasm's spike floor and kicked up its far wall with no dash, jump or toss. The gap is now 1504 u deep with a smooth far face: nothing to pogo off or cling to, and the run never reaches the far ledge.
+room test/chasm
+spawn 389 384
+frames 260
+input
+  0..30 R
+  31 R D attack
+  32..67 R
+  68 R D attack
+  69..104 R
+  105 R D attack
+  106..140 R
+  141 R D attack
+  142..177 R
+  178 R D attack
+  179..200 R
+  201..215 R jump
+  216..259 R
+end
+expect
+  never 0..259 event.dash=1
+  never 0..259 event.pogo=1
+  never 0..259 event.wall_cling=1
+  never 0..259 x>=2144u ground=1
+end

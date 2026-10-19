@@ -240,11 +240,13 @@ func _solid_top_to_slope() -> void:
 	_panel(w, Rect2i(0, 0, 320, 128), path, 2, 8)
 
 
-## 9: a solid box (a door left open as a floor) sunk into a ramp 4 u under its crest: walking
-## down onto it and back up again, along its top and up the ramp onto the plateau.
+## 9: a solid box (a door left open as a floor) 4 u under a ramp's crest, its top meeting the
+## ramp flush where the ramp is 4 u under the crest (ADR-0008 decision 12: a top never lies just
+## under the ground): walking down onto it and back up again, along its top and up the ramp onto
+## the plateau.
 func _sunk_box() -> void:
 	var w: CollisionWorld = _world(["..........", "..........", "...../####", "##########"])
-	w.solids.append(SolidBox.make(40 * U, 68 * U, 190 * U, 128 * U))
+	w.solids.append(SolidBox.make(40 * U, 68 * U, 188 * U, 128 * U))
 	var b := Body.make(260 * U, 64 * U, 10 * U, 44 * U)
 	w.refresh_ground(b)
 	var path: Array[Vector2i] = [Vector2i(b.x, b.y)]
@@ -294,10 +296,11 @@ func _lips() -> void:
 
 
 ## 11: the player's hop off a ledge's far edge (the fixture far_edge_landing_lands, played through
-## the simulation from the hop): on tick 25 the box comes down on the very edge, lands where its
-## straight path meets the ledge (CollisionWorld.landing_contact; the box drawn green), then walks
-## the rest of the tick's step off it. Moving across before falling would carry it past the edge
-## first. The panel fails unless that landing happens off the ledge's end.
+## the simulation from the hop): on tick 25 the box comes down with 8.6 of its 20 u over the far
+## end, lands where its straight path meets the ledge (CollisionWorld.landing_contact; the box
+## drawn green), then walks the rest of the tick's step off it. Moving across before falling
+## would carry it past the edge first. The panel fails unless that landing happens off the
+## ledge's end.
 func _far_edge() -> void:
 	var fx: Fixture = Fixture.parse_file(
 		"res://tests/replay/physics/far_edge_landing_lands.fixture"

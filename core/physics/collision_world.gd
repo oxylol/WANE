@@ -448,10 +448,11 @@ func _slide_fits(body: Body, shift: int, rise: int) -> bool:
 ## would carry it off: a box over a ledge's far edge, moving away from it, lands there rather than
 ## being carried past the edge before the fall reaches it (BUILD.md s15: "Landing on a 1-pixel
 ## ledge edge lands"). [constant NONE] if there is no such flat floor, if the box is still over it
-## after the whole move across, if moving across first finds a higher floor (the near side of a
-## raised step, which the air step lands on or the corner correction lifts onto), or if the
-## straight path there is not clear: the usual x-then-y step is then the same or better.
-func landing_contact(body: Body, dx: int, dy: int) -> int:
+## after the whole move across, or if the straight path there is not clear. Also NONE whenever the
+## usual x-then-y step, with the mover's own corner lift ([param lift_sp]) and slide
+## ([param slide_sp]), ends on ground at least as high: the near side of a raised step, or a block
+## across a notch that the lift or a ledge-grab puts the box on (docs/adr/0008, decision 9).
+func landing_contact(body: Body, dx: int, dy: int, lift_sp: int = 0, slide_sp: int = 0) -> int:
 	if dx == 0 or dy <= 0:
 		return NONE
 	var x0: int = body.x
@@ -473,7 +474,20 @@ func landing_contact(body: Body, dx: int, dy: int) -> int:
 		):
 			contact = at
 	body.x = x0
+	if contact != NONE and _plain_step_lands(body, dx, dy, lift_sp, slide_sp, floor_y):
+		return NONE
 	return contact
+
+
+## True if the usual x-then-y step of [param body], tried on a copy, ends on ground no lower
+## than [param floor_y].
+func _plain_step_lands(
+	body: Body, dx: int, dy: int, lift_sp: int, slide_sp: int, floor_y: int
+) -> bool:
+	var trial: Body = body.copy()
+	move_x(trial, dx, lift_sp, slide_sp)
+	move_y(trial, dy, slide_sp)
+	return trial.on_ground and trial.y <= floor_y
 
 
 func _move_down(body: Body, dist: int) -> int:

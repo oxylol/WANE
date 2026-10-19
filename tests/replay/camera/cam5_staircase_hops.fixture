@@ -1,0 +1,429 @@
+fixture cam5_staircase_hops
+doc (camera review 5, M1: hopping up 160 u steps: the view must not stop dead at every apex (a 3 Hz stutter))
+room test/cam5_st_h5_w3
+spawn 400 3840
+frames 420
+input
+  0 R
+  1 R
+  2 R
+  3 R
+  4 R
+  5 R
+  6 R
+  7 R
+  8 R
+  9 R
+  10 R
+  11 R
+  12 R
+  13 R
+  14 R
+  15 R
+  16 R
+  17 R
+  18 R
+  19 R
+  20 R
+  21 R jump
+  22 R jump
+  23 R jump
+  24 R jump
+  25 R jump
+  26 R jump
+  27 R jump
+  28 R jump
+  29 R jump
+  30 R jump
+  31 R jump
+  32 R jump
+  33 R jump
+  34 R jump
+  35 R jump
+  36 R
+  37 R
+  38 R
+  39 R
+  40 R jump
+  41 R jump
+  42 R jump
+  43 R jump
+  44 R jump
+  45 R jump
+  46 R jump
+  47 R jump
+  48 R jump
+  49 R jump
+  50 R jump
+  51 R jump
+  52 R jump
+  53 R jump
+  54 R jump
+  55 R
+  56 R
+  57 R
+  58 R
+  59 R jump
+  60 R jump
+  61 R jump
+  62 R jump
+  63 R jump
+  64 R jump
+  65 R jump
+  66 R jump
+  67 R jump
+  68 R jump
+  69 R jump
+  70 R jump
+  71 R jump
+  72 R jump
+  73 R jump
+  74 R
+  75 R
+  76 R
+  77 R
+  78 R jump
+  79 R jump
+  80 R jump
+  81 R jump
+  82 R jump
+  83 R jump
+  84 R jump
+  85 R jump
+  86 R jump
+  87 R jump
+  88 R jump
+  89 R jump
+  90 R jump
+  91 R jump
+  92 R jump
+  93 R
+  94 R
+  95 R
+  96 R
+  97 R jump
+  98 R jump
+  99 R jump
+  100 R jump
+  101 R jump
+  102 R jump
+  103 R jump
+  104 R jump
+  105 R jump
+  106 R jump
+  107 R jump
+  108 R jump
+  109 R jump
+  110 R jump
+  111 R jump
+  112 R
+  113 R
+  114 R
+  115 R
+  116 R jump
+  117 R jump
+  118 R jump
+  119 R jump
+  120 R jump
+  121 R jump
+  122 R jump
+  123 R jump
+  124 R jump
+  125 R jump
+  126 R jump
+  127 R jump
+  128 R jump
+  129 R jump
+  130 R jump
+  131 R
+  132 R
+  133 R
+  134 R
+  135 R jump
+  136 R jump
+  137 R jump
+  138 R jump
+  139 R jump
+  140 R jump
+  141 R jump
+  142 R jump
+  143 R jump
+  144 R jump
+  145 R jump
+  146 R jump
+  147 R jump
+  148 R jump
+  149 R jump
+  150 R
+  151 R
+  152 R
+  153 R
+  154 R jump
+  155 R jump
+  156 R jump
+  157 R jump
+  158 R jump
+  159 R jump
+  160 R jump
+  161 R jump
+  162 R jump
+  163 R jump
+  164 R jump
+  165 R jump
+  166 R jump
+  167 R jump
+  168 R jump
+  169 R
+  170 R
+  171 R
+  172 R
+  173 R jump
+  174 R jump
+  175 R jump
+  176 R jump
+  177 R jump
+  178 R jump
+  179 R jump
+  180 R jump
+  181 R jump
+  182 R jump
+  183 R jump
+  184 R jump
+  185 R jump
+  186 R jump
+  187 R jump
+  188 R
+  189 R
+  190 R
+  191 R
+  192 R jump
+  193 R jump
+  194 R jump
+  195 R jump
+  196 R jump
+  197 R jump
+  198 R jump
+  199 R jump
+  200 R jump
+  201 R jump
+  202 R jump
+  203 R jump
+  204 R jump
+  205 R jump
+  206 R jump
+  207 R
+  208 R
+  209 R
+  210 R
+  211 R jump
+  212 R jump
+  213 R jump
+  214 R jump
+  215 R jump
+  216 R jump
+  217 R jump
+  218 R jump
+  219 R jump
+  220 R jump
+  221 R jump
+  222 R jump
+  223 R jump
+  224 R jump
+  225 R jump
+  226 R
+  227 R
+  228 R
+  229 R
+  230 R
+  231 R
+  232 R
+  233 R
+  234 R
+  235 R
+  236 R
+  237 R
+  238 R
+  239 R
+  240 R
+  241 R
+  242 R
+  243 R
+  244 R
+  245 R
+  246 R
+  247 R jump
+  248 R jump
+  249 R jump
+  250 R jump
+  251 R jump
+  252 R jump
+  253 R jump
+  254 R jump
+  255 R jump
+  256 R jump
+  257 R jump
+  258 R jump
+  259 R jump
+  260 R jump
+  261 R jump
+  262 R
+  263 R
+  264 R
+  265 R
+  266 R
+  267 R
+  268 R
+  269 R
+  270 R
+  271 R
+  272 R
+  273 R
+  274 R
+  275 R
+  276 R
+  277 R
+  278 R
+  279 R
+  280 R
+  281 R
+  282 R
+  283 R
+  284 R
+  285 R
+  286 R jump
+  287 R jump
+  288 R jump
+  289 R jump
+  290 R jump
+  291 R jump
+  292 R jump
+  293 R jump
+  294 R jump
+  295 R jump
+  296 R jump
+  297 R jump
+  298 R jump
+  299 R jump
+  300 R jump
+  301 R
+  302 R
+  303 R
+  304 R
+  305 R
+  306 R
+  307 R
+  308 R
+  309 R
+  310 R
+  311 R
+  312 R
+  313 R
+  314 R
+  315 R
+  316 R
+  317 R
+  318 R
+  319 R
+  320 R
+  321 R
+  322 R jump
+  323 R jump
+  324 R jump
+  325 R jump
+  326 R jump
+  327 R jump
+  328 R jump
+  329 R jump
+  330 R jump
+  331 R jump
+  332 R jump
+  333 R jump
+  334 R jump
+  335 R jump
+  336 R jump
+  337 R
+  338 R
+  339 R
+  340 R
+  341 R
+  342 R
+  343 R
+  344 R
+  345 R
+  346 R
+  347 R
+  348 R
+  349 R
+  350 R
+  351 R
+  352 R
+  353 R
+  354 R
+  355 R
+  356 R
+  357 R
+  358 R
+  359 R
+  360 R
+  361 R
+  362 R
+  363 R
+  364 R
+  365 R
+  366 R
+  367 R
+  368 R
+  369 R
+  370 R
+  371 R
+  372 R
+  373 R
+  374 R
+  375 R
+  376 R
+  377 R
+  378 R
+  379 R
+  380 R
+  381 R
+  382 R
+  383 R
+  384 R
+  385 R
+  386 R
+  387 R
+  388 R
+  389 R
+  390 R
+  391 R
+  392 R
+  393 R
+  394 R
+  395 R
+  396 R
+  397 R
+  398 R
+  399 R
+  400 R
+  401 R
+  402 R
+  403 R
+  404 R
+  405 R
+  406 R
+  407 R
+  408 R
+  409 R
+  410 R
+  411 R
+  412 R
+  413 R
+  414 R
+  415 R
+  416 R
+  417 R
+  418 R
+  419 R
+end
+expect
+end

@@ -1,0 +1,15 @@
+fixture ddash_runs_on_onto_lip
+doc (physics review 6, M3) from a hop on test/lip2_floor (a door 2 u proud of the floor from x 400), a down-right air dash touches down on the floor before the door and runs on along it (ADR-0008 decision 9). A walk, a ground dash or a level air dash that has touched down steps up a 2 u lip (the ground corner correction, BUILD.md s5: 8 u); the diagonal dash running on along the floor must too, not stop dead against it: it touches down on tick 11 at x 384.8, then stands at x 390 against the door's face for dash frames 7 to 9 (ticks 12 to 14) and only steps up once the dash is over.
+room test/lip2_floor
+spawn 300 448
+frames 24
+input
+  0 jump
+  1..5 jump
+  6 R D dash
+  7..23 R D
+end
+expect
+  at 11 event.land=1
+  at 13 state=dash x>=14u+x@12
+end

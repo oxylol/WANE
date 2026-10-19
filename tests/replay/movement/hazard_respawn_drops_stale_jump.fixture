@@ -1,0 +1,18 @@
+fixture hazard_respawn_drops_stale_jump
+doc (movement review 4, M2) a jump pressed in the air over the spikes, with the air jump already spent, three ticks before the hazard (frame 61). The send-back keeps the input buffer, so that press, made over the pit, fires on the first tick at the respawn point (frame 62, a full ground jump) and, with the stick still held right, carries Ash back out over the edge by frame 69.
+room test/spike_chasm
+spawn 300 384
+frames 120
+input
+  0..30 R
+  31 R jump
+  32..57 R
+  58 R jump
+  59..119 R
+end
+expect
+  at 31 event.air_jump=1
+  mark die 30..70 event.hazard=1
+  # The jump press at 42 is the stale one; nothing pressed after the respawn.
+  never die+1..die+10 event.jump=1
+end

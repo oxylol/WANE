@@ -1,0 +1,16 @@
+fixture far_edge_downstrike_control
+doc (physics review 6, M4) control for far_edge_downstrike_buffered_jump: the same hop with a missed down-strike and a buffered jump, landing in the middle of test/ledge448 (the run starts 60 u further left): the buffered jump fires on the landing tick.
+room test/ledge448
+spawn 348 448
+frames 34
+input
+  0..3 R
+  4..8 R jump
+  9..20 R
+  21 R D attack
+  22 R D
+  23..33 R jump
+end
+expect
+  at 25 event.land=1 event.jump=1
+end

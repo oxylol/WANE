@@ -1,0 +1,12 @@
+fixture cam5_borderless_top_up_dash
+doc (camera review 5, M2: a jump, the air jump and an up-dash into a borderless top edge from 16 rows below it: no backstop)
+room test/cam5_otop_f16
+spawn 960 512
+frames 160
+input
+  0..14 jump
+  16..30 jump
+  31 U dash
+end
+expect
+end

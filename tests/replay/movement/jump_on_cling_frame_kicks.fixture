@@ -1,0 +1,14 @@
+fixture jump_on_cling_frame_kicks
+doc (movement review 4, M5) jump pressed on the tick Ash reaches the wall (stick toward it), air jump unspent. The press is read before the move, 6.4 u from the wall (beyond the 3 u wall-jump reach), so it is the air jump, not the kick a press one tick later (on the cling) gives; with the air jump spent, the same press waits and kicks on the cling frame.
+room test/shaft
+spawn 760 300
+frames 30
+input
+  0..5 R
+  6 R jump
+  7..29 R jump
+end
+expect
+  at 6 event.wall_kick=1
+  at 6 air_jumps=1
+end

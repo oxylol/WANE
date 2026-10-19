@@ -11,7 +11,7 @@ const HASH_INTERVAL: int = 60
 ## Simulation version. Bump it in the same commit as any change that moves a golden hash
 ## (tools/replay/bless.gd refuses to re-bless otherwise), so old replays report "recorded by an
 ## older build" instead of a desync.
-const VERSION: int = 3
+const VERSION: int = 4
 
 ## Where a Wick's content lives: <root><wick>/movement.tres, kit.tres, taper.tres.
 const WICK_ROOT: String = "res://content/wicks/"
@@ -56,6 +56,7 @@ func _init(p_scenario: Scenario) -> void:
 	else:
 		tuning.apply(world)
 		ContentHash.add_resource(content, tuning)
+		load_errors.append_array(RoomJoins.errors(room, Fx.units(tuning.join_band_u)))
 	player = _build_player(content)
 	content_hash = content.value()
 	if player != null:

@@ -1,0 +1,30 @@
+fixture up_strike_never_cancels_itself
+doc (movement review 4, M6) BUILD.md s6 Taper, Up: "Cancel into: Dash from f 4, air attack any frame": into another air strike (a side or down-strike), never into itself. An up press every 3 frames in the air used to restart the up-strike each time, a fresh active box every third frame (7 up-strikes in 21 frames, where one is 16); now the strike runs its frames and the last buffered press starts the next one.
+room test/flat
+spawn 400 200
+frames 24
+input
+  0 U !attack
+  1..2 U
+  3 U !attack
+  4..5 U
+  6 U !attack
+  7..8 U
+  9 U !attack
+  10..11 U
+  12 U !attack
+  13..14 U
+  15 U !attack
+  16..17 U
+  18 U !attack
+  19..23 U
+end
+expect
+  # One up-strike runs its 16 frames: the up presses during it are not a new up-strike. The last
+  # one, still in the buffer when it ends, starts the next.
+  at 0 action=up action_frame=1 event.attack=1
+  never 1..15 event.attack=1
+  at 16 action=up action_frame=1 event.attack=1
+  during 2..6 strike=1
+  never 7..17 strike=1
+end
