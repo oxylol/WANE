@@ -1,0 +1,14 @@
+fixture zone1_10_dash_from_the_door_stops_short_of_a
+doc Zone 1 room 10 (tech 10), the west door is too far back for gap A: a crouch-dash needs about 227.5 u from start to rest, and from the arrival (x 74) with the stick held toward the wall the body stands up before the face (x 438) and walks to it. A crouch-dash that gets through A starts at x 295 or later (10_dash_window_a_edge)
+room zone1/10_crouch_dash_under
+spawn 74 960
+frames 80
+input
+  0 D R dash
+  1..79 R
+end
+expect
+  at 0 event.dash=1 height=28
+  never 0..79 x>440u
+  at 79 x=438u hit_wall=1 height=44
+end

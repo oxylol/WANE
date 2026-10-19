@@ -1,28 +1,85 @@
-# Zone 1, room 10 (stub, Phase 1 task 7): replaced by the room that teaches tech 10, Crouch-dash under (BUILD.md s5).
+# Zone 1, room 10 (grey box): Crouch-dash under. BUILD.md s5 tech 10, "crouch, then dash, keeps
+# the 28-tall hitbox. Taught by a low gap"; docs/adr/0010 (Crouch, Crouch-dash, Low gaps),
+# docs/adr/0014 (doors). Grey boxes, not art.
+#
+# Layout (units; a tile is 32): 60 x 34 tiles. The floor's top is y 960 (row 30). The hall is 576
+# tall (rows 12..29) under a solid ceiling, so a wall that stands from floor to ceiling has no way
+# over it. Two doors, 128 tall, on the floor: west and east at y 832..960; the player arrives at
+# x 74.
+#   A  x 448..512   a wall 64 thick with a gap in its bottom row: 32 tall, 64 long. The safe first
+#                   encounter: floor both sides, nothing that hurts. A crouch-dash gets through
+#                   if it starts at x 295 or later (up to the face, x 438: 143 u); from the west
+#                   door (x 74) it is too far, so the player runs to the wall first.
+#   B  x 960..1056  the same wall 96 thick (the gap 32 tall, 96 long). The real one.
+#      x 1056..1344 a landing (9 tiles), then x 1344..1504 a pit (5 tiles of '~', a hazard), then
+#                   floor to the east door. A plain run-jump clears the pit with margin (about
+#                   190 u of reach).
+# The numbers that matter: the standing body is 44 tall, the crouched one 28, a gap is 32, the box
+# is 20 wide. A crouch-dash is 180 u in 9 frames plus 3 carry frames at 10 u, 227.5 u from start
+# to rest (traced). The crouched body cannot move, so a dash that ends with the box's edge still
+# under the wall column strands the player until the 24 frame ground cooldown allows a second
+# one (ADR-0010 level rule: a crouch-only gap is at most one crouch-dash long). Gap B: a dash
+# started at x 839 or later (111 u before the face, x 950) gets out and the player runs on
+# standing; at x 838 it ends crouched at 1065.5, 0.5 u under the column, stuck.
+# Recovery from a stranded gap: dash again after 24 frames. The second dash ends at x 1293 at the
+# furthest, 51 u short of the pit, and A is open floor to B (zone1_10_stranded_second_dash_lands).
+# The landing was made 9 tiles for that: a second dash from the worst stranded spot must end
+# before the pit, not run into it. Other exits from a stranded spot: dash back west, or jump with
+# the stick neutral.
+#
+# Why the tech is needed. The gaps are too low to walk (44 > 32), a standing dash stops at the
+# face (x 950 for B), a hop in a low gap never crawls (the crouched box cannot move, in the air
+# either), crouching alone at the face slides the body 13.5 u into B at most, and nothing goes
+# over or under: both walls run from the floor to the solid ceiling and the floor below is solid.
+# Ash can crouch before this room (the stick down) and has been taught every tech up to 9; this
+# is the first place that needs the crouch-dash.
+# Not the only way, and why it still is the best way: the Ember Toss (tech 11, next room) flies
+# through a 32 tall gap (the ember is a point 22 u above the floor) and teleports the player
+# beyond it, so one toss skips one gap. There are two gaps in a row and the toss has a 12 s
+# cooldown, so a toss cannot skip both; the player needs a crouch-dash for the other, or to wait
+# 720 frames for a second toss. A crouch-dash has a 24 frame cooldown and risks nothing. A toss
+# from B's face with the re-press while the ember is past the wall (tick 24: x 1160) lands on the
+# landing and skips B; left to fly its 400 u the ember stops at x 1350 and the teleport puts Ash
+# on the 4 u of floor at the pit's rim (zone1/10_toss_from_the_face_*). About 3 s for a skilled
+# player (the teaching route crosses at frame 182).
 room zone1/10_crouch_dash_under
-size 60 20
-spawn 200 544
+size 60 34
+spawn 74 960
 tiles
 ############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+#.............##..............###..........................#
+..............##..............###...........................
+..............##..............###...........................
+..............##..............###...........................
 ............................................................
-............................................................
-............................................................
-............................................................
+##########################################~~~~~#############
 ############################################################
 ############################################################
 ############################################################
 end
-door west left 416 544 zone1/09_reverse_pogo east
-door east right 416 544 zone1/11_ember_toss_cancel west
+door west left 832 960 zone1/09_reverse_pogo east
+door east right 832 960 zone1/11_ember_toss_cancel west

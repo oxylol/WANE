@@ -1,0 +1,16 @@
+fixture zone1_10_dash_then_crouch_then_jump_stops_in_a
+doc Zone 1 room 10 (tech 10), the full kit at gap A with a crouch in the middle: a standing dash, the stick down, then a jump with the stick held toward the wall. The crouched body slides into the gap at most to x 493 and cannot move or hop, 29 u short of A's exit (centre 522). Guards the margin against a later change to crouch deceleration or air bleed
+room zone1/10_crouch_dash_under
+spawn 250 960
+frames 90
+input
+  0 R dash
+  1..8 R
+  9 D
+  10 D R jump
+  11..89 D
+end
+expect
+  never 0..89 x>520u
+  never 0..89 event.room=1
+end

@@ -1,0 +1,15 @@
+fixture zone1_10_dash_window_missed
+doc Zone 1 room 10 (tech 10), the other side of the window edge (see 10_dash_window_edge): started at x 838, 112 u before the face, the dash ends crouched at x 1065.5 with the body's left edge 0.5 u inside the wall column (the box is 20 wide, the column ends at 1056), where the crouched box cannot move or stand even with the stick held. This is the stranded state ADR-0010 describes; the recovery is a second dash (10_stranded_second_dash_lands)
+room zone1/10_crouch_dash_under
+spawn 838 960
+frames 60
+input
+  0 D R dash
+  1..59 R
+end
+expect
+  at 0 event.dash=1 height=28
+  at 30 height=28 x>1065u x<1066u
+  at 59 height=28 x>1065u x<1066u
+  never 0..59 hit_wall=1 x>1066u
+end

@@ -1,0 +1,14 @@
+fixture zone1_10_dash_window_a_edge
+doc Zone 1 room 10 (tech 10), the edge of gap A's window (see 10_dash_from_the_door_stops_short_of_a): gap A is 64 long (x 448..512), so the dash must end with the body's centre past 522 to stand. Started at x 295, 143 u before the face (x 438), it does; at x 294 it ends crouched at 521.5 and is stuck
+room zone1/10_crouch_dash_under
+spawn 295 960
+frames 60
+input
+  0 D R dash
+  1..59 R
+end
+expect
+  at 0 event.dash=1 height=28
+  at 30 height=44 x>522u
+  never 0..59 event.hazard=1
+end

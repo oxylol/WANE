@@ -1,0 +1,27 @@
+fixture zone1_10_wall_stops_the_full_kit
+doc Control for zone 1 room 10 (tech 10): the walls of the low gaps run from the solid floor to the solid ceiling, so no dash-jump, air jump, air dash or wall-kick passes them. A dash-jump from 700 into gap B's wall, the air jump, an up-forward air dash and wall-kicks, all with the stick held toward it
+room zone1/10_crouch_dash_under
+spawn 700 960
+frames 140
+input
+  0 R dash
+  # A dash-jump: the jump on dash frame 6 keeps the dash speed into the air.
+  6 R jump
+  # The air jump after it, then the air dash up and forward.
+  20 R jump
+  30 U R dash
+  31..59 R
+  # Kicks off the wall's face, then forward again.
+  60 R jump
+  61..79 R
+  80 R jump
+  81..99 R
+  100 R jump
+  101..139 R
+end
+expect
+  at 0 event.dash=1
+  at 6 event.jump=1
+  never 0..139 x>950u
+  never 0..139 event.room=1
+end

@@ -1,0 +1,20 @@
+fixture zone1_10_one_toss_skips_one_gap
+doc Control for zone 1 room 10 (tech 10): the Ember Toss (tech 11) crosses a low gap (the ember flies through the 32 u gap and the player teleports beyond it), but its 12 s cooldown (BUILD.md s6, 720 f) means one toss skips one of the two gaps. From x 300 a toss goes over gap A; gap B still stops the player at its face with the cooldown running
+room zone1/10_crouch_dash_under
+spawn 300 960
+frames 130
+input
+  0 R toss
+  1..29 R
+  # The ember is past gap A (x 512) from frame 24 on: teleport to it.
+  30 toss
+  31..129 R
+end
+expect
+  at 29 ember=1 ember_x>512u
+  at 30 event.teleport=1 x>512u
+  never 0..129 event.hazard=1
+  # Over A, the player runs to B's face and stops: the toss is on cooldown.
+  at 129 x=950u hit_wall=1 toss_cooldown>500
+  never 0..129 event.room=1
+end
