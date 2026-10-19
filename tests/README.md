@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | `unit/` | gdUnit4 suites for the core and tools | `tools/ci/run_tests.gd --stage unit` |
 | `replay/` | Replay fixtures: an input script and the expected state at named frames (BUILD.md section 13) | `tools/ci/run_tests.gd --stage fixtures` |
-| `perf/` | The stress room benchmark (Phase 1 task 8) | `ci/perf.sh` |
+| `perf/` | The stress room benchmark (task 8; not built yet) | `ci/perf.sh` (task 8: does not exist yet) |
 | `screenshot/` | Screenshot regression (Phase 2) | |
 
 Run everything: `ci/test.sh` (or `godot --headless --path . --script tools/ci/run_tests.gd`).

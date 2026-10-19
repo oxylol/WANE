@@ -10,9 +10,9 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning.
 - `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind.
-- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015). `core/clock/` empty.
+- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015).
 - `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `game/lighting/`, `shaders/`, `assets/`.
-- `content/` see Tunable numbers. `tools/ci/` test gate; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics bench; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; `tools/room_editor/` the room editor (below).
+- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless, probes (`coyote_scan`, `gap_reach`, `proc_seeds`); `tools/bench/` physics and proc benches; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; `tools/room_editor/` the room editor (below).
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/`, `tests/screenshot/` empty.
 - `ci/` `ci/test.sh`, `ci/lint.sh`, `ci/setup_godot.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
 
@@ -24,7 +24,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - Combat: `core/combat/combat.gd resolve`: effects age, player hits (strike, spells, pogo, trails), enemy hits (parry window).
 - Collision moves: `core/physics/collision_world.gd move_x`, `:367 move_y`, `:455 landing_contact`, `:520 walk`, `:853 drop_through`.
 - Rooms: `core/rooms/room_data.gd parse` (problems in `errors`), `:91 load_id`, `:348 build_world`; `core/rooms/room_set.gd reach` (rooms reachable by doors); `core/rooms/room_joins.gd errors`.
-- Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel` (toolbar, palette, inspector, problems); `tools/room_editor/room_canvas.gd RoomCanvas` (mouse to edits); `tools/room_editor/room_document.gd RoomDocument` (edits, `problems`, `save`, undo), with `tools/room_editor/room_door_edits.gd RoomDoorEdits` and `tools/room_editor/room_object_edits.gd RoomObjectEdits`; `tools/room_editor/entity_kinds.gd EntityKinds`; picture: `tools/room_editor/screenshot.gd`.
+- Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel` (toolbar, palette, inspector, problems); `tools/room_editor/room_canvas.gd RoomCanvas` (mouse to edits); `tools/room_editor/room_document.gd RoomDocument` (edits, `problems`, `save`, undo), with `tools/room_editor/room_history.gd RoomHistory`, `tools/room_editor/room_door_edits.gd RoomDoorEdits` and `tools/room_editor/room_object_edits.gd RoomObjectEdits`; `tools/room_editor/entity_kinds.gd EntityKinds`; picture: `tools/room_editor/screenshot.gd`.
 - Input: `core/sim/input_ring.gd push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
 - Hashes: `core/sim/state_hasher.gd add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd encode`, `core/sim/replay_player.gd verify`.
 - Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
@@ -55,7 +55,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>` (`--every --from --frames --scale --set`).
 - One gdUnit suite: `godot --headless --path . -s -d --remote-debug tcp://127.0.0.1:0 res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -c -rd reports -a res://tests/unit/core/test_rng.gd`; failures: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
-- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `python3 tools/ci/test_gd_coverage.py`, `python3 tools/ci/test_codemap.py`. Bench: `tools/bench/physics_bench.gd`.
+- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `python3 tools/ci/test_gd_coverage.py`, `python3 tools/ci/test_codemap.py`. Bench: `tools/bench/physics_bench.gd`, `tools/bench/proc_bench.gd`. Perf gate: task 8.
 
 ## Rules agents trip on
 
@@ -74,16 +74,17 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0004-input-frames-and-ring-buffer` Latched presses; 8-frame ring.
 - `0005-rng-split-streams` xoshiro128**, five streams.
 - `0006-replays-and-fixtures` `.wrp`, fixture language, goldens, 10 s budget.
-- `0007-fixed-step-driver` Step at the start of each period; lock to vsync.
+- `0007-fixed-step-driver` Step at the start of each period.
 - `0008-physics-sweep` 32 u tiles, solid boxes, validated slopes.
 - `0009-room-format` Room text format: tiles, solids, markers, doors.
 - `0010-player-movement-rules` How Ash's layers read BUILD.md s5.
-- `0011-camera` Rest on support heights; never outrun the player.
-- `0012-debug-overlay-and-frame-stepper` F3 overlay from the latest tick; F4 to F6 step.
+- `0011-camera` Rest on support heights.
+- `0012-debug-overlay-and-frame-stepper` F3 overlay; F4 to F6 step.
 - `0013-combat` Combat resolves once per tick, after all movement.
-- `0014-doors-and-zones` Paired `door` lines, crossed inside the strip.
-- `0015-procs-and-votives` The proc bus after the player's hits; a Votive is content behind a narrow listener API.
-- `0016-tech-rooms-teach-they-do-not-gate` A tech room makes its tech the cheapest route, not the only one; controls and bypass records.
+- `0014-doors-and-zones` Paired `door` lines.
+- `0015-procs-and-votives` Proc bus after the player's hits; Votives are content.
+- `0016-tech-rooms-teach-they-do-not-gate` A tech room makes its tech the cheapest route, not the only one.
 - `0017-ember-toss-cancel-over-a-chasm` Tech 11: throw in the dash-jump chain, teleport over the chasm.
-- `0018-room-editor-install` Plugin in `addons/room_editor/` as a shim, code in `tools/room_editor/`; the editor shows the loader's problems.
+- `0019-zone1-grey-box-gates-and-teaches` Which zone 1 rooms gate their tech, which teach.
+- `0018-room-editor-install` Plugin shim in `addons/room_editor/`, code in `tools/room_editor/`.
 - `0000-template` The ADR template.

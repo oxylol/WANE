@@ -46,3 +46,6 @@ Committed fixtures whose path moved (per-tick probe values compared before and a
 - Side 1's recoil is only 8 u (60 u/s for 8 f). Play the training dummy at close range: if it should read stronger, raise `recoil_frames` or the strike's recoil.
 - Armor on a hit: the hit still freezes Ash for 8 f but does not push him; decide whether an armored hit should skip the hitstop as well.
 - Follow-up review (F1, F2): `Simulation.VERSION` 10; 15 existing fixtures' hashes moved (the hazard's invulnerability is hashed) and were re-blessed with the 2 new ones; no expectation changed.
+
+## Spec sync (BUILD.md)
+- BUILD.md section 6 updated from this entry: the Taper table row for side 1 (recoil 60 u/s for 8 f), the Armor, recoil and Charged-hold bullets, and the Player hit row and the hazard bullet (20 free frames, hit or hazard tick excluded; the hazard path was 19 until the follow-up fix). Section 5's 2-frame startup rule is enforced on strikes by content validation; spells are exempt (ADR-0013).

@@ -317,19 +317,19 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 | Finisher | 4 f both | 1.5 u, 4 f | Launch | Slash arc smear, spark burst, bass thump |
 | Charged | 6 f both | 3 u, 6 f | Big | Brief chromatic split 1 f, slow-motion 0.8× for 8 f on kill |
 | Parry | 12 f both | 2 u, 6 f | Enemy only | Full-screen white flash 1 f (at most 3 full-screen flashes in any 60 ticks, section 12), high chime, time to 0.5× for 6 f (it starts after the hitstop, also when a second parry lands inside it) |
-| Player hit | 8 f player only | 4 u, 8 f | 300 u/s away for 12 f (any action ends it), 20 f of invulnerability after the hitstop (docs/adr/0013) | Red vignette pulse, heart cracks, controller rumble 0.6 for 100 ms |
+| Player hit | 8 f player only | 4 u, 8 f | 300 u/s away for 12 f (any action ends it), 20 free frames of invulnerability after the hitstop (28 world ticks from the hit; the hit's own tick is not counted) (docs/adr/0013) | Red vignette pulse, heart cracks, controller rumble 0.6 for 100 ms |
 | Kill | 3 f | 1 u, 3 f | Corpse carries momentum | Enemy ember released as a particle that flies to the player (+Flame), chalk-ink dissolve |
 | Boss phase | 20 f all | 6 u, 12 f |  | Music stinger, ambient light flips |
 
 - Screen shake has a global scaler in settings and is capped at 6 u. Shake is directional (along the hit) not random.
 - Hitstop is never applied to the player's own input reading: the player can buffer through it.
-- A hazard (spikes) costs a heart as a hit does, and sends the player back to safe ground (docs/adr/0013).
+- A hazard (spikes) costs a heart as a hit does, sends the player back to safe ground and gives the same 20 free frames of invulnerability, hazard tick excluded (docs/adr/0013).
 - Every hit has a *weight*: damage above 30 adds 1 f of hitstop per 10 damage, capped at 8.
 
 ### Item procs
 
 - Every Taper hit, pogo, spell tick and Dust scale is a **proc event** with a proc coefficient (Taper 1.0, pogo 0.8, Kindle 0.5 per tick, Dust 0.3 per scale, Radiance 0.2). Kindle's cone is its first tick and each burn tick another; Radiance reaching an enemy is an event; a pogo off the world and the Blaze tier's fire are not (docs/adr/0015).
-- Votives listen for events. A 10% proc Votive on a 0.5-coefficient hit is a 5% chance. Stacking adds chance linearly to a cap of 100%, then adds extra rolls. The coefficient and the Flame tier's bonus scale the stacked chance, and the split past 100% comes last (docs/adr/0015).
+- Votives listen for events. A 10% proc Votive on a 0.5-coefficient hit is a 5% chance. Stacking adds chance linearly to a cap of 100%, then adds extra rolls. The Flame tier's "+10% chance" is relative (10% becomes 11%), as its "+10% damage" is. The coefficient and the Flame tier's bonus scale the stacked chance, and the split past 100% comes last (docs/adr/0015).
 - Proc chains are allowed (a proc can trigger another) to a depth of 3, then stop. This is what makes a late run look like fireworks without breaking the frame budget. Procs resolve after the player's hits and before the enemies'; a proc's own hit is proc damage, with no hitstop, knockback, Kindling or Flame of its own, and its kill is a kill (docs/adr/0015).
 
 ### Enemy-side rules
@@ -429,7 +429,7 @@ Votives are stackable passive items: 120 at launch, four tiers, every one a proc
 | Tier | Count | Drop share | Flavor | Example |
 | --- | --- | --- | --- | --- |
 | **Candle** (common) | 55 | 65% | Small, honest, stack forever | *Pilgrim's Wick*: +8% run speed per stack. *Tallow Knuckle*: hits deal +3 flat damage per stack. |
-| **Lantern** (uncommon) | 35 | 25% | Build-defining procs | *Bell of the Vigil*: 10% chance on hit to ring, stunning everything in 120 u; stacks add chance. *Second Ember*: pogo bounces grant 1 extra air dash per stack. |
+| **Lantern** (uncommon) | 35 | 25% | Build-defining procs | *Bell of the Vigil*: 10% chance on hit to ring, stunning everything in 120 u for 30 f (the length of a poise break's stagger; a stunned swing is cancelled); stacks add chance. *Second Ember*: pogo bounces grant 1 extra air dash per stack. |
 | **Star** (rare) | 20 | 8% | Run-changing | *Hearthshard*: your ember's light radius doubles and enemies inside it take 15% more damage; stacks add 50% radius. *The Abbess's Mercy*: parries heal half a heart; stacks add a quarter. |
 | **Relic** (boss) | 12 | Boss drops | Unique to a boss, one per run usually | *Gnawer's Lantern*: Radiance costs 0 for 1 use per zone. *Warden's Lantern*: on death, relight once per run at 1 heart with White Kindling. |
 | **Soot** (corruption) | 15 | Lamplighter Shrine only | Strong, with a cost | *Snuffed Blade*: +40% damage; the Wane Clock runs 20% faster. *Hollow Step*: dash has no cooldown; max hearts −1 per stack. |
