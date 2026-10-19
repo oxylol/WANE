@@ -16,6 +16,17 @@ air_dash_rides_ramp_onto_crest_lip in:0b614694 content:64198084 48:6ee8cc1b
 air_dash_up_1to2_ramp_rows in:9dbf04ff content:eb4c4a26 30:736d193c
 air_dash_up_45_ramp_rows in:83f183f4 content:aa6ebd24 24:c8945ed5
 air_reverse_keeps_momentum in:86adfe4f content:faf53041 40:1b20d54c
+bell_fifteen_stacks_rings_once in:0d33d74a content:97ed6005 10:815f6ee5
+bell_fifteen_stacks_rolls_a_second in:2dc57d59 content:97ed6005 10:361b2f8a
+bell_flame_tier_adds_a_tenth in:6a9e53a8 content:97ed6005 10:bdf16e4b
+bell_flame_tier_control in:708de3f5 content:97ed6005 10:4be62343
+bell_on_kindle_ticks_at_half_chance in:93bf1896 content:47dfc868 22:4514f022
+bell_on_radiance_reach in:e757d15d content:f3194627 12:5502cfc3
+bell_rings_on_every_hit_at_ten_stacks in:223d8ae4 content:97ed6005 30:ae0c21e6
+bell_seed_1 in:d46d98bc content:e0e89389 120:2adc9f16 60:0f9eccf9 120:2adc9f16
+bell_seed_2 in:6321ff12 content:e0e89389 120:752d8ac6 60:fcde75d6 120:752d8ac6
+bell_stun_takes_the_swing in:f434361f content:6834c127 90:e806e48f 60:3bd8ffac
+bell_stun_takes_the_swing_control in:44c46c23 content:a613922a 60:fcda9fe7 60:fcda9fe7
 blaze_chain_trails_burn_once in:1db38b13 content:bdcc5c46 30:771002ab
 blaze_strike_keeps_knockback in:8d2e5a25 content:1db4e163 30:3b765d77
 burn_tick_keeps_knockback in:8d304229 content:bdcc5c46 50:eba31ad2
@@ -227,6 +238,9 @@ hazard_loop_stick_held_pit in:9450167e content:adaf0d25 200:f60cb3f4 60:64c08bf6
 hazard_respawn_drops_stale_dash in:0e459a63 content:adaf0d25 120:ee57d9a2 60:1bd08b41 120:ee57d9a2
 hazard_respawn_drops_stale_jump in:f6b331fd content:adaf0d25 120:e1205e3c 60:7a8984bf 120:e1205e3c
 hazard_respawn_stays_off_the_lip in:9450167e content:adaf0d25 200:f60cb3f4 60:64c08bf6 120:77243d9e 180:1527e619
+hollow_step_costs_a_heart in:e8b42c79 content:8adde55d 2:0b14d651
+hollow_step_dash_has_no_cooldown in:71b4c40e content:8adde55d 30:98341404
+hollow_step_never_below_one_heart in:2ca9b0b7 content:8adde55d 2:45eb9f74
 input_buffer_latest_press in:79863b73 content:e8eed1a0 30:78853fdf
 jump_air_jump in:b7248470 content:faf53041 80:604e8514 60:ce3c1c14
 jump_buffer_8f in:9f9f81c6 content:faf53041 70:e7faa567 60:ce3c1c14
@@ -270,6 +284,11 @@ oneway_low_stick_jumps in:143cf6e1 content:4c774f6e 30:01ff99bf
 parry_window_first_frame in:d90b3d88 content:a613922a 80:46beafe0 60:2ff498db
 parry_window_last_frame in:bfc392d0 content:a613922a 70:6f4c9b4d 60:5811a516
 parry_window_too_early in:fea6ec8e content:a613922a 70:b40d8c2d 60:a231b212
+pilgrims_wick_control in:e8a47522 content:faf53041 40:0ea29fec
+pilgrims_wick_in_the_air in:c3d121bd content:e2a3294f 60:32d8a0d4 60:32d8a0d4
+pilgrims_wick_leaves_the_dash_alone in:d49c62bc content:e2a3294f 20:3d79911f
+pilgrims_wick_runs_faster in:e1950857 content:e2a3294f 40:416fbd0b
+pilgrims_wick_two_stacks in:872f1405 content:e2a3294f 30:3a6b0c05
 player_hit_knockback_and_invulnerability in:ec9b32a4 content:a613922a 100:efe79220 60:b4cd584a
 pogo_beats_hazard_same_frame in:39e37c04 content:538f5fcc 40:3209162b
 pogo_bounce in:3496bc2e content:538f5fcc 45:a54f70a1
@@ -290,6 +309,10 @@ radiance_bursts_with_a_dash_on_its_burst_frame in:4dcba264 content:1db4e163 20:c
 red_swing_is_never_parried in:763eaf81 content:b85e7520 70:86fe1596 60:d1fc6d49
 safe_ground_never_in_crawl_gap in:d8766008 content:0f211898 120:1acfbfa8 60:1d087385 120:1acfbfa8
 safe_ground_never_on_wax in:0becf621 content:f3d4485a 400:038b24dc 60:862c1e07 120:30ebf044 180:a135cfe0 240:70c89f78 300:ae7c6eb5 360:fcd4eb45
+second_ember_control in:cac0b959 content:85c76c6b 60:bb52d545 60:bb52d545
+second_ember_grants_an_air_dash in:b570b448 content:24ab599b 60:ba73d58e 60:ba73d58e
+second_ember_off_the_spikes in:e4efa613 content:15309a21 60:9b4439ac 60:9b4439ac
+second_ember_two_stacks_and_the_landing in:dc4c77b2 content:24ab599b 80:3580fc28 60:57e83d23
 side1_hits_dummy_once in:f81113b6 content:1db4e163 30:7816da70
 side2_jump_waits in:a0007a62 content:faf53041 50:f4775e58
 stress_burst_fires_thirty_nine in:d9ec3a2e content:cb0bcf56 20:543469e6
@@ -299,6 +322,13 @@ strike_on_landing_tick_beside_step in:c438755d content:b2b9cb35 20:2243ad7b
 strike_stick_a_little_up_is_side in:6d7e934e content:faf53041 30:19b227a9
 strike_stick_up_diagonal in:57ec28be content:faf53041 40:ac4b2ec3
 subframe_tap_is_kept in:a4cbd804 content:e8eed1a0 12:f095ccf6
+tallow_knuckle_adds_three in:3524e55d content:51ccd2e5 20:45c0d3fa
+tallow_knuckle_before_kindling in:c006e8b3 content:51ccd2e5 20:a54fb555
+tallow_knuckle_before_kindling_control in:f2640074 content:1db4e163 20:de360e9a
+tallow_knuckle_control in:631af8f7 content:1db4e163 20:87369e74
+tallow_knuckle_never_adds_weight in:e91b78ea content:51ccd2e5 20:a2d5f775
+tallow_knuckle_not_on_kindle in:649a0443 content:697a9e19 10:3f253239
+tallow_knuckle_on_the_pogo in:db4da05c content:e68cca39 20:fba9840c
 tally_keeps_its_count_in_the_bus in:d6562388 content:57642ca0 30:f064d33e
 tech01_dash_slash in:ec876087 content:faf53041 60:8521e56c 60:8521e56c
 tech02_control_all_resources in:21692cf2 content:10a83501 160:55253350 60:48af8a5b 120:d212f696

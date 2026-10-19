@@ -1,0 +1,15 @@
+fixture second_ember_two_stacks_and_the_landing
+doc BUILD.md s8 Stacking math, linear: two Second Embers leave three air dashes after a bounce; they last until Ash lands, where the airtime's resources come back to its own one (docs/adr/0015).
+room test/dummy_pogo
+spawn 300 460
+option votive_second_ember 2
+frames 80
+input
+  0 D attack
+end
+expect
+  mark bounce 0..12 event.pogo=1
+  at bounce air_dashes=3
+  mark land bounce+1..79 event.land=1
+  at land air_dashes=1
+end

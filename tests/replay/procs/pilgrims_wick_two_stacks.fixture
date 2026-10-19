@@ -1,0 +1,12 @@
+fixture pilgrims_wick_two_stacks
+doc BUILD.md s8 Stacking math, "Linear: ... run speed ... Add per stack, no cap": two Pilgrim's Wicks are +16%, 540 x 1.16 = 626.4 u/s, 2673 sub-pixels a tick (rounded once, from 2672.64), still reached on frame 5.
+room test/flat
+option votive_pilgrims_wick 2
+frames 30
+input
+  0..29 R
+end
+expect
+  at 4 vx<2673
+  during 5..29 vx=2673
+end

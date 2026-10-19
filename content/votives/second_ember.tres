@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Votive" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/items/votive.gd" id="1"]
+[ext_resource type="Script" path="res://core/items/stacking_curve.gd" id="2"]
+[ext_resource type="Script" path="res://content/votives/second_ember.gd" id="3"]
+
+[sub_resource type="Resource" id="curve"]
+script = ExtResource("2")
+kind = 0
+first_stack = 1
+per_stack = 1
+
+[resource]
+script = ExtResource("1")
+id = "second_ember"
+display_name = "Second Ember"
+tier = 1
+curve = SubResource("curve")
+unit = "count"
+listens_to = PackedStringArray("bounce")
+listener = ExtResource("3")
+params = Dictionary[String, int]({})
+hit_coefficient_permille = 0
+mechanical_line = "Air dashes after a pogo bounce: +{total} until you land. +{per_stack} per stack."
+in_world_line = "The Vigil teaches that a Wick carries one ember because there is only one Hearth. Then whose is this? It woke in my hand on the Ossuary Steps. It is warm, and it asks me for nothing."
+author = "Moth, of the Lamplighters"

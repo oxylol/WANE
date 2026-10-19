@@ -1,0 +1,11 @@
+fixture pilgrims_wick_leaves_the_dash_alone
+doc docs/adr/0015, what run speed covers: not the dash. A ground dash with a Pilgrim's Wick still moves 20 u a tick (BUILD.md s5 Dash, "180 u in 9 f"), 5120 sub-pixels.
+room test/flat
+option votive_pilgrims_wick 3
+frames 20
+input
+  0 dash
+end
+expect
+  during 0..8 state=dash vx=5120
+end

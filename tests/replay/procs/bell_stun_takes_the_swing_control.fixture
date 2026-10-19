@@ -1,0 +1,11 @@
+fixture bell_stun_takes_the_swing_control
+doc Control for bell_stun_takes_the_swing: with no Bell the hit on frame 42 comes after the swing's cue, so the swing lands on frame 53 as it promised (docs/adr/0013) and costs a heart.
+room test/dummy_swing
+frames 60
+input
+  40 attack
+end
+expect
+  at 42 event.hit=1 event.proc=0 enemy.state=telegraph
+  at 53 event.player_hit=1 hearts=4
+end

@@ -1,0 +1,10 @@
+fixture hollow_step_costs_a_heart
+doc BUILD.md s8 Tiers, Hollow Step: "max hearts -1 per stack": one Hollow Step leaves 4 of the 5 base hearts (s6 Flame), and the run starts with 4.
+room test/flat
+option votive_hollow_step 1
+frames 2
+input
+end
+expect
+  at 0 hearts=4 max_hearts=4 votive.hollow_step=1
+end

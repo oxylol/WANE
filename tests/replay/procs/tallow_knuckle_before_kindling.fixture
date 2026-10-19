@@ -1,0 +1,12 @@
+fixture tallow_knuckle_before_kindling
+doc docs/adr/0015: the Knuckle's damage joins the hit before Kindling's bonus multiplies it. At the Flame tier (+10%, BUILD.md s6 Kindling) side 1 with one Knuckle deals (10 + 3) x 1.1 = 14.3, rounded to 14; without it 11 (tallow_knuckle_before_kindling_control).
+room test/dummy
+option votive_tallow_knuckle 1
+option kindling 8
+frames 20
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=186 tier=flame
+end

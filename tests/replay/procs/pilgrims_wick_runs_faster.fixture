@@ -1,0 +1,13 @@
+fixture pilgrims_wick_runs_faster
+doc BUILD.md s8 Tiers, Pilgrim's Wick: "+8% run speed per stack" (content/votives/pilgrims_wick.tres; docs/adr/0015). Run speed is the most Ash runs at: 540 u/s x 1.08 = 583.2 u/s, 2488 sub-pixels a tick (9.72 u), reached in the run's own 6 frames (s5 Ground: "0 to max in 6 f"). Control: pilgrims_wick_control, 2304 (9 u).
+room test/flat
+option votive_pilgrims_wick 1
+frames 40
+input
+  0..39 R
+end
+expect
+  at 0 vx=415
+  at 4 vx<2488
+  during 5..39 vx=2488
+end

@@ -1,0 +1,13 @@
+fixture tallow_knuckle_adds_three
+doc BUILD.md s8 Tiers, Tallow Knuckle: "hits deal +3 flat damage per stack" (content/votives/tallow_knuckle.tres; docs/adr/0015). Side 1 deals 10 + 3 on the dummy; its hitstop, Flame and Kindling are a light hit's. Control: tallow_knuckle_control.
+room test/dummy
+option votive_tallow_knuckle 1
+frames 20
+input
+  0 attack
+end
+expect
+  at 1 enemy.hp=200 votive.tallow_knuckle=1
+  at 2 event.hit=1 enemy.hp=187 freeze=2 enemy.freeze=2 flame=11 kindling=1 procs=0
+  never 3..19 event.hit=1
+end

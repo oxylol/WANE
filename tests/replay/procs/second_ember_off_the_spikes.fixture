@@ -1,0 +1,17 @@
+fixture second_ember_off_the_spikes
+doc docs/adr/0015: Second Ember hears every pogo bounce, off the world as off an enemy (BUILD.md s5 Pogo: "on hitting an enemy, hazard or pogo-able surface"). An air jump and an air dash spent, then a pogo off the spikes: two air dashes after it (as pogo_resets leaves one).
+room test/spikes
+spawn 800 200
+option votive_second_ember 1
+frames 60
+input
+  2 jump
+  5 dash
+  34..59 D attack
+end
+expect
+  at 5 event.dash=1 air_dashes=0
+  mark bounce 34..59 event.pogo=1
+  at bounce air_dashes=2 air_jumps=1 event.proc=1
+  never 0..59 event.hazard=1
+end

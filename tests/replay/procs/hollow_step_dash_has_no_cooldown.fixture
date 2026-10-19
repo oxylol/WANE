@@ -1,0 +1,13 @@
+fixture hollow_step_dash_has_no_cooldown
+doc BUILD.md s8 Tiers, Hollow Step: "dash has no cooldown" (content/votives/hollow_step.tres; docs/adr/0015: as at Kindling White). The second ground dash starts the frame it is pressed, after the first one's carry-over, where the 24 f cooldown would hold it (white_dash_cooldown_control).
+room test/flat
+option votive_hollow_step 1
+frames 30
+input
+  0 dash
+  12 dash
+end
+expect
+  at 0 event.dash=1
+  at 12 event.dash=1 state=dash
+end

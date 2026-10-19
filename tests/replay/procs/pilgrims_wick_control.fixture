@@ -1,0 +1,11 @@
+fixture pilgrims_wick_control
+doc Control for pilgrims_wick_runs_faster: with no Votive Ash runs at 540 u/s, 2304 sub-pixels a tick, from frame 5 (BUILD.md s5 Ground).
+room test/flat
+frames 40
+input
+  0..39 R
+end
+expect
+  at 0 vx=384
+  during 5..39 vx=2304
+end

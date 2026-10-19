@@ -1,0 +1,10 @@
+fixture tallow_knuckle_control
+doc Control for tallow_knuckle_adds_three: the same strike with no Votive deals the Taper table's 10 (BUILD.md s6, Side 1).
+room test/dummy
+frames 20
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=190 freeze=2 votive.tallow_knuckle=0
+end

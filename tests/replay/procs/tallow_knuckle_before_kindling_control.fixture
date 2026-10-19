@@ -1,0 +1,11 @@
+fixture tallow_knuckle_before_kindling_control
+doc Control for tallow_knuckle_before_kindling: at the Flame tier with no Votive side 1 deals 10 x 1.1 = 11.
+room test/dummy
+option kindling 8
+frames 20
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=189
+end
