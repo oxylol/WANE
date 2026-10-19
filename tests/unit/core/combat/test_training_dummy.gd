@@ -174,14 +174,14 @@ func test_a_solid_dummy_stops_a_body_that_runs_into_it() -> void:
 
 
 func test_a_dummy_that_is_not_solid_is_walked_through() -> void:
-	var _d: TrainingDummy = _dummy()
+	_dummy()
 	var b: Body = Body.make(Fx.units(300), Fx.units(256), Fx.units(10), Fx.units(48))
 	_world.refresh_ground(b)
 	_world.move_x(b, Fx.units(400))
 	assert_int(b.x).is_equal(Fx.units(700))
 
 
-func test_a_solid_dummy_is_out_of_the_way_while_dead_and_after_it_comes_back_waits_for_the_player() -> void:
+func test_a_solid_dummy_is_out_of_the_way_dead_and_waits_for_the_player_to_leave() -> void:
 	var d: TrainingDummy = _dummy({"solid": "1"})
 	assert_bool(d.blocker.enabled).is_true()
 	d.take_hit(500, 0, 0)
@@ -197,7 +197,7 @@ func test_a_solid_dummy_is_out_of_the_way_while_dead_and_after_it_comes_back_wai
 	assert_bool(d.blocker.enabled).is_true()
 
 
-func test_a_solid_dummys_body_follows_its_knockback_and_is_not_blocked_by_itself() -> void:
+func test_a_solid_dummys_body_follows_its_knockback_without_blocking_itself() -> void:
 	var d: TrainingDummy = _dummy({"solid": "1"})
 	d.take_hit(10, Fx.speed(120), 0)
 	var x0: int = d.body.x

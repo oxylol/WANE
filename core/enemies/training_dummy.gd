@@ -19,9 +19,9 @@ var period: int = 90
 var attacks_on: bool = false
 var red: bool = false
 var respawn_frames: int = 60
-var _idle: int = 0
 ## The body of a solid dummy (null for one the player walks through).
 var blocker: SolidBox
+var _idle: int = 0
 
 
 ## Builds a dummy from a room entity marker.
