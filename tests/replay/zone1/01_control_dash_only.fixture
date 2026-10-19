@@ -1,0 +1,38 @@
+fixture zone1_01_control_dash_only
+doc Control for room 01 (BUILD.md s5 tech 1; review F1): the hall dummy slashed once (tick 36), then a plain dash every 24 ticks and no more attacks. Before the dummies had bodies this crossed the corridor in 184 ticks, 58 faster than the dash-slash route; now the first corridor dummy is a wall to it: it never passes x 870 u and never reaches the door.
+room zone1/01_dash_slash
+spawn 74 832
+frames 300
+input
+  0..35 R
+  36 R attack
+  37..55 R
+  56 R dash
+  57..79 R
+  80 R dash
+  81..103 R
+  104 R dash
+  105..127 R
+  128 R dash
+  129..151 R
+  152 R dash
+  153..175 R
+  176 R dash
+  177..199 R
+  200 R dash
+  201..223 R
+  224 R dash
+  225..247 R
+  248 R dash
+  249..271 R
+  272 R dash
+  273..295 R
+  296 R dash
+  297..299 R
+end
+expect
+  never 0..299 event.room=1
+  never 0..299 x>870u
+  at 299 x>800u
+  at 299 hearts<5
+end

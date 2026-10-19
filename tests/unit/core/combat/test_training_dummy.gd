@@ -162,3 +162,47 @@ func test_its_state_is_in_the_hash() -> void:
 	hb = StateHasher.new()
 	b.hash_into(hb)
 	assert_int(ha.value()).is_not_equal(hb.value())
+
+
+func test_a_solid_dummy_stops_a_body_that_runs_into_it() -> void:
+	var d: TrainingDummy = _dummy({"solid": "1"})
+	var b: Body = Body.make(Fx.units(300), Fx.units(256), Fx.units(10), Fx.units(48))
+	_world.refresh_ground(b)
+	_world.move_x(b, Fx.units(400))
+	assert_int(b.right()).is_equal(d.body.left())
+	assert_int(b.hit_wall).is_equal(1)
+
+
+func test_a_dummy_that_is_not_solid_is_walked_through() -> void:
+	var _d: TrainingDummy = _dummy()
+	var b: Body = Body.make(Fx.units(300), Fx.units(256), Fx.units(10), Fx.units(48))
+	_world.refresh_ground(b)
+	_world.move_x(b, Fx.units(400))
+	assert_int(b.x).is_equal(Fx.units(700))
+
+
+func test_a_solid_dummy_is_out_of_the_way_while_dead_and_after_it_comes_back_waits_for_the_player() -> void:
+	var d: TrainingDummy = _dummy({"solid": "1"})
+	assert_bool(d.blocker.enabled).is_true()
+	d.take_hit(500, 0, 0)
+	d.step(null)
+	assert_bool(d.blocker.enabled).is_false()
+	var inside: Body = Body.make(d.body.x, Fx.units(256), Fx.units(10), Fx.units(48))
+	for _i: int in range(d.respawn_frames):
+		d.step(null)
+	assert_bool(d.is_alive()).is_true()
+	d.sync_blocker(inside)
+	assert_bool(d.blocker.enabled).is_false()
+	d.sync_blocker(null)
+	assert_bool(d.blocker.enabled).is_true()
+
+
+func test_a_solid_dummys_body_follows_its_knockback_and_is_not_blocked_by_itself() -> void:
+	var d: TrainingDummy = _dummy({"solid": "1"})
+	d.take_hit(10, Fx.speed(120), 0)
+	var x0: int = d.body.x
+	for _i: int in range(30):
+		d.step(null)
+	assert_int(d.body.x).is_greater(x0)
+	assert_int(d.blocker.left).is_equal(d.body.left())
+	assert_int(d.blocker.right).is_equal(d.body.right())

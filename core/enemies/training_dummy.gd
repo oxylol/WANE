@@ -7,9 +7,12 @@ extends Enemy
 ## (parryable) swing, or a red (unparryable) one.
 ##
 ## Room entity: `entity dummy <x> <y> [attack=1] [period=<ticks between swings>] [red=1]
-## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1]`. hp and poise override the dummy's content for
-## one marker (a one-hit kill, a poise break on the first hit); facing sets the way it faces
-## before it first turns to the player.
+## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1] [solid=1]`. hp and poise override the dummy's
+## content for one marker (a one-hit kill, a poise break on the first hit); facing sets the way it
+## faces before it first turns to the player. `solid=1` gives it a body the player cannot pass
+## while it lives (a [SolidBox] as wide and tall as the dummy): a dash or a run stops at it, so
+## only a kill clears the way (zone 1 room 1, BUILD.md s5 tech 1). The body is out of the way
+## while the dummy is dead, and stays out while the player stands where it would come back.
 
 ## Ticks between the end of one swing and the start of the next.
 var period: int = 90
@@ -17,6 +20,8 @@ var attacks_on: bool = false
 var red: bool = false
 var respawn_frames: int = 60
 var _idle: int = 0
+## The body of a solid dummy (null for one the player walks through).
+var blocker: SolidBox
 
 
 ## Builds a dummy from a room entity marker.
@@ -37,7 +42,35 @@ static func from_entity(
 	d.hp = d.max_hp
 	d.poise = d.max_poise
 	d.facing = -1 if e.prop_int("facing", -1) < 0 else 1
+	if e.prop_int("solid") != 0:
+		d.blocker = SolidBox.make(0, 0, 0, 0)
+		d.blocker.clingable = false
+		d.blocker.tag = "dummy"
+		d.sync_blocker(null)
+		p_world.solids.append(d.blocker)
 	return d
+
+
+## One tick. Its own body is out of the world while it moves, so a knock does not push it against
+## itself.
+func step(player: Player) -> void:
+	if blocker != null:
+		blocker.enabled = false
+	super.step(player)
+	if blocker != null:
+		sync_blocker(player.body if player != null else null)
+
+
+## The body follows the dummy, and is solid while it lives and the player is not inside it.
+func sync_blocker(player_body: Body) -> void:
+	blocker.left = body.left()
+	blocker.right = body.right()
+	blocker.top = body.top()
+	blocker.bottom = body.y
+	blocker.enabled = is_alive()
+	if blocker.enabled and player_body != null:
+		var pb: Body = player_body
+		blocker.enabled = not blocker.overlaps(pb.left(), pb.right(), pb.top(), pb.y)
 
 
 func _think(player: Player) -> void:

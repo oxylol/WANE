@@ -1,63 +1,53 @@
 fixture zone1_01_control_run_slashes
-doc Control for room 01 (BUILD.md s5 tech 1): the best a plain attacker does, running down the corridor and slashing every 12 ticks (the Taper's chain rate), no dash: it clears the dummies but reaches the east door 67 ticks after the dash-slash route (309 against 242), with no hit taken only if the pace holds.
+doc Control for room 01 (BUILD.md s5 tech 1): the best a plain attacker does, running down the corridor and slashing the moment a solid dummy is in reach, no dash: it clears all eleven dummies and reaches the east door at tick 429, 72 ticks after the dash-slash route (357), no hit taken.
 room zone1/01_dash_slash
 spawn 74 832
-frames 316
+frames 430
 input
-  0..19 R
-  20 R attack
-  21..31 R
-  32 R attack
-  33..43 R
-  44 R attack
-  45..55 R
-  56 R attack
-  57..67 R
-  68 R attack
-  69..79 R
-  80 R attack
-  81..91 R
-  92 R attack
-  93..103 R
-  104 R attack
-  105..115 R
-  116 R attack
-  117..127 R
-  128 R attack
-  129..139 R
-  140 R attack
-  141..151 R
-  152 R attack
-  153..163 R
-  164 R attack
-  165..175 R
-  176 R attack
-  177..187 R
-  188 R attack
-  189..199 R
-  200 R attack
-  201..211 R
-  212 R attack
-  213..223 R
-  224 R attack
-  225..235 R
+  0..35 R
+  36 R attack
+  37..86 R
+  87 R attack
+  88..116 R
+  117 R attack
+  118..145 R
+  146 R attack
+  147..149 R
+  150 R attack
+  151..176 R
+  177 R attack
+  178..206 R
+  207 R attack
+  208..235 R
   236 R attack
-  237..247 R
-  248 R attack
-  249..259 R
-  260 R attack
-  261..271 R
-  272 R attack
-  273..283 R
-  284 R attack
-  285..295 R
-  296 R attack
-  297..307 R
-  308 R attack
-  309..315 R
+  237..239 R
+  240 R attack
+  241..266 R
+  267 R attack
+  268..296 R
+  297 R attack
+  298..325 R
+  326 R attack
+  327..329 R
+  330 R attack
+  331..356 R
+  357 R attack
+  358..429 R
 end
 expect
-  never 0..308 event.room=1
-  at 309 event.room=1 room=zone1_02_dash_jump
-  never 0..315 event.player_hit=1
+  never 0..428 event.room=1
+  at 429 event.room=1 room=zone1_02_dash_jump
+  never 0..429 event.player_hit=1
+  at 428 hearts=5
+  at 38 event.kill=1
+  at 89 event.kill=1
+  at 119 event.kill=1
+  at 149 event.kill=1
+  at 179 event.kill=1
+  at 209 event.kill=1
+  at 239 event.kill=1
+  at 269 event.kill=1
+  at 299 event.kill=1
+  at 329 event.kill=1
+  at 359 event.kill=1
 end
