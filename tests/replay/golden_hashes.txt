@@ -16,6 +16,7 @@ air_dash_up_1to2_ramp_rows in:9dbf04ff content:81c71ac1 30:f8d24051
 air_dash_up_45_ramp_rows in:83f183f4 content:6bd9a86d 24:0acb7c78
 air_reverse_keeps_momentum in:86adfe4f content:fbbbb2fb 40:2cd25594
 blaze_chain_trails_burn_once in:1db38b13 content:58ab905d 30:b63c381f
+blaze_finisher_burst in:c9f61847 content:4a5809ce 30:3001a704
 blaze_strike_keeps_knockback in:8d2e5a25 content:fb9a69c2 30:a1dfec8a
 burn_tick_keeps_knockback in:8d304229 content:58ab905d 50:bb1883fe
 cam5_air_jump_above_floor in:e33f45b1 content:659c1aff 260:eab18d0a 60:db400fa4 120:b0939008 180:491a6413 240:6003263c
@@ -167,6 +168,7 @@ dash_carry_turnaround in:67acdb10 content:fbbbb2fb 30:5696e37c
 dash_diagonal_touchdown_buffered_jump in:9f9f1dc8 content:fbbbb2fb 40:6c564fa0
 dash_distance in:836ef2cc content:fbbbb2fb 30:9c48d099
 dash_down_lands_no_lag in:d90f9499 content:fbbbb2fb 30:edc7a31d
+dash_down_lip_stairs in:3ff7d17d content:dee86ff2 40:e7ca28f1
 dash_eight_way in:733cc82d content:fbbbb2fb 30:810f753c
 dash_ground_cooldown in:c53f4255 content:fbbbb2fb 50:eb885a03
 dash_ground_horizontal in:6137488c content:fbbbb2fb 60:054a5036 60:054a5036
@@ -187,6 +189,7 @@ dash_up_lip_stairs in:520107ca content:dee86ff2 120:19308a32 60:364f3fa0 120:193
 dash_up_ramp_onto_door_at_crest in:79ddd85b content:30ef2b45 14:6e60b7b3
 ddash_runs_on_onto_lip in:2427ea8c content:3444362b 24:8d54de4b
 ddash_stairs_relanding_keeps_speed in:2d54f4be content:94f428df 12:7f1a4e07
+death_far_from_the_spawn in:0fe44e73 content:bec018be 140:f0787ee4 60:f476948a 120:2fb1f187
 death_returns_to_the_spawn in:37783a3f content:9988c57f 70:25f85b88 60:fa6a877e
 door_dash_carries_through in:263598ba content:1930ff94 14:560811f7
 door_ember_stays_behind in:a3ff046b content:1930ff94 40:edef99ad
@@ -209,6 +212,7 @@ far_edge_downstrike_control in:ff3e4c8a content:585194a5 34:20b54fdf
 far_edge_landing_buffered_jump_keeps_stride in:6c8779ef content:585194a5 40:e7496974
 far_edge_landing_lands in:ea6cd387 content:585194a5 40:064e0b6f
 far_edge_touch_then_ground_jump in:dfd4e240 content:585194a5 30:99bbe58f
+five_parries_in_a_second in:c63403c2 content:a9ac6d79 100:3ab0f56a 60:977dc7db
 ground_corner_lift in:4f0bd993 content:ca946603 60:7bc64d04 60:7bc64d04
 ground_crouch in:6d814d7b content:fbbbb2fb 40:e7d154ca
 ground_decel in:b51a4c19 content:fbbbb2fb 30:49ce300b
@@ -354,9 +358,11 @@ telegraph_cue_waits_for_hitstop_before_it in:20ac4bfe content:cf21af6d 60:a731a9
 toss_ember_goes_out_on_hazard_respawn in:f1e92d2a content:9381a3e6 140:3b61e6b8 60:8f0543cb 120:5b92cf6b
 toss_on_cling_frame_goes_away in:af40b10a content:2593f714 40:ab488914
 turn_after_hazard_in_wall_jump_lock in:0aea8fa3 content:411b7fa2 50:eb907183
+two_parries_in_a_slow in:9a137cb2 content:06b15f8e 100:771e1edd 60:375e54d7
 up_strike_dash_cancel_edges in:6de57ae7 content:fbbbb2fb 30:e075c31c
 up_strike_never_cancels_itself in:d0e9e39d content:fbbbb2fb 24:2e969938
 up_strike_no_jump in:98b7f90b content:fbbbb2fb 30:b88c5a05
+walk_down_lip_stairs in:2720cc05 content:dee86ff2 60:1302ea42 60:1302ea42
 walk_down_ramp12_off_lip_stays_grounded in:28536f64 content:1759ad23 120:b0da4a2b 60:4f18a33e 120:b0da4a2b
 walk_down_ramp45_off_door_stays_grounded in:71c8f18e content:30ef2b45 120:ab9f8ec9 60:84d9c595 120:ab9f8ec9
 walk_steps_down_small_lips in:a36178b0 content:33bb8f6a 90:cfc92989 60:27d504eb
@@ -366,6 +372,7 @@ walk_up_ramp12_onto_lip_at_crest in:e9a3c974 content:1759ad23 60:4f18a33e 60:4f1
 walk_up_ramp45_onto_door_at_crest in:6eedb7fb content:30ef2b45 60:84d9c595 60:84d9c595
 walk_up_ramp45_onto_lip_far_past_crest in:1741ecfb content:2c73a4da 60:d01ab9f8 60:d01ab9f8
 walk_up_ramp45_onto_lip_past_crest in:7446bf05 content:bbd46c04 60:99f7cb37 60:99f7cb37
+walk_up_stairs9 in:75116bae content:660e1a87 60:f20a63fa 60:f20a63fa
 walk_up_two_lips in:b6a2f67e content:edd997b6 40:5e8f4181
 wall_cling_budget_carries_to_other_wall in:7bfeb106 content:2593f714 200:7d97269d 60:eb43a256 120:e6deb15a 180:e7923d5c
 wall_cling_buffered_jump in:68cd4081 content:2593f714 40:786a35ab
