@@ -1,5 +1,5 @@
 fixture zone1_09_control_hop_lands_in_front
-doc Control for tests/replay/zone1/09_reverse_pogo.fixture: without the dash, a running hop that turns back and strikes the guard's head from in front bleeds its forward speed in the turn (ADR-0010: air control, 8 f from 0 to max) and falls back in front of the guard, pressed against its west face (x 1046). The dash's speed is what clears the guard
+doc Control for tests/replay/zone1/09_reverse_pogo.fixture: a running hop with no dash that turns back and strikes early (tick 107, 5 ticks after the jump) catches the guard's head from in front, bleeds its forward speed in the turn (ADR-0010: air control, 8 f from 0 to max) and falls back in front of the guard, pressed against its west face (x 1046). It is the early strike that fails, not the missing dash: struck late, over the head (09_reverse_pogo_without_dash, tick 115), the same hop lands behind the guard
 seed 1
 room zone1/09_reverse_pogo
 spawn 74 960

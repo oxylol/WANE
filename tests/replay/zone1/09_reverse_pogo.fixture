@@ -11,7 +11,7 @@ input
   80..84 R
   85..86 R jump
   87..90 R
-  # Back and down with the strike: any strike on ticks 90 to 95 bounces off the guard's head and lands behind it.
+  # Back and down with the strike: any strike on ticks 88 to 93 (dash+9 to dash+14, 6 ticks; 09_reverse_pogo_strike_88 and _93 are the edges) bounces off the guard's head and lands behind it.
   91 L D attack
   # Landed on frame 135 (facing the guard): on to the door.
   92..135

@@ -389,4 +389,8 @@ white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
 zone1_09_control_forward_pogo in:43f6c12a content:fdac3b10 150:acf2dede 60:22c95f5c 120:2fa7fbbd
 zone1_09_control_hop_lands_in_front in:224ccc9f content:fdac3b10 160:2e3162f6 60:22c95f5c 120:323e98da
+zone1_09_note_plain_jump_crosses in:0c9576e3 content:fdac3b10 300:89ea3147 60:22c95f5c 120:029c1aa3 180:71299020 240:9316907a 300:89ea3147
 zone1_09_reverse_pogo in:7dfa2771 content:fdac3b10 220:d05c5fdd 60:22c95f5c 120:3ff0f4ce 180:1079855a
+zone1_09_reverse_pogo_strike_88 in:4bbe969c content:fdac3b10 170:cebf2c47 60:22c95f5c 120:285a7c72
+zone1_09_reverse_pogo_strike_93 in:3f73612a content:fdac3b10 170:425babcb 60:22c95f5c 120:f20dd418
+zone1_09_reverse_pogo_without_dash in:40cb4941 content:fdac3b10 260:e235ec9c 60:22c95f5c 120:1cb8cf2c 180:bfb6e83e 240:c7be7c2e

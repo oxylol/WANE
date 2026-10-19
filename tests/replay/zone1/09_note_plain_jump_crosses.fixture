@@ -1,0 +1,18 @@
+fixture zone1_09_note_plain_jump_crosses
+doc The decision on record, not a control (ADR-0010 "Reverse pogo", BUILD.md s5 tech 9): room 9 teaches the reverse pogo and does not gate it. A plain run and one jump lands on top of the 64 u guard, walks off its east side and leaves by the east door with no dash, no pogo and no reverse pogo. Nothing in a door or in geometry can ask which way Ash faces, and any jump that clears the guard's head is also a jump that can strike it. The gate is the shielded enemy's shield, which needs a combat Phase 1 does not have; when the shielded enemy exists this fixture must change to the room's new stop
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 300
+input
+  0..99 R
+  100..101 R jump
+  102..299 R
+end
+expect
+  # Standing on the guard's head (its top is y 896), not behind it: the guard is crossed, nothing was learned.
+  mark land 101..299 event.land=1
+  at land x>1050u x<1090u y=896u
+  mark through land+1..299 event.room=1
+  at through room=zone1_10_crouch_dash_under
+end

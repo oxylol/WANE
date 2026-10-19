@@ -1,0 +1,20 @@
+fixture zone1_09_reverse_pogo_strike_88
+doc Edge of the dash route's strike window (09_reverse_pogo strikes on 91): with the dash on 79 and the jump on 85, the back-and-down strike bounces off the guard's head and lands behind it on ticks 88 to 93 (dash+9 to dash+14, the window of tech09_reverse_pogo), 6 ticks. Tick 87 bounces with vx 2240 (below the 2304 the route asserts), and 94 and later miss the head. This is the earliest tick
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 170
+input
+  0..78 R
+  79 R dash
+  80..84 R
+  85..86 R jump
+  87..87 R
+  88 L D attack
+end
+expect
+  mark bounce 80..140 event.pogo=1
+  at bounce facing=-1 vx>2304
+  mark land bounce+1..169 event.land=1
+  at land x>1098u y=960u facing=-1
+end
