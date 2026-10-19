@@ -387,7 +387,16 @@ wall_ledge_grab_too_low in:7762c2e6 content:edbe1440 20:1c5c1866
 wall_spent_still_kicks in:5bec08c6 content:2593f714 260:88bbbbc9 60:eb43a256 120:f6c0ddb9 180:786d13f5 240:094b4b68
 white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
-zone1_10_crouch_dash_under in:9c17fa9b content:c61261b3 200:ab2fe84b 60:4fde23e9 120:589ca186 180:e8088462
-zone1_10_one_toss_skips_one_gap in:87aa4a0a content:c61261b3 130:73952613 60:7469e39c 120:77c21831
-zone1_10_standing_dash_stops_at_the_gap in:4458ab40 content:c61261b3 100:1a93881d 60:81bfd93c
-zone1_10_wall_stops_the_full_kit in:96c2be3c content:c61261b3 140:ef0ceb7a 60:655b7c1e 120:1b148501
+zone1_10_crouch_alone_does_not_enter_b in:d8273a12 content:8e512491 80:adb80f51 60:ae8c1ef2
+zone1_10_crouch_dash_under in:e56eec14 content:8e512491 210:21c91df9 60:4fde23e9 120:b955486d 180:e8088462
+zone1_10_dash_from_the_door_stops_short_of_a in:3672003f content:8e512491 80:7b2d7d8d 60:dd4c3c91
+zone1_10_dash_then_crouch_then_jump_stops_in_a in:d85a79d4 content:8e512491 90:2a4f761d 60:355dc37c
+zone1_10_dash_window_a_edge in:826015e9 content:8e512491 60:95387884 60:95387884
+zone1_10_dash_window_edge in:446db7b8 content:8e512491 60:ec70c2c7 60:ec70c2c7
+zone1_10_dash_window_missed in:5c5a2750 content:8e512491 60:5cef84db 60:5cef84db
+zone1_10_one_toss_skips_one_gap in:87aa4a0a content:8e512491 130:73952613 60:7469e39c 120:77c21831
+zone1_10_standing_dash_stops_at_the_gap in:4458ab40 content:8e512491 100:1a93881d 60:81bfd93c
+zone1_10_stranded_second_dash_lands in:ee47292d content:8e512491 120:0ded5810 60:1c42030c 120:0ded5810
+zone1_10_toss_from_the_face_late_lands_on_the_rim in:a029a7a8 content:8e512491 100:fb3945fb 60:3c17eede
+zone1_10_toss_from_the_face_skips_b in:b5830b2c content:8e512491 100:21186540 60:20bc541f
+zone1_10_wall_stops_the_full_kit in:96c2be3c content:8e512491 140:ef0ceb7a 60:655b7c1e 120:1b148501

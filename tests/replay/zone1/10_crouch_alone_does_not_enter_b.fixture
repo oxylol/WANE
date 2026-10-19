@@ -1,0 +1,16 @@
+fixture zone1_10_crouch_alone_does_not_enter_b
+doc Zone 1 room 10 (tech 10), crouch without a dash: with the stick held down and toward gap B at its face the body slides on its run speed 13.5 u into the gap (x 963.5 at tick 40) and stops; the crouched box cannot move or hop. It never gets near the exit (x 1066), so crouching alone does not pass
+room zone1/10_crouch_dash_under
+spawn 940 960
+frames 80
+input
+  0..29 D R
+  30..79 D
+end
+expect
+  at 20 x=950u hit_wall=1
+  at 40 height=28
+  at 79 height=28 x<1000u
+  never 0..79 x>1000u
+  never 0..79 event.room=1
+end

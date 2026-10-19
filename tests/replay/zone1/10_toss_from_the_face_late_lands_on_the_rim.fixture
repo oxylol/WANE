@@ -1,0 +1,16 @@
+fixture zone1_10_toss_from_the_face_late_lands_on_the_rim
+doc Zone 1 room 10 (tech 10), the late Ember Toss from gap B's face: left to fly its whole 400 u the ember stops at x 1350, 6 u past the pit's near edge (x 1344..1504), and the teleport puts Ash on the 4 u of floor under the box's left side, standing on the rim of the pit and alive. The box is 20 wide, so any ember within 10 u of the edge is a rim; one past it falls. The toss does not make B free: it costs the 12 s cooldown and the next jump starts from a rim
+room zone1/10_crouch_dash_under
+spawn 950 960
+frames 100
+input
+  0 R toss
+  1..49 R
+  50 toss
+  51..99
+end
+expect
+  at 50 event.teleport=1 x=1350u
+  at 99 x=1350u state=ground
+  never 0..99 event.hazard=1
+end

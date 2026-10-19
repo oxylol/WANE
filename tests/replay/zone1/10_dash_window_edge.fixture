@@ -1,0 +1,13 @@
+fixture zone1_10_dash_window_edge
+doc Zone 1 room 10 (tech 10), the edge of gap B's window. A crouch-dash needs about 227.5 u from start to rest (180 u of dash, 3 carry frames, the slide); gap B is 96 long (x 960..1056) and the body must stand clear of the wall column (centre past 1066) to get up. Started at x 839, 111 u before the face (x 950), the dash gets out and Ash runs on standing. One unit earlier (x 838, the stranded fixture's family) it ends crouched at 1065.5 and is stuck
+room zone1/10_crouch_dash_under
+spawn 839 960
+frames 60
+input
+  0 D R dash
+  1..59 R
+end
+expect
+  at 0 event.dash=1 height=28
+  at 30 height=44 x>1066u
+end

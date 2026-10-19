@@ -1,0 +1,23 @@
+fixture zone1_10_stranded_second_dash_lands
+doc Zone 1 room 10 (tech 10), the documented recovery: a crouch-dash started too far back (x 830, 120 u before the face, the window is 111) ends inside gap B with the body crouched and, the crouched box being unable to move, stuck. The second crouch-dash after the 24 frame ground cooldown (ADR-0010 level rule) must carry Ash out onto the landing and end before the pit, never into it
+room zone1/10_crouch_dash_under
+spawn 830 960
+frames 120
+input
+  0 D R dash
+  1..39 R
+  40 R dash
+  41..119
+end
+expect
+  # The first dash ends inside B, crouched.
+  at 30 height=28 x>1040u x<1066u
+  never 0..39 x>1066u
+  # The second one leaves it and stops on the landing, short of the pit.
+  mark out 60..119 height=44
+  at out x>1100u x<1344u
+  # The pit starts at 1344: the second dash ends 51 u short of it, at most.
+  never 40..119 x>1340u
+  never 0..119 event.hazard=1
+  never 0..119 event.room=1
+end

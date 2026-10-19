@@ -1,0 +1,17 @@
+fixture zone1_10_toss_from_the_face_skips_b
+doc Zone 1 room 10 (tech 10), the Ember Toss from gap B's face (x 950): the ember flies 10 u a tick, 400 u in all, so a re-press while it is in flight teleports Ash to where it is. At tick 24 the ember is at x 1160, beyond the wall (x 960..1056) on the landing: B is skipped with the toss, once, as A is (10_one_toss_skips_one_gap). The toss is on cooldown for the pit and the rest
+room zone1/10_crouch_dash_under
+spawn 950 960
+frames 100
+input
+  0 R toss
+  1..23 R
+  24 toss
+  25..99
+end
+expect
+  at 24 event.teleport=1 x>1100u x<1344u
+  mark after 30..99 height=44
+  at after x>1100u x<1344u toss_cooldown>500
+  never 0..99 event.hazard=1
+end
