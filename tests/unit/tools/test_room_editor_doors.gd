@@ -44,6 +44,29 @@ func test_a_door_on_each_side_and_at_least_two_tiles_long() -> void:
 	assert_int(_doc().room.doors[4].to_u).is_equal(20 * T)
 
 
+func test_an_inspector_name_the_text_cannot_hold_is_refused_and_the_field_goes_back() -> void:
+	_panel.create(A_ID, 40, 20)
+	_tool(RoomCanvas.Tool.DOOR)
+	_drag(Vector2(1260, 330), Vector2(1250, 420))
+	_panel.door_name_edit.text = "east"
+	_panel.door_name_edit.text_submitted.emit("east")
+	for bad: String in ["", "ea st", "ea#st"]:
+		_panel.door_name_edit.text = bad
+		_panel.door_name_edit.text_submitted.emit(bad)
+		assert_str(_doc().room.doors[0].name).is_equal("east")
+		assert_str(_panel.door_name_edit.text).is_equal("east")
+		assert_str(_panel.status.text).contains("one word")
+	_panel.door_room_edit.text = "a b"
+	_panel.door_target_edit.text = "west"
+	_panel.door_target_edit.text_submitted.emit("west")
+	assert_str(_panel.door_room_edit.text).is_equal("")
+	assert_str(_doc().room.doors[0].target_room).is_equal(RoomDocument.UNSET)
+	assert_array(_doc().room.errors).is_empty()
+	_doc().undo()
+	assert_int(_doc().room.doors.size()).is_equal(1)
+	assert_str(_doc().room.doors[0].name).is_equal("right")
+
+
 func test_a_doors_inspector_sets_its_name_side_opening_and_target() -> void:
 	var partner: RoomDocument = RoomDocument.create(B_ID, 40, 20)
 	var west: int = partner.doors().add(RoomData.LEFT, 320, 448, "west")

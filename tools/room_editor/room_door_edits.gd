@@ -17,8 +17,10 @@ func edge_u(side: int) -> int:
 
 ## Adds a door on [param side] over [param from_u]..[param to_u] (whole tiles, at least two),
 ## named [param door_name] or the first free "<side>", "<side>2", ... It leads nowhere until its
-## target is set. Returns its index.
+## target is set. Returns its index, or -1 if [param door_name] is not a word (nothing changes).
 func add(side: int, from_u: int, to_u: int, door_name: String = "") -> int:
+	if door_name != "" and not RoomDocument.is_word(door_name):
+		return -1
 	_doc.begin_edit()
 	var d := RoomData.Door.new()
 	d.name = door_name if door_name != "" else _free_name(side)
@@ -82,23 +84,32 @@ func set_side(index: int, side: int) -> void:
 	_doc.edited()
 
 
-func rename(index: int, door_name: String) -> void:
+## Renames door [param index]. Refused (false, nothing changes) unless [param door_name] is a
+## word: a name that is empty or has a space or '#' would not parse back from the saved text.
+func rename(index: int, door_name: String) -> bool:
+	if not RoomDocument.is_word(door_name):
+		return false
 	if _doc.room.doors[index].name == door_name:
-		return
+		return true
 	_doc.begin_edit()
 	_doc.room.doors[index].name = door_name
 	_doc.edited()
+	return true
 
 
 ## Sets where door [param index] leads: door [param target_door] of room [param target_room].
-func set_target(index: int, target_room: String, target_door: String) -> void:
+## Refused (false, nothing changes) unless both are words.
+func set_target(index: int, target_room: String, target_door: String) -> bool:
+	if not RoomDocument.is_word(target_room) or not RoomDocument.is_word(target_door):
+		return false
 	var d: RoomData.Door = _doc.room.doors[index]
 	if d.target_room == target_room and d.target_door == target_door:
-		return
+		return true
 	_doc.begin_edit()
 	d.target_room = target_room
 	d.target_door = target_door
 	_doc.edited()
+	return true
 
 
 ## Clears what door [param index] needs clear (its strip and the strip's depth again beyond it,

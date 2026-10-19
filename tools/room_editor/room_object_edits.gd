@@ -13,8 +13,11 @@ func _init(doc: RoomDocument) -> void:
 # --- solid boxes ----------------------------------------------------------------------------------
 
 
-## Adds a solid box over [param rect_u] (units); returns its index.
+## Adds a solid box over [param rect_u] (units); returns its index, or -1 if [param tag] is not
+## empty and not an option word (nothing changes).
 func add_solid(rect_u: Rect2i, tag: String = "", clingable: bool = true) -> int:
+	if tag != "" and not RoomDocument.is_option_word(tag):
+		return -1
 	_doc.begin_edit()
 	var r: Rect2i = rect_u.abs()
 	var s := SolidBox.make(
@@ -48,21 +51,29 @@ func move_solid(index: int, delta_u: Vector2i) -> void:
 
 
 ## Sets solid [param index]'s tag (pogo, wax, or none) and whether the wall-cling holds on it.
-func set_solid_options(index: int, tag: String, clingable: bool) -> void:
+## Refused (false, nothing changes) if [param tag] is not empty and not an option word: the text
+## is `tag=<word>`.
+func set_solid_options(index: int, tag: String, clingable: bool) -> bool:
+	if tag != "" and not RoomDocument.is_option_word(tag):
+		return false
 	var s: SolidBox = _doc.room.solids[index]
 	if s.tag == tag and s.clingable == clingable:
-		return
+		return true
 	_doc.begin_edit()
 	s.tag = tag
 	s.clingable = clingable
 	_doc.edited()
+	return true
 
 
 # --- entities -------------------------------------------------------------------------------------
 
 
-## Adds an entity marker; returns its index.
+## Adds an entity marker; returns its index, or -1 if [param kind] is not a word or a property is
+## not `key=value` words (nothing changes).
 func add_entity(kind: String, x_u: int, y_u: int, props: Dictionary[String, String] = {}) -> int:
+	if not RoomDocument.is_word(kind) or not _props_fit(props):
+		return -1
 	_doc.begin_edit()
 	var e := RoomData.RoomEntity.new()
 	e.kind = kind
@@ -91,22 +102,42 @@ func move_entity(index: int, x_u: int, y_u: int) -> void:
 
 
 ## Sets (or with an empty [param value], removes) property [param key] of entity [param index].
-func set_entity_prop(index: int, key: String, value: String) -> void:
+## Refused (false, nothing changes) unless [param key] and a non-empty [param value] are option
+## words: the text is `key=value`.
+func set_entity_prop(index: int, key: String, value: String) -> bool:
+	if (
+		not RoomDocument.is_option_word(key)
+		or (value != "" and not RoomDocument.is_option_word(value))
+	):
+		return false
 	var e: RoomData.RoomEntity = _doc.room.entities[index]
 	if (value == "" and not e.props.has(key)) or (e.props.has(key) and e.props[key] == value):
-		return
+		return true
 	_doc.begin_edit()
 	if value == "":
 		e.props.erase(key)
 	else:
 		e.props[key] = value
 	_doc.edited()
+	return true
 
 
-## Replaces all of entity [param index]'s properties at once (one undo step).
-func set_entity_props(index: int, props: Dictionary[String, String]) -> void:
+## Replaces all of entity [param index]'s properties at once (one undo step). Refused (false,
+## nothing changes) unless every key and value is an option word.
+func set_entity_props(index: int, props: Dictionary[String, String]) -> bool:
+	if not _props_fit(props):
+		return false
 	if _doc.room.entities[index].props == props:
-		return
+		return true
 	_doc.begin_edit()
 	_doc.room.entities[index].props = props.duplicate()
 	_doc.edited()
+	return true
+
+
+## Whether every key and value of [param props] is an option word, so the properties parse back.
+static func _props_fit(props: Dictionary[String, String]) -> bool:
+	for k: String in props:
+		if not RoomDocument.is_option_word(k) or not RoomDocument.is_option_word(props[k]):
+			return false
+	return true

@@ -136,6 +136,33 @@ func test_solid_boxes_are_drawn_with_a_tag_selected_edited_moved_and_erased() ->
 	assert_array(_doc().room.solids).is_empty()
 
 
+func test_a_slow_jittery_drag_leaves_the_box_on_the_pointers_snapped_travel() -> void:
+	# The pointer's remainder below the half-tile snap is never lost: however the drag is split,
+	# the box ends where the snapped pointer is, relative to where the drag began.
+	_panel.create(A_ID, 40, 20)
+	_tool(RoomCanvas.Tool.SOLID)
+	_drag(Vector2(160, 480), Vector2(224, 576))
+	_tool(RoomCanvas.Tool.MOVE)
+	_panel.canvas.press(MOUSE_BUTTON_LEFT, Vector2(190, 520))
+	for x: float in [196.0, 200.0, 207.0, 213.0, 205.0, 211.0, 219.0, 222.0]:
+		_panel.canvas.drag_to(Vector2(x, 520))
+	_panel.canvas.release(MOUSE_BUTTON_LEFT, Vector2(222, 520))
+	assert_str(_doc().text()).contains("solid 192 480 256 576")
+
+
+func test_the_tag_and_kind_fields_keep_only_words() -> void:
+	_panel.create(A_ID, 40, 20)
+	_panel.tag_edit.text_changed.emit("pogo")
+	_panel.tag_edit.text_changed.emit("po go")
+	assert_str(_panel.canvas.solid_tag).is_equal("pogo")
+	assert_str(_panel.status.text).contains("one word")
+	_panel.kind_edit.text_changed.emit("")
+	assert_str(_panel.canvas.entity_kind).is_equal("dummy")
+	_tool(RoomCanvas.Tool.ENTITY)
+	_click(Vector2(300, 300))
+	assert_int(_doc().room.entities.size()).is_equal(1)
+
+
 func test_the_dummy_is_placed_and_its_properties_are_edited_from_the_form() -> void:
 	_panel.create(A_ID, 40, 20)
 	_tool(RoomCanvas.Tool.ENTITY)

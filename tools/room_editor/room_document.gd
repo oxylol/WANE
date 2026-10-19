@@ -47,7 +47,28 @@ static func create(id: String, w: int, h: int) -> RoomDocument:
 	fresh.grid = TileGrid.from_rows(rows)
 	fresh.spawn_x_u = TileGrid.TILE * 3
 	fresh.spawn_y_u = (h - 2) * TileGrid.TILE
-	return RoomDocument.new(fresh, RoomData.path_for(id))
+	var doc := RoomDocument.new(fresh, RoomData.path_for(id))
+	doc.dirty = true  # it is in no file yet
+	return doc
+
+
+## Whether [param s] is one word of the room text: not empty, with no whitespace and no '#' (which
+## starts a comment), so a line that holds it parses back to it. Names of doors, door targets and
+## entity kinds are words.
+static func is_word(s: String) -> bool:
+	if s == "" or s.contains("#"):
+		return false
+	for k: int in range(s.length()):
+		var c: int = s.unicode_at(k)
+		if c <= 32 or c == 127 or c == 0xA0:
+			return false
+	return true
+
+
+## Whether [param s] is a word that can stand either side of the '=' of a `key=value` option
+## (solid tags, entity properties).
+static func is_option_word(s: String) -> bool:
+	return is_word(s) and not s.contains("=")
 
 
 ## The edits of this room's doors, and of its solid boxes and entities (two classes of their
@@ -179,37 +200,60 @@ func set_tile(i: int, j: int, tile: int) -> void:
 ## Fills the tiles of [param area] (in tiles, inclusive of both corners' cells).
 func fill(area: Rect2i, tile: int) -> void:
 	var r: Rect2i = area.abs()
-	begin_edit()
+	var cells: Array[Vector2i] = []
 	for j: int in range(r.position.y, r.end.y + 1):
 		for i: int in range(r.position.x, r.end.x + 1):
-			room.grid.set_tile(i, j, tile)
-	edited()
+			cells.append(Vector2i(i, j))
+	_paint(cells, tile)
 
 
 ## Paints a straight line of tiles from [param a] to [param b] (a mouse drag between two
 ## events, so a fast stroke leaves no gaps).
 func line(a: Vector2i, b: Vector2i, tile: int) -> void:
-	begin_edit()
 	var steps: int = maxi(absi(b.x - a.x), absi(b.y - a.y))
+	var cells: Array[Vector2i] = []
 	for k: int in range(steps + 1):
 		var t: float = 0.0 if steps == 0 else float(k) / float(steps)
-		var p: Vector2i = Vector2i(Vector2(a).lerp(Vector2(b), t).round())
+		cells.append(Vector2i(Vector2(a).lerp(Vector2(b), t).round()))
+	_paint(cells, tile)
+
+
+## Sets [param cells] to [param tile] as one edit, if any of them (inside the room) differs.
+func _paint(cells: Array[Vector2i], tile: int) -> void:
+	var differs: bool = false
+	for p: Vector2i in cells:
+		differs = (
+			differs or (room.grid.in_bounds(p.x, p.y) and room.grid.get_tile(p.x, p.y) != tile)
+		)
+	if not differs:
+		return
+	begin_edit()
+	for p: Vector2i in cells:
 		room.grid.set_tile(p.x, p.y, tile)
 	edited()
 
 
 func set_spawn(x_u: int, y_u: int) -> void:
+	if room.spawn_x_u == x_u and room.spawn_y_u == y_u:
+		return
 	begin_edit()
 	room.spawn_x_u = x_u
 	room.spawn_y_u = y_u
 	edited()
 
 
-func set_id(id: String) -> void:
+## Renames the room; the file it saves to follows the id. Refused (false) unless [param id] is a
+## word.
+func set_id(id: String) -> bool:
+	if not is_word(id):
+		return false
+	if id == room.id:
+		return true
 	begin_edit()
 	room.id = id
 	path = RoomData.path_for(id)
 	edited()
+	return true
 
 
 # --- size -----------------------------------------------------------------------------------------
@@ -219,7 +263,9 @@ func set_id(id: String) -> void:
 ## (-1, -1) keeps the top-left and grows or shrinks the bottom-right, (1, 1) the reverse, 0
 ## splits it. Growing copies the edge row or column (so walls, floors and door openings carry
 ## on); shrinking takes rows and columns just inside the edge (so the edge stays). Solids,
-## entities, doors on the other sides and the spawn move with the content.
+## entities, doors on the other sides and the spawn move with the content; a shrink across a door's
+## side puts back that door's passage (strip, the same depth again, floor), which lies in the cells
+## it takes.
 func resize(w: int, h: int, anchor: Vector2i = Vector2i(-1, -1)) -> void:
 	begin_edit()
 	var old: TileGrid = room.grid
@@ -247,7 +293,39 @@ func resize(w: int, h: int, anchor: Vector2i = Vector2i(-1, -1)) -> void:
 		d.to_u += along
 	room.spawn_x_u += du.x
 	room.spawn_y_u += du.y
+	for d: RoomData.Door in room.doors:
+		_carry_passage(d, old, front)
 	edited()
+
+
+## After a shrink across door [param d]'s side, puts back what its passage (the strip, the same
+## depth again, and the floor under a side door) was: the columns or rows just inside the edge
+## are the ones a shrink takes, and the passage lies in them. [param old] is the grid before,
+## [param front] the cells added or taken at the start of each axis.
+func _carry_passage(d: RoomData.Door, old: TileGrid, front: Vector2i) -> void:
+	var w: int = room.grid.width
+	var h: int = room.grid.height
+	var sideways: bool = d.side == RoomData.LEFT or d.side == RoomData.RIGHT
+	if (w >= old.width) if sideways else (h >= old.height):
+		return
+	var clear: Rect2i = d.clear_u(width_u(), height_u())
+	var cells := Rect2i(clear.position / TileGrid.TILE, clear.size / TileGrid.TILE)
+	if sideways:
+		cells.size.y += 1  # the floor row under the strip
+	for j: int in range(cells.position.y, cells.end.y):
+		for i: int in range(cells.position.x, cells.end.x):
+			var src := Vector2i(i - front.x, j - front.y)
+			match d.side:
+				RoomData.LEFT:
+					src.x = i
+				RoomData.RIGHT:
+					src.x = old.width - (w - i)
+				RoomData.TOP:
+					src.y = j
+				_:
+					src.y = old.height - (h - j)
+			if old.in_bounds(src.x, src.y):
+				room.grid.set_tile(i, j, old.get_tile(src.x, src.y))
 
 
 func undo() -> void:
@@ -290,9 +368,11 @@ func begin_edit() -> void:
 
 
 func _restore(saved: String) -> void:
+	# A path that followed the id (set_id) follows it back; a path chosen otherwise is kept.
+	var follows_id: bool = path == RoomData.path_for(room.id)
 	var keep_path: String = path
 	room = RoomData.parse(saved)
-	path = keep_path
+	path = RoomData.path_for(room.id) if follows_id else keep_path
 	edited()
 
 

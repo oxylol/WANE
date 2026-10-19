@@ -10,7 +10,13 @@ extends EditorPlugin
 
 const RUN_ARGS_KEY: String = "editor/run/main_run_args"
 
+## The most frames to wait for the game to start before the run arguments are put back anyway.
+const WAIT_FRAMES: int = 600
+
 var _panel: RoomEditorPanel
+var _args_before: Variant = ""
+var _waiting: bool = false
+var _waited: int = 0
 
 
 func _enter_tree() -> void:
@@ -20,9 +26,11 @@ func _enter_tree() -> void:
 	_panel.play_requested.connect(_on_play)
 	EditorInterface.get_editor_main_screen().add_child(_panel)
 	_make_visible(false)
+	set_process(false)
 
 
 func _exit_tree() -> void:
+	_restore_args()
 	if _panel != null:
 		_panel.queue_free()
 
@@ -44,10 +52,27 @@ func _get_plugin_icon() -> Texture2D:
 	return EditorInterface.get_editor_theme().get_icon("TileMap", "EditorIcons")
 
 
-## Runs the main scene with `-- --room=<id>`, then puts the run arguments back, so the project
-## file never keeps them.
+## Runs the main scene with `-- --room=<id>`. The run arguments are put back once the game is
+## running (or [constant WAIT_FRAMES] frames have passed), not straight after the call, so a launch
+## the editor defers still reads them; the project file never keeps them.
 func _on_play(room_id: String) -> void:
-	var before: Variant = ProjectSettings.get_setting(RUN_ARGS_KEY, "")
+	if not _waiting:
+		_args_before = ProjectSettings.get_setting(RUN_ARGS_KEY, "")
 	ProjectSettings.set_setting(RUN_ARGS_KEY, "-- --room=%s" % room_id)
+	_waiting = true
+	_waited = 0
+	set_process(true)
 	EditorInterface.play_main_scene()
-	ProjectSettings.set_setting(RUN_ARGS_KEY, before)
+
+
+func _process(_delta: float) -> void:
+	_waited += 1
+	if EditorInterface.is_playing_scene() or _waited >= WAIT_FRAMES:
+		_restore_args()
+
+
+func _restore_args() -> void:
+	if _waiting:
+		ProjectSettings.set_setting(RUN_ARGS_KEY, _args_before)
+	_waiting = false
+	set_process(false)

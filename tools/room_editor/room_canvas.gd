@@ -335,7 +335,8 @@ func _finish_door(u: Vector2) -> void:
 	var side: int = side_at(_drag_from_u)
 	var span: Vector2i = door_span(side, _along(side, _drag_from_u), _along(side, u))
 	var index: int = document.doors().add(side, span.x, span.y)
-	document.doors().carve(index)
+	if index >= 0:
+		document.doors().carve(index)
 	_select(-1, -1, index)
 
 

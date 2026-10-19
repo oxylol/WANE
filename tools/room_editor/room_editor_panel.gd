@@ -236,10 +236,10 @@ func _palette() -> ScrollContainer:
 	tile_list.item_selected.connect(func(i: int) -> void: canvas.tile = TILE_NAMES.keys()[i])
 	box.add_child(tile_list)
 	tag_edit = _field(box, "New solid box tag (pogo, wax)")
-	tag_edit.text_changed.connect(func(t: String) -> void: canvas.solid_tag = t.strip_edges())
+	tag_edit.text_changed.connect(_on_tag_text)
 	kind_edit = _field(box, "New entity kind")
 	kind_edit.text = EntityKinds.DUMMY
-	kind_edit.text_changed.connect(func(t: String) -> void: canvas.entity_kind = t.strip_edges())
+	kind_edit.text_changed.connect(_on_kind_text)
 	return scroll
 
 
@@ -424,9 +424,33 @@ func _on_play() -> void:
 # --- the inspector --------------------------------------------------------------------------------
 
 
+## The tag the solid tool draws with: kept only while it is one option word (or empty).
+func _on_tag_text(text: String) -> void:
+	var t: String = text.strip_edges()
+	if t == "" or RoomDocument.is_option_word(t):
+		canvas.solid_tag = t
+	else:
+		_say(
+			(
+				"A tag is one word, with no spaces, = or #: boxes are drawn with '%s'."
+				% canvas.solid_tag
+			)
+		)
+
+
+## The kind the entity tool places: kept only while it is one word.
+func _on_kind_text(text: String) -> void:
+	var t: String = text.strip_edges()
+	if RoomDocument.is_word(t):
+		canvas.entity_kind = t
+	else:
+		_say("A kind is one word: entities are placed as '%s'." % canvas.entity_kind)
+
+
 func _on_door_name(text: String) -> void:
 	if not _syncing and canvas.selected_door >= 0:
-		document.doors().rename(canvas.selected_door, text.strip_edges())
+		if not document.doors().rename(canvas.selected_door, text.strip_edges()):
+			_refused("A door's name is one word, with no spaces or #.")
 
 
 func _on_door_side(side: int) -> void:
@@ -447,11 +471,13 @@ func _on_door_target(_text: String = "") -> void:
 	if not _syncing and canvas.selected_door >= 0:
 		var room_id: String = door_room_edit.text.strip_edges()
 		var door_id: String = door_target_edit.text.strip_edges()
-		document.doors().set_target(
+		var applied: bool = document.doors().set_target(
 			canvas.selected_door,
 			room_id if room_id != "" else RoomDocument.UNSET,
 			door_id if door_id != "" else RoomDocument.UNSET
 		)
+		if not applied:
+			_refused("A door's target room and door are one word each, with no spaces or #.")
 
 
 func _on_carve_door() -> void:
@@ -461,9 +487,11 @@ func _on_carve_door() -> void:
 
 func _on_solid_options(_text: String = "") -> void:
 	if not _syncing and canvas.selected_solid >= 0:
-		document.objects().set_solid_options(
+		var applied: bool = document.objects().set_solid_options(
 			canvas.selected_solid, solid_tag_edit.text.strip_edges(), solid_cling_box.button_pressed
 		)
+		if not applied:
+			_refused("A tag is one word, with no spaces, = or #.")
 
 
 ## Sets the selected entity's properties from "key=value key=value" text.
@@ -475,7 +503,8 @@ func _on_entity_text(text: String) -> void:
 		var kv: PackedStringArray = pair.split("=")
 		if kv.size() == 2:
 			props[kv[0]] = kv[1]
-	document.objects().set_entity_props(canvas.selected_entity, props)
+	if not document.objects().set_entity_props(canvas.selected_entity, props):
+		_refused("A property is key=value, each one word with no spaces, = or #.")
 
 
 ## Sets the selected entity's properties from the form (the controls of its kind's properties;
@@ -491,7 +520,8 @@ func _on_entity_form() -> void:
 			props.erase(spec.key)
 		else:
 			props[spec.key] = value
-	document.objects().set_entity_props(canvas.selected_entity, props)
+	if not document.objects().set_entity_props(canvas.selected_entity, props):
+		_refused("A property is key=value, each one word with no spaces, = or #.")
 
 
 ## The text a property control stands for: "" for off, default or unset.
@@ -502,6 +532,12 @@ static func _form_value(spec: EntityKinds.PropSpec, control: Control) -> String:
 		var n: int = int((control as SpinBox).value)
 		return str(n) if n > 0 else ""
 	return FACING_VALUES[(control as OptionButton).selected]
+
+
+## An inspector edit was refused: say why and put the fields back to the room's values.
+func _refused(why: String) -> void:
+	_say(why)
+	_sync_inspector()
 
 
 ## Shows the inspector section for the selection, with its values.
