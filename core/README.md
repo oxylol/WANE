@@ -18,3 +18,5 @@ Everything that decides what happens in a run lives here, and nothing else does 
 | `clock/` | The Wane Clock and the Dark |
 | `rng/` | Seeded RNG with split streams |
 | `rooms/` | Room data, as loaded from `content/rooms/` |
+
+A map of this folder's entry points (with file:line), the commands and the rules that trip agents up: `docs/CODEMAP.md`.

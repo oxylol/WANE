@@ -26,6 +26,7 @@ jobs:
       - run: pip install -r tools/requirements.txt
       - run: ci/lint.sh
       - run: python3 tools/ci/test_gd_coverage.py
+      - run: python3 tools/ci/test_codemap.py
 
   test:
     name: test (compile, content, fixtures, unit)

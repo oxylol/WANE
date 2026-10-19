@@ -8,3 +8,5 @@
 | `screenshot/` | Screenshot regression (Phase 2) | |
 
 Run everything: `ci/test.sh` (or `godot --headless --path . --script tools/ci/run_tests.gd`).
+
+Finding your way around the repo (where the loop, fixtures, probes and tunables live, and every command): `docs/CODEMAP.md`.
