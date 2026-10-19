@@ -387,3 +387,6 @@ wall_ledge_grab_too_low in:7762c2e6 content:edbe1440 20:1c5c1866
 wall_spent_still_kicks in:5bec08c6 content:2593f714 260:88bbbbc9 60:eb43a256 120:f6c0ddb9 180:786d13f5 240:094b4b68
 white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
+zone1_08_control_no_strike in:6aa4ccc4 content:6b780f42 135:8e3dbe12 60:1b0c795d 120:9af74c39
+zone1_08_control_strike_after_landing in:6217df59 content:6b780f42 140:12d3c4a0 60:1b0c795d 120:8bca8eb8
+zone1_08_strike_on_the_way_down in:0c323c25 content:6b780f42 230:ed0fe8ed 60:83b1ab66 120:8af0794e 180:efa1f302

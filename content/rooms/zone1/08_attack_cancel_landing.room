@@ -1,7 +1,37 @@
-# Zone 1, room 8 (stub, Phase 1 task 7): replaced by the room that teaches tech 8, Attack-cancel landing (BUILD.md s5).
+# Zone 1, room 8: Attack-cancel landing (BUILD.md s5 tech 8: "landing never interrupts an attack.
+# Taught by a boss with a short window"). Grey box, not art.
+#
+# The room is a staircase of three drops, 60 x 34 tiles, west door high and east door low:
+#   platform A  x 0..480    floor y 480   (west door: opening y 352..480, arrival x 74)
+#   platform B  x 480..960  floor y 576   drop 96 u, 16 f of fall
+#   platform C  x 960..1440 floor y 768   drop 192 u, 21 f of fall
+#   platform D  x 1440..1920 floor y 960  drop 192 u, 21 f of fall (east door: opening y 832..960)
+# Ash runs at 540 u/s (9 u/f), so a drop carries her about 150 u (B) or 190 u (C, D) before the
+# floor: the landing is where a dummy 76 u past it can just be reached. A dummy is a stand-in for
+# the boss with a short window (Phase 1 has no boss): a one-hit (hp=10) training dummy.
+#   B: dummy at 706, no attack. The safe first encounter: strike on the way down, land mid-strike,
+#      watch the strike go on to its last frame with no landing lag (Taper side 1: 2 f startup,
+#      4 f active, 8 f recovery, 68 u reach, so a press 4 f before the landing is live on the
+#      landing's two last airborne frames and its two first grounded ones).
+#   C and D: dummies at 1244 and 1721 with an unparryable (red=1) swing, so the strike has to be
+#      the answer, not the parry (a press near a white swing parries it). Telegraph 24 f, 4 f
+#      active, 20 f recovery, 64 u in front of the dummy. Their swings are timed (period 104 and
+#      160, first active tick = period + 23) to land on the tick after the landing of the
+#      teaching route: the opening is one frame wide. The strike pressed 4 f before the landing
+#      kills the dummy on the landing frame; one pressed on the landing frame is live 2 f later,
+#      the swing lands first, is hit for a heart and the strike is broken.
+#
+# Not the only way across, and why: a dummy is no wall and Phase 1 has no boss that blocks a door,
+# so a player can also wait on a ledge for a swing's 20 f recovery, or dash through it, and a
+# landing strike pressed in the same room costs only time. What the room does prove, with
+# fixtures: the way down that never stops (tests/replay/zone1/08_strike_on_the_way_down: 3 drops,
+# 0 hearts lost, 210 f, 3.5 s) is the only one that crosses the second and third swings with no
+# wait, because a run with no strike (08_control_no_strike) loses a heart to the second swing and
+# a strike pressed on the landing (08_control_strike_after_landing) loses one too and the dummy
+# lives. When the boss with the short window exists, its door can make this the only way.
 room zone1/08_attack_cancel_landing
-size 60 20
-spawn 200 544
+size 60 34
+spawn 74 480
 tiles
 ############################################################
 #..........................................................#
@@ -14,15 +44,32 @@ tiles
 #..........................................................#
 #..........................................................#
 #..........................................................#
-#..........................................................#
-#..........................................................#
-............................................................
-............................................................
-............................................................
-............................................................
+...........................................................#
+...........................................................#
+...........................................................#
+...........................................................#
+###############............................................#
+###############............................................#
+###############............................................#
+##############################.............................#
+##############################.............................#
+##############################.............................#
+##############################.............................#
+##############################.............................#
+##############################.............................#
+#############################################..............#
+#############################################..............#
+#############################################...............
+#############################################...............
+#############################################...............
+#############################################...............
+############################################################
 ############################################################
 ############################################################
 ############################################################
 end
-door west left 416 544 zone1/07_coyote_dash east
-door east right 416 544 zone1/09_reverse_pogo west
+entity dummy 706 576 hp=10
+entity dummy 1244 768 attack=1 red=1 period=104 hp=10
+entity dummy 1721 960 attack=1 red=1 period=160 hp=10
+door west left 352 480 zone1/07_coyote_dash east
+door east right 832 960 zone1/09_reverse_pogo west
