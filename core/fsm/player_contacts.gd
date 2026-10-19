@@ -119,6 +119,27 @@ static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	pl.stick_hold_x = PlayerInput.axis(ring.stick_x(), pl.p.stick_threshold)
 
 
+## Through a door (docs/adr/0014): the player arrives at bottom-centre ([param x], [param y]) in
+## [param world], the next room's collision, keeping the speed, state, action and timers they
+## had. An ember in the air stays in the room behind and goes out (its cooldown runs on); the
+## arrival point is safe ground until the player stands on other ground (a side door stands on
+## floor, and a fall through a top door lands on safe ground: RoomData checks both); dying
+## returns to the new room's spawn ([param home_x], [param home_y]).
+static func arrive(
+	pl: Player, world: CollisionWorld, x: int, y: int, home_x: int, home_y: int
+) -> void:
+	pl.world = world
+	pl.body.x = x
+	pl.body.y = y
+	world.refresh_ground(pl.body)
+	pl.toss.active = false
+	pl.toss.flying = false
+	pl.safe_x = x
+	pl.safe_y = y
+	pl.home_x = home_x
+	pl.home_y = home_y
+
+
 ## The hurtbox: the collider inset on every side (smaller than the sprite).
 static func hurtbox(pl: Player) -> Rect2i:
 	var b: Body = pl.body

@@ -1,0 +1,18 @@
+fixture door_ember_stays_behind
+doc docs/adr/0014 and BUILD.md s6 Ember Toss: an ember thrown before a door stays in the room behind and goes out; a teleport press in the room beyond does nothing, and the throw's cooldown runs on
+room test/door_a
+spawn 1120 416
+frames 40
+input
+  0 L toss
+  1..20 R
+  21 toss
+  22..39 R
+end
+expect
+  at 5 ember=1
+  mark through 1..20 event.room=1
+  at through room=test_door_b ember=0
+  never 21..39 event.teleport=1
+  at 39 room=test_door_b toss_cooldown>0
+end

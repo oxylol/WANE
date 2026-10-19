@@ -157,7 +157,7 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		stage.add_child(n)
 	root.add_child(stage)
 	camera.make_current()
-	room_view.show_world(sim.world)
+	room_view.show_world(sim.world, sim.room.doors)
 	combat_view.player_view = player_view
 	feedback.attach(vfx, null)
 	hud.vitals = sim.player.vitals
@@ -172,6 +172,8 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	var track := PackedVector2Array()
 	for f: int in range(fx.frame_total):
 		sim.step(fx.input_frame(f))
+		if sim.events.has(SimEvents.ROOM):
+			room_view.show_world(sim.world, sim.room.doors)
 		player_view.capture(sim)
 		enemy_view.capture(sim)
 		combat_view.capture(sim)

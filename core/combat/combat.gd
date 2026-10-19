@@ -29,6 +29,19 @@ func _init(p_params: CombatParams, p_events: SimEvents) -> void:
 
 
 ## One tick of combat, after everything has moved. [param pl] may be null (no player).
+## The player leaves the room through a door (docs/adr/0014): its enemies, trails and light stay
+## behind; a kill ember still in flight reaches the player as they go, with its Flame.
+func leave_room(pl: Player) -> void:
+	var at: Vector2i = _centre(pl.body)
+	for _i: int in range(embers.size()):
+		pl.vitals.flame.gain(params.flame_per_kill)
+		events.add(SimEvents.EMBER_HOME, at.x, at.y)
+	embers.clear()
+	trails.clear()
+	enemies.clear()
+	light_left = 0
+
+
 func resolve(pl: Player, ring: InputRing) -> void:
 	_age_effects(pl)
 	if pl == null:

@@ -128,7 +128,7 @@ func reset(s: CameraSubject, room: Rect2) -> void:
 
 ## One tick: [param s] is this tick's subject, [param room] the room's bounds.
 func step(s: CameraSubject, room: Rect2) -> void:
-	if s.respawned:
+	if s.respawned or s.entered:
 		reset(s, room)
 		return
 	previous = center

@@ -263,7 +263,7 @@ func test_a_teleport_then_a_dash_on_toward_an_edge_needs_no_backstop() -> void:
 ## to slow at once to the player's own speed (ADR-0011), described, or "".
 func _speed_problem(run: CameraRun, accel: float) -> String:
 	for f: int in range(2, run.centers.size()):
-		if run.subjects[f].teleported or run.subjects[f].respawned:
+		if run.subjects[f].teleported or run.subjects[f].respawned or run.subjects[f].entered:
 			continue
 		var v: float = run.velocity(f).y
 		var was: float = run.velocity(f - 1).y

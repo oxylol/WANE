@@ -1,0 +1,15 @@
+fixture door_walk_back_returns_through_the_same_door
+doc docs/adr/0014: through door_a's right door into door_b, then straight back: the pair leads back to just inside door_a's door, at the same height
+room test/door_a
+spawn 1100 416
+frames 70
+input
+  0..19 R
+  20..69 L
+end
+expect
+  at 16 event.room=1 room=test_door_b
+  mark back 21..69 event.room=1
+  at back room=test_door_a x=1206u y=416u ground=1
+  at 69 room=test_door_a
+end

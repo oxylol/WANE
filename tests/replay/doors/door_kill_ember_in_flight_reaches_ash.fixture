@@ -1,0 +1,16 @@
+fixture door_kill_ember_in_flight_reaches_ash
+doc docs/adr/0014 and BUILD.md s15 Combat ("A kill releases an ember that reaches the player within 20 frames; Flame reacts"): a kill ember still in flight when Ash goes through a door reaches Ash on that frame with its 11 Flame, and door_b's own dummy is there instead
+room test/door_a
+spawn 1110 416
+frames 20
+input
+  0 R attack
+  1..3 R
+  4 R dash
+  5..19 R
+end
+expect
+  at 2 event.kill=1 embers=1 flame=11
+  at 10 room=test_door_a embers=1
+  at 11 event.room=1 event.ember_home=1 room=test_door_b embers=0 flame=22 enemy.hp=77
+end

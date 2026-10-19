@@ -35,6 +35,9 @@ var ground_below: float = NO_GROUND
 var vy: float = 0.0
 ## Sent back to safe ground by a hazard this tick: the camera cuts.
 var respawned: bool = false
+## Went through a door into another room this tick: the camera cuts to the new room
+## (docs/adr/0014).
+var entered: bool = false
 ## Teleported to the ember this tick: the camera glides after.
 var teleported: bool = false
 
@@ -80,6 +83,7 @@ static func of(sim: Simulation, ahead_frames: int = 0) -> CameraSubject:
 		s.ground_below = _ground_ahead(sim.world, pl, ahead_frames)
 	s.vy = float(b.vy) / Fx.SUB
 	s.respawned = sim.events.has(SimEvents.HAZARD)
+	s.entered = sim.events.has(SimEvents.ROOM)
 	s.teleported = sim.events.has(SimEvents.TELEPORT)
 	return s
 

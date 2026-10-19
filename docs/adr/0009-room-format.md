@@ -23,7 +23,10 @@ tiles
 end
 solid <left> <top> <right> <bottom> [tag=<word>] [cling=0]   # a SolidBox, in units
 entity <kind> <x> <y> [key=value]...                         # a marker for later systems
+door <name> <left|right|top|bottom> <from> <to> <room> <door> # an opening to another room
 ```
+
+Doors, how the player crosses them and what a run keeps are ADR-0014.
 
 - Tile characters (`TileGrid.CHARS`):
   - `.` empty, `#` solid, `S` smooth (solid, not clingable), `=` one-way, `^` spikes, `~` a pit (a hazard filling the tile, nothing to pogo off: movement review 5, H1);

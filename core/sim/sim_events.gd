@@ -16,6 +16,8 @@ const POGO: String = "pogo"
 const ATTACK: String = "attack"
 const TOSS: String = "toss"
 const TELEPORT: String = "teleport"
+## The player went through a door into another room this tick (docs/adr/0014); at the arrival.
+const ROOM: String = "room"
 const IGNITE: String = "ignite"
 const HAZARD: String = "hazard"
 const DROP_THROUGH: String = "drop_through"

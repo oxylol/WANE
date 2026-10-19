@@ -1,0 +1,14 @@
+fixture door_walk_through_keeps_the_run
+doc docs/adr/0014: walking right through door_a's door, Ash arrives just inside door_b's left door at full run speed, on the ground, on the frame the whole body is inside the door's strip
+room test/door_a
+spawn 1100 416
+frames 30
+input
+  0..29 R
+end
+expect
+  at 15 room=test_door_a xu=1221 vx=9u
+  at 16 event.room=1 room=test_door_b x=74u y=416u vx=9u ground=1 state=ground
+  never 17..29 event.room=1
+  at 29 room=test_door_b x=191u
+end

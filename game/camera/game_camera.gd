@@ -16,18 +16,24 @@ func _ready() -> void:
 
 ## Cuts to [param sim]'s player (a new session or room).
 func begin(sim: Simulation) -> void:
-	var grid: TileGrid = sim.world.grid
-	_room = Rect2(0, 0, grid.width * TileGrid.TILE, grid.height * TileGrid.TILE)
+	_room = _room_of(sim)
 	_fit_zoom()
 	if sim.player != null:
 		rig.reset(_subject(sim), _room)
 	show_at(1.0)
 
 
-## Follows [param sim]'s player through one tick.
+## Follows [param sim]'s player through one tick; through a door, the view cuts to the new room.
 func step(sim: Simulation) -> void:
+	if sim.events.has(SimEvents.ROOM):
+		_room = _room_of(sim)
 	if sim.player != null:
 		rig.step(_subject(sim), _room)
+
+
+static func _room_of(sim: Simulation) -> Rect2:
+	var grid: TileGrid = sim.world.grid
+	return Rect2(0, 0, grid.width * TileGrid.TILE, grid.height * TileGrid.TILE)
 
 
 ## Places the view at [param alpha] (0..1) between the last two ticks.

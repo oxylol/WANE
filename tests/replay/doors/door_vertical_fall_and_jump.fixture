@@ -1,0 +1,17 @@
+fixture door_vertical_fall_and_jump
+doc docs/adr/0014: falling through door_up's hole Ash arrives under door_b's top door with the fall's speed and lands on the platform below it; a full jump from there rises through the top door into door_up, arriving just above its hole still rising, and falls back through
+room test/door_up
+spawn 640 300
+frames 100
+input
+  40..60 jump
+end
+expect
+  at 19 room=test_door_up
+  at 20 event.room=1 room=test_door_b x=640u y=108u vy>17u
+  at 26 event.land=1 y=224u
+  mark up 41..70 event.room=1
+  at up room=test_door_up y=448u vy<0
+  mark down up+1..99 event.room=1
+  at down room=test_door_b y=108u vy>0
+end

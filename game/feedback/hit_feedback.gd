@@ -58,6 +58,9 @@ func attach(p_vfx: VfxBudget, p_voices: Voices) -> void:
 func on_tick(sim: Simulation) -> void:
 	if vfx != null:
 		vfx.step()
+		# Through a door the effects of the room behind are gone with it (docs/adr/0014).
+		if sim.events.has(SimEvents.ROOM):
+			vfx.clear()
 	shake.step()
 	flash_ticks = maxi(flash_ticks - 1, 0)
 	chroma_ticks = maxi(chroma_ticks - 1, 0)

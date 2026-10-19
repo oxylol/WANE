@@ -1,0 +1,15 @@
+fixture door_dash_carries_through
+doc docs/adr/0014 and BUILD.md s5 Dash: a dash through a door goes on in the room beyond, its frames counting on and its speed kept: 9 frames of 20 u, four of them in door_b
+room test/door_a
+spawn 1140 416
+frames 14
+input
+  0 R dash
+  1..13 R
+end
+expect
+  at 3 room=test_door_a state=dash dash_frame=4 x=1220u
+  at 4 event.room=1 room=test_door_b state=dash dash_frame=5 x=74u vx=20u
+  at 8 state=dash dash_frame=9 x=154u
+  at 9 state=ground
+end

@@ -13,10 +13,14 @@ const PIT := Color(0.06, 0.04, 0.05)
 const PIT_LIP := Color(0.55, 0.18, 0.15)
 const BOX := Color(0.44, 0.40, 0.50)
 const BEYOND := Color(0.20, 0.20, 0.23)
+## A door's way through the solid beyond the room: the room's own empty colour (the project's
+## clear colour), so an opening reads as a passage on to the next room (docs/adr/0014).
+const PASSAGE := Color(0.07, 0.07, 0.08)
 ## How far past the room's edge the solid is drawn: more than the camera's margin can reveal.
 const BEYOND_U: float = 8192.0
 
 var world: CollisionWorld
+var doors: Array[RoomData.Door] = []
 ## The solid boxes, redrawn every tick (a wax wall burns away).
 var _solids: Node2D
 
@@ -28,9 +32,10 @@ func _ready() -> void:
 	_solids.draw.connect(_draw_solids)
 
 
-## Shows [param p_world]'s room.
-func show_world(p_world: CollisionWorld) -> void:
+## Shows [param p_world]'s room, its [param p_doors] open onto the beyond.
+func show_world(p_world: CollisionWorld, p_doors: Array[RoomData.Door] = []) -> void:
 	world = p_world
+	doors = p_doors
 	queue_redraw()
 	refresh()
 
@@ -52,6 +57,18 @@ func _draw() -> void:
 	draw_rect(Rect2(-BEYOND_U, size.y, size.x + BEYOND_U * 2.0, BEYOND_U), BEYOND)
 	draw_rect(Rect2(-BEYOND_U, 0, BEYOND_U, size.y), BEYOND)
 	draw_rect(Rect2(size.x, 0, BEYOND_U, size.y), BEYOND)
+	for d: RoomData.Door in doors:
+		var from: float = float(d.from_u)
+		var span: float = float(d.span_u())
+		match d.side:
+			RoomData.LEFT:
+				draw_rect(Rect2(-BEYOND_U, from, BEYOND_U, span), PASSAGE)
+			RoomData.RIGHT:
+				draw_rect(Rect2(size.x, from, BEYOND_U, span), PASSAGE)
+			RoomData.TOP:
+				draw_rect(Rect2(from, -BEYOND_U, span, BEYOND_U), PASSAGE)
+			RoomData.BOTTOM:
+				draw_rect(Rect2(from, size.y, span, BEYOND_U), PASSAGE)
 	for j: int in range(grid.height):
 		for i: int in range(grid.width):
 			draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)

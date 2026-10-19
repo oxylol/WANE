@@ -28,6 +28,7 @@ enum {
 	TRAIL,
 	KILL_EMBER,
 	ENEMY_DEAD,
+	DOOR,
 }
 
 ## Half the size of the marker drawn at the ember, and at a bounce.
@@ -61,6 +62,13 @@ static func collect(sim: Simulation, view: Rect2) -> Array[Box]:
 		if not s.clingable:
 			label = (label + " no-cling").strip_edges()
 		out.append(_box(SOLID, r, label))
+	# Each door's strip: the player goes through when the whole collider is inside it
+	# (docs/adr/0014).
+	var w_u: int = sim.room.grid.width * TileGrid.TILE
+	var h_u: int = sim.room.grid.height * TileGrid.TILE
+	for d: RoomData.Door in sim.room.doors:
+		var label: String = "door to " + d.target_room
+		out.append(_box(DOOR, Rect2(d.strip_u(w_u, h_u)), label))
 	_add_hazards(sim.world, view, out)
 	var pl: Player = sim.player
 	if pl == null:

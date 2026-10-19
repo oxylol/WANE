@@ -11,6 +11,7 @@ const FIXTURE_DIRS: Array[String] = [
 	"res://tests/replay/tech",
 	"res://tests/replay/physics",
 	"res://tests/replay/camera",
+	"res://tests/replay/doors",
 ]
 ## The screen shapes the game may run at (16:9, 16:10, 4:3, 21:9): GameCamera gives the rig the
 ## real screen's shape, showing a taller or wider screen more world.
@@ -317,7 +318,7 @@ func test_every_fixture_keeps_the_player_clear_and_the_camera_smooth() -> void:
 func _first_problem(run: CameraRun) -> String:
 	for f: int in range(1, run.centers.size()):
 		var s: CameraSubject = run.subjects[f]
-		if s.respawned or s.teleported:
+		if s.respawned or s.teleported or s.entered:
 			continue
 		var moved: float = s.box.get_center().x - run.subjects[f - 1].box.get_center().x
 		var glide: bool = run.gliding[f] or run.gliding[f - 1]

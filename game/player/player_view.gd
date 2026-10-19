@@ -71,8 +71,13 @@ func capture(sim: Simulation) -> void:
 	_facing = pl.facing
 	_invulnerable = pl.invuln > 0
 	_ease_nudge(Vector2(-b.nudge_x, -b.nudge_y) / Fx.SUB)
-	# A teleport or a respawn moves the player in one tick: draw it there, not sliding there.
-	if sim.events.has(SimEvents.TELEPORT) or sim.events.has(SimEvents.HAZARD):
+	# A teleport, a respawn or a door moves the player in one tick: draw it there, not sliding
+	# there.
+	if (
+		sim.events.has(SimEvents.TELEPORT)
+		or sim.events.has(SimEvents.HAZARD)
+		or sim.events.has(SimEvents.ROOM)
+	):
 		_before = _after
 		_stop_ease()
 

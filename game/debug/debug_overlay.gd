@@ -26,6 +26,7 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 	DebugBoxes.TRAIL: Color(1.0, 0.35, 0.05, 0.7),
 	DebugBoxes.KILL_EMBER: Color(1.0, 0.75, 0.3, 1.0),
 	DebugBoxes.ENEMY_DEAD: Color(0.55, 0.5, 0.6, 0.55),
+	DebugBoxes.DOOR: Color(0.4, 1.0, 0.9, 0.7),
 }
 ## Boxes that are filled as well as outlined (the ones that hit something).
 const FILLED: Array[int] = [

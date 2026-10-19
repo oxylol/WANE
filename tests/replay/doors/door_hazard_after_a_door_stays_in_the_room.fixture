@@ -1,0 +1,13 @@
+fixture door_hazard_after_a_door_stays_in_the_room
+doc docs/adr/0014 and BUILD.md s5 hazards: spikes in door_b's floor after the door send Ash back to safe ground in door_b, never to a place measured in door_a
+room test/door_a
+spawn 1100 416
+frames 140
+input
+  0..139 R
+end
+expect
+  at 16 event.room=1 room=test_door_b
+  mark hit 17..139 event.hazard=1
+  at hit room=test_door_b xu>64 xu<960 y=416u
+end

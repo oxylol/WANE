@@ -58,7 +58,7 @@ func longest_run_against() -> float:
 	var stretch: float = 0.0
 	for f: int in range(1, centers.size()):
 		var s: CameraSubject = subjects[f]
-		if s.teleported or s.respawned or gliding[f] or gliding[f - 1]:
+		if s.teleported or s.respawned or s.entered or gliding[f] or gliding[f - 1]:
 			stretch = 0.0
 			continue
 		var moved: float = s.box.end.y - subjects[f - 1].box.end.y
@@ -92,6 +92,11 @@ static func play_fixture(fx: Fixture, camera: CameraRig) -> CameraRun:
 	for f: int in range(fx.frame_total):
 		sim.step(fx.input_frame(f))
 		var s: CameraSubject = CameraSubject.of(sim, run.rig.tuning.fall_lead_frames)
+		if s.entered:
+			# Through a door: the view cuts to the new room, inside its bounds (docs/adr/0014).
+			run.room = Rect2(
+				0, 0, sim.world.grid.width * TileGrid.TILE, sim.world.grid.height * TileGrid.TILE
+			)
 		run.rig.step(s, run.room)
 		run.subjects.append(s)
 		run.centers.append(run.rig.center)

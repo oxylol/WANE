@@ -26,7 +26,7 @@ func _look_past_landing(run: CameraRun) -> float:
 	var start: int = -1
 	for f: int in range(run.subjects.size()):
 		var s: CameraSubject = run.subjects[f]
-		if s.teleported or s.respawned:
+		if s.teleported or s.respawned or s.entered:
 			start = -1
 			continue
 		if s.supported:

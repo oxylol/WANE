@@ -33,7 +33,7 @@ func _ready() -> void:
 	driver.start(Scenario.make(int(Time.get_unix_time_from_system()), START_ROOM))
 	for problem: String in driver.sim.load_errors:
 		push_error("%s: %s" % [START_ROOM, problem])
-	room_view.show_world(driver.sim.world)
+	room_view.show_world(driver.sim.world, driver.sim.room.doors)
 	player_view.begin(driver.sim)
 	game_camera.begin(driver.sim)
 	debug_overlay.attach(driver, game_camera)
@@ -51,6 +51,8 @@ func _ready() -> void:
 
 func _on_ticked() -> void:
 	var sim: Simulation = driver.sim
+	if sim.events.has(SimEvents.ROOM):
+		room_view.show_world(sim.world, sim.room.doors)
 	player_view.capture(sim)
 	enemy_view.capture(sim)
 	combat_view.capture(sim)
