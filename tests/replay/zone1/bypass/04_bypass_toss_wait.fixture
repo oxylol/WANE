@@ -1,5 +1,5 @@
 fixture zone1_04_bypass_toss_wait
-doc Known bypass, recorded and costed (docs/adr/0015, docs/feel_log/2026-10-19-zone1-b.md, review finding F1): the Ember Toss's 12 s cooldown can be waited out by bouncing on a spike post, so zone 1 room 4's alcove is reachable with no air dash after the hidden route's first three ground dashes. Four tosses in 2516 ticks (42 s), against the teaching route's 450 ticks (7.5 s)
+doc Known bypass, recorded and costed (docs/adr/0016, docs/feel_log/2026-10-19-zone1-b.md, review finding F1): the Ember Toss's 12 s cooldown can be waited out by bouncing on a spike post, so zone 1 room 4's alcove is reachable with no air dash after the hidden route's first three ground dashes. Four tosses in 2516 ticks (42 s), against the teaching route's 450 ticks (7.5 s)
 room zone1/04_pogo_dash_reset
 spawn 74 2336
 frames 2526

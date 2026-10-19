@@ -82,4 +82,6 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0013-combat` Combat resolves once per tick, after all movement.
 - `0014-doors-and-zones` Paired `door` lines, crossed inside the strip.
 - `0015-procs-and-votives` The proc bus after the player's hits; a Votive is content behind a narrow listener API.
+- `0016-tech-rooms-teach-they-do-not-gate` A tech room makes its tech the cheapest route, not the only one; controls and bypass records.
+- `0017-ember-toss-cancel-over-a-chasm` Tech 11: throw in the dash-jump chain, teleport over the chasm.
 - `0000-template` The ADR template.

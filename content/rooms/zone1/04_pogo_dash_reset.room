@@ -23,7 +23,7 @@
 # post 2 spends the dash; every step after needs the one the last bounce gave back: pogo, dash,
 # pogo, the reference hidden-room gap. A fall lands on the floor and costs only the climb.
 #
-# Why this way (every number measured: docs/feel_log/2026-10-19-zone1-b.md; docs/adr/0015). The
+# Why this way (every number measured: docs/feel_log/2026-10-19-zone1-b.md; docs/adr/0016). The
 # cheapest way, by far: 7.5 s to the alcove. Without the reset a climb has one air dash and one
 # Ember Toss, and a single toss cannot make up for it. A post two steps up (896 u, a down-strike
 # reaching it with the feet 864 u up) needs more than a bounce, its air jump and the toss (782 u:
@@ -34,7 +34,7 @@
 # (tests/replay/zone1/04_control_no_reset_toss, one toss). The natural try, pogo, dash, pogo and no
 # second dash, stops 155 u under post 3's reach (04_control_no_second_dash).
 #
-# It is not the only way, and no geometry can make it so (ADR-0015). A post is a place to bounce
+# It is not the only way, and no geometry can make it so (ADR-0016). A post is a place to bounce
 # for as long as the player likes, and a bounce costs nothing, so the toss's 12 s cooldown can be
 # waited out on it: a toss from post k puts the ember over post k+1, the player falls back onto
 # post k, bounces until the ember has flown, teleports, and bounces on post k+1 until the toss is

@@ -1,28 +1,54 @@
-# Zone 1, room 11 (stub, Phase 1 task 7): replaced by the room that teaches tech 11, Ember-toss cancel (BUILD.md s5).
 room zone1/11_ember_toss_cancel
-size 60 20
-spawn 200 544
+# Zone 1, room 11: tech 11, Ember-toss cancel (BUILD.md s5: "throw the ember during the dash-jump
+# chain, teleport over the chasm"; s6 Ember Toss: 600 u/s, 3 f startup, 6 f invulnerable, 12 s
+# cooldown; ADR-0010, ADR-0017). Grey box, not art.
+#
+# The first encounter is a warm-up jump: a dip 4 tiles (128 u) wide and 2 tiles (64 u) deep, 54 u
+# from the door. Falling in costs nothing (a jump climbs out). It is not a place for the toss: a
+# throw is not back for 12 s (720 ticks), and the pit's send-back does not refill it, so a throw
+# spent here or on a failed attempt leaves the chasm uncrossable until the cooldown has run out
+# (tests/replay/zone1/11_control_toss_spent_in_dip). Wait on the near ledge, it is safe.
+#
+# Then the chasm: 75 tiles (2400 u) from the near edge at 480 u to the far face at 2880 u, over a
+# pit 192 u below the ledges (row 18; falling in is a hazard that sends Ash back to the arrival
+# point). The far face is smooth above the pit, so nothing in the gap can be clung to, pogoed off
+# or climbed. The only way across is a dash-jump with the Ember Toss thrown mid-dash:
+#   - the farthest route with a dash-jump and no toss (a ground dash, the jump on dash frame 7,
+#     the air jump, the air dash up-right) carries the body 2243 u past the edge;
+#   - the same route with one Ember Toss, thrown up-right on frame 6 of the air dash (the dash
+#     carries on: the toss never cancels it) and teleported to 36 ticks later, carries it 2505 u;
+#   - a crossing needs a reach past 2390 u (the gap less half the body's width), so 147 u more
+#     than any route without the toss reaches and 115 u less than the toss route reaches. Routes
+#     with a toss but no dash-jump reach 1592 u at most (ADR-0010), a plain throw from the edge
+#     400 u (tests/replay/zone1/11_*).
+#   tools/replay/gap_reach.gd measures this on test/longchasm, the near half of this chasm with
+#   no far side (tests/unit/tools/test_gap_reach_room.gd keeps the two the same).
+# The room is 105 x 20 tiles, not 60 x 34: the tech needs a chasm 75 tiles wide, and the ceiling
+# 12 tiles above the ledge is part of what was measured.
+# About 8 s for a skilled player: 3 s of run-up and dash, 4 s of airtime across the chasm.
+size 105 20
+spawn 74 384
 tiles
-############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-............................................................
-............................................................
-............................................................
-............................................................
-############################################################
-############################################################
-############################################################
+#########################################################################################################
+#.......................................................................................................#
+#.......................................................................................................#
+#.......................................................................................................#
+#.......................................................................................................#
+#.......................................................................................................#
+#.......................................................................................................#
+#.......................................................................................................#
+.........................................................................................................
+.........................................................................................................
+.........................................................................................................
+.........................................................................................................
+####....#######...........................................................................S##############
+####....#######...........................................................................S##############
+###############...........................................................................S##############
+###############...........................................................................S##############
+###############...........................................................................S##############
+###############...........................................................................S##############
+###############~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~S##############
+#########################################################################################################
 end
-door west left 416 544 zone1/10_crouch_dash_under east
-door east right 416 544 zone1/12_kindle_dash west
+door west left 256 384 zone1/10_crouch_dash_under east
+door east right 256 384 zone1/12_kindle_dash west

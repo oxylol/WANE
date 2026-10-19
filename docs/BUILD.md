@@ -233,10 +233,10 @@ All of these must work for every Wick (with their overrides) and be taught by th
 8. **Attack-cancel landing**: landing never interrupts an attack. Taught by a boss with a short window.
 9. **Reverse pogo**: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy. Until the shielded enemy exists (Phase 1 grey boxes), room 9 teaches it with a pogo-block guard and does not gate it: a plain jump crosses, since no door or geometry can ask which way Ash faces (docs/adr/0010 "Reverse pogo").
 10. **Crouch-dash under**: crouch, then dash, keeps the 28-tall hitbox for the dash. Taught by a low gap.
-11. **Ember-toss cancel** (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm.
+11. **Ember-toss cancel** (Ash): throw the ember during the dash-jump chain, teleport over the chasm (the teleport is the landing; docs/adr/0017). Taught by a chasm.
 12. **Kindle-dash** (universal with the Kindle Votive): dash through a wax wall or a Snuffed to ignite it. Taught by a wax door.
 
-"Taught by" means the room makes the tech the cheapest route and a control proves what the single-use alternatives cannot do; it does not mean the only route. A cooldown waited out on a perch, or another row of the tables, may reach the same place at a higher cost (docs/adr/0015).
+"Taught by" means the room makes the tech the cheapest route and a control proves what the single-use alternatives cannot do; it does not mean the only route. A cooldown waited out on a perch, or another row of the tables, may reach the same place at a higher cost (docs/adr/0016).
 
 ### Feel rules (non-negotiable)
 

@@ -1,4 +1,4 @@
-# ADR-0015: A tech room teaches the cheapest route; it does not claim to be the only one
+# ADR-0016: A tech room teaches the cheapest route; it does not claim to be the only one
 
 - Status: Accepted
 - Date: 2026-10-19

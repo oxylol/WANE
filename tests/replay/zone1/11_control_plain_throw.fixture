@@ -1,0 +1,25 @@
+fixture zone1_11_control_plain_throw
+doc Control for BUILD.md s5 tech 11 and docs/adr/0017: a plain throw. The ember is thrown straight ahead from the near ledge (a throw flies 400 u: 40 f at 10 u/f) and teleported to once it has stopped; the air jump and the air dash then carry the body on. No dash-jump, no throw mid-dash: it falls into the pit well short of the far face (2880 u).
+room zone1/11_ember_toss_cancel
+frames 200
+input
+  0..5 R
+  6..11 R jump
+  12..38 R
+  # The throw from the near ledge, facing the chasm.
+  39 toss
+  # The teleport once the ember has stopped (out on the throw's frame 4, 40 f of flight), then the
+  # air jump and the air dash.
+  90 toss
+  96..110 R jump
+  112 R dash
+  113..199 R
+end
+expect
+  at 39 event.toss=1 state=ground
+  at 83 ember=1
+  at 90 event.teleport=1 ember=0 state=air
+  mark fell 91..199 event.hazard=1
+  at fell x<1500u
+  never 0..199 x>2880u
+end

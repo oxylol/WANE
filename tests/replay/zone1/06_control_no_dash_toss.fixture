@@ -1,5 +1,5 @@
 fixture zone1_06_control_no_dash_toss
-doc BUILD.md s5 tech 6 "Taught by a shaft"; s6 Ember Toss; zone 1 room 6's control: the strongest climb without a dash and with ONE Ember Toss (its landing trick) reaches band 2 and no further; one toss thrown up and away from band 0 with an air jump does carry the first crossing, and a toss per crossing waited out on the bands is not modelled (docs/adr/0015); docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+doc BUILD.md s5 tech 6 "Taught by a shaft"; s6 Ember Toss; zone 1 room 6's control: the strongest climb without a dash and with ONE Ember Toss (its landing trick) reaches band 2 and no further; one toss thrown up and away from band 0 with an air jump does carry the first crossing, and a toss per crossing waited out on the bands is not modelled (docs/adr/0016); docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
 room zone1/06_wall_jump_dash
 spawn 74 1888
 frames 400
