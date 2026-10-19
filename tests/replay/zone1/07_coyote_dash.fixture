@@ -8,8 +8,9 @@ input
   # Trench A, the safe first encounter: a ground dash from its edge (x 576) crosses it.
   58 R dash
   59..96 R
-  # Chasm B's edge is at x 992: Ash walks off it on frame 94 (the first airborne frame). Frame
-  # 97 is the fourth airborne frame, inside the 6-frame coyote time: a ground dash.
+  # Chasm B's edge is at x 992: Ash is still on the floor when tick 94's input is read and walks
+  # off during it (a dash on 94 is a ground dash, the control). Ticks 95 to 100 are her 6 coyote
+  # ticks; 97 is the third: a ground dash all the same, the air dash left in hand.
   97 R dash
   98..113 R
   # The air dash, still in hand, 17 frames later.
