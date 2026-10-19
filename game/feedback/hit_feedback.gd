@@ -28,6 +28,9 @@ var vignette_ticks: int = 0
 ## The player's flash setting, 0..1 (section 15: "with flashes set to 0").
 var flash_scale: float = 1.0
 
+## The player's centre this tick (units): where a finisher's slash arc is centred, so it sweeps
+## along the blade's reach and not beyond the enemy it struck.
+var _origin: Vector2 = Vector2.ZERO
 var _rng := RandomNumberGenerator.new()
 ## One hit's feedback is one bright thing for the VFX budget: its spark, smear and burst (and a
 ## stagger it causes) share a group, which is how a finisher's arc and burst survive the spark
@@ -67,6 +70,9 @@ func on_tick(sim: Simulation) -> void:
 	vignette_ticks = maxi(vignette_ticks - 1, 0)
 	_rng.seed = sim.tick
 	_group = 0
+	if sim.player != null:
+		var b: Body = sim.player.body
+		_origin = Vector2(float(b.x), float(b.y - b.height / 2)) / Fx.SUB
 	var e: SimEvents = sim.events
 	for i: int in range(e.count()):
 		var at := Vector2(float(e.xs[i]) / Fx.SUB, float(e.ys[i]) / Fx.SUB)
@@ -122,7 +128,10 @@ func _on_hit(at: Vector2, value: int) -> void:
 	_spark(VfxBudget.SPARK, at, dir, variant, 1.0, tier, _group_priority)
 	match kind:
 		HitKind.FINISHER:
-			_spark(VfxBudget.SMEAR, at, dir, 0)
+			# The slash arc: centred on the player, its radius the reach to the struck enemy,
+			# swept through the strike's direction (presentation review r2, L9: drawn on the
+			# enemy it read as a shockwave beyond it).
+			_spark(VfxBudget.SMEAR, _origin, dir, 0, maxf(at.distance_to(_origin), 1.0))
 			_spark(VfxBudget.BURST, at, dir, 0)
 			shake.add(dir, tuning.finisher_shake_u, tuning.finisher_shake_frames)
 			_play("thump", at, Voices.HIT)

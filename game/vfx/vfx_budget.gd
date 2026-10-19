@@ -42,6 +42,8 @@ const COLOURS: Dictionary[int, Color] = {
 	TELEGRAPH: Color(1.0, 1.0, 1.0),
 	RING: Color(1.0, 0.95, 0.8),
 }
+## Half the angle a smear's arc sweeps, in radians.
+const SMEAR_HALF_ANGLE: float = 1.1
 ## Ticks a one-tick mark (an ember, a telegraph) lives.
 const MARK_FRAMES: int = 1
 
@@ -138,7 +140,10 @@ func claim_screen(kind: int, priority: int = PLAYER) -> bool:
 	if not SCREEN_BRIGHT.has(kind):
 		return true
 	# The Harding window: no priority buys a fourth flash in a second.
-	while not _screen_flashes.is_empty() and _tick - _screen_flashes[0] >= tuning.screen_flash_window_frames:
+	while (
+		not _screen_flashes.is_empty()
+		and _tick - _screen_flashes[0] >= tuning.screen_flash_window_frames
+	):
 		_screen_flashes.remove_at(0)
 	if _screen_flashes.size() >= tuning.screen_flash_max:
 		refused += 1
@@ -228,7 +233,16 @@ func _draw() -> void:
 				draw_arc(e.at, (8.0 + 40.0 * t) * e.size, 0.0, TAU, 24, c, 3.0)
 			SMEAR:
 				var mid: float = e.dir.angle()
-				draw_arc(e.at, 56.0 * e.size, mid - 1.1, mid + 1.1, 16, c, 10.0 * (1.0 - t))
+				# Centred on the swing's origin, [member Effect.size] the radius in units.
+				draw_arc(
+					e.at,
+					e.size,
+					mid - SMEAR_HALF_ANGLE,
+					mid + SMEAR_HALF_ANGLE,
+					16,
+					c,
+					10.0 * (1.0 - t)
+				)
 			EMBER:
 				draw_circle(e.at, 5.0 * e.size, c)
 			TELEGRAPH:

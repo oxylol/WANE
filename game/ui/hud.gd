@@ -89,7 +89,9 @@ func _draw_hud() -> void:
 	var tier: int = vitals.kindling.tier()
 	for t: int in range(TIER_COLOURS.size()):
 		var at := Vector2(MARGIN_PX + t * (PIP_PX + PIP_GAP_PX), MARGIN_PX + HEART_PX + 14.0)
-		_canvas.draw_rect(Rect2(at, Vector2(PIP_PX, PIP_PX)), TIER_COLOURS[t] if t <= tier else PIP_OFF)
+		_canvas.draw_rect(
+			Rect2(at, Vector2(PIP_PX, PIP_PX)), TIER_COLOURS[t] if t <= tier else PIP_OFF
+		)
 
 
 ## The Flame bar in [param bar]: the fill at the true value, the ghost, the cost marks, the frame.

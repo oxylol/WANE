@@ -84,9 +84,7 @@ static func _make(id: String) -> AudioStreamWAV:
 		"telegraph":
 			samples = _tone(0.30, 420.0 * d, 600.0, 0.35)
 		"telegraph_red":
-			samples = _mix(
-				_tone(0.30, 300.0 * d, 300.0, 0.35), _tone(0.30, 317.0 * d, 300.0, 0.35)
-			)
+			samples = _mix(_tone(0.30, 300.0 * d, 300.0, 0.35), _tone(0.30, 317.0 * d, 300.0, 0.35))
 		"kill":
 			samples = _mix(_noise(0.16, 3 + v, 0.5), _tone(0.16, 300.0 * d, -150.0, 0.4))
 		"ember":

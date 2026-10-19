@@ -169,7 +169,12 @@ func test_every_fixture_plays_the_same_with_the_overlay_reading_every_tick() -> 
 						or watched.events.count() != plain.events.count()
 					)
 				):
-					fail("%s/%s: the overlay changed the simulation on frame %d" % [dir_name, file, f])
+					fail(
+						(
+							"%s/%s: the overlay changed the simulation on frame %d"
+							% [dir_name, file, f]
+						)
+					)
 					return
 			assert_int(watched.state_hash()).override_failure_message(file).is_equal(
 				plain.state_hash()

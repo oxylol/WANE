@@ -162,7 +162,9 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	combat_view.player_view = player_view
 	feedback.attach(vfx, null)
 	hud.vitals = sim.player.vitals
-	hud.spell_costs = [sim.player.kit.kindle_cost, sim.player.kit.mend_cost, sim.player.kit.radiance_cost]
+	hud.spell_costs = [
+		sim.player.kit.kindle_cost, sim.player.kit.mend_cost, sim.player.kit.radiance_cost
+	]
 	screen.feedback = feedback
 	enemy_view.capture(sim)
 	player_view.begin(sim)

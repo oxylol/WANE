@@ -127,10 +127,13 @@ func validate() -> PackedStringArray:
 	if voice_cap < 1:
 		e.append("there must be at least one voice")
 	if shake_period_frames < 2 or spark_variants < 1 or spark_variants > Synth.HIT_VARIANTS:
-		e.append(
-			(
-				"shake_period_frames must be at least 2 and spark_variants 1 to %d (the synth's hit sounds)"
-				% Synth.HIT_VARIANTS
+		(
+			e
+			. append(
+				(
+					"shake_period_frames must be at least 2 and spark_variants 1 to %d (the synth's hit sounds)"
+					% Synth.HIT_VARIANTS
+				)
 			)
 		)
 	if screen_flash_window_frames < 1 or screen_flash_max < 1:

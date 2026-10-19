@@ -171,9 +171,11 @@ func test_the_overlay_collects_once_a_tick_and_draws_no_label_twice() -> void:
 			for b: DebugBoxes.Box in DebugBoxes.collect(ps, Rect2()):
 				if b.label == "":
 					continue
-				assert_bool(seen.has(b.rect)).override_failure_message(
-					"%s frame %d: two labels on %s" % [path, f, b.rect]
-				).is_false()
+				(
+					assert_bool(seen.has(b.rect))
+					. override_failure_message("%s frame %d: two labels on %s" % [path, f, b.rect])
+					. is_false()
+				)
 				seen[b.rect] = true
 
 
@@ -331,7 +333,10 @@ func test_displacing_a_hit_removes_its_whole_group() -> void:
 	for kind: int in [VfxBudget.SPARK, VfxBudget.SMEAR, VfxBudget.BURST]:
 		assert_bool(vfx.spawn(kind, VfxBudget.PLAYER, at, Vector2.RIGHT, 0, 1.0, none, 7)).is_true()
 	vfx.step()
-	assert_bool(vfx.spawn(VfxBudget.BURST, VfxBudget.SPELL, at, Vector2.UP, 0, 3.0, none, 8)).is_true()
+	(
+		assert_bool(vfx.spawn(VfxBudget.BURST, VfxBudget.SPELL, at, Vector2.UP, 0, 3.0, none, 8))
+		. is_true()
+	)
 	assert_int(vfx.effects.size()).is_equal(1)
 	assert_int(vfx.effects[0].group).is_equal(8)
 	assert_int(vfx.displaced).is_equal(3)
@@ -358,23 +363,25 @@ func test_every_sound_varies_and_a_heal_is_not_a_parry() -> void:
 	var w: Wired = _wired(_fixture("combat/five_parries_in_a_second"), voices)
 	for _f: int in range(100):
 		w.driver._process(1.0 / 60.0)
-	var pitches: Dictionary[String, Array] = {}
+	var plays: Dictionary[String, int] = {}
+	var seen: Dictionary[String, bool] = {}
+	var distinct: Dictionary[String, int] = {}
+	var spread: float = w.feedback.tuning.sound_pitch_spread
 	for i: int in range(voices.streams.size()):
 		for base: String in Synth.BASES:
-			if Synth.is_variant_of(voices.streams[i], base):
-				var list: Array = pitches.get(base, [])
-				list.append(voices.pitches[i])
-				pitches[base] = list
-	assert_bool(pitches.has("chime")).is_true()
-	assert_bool(pitches.has("telegraph")).is_true()
-	var spread: float = w.feedback.tuning.sound_pitch_spread
-	for base: String in pitches:
-		var distinct: Dictionary[float, bool] = {}
-		for p: float in pitches[base]:
-			assert_float(absf(p - 1.0)).is_less_equal(spread + 0.0001)
-			distinct[p] = true
-		if pitches[base].size() >= 3:
-			assert_int(distinct.size()).override_failure_message(base).is_greater(1)
+			if not Synth.is_variant_of(voices.streams[i], base):
+				continue
+			plays[base] = plays.get(base, 0) + 1
+			assert_float(absf(voices.pitches[i] - 1.0)).is_less_equal(spread + 0.0001)
+			var key: String = "%s|%.5f" % [base, voices.pitches[i]]
+			if not seen.has(key):
+				seen[key] = true
+				distinct[base] = distinct.get(base, 0) + 1
+	assert_bool(plays.has("chime")).is_true()
+	assert_bool(plays.has("telegraph")).is_true()
+	for base: String in plays:
+		if plays[base] >= 3:
+			assert_int(distinct[base]).override_failure_message(base).is_greater(1)
 	for other: String in ["heal", "radiance"]:
 		for v: int in range(Synth.variants(other)):
 			assert_bool(Synth.is_variant_of(Synth.variant(other, v), "chime")).is_false()
@@ -391,15 +398,19 @@ func test_the_budget_lifetimes_and_the_feel_numbers_are_content() -> void:
 	assert_int(vfx.lifetime(VfxBudget.BURST)).is_equal(t.vfx_burst_frames)
 	assert_int(vfx.lifetime(VfxBudget.SMEAR)).is_equal(t.vfx_smear_frames)
 	for path: String in [
-		"res://game/vfx/vfx_budget.gd", "res://game/ui/hud.gd", "res://game/feedback/feedback_overlay.gd"
+		"res://game/vfx/vfx_budget.gd",
+		"res://game/ui/hud.gd",
+		"res://game/feedback/feedback_overlay.gd"
 	]:
 		var src: String = FileAccess.get_file_as_string(path)
 		for literal: String in [
 			"LIFETIMES", "GAIN_FLASH_TICKS", "VIGNETTE_DEPTH", "move_toward(shown_flame"
 		]:
-			assert_bool(src.contains(literal)).override_failure_message(
-				"%s has %s" % [path, literal]
-			).is_false()
+			(
+				assert_bool(src.contains(literal))
+				. override_failure_message("%s has %s" % [path, literal])
+				. is_false()
+			)
 
 
 func test_the_hud_flash_follows_the_flash_setting() -> void:
@@ -435,3 +446,24 @@ func test_the_telegraph_cue_is_above_the_effects_and_the_trails_are_below_the_en
 	assert_object(cues).is_not_null()
 	assert_int(cues.z_index).is_greater((world.get_node("Vfx") as Node2D).z_index)
 	assert_int((world.get_node("DebugOverlay") as Node2D).z_index).is_greater(cues.z_index)
+
+
+func test_the_finishers_slash_arc_is_centred_on_the_player_not_the_enemy() -> void:
+	# Presentation review r2, L9: the arc was centred on the struck enemy, 56 u beyond it from
+	# Ash, and read as a shockwave.
+	var w: Wired = _wired(_fixture("combat/blaze_finisher_burst"))
+	var smear: VfxBudget.Effect = null
+	var centre: Vector2 = Vector2.ZERO
+	var enemy_at: Vector2 = Vector2.ZERO
+	for _f: int in range(40):
+		w.driver._process(1.0 / 60.0)
+		for e: VfxBudget.Effect in w.vfx.effects:
+			if e.kind == VfxBudget.SMEAR and smear == null:
+				smear = e
+				var pl: Body = w.driver.sim.player.body
+				centre = Vector2(float(pl.x), float(pl.y - pl.height / 2)) / Fx.SUB
+				enemy_at = Vector2(w.driver.sim.combat.enemies[0].centre()) / Fx.SUB
+	assert_object(smear).is_not_null()
+	# The arc's centre is Ash's, its radius the reach to the struck enemy.
+	assert_vector(smear.at).is_equal_approx(centre, Vector2(0.01, 0.01))
+	assert_float(smear.size).is_equal_approx(centre.distance_to(enemy_at), 0.01)

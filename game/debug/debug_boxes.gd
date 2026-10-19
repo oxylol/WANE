@@ -122,9 +122,7 @@ static func collect(sim: Simulation, view: Rect2, memory: Memory = null) -> Arra
 ## that was parried), a hit on the player (its contact point, and the hurtbox that took it when
 ## it was the lethal one: the send-back has already moved the player), a burn, and a Blaze
 ## finisher's burst.
-static func _add_contacts(
-	sim: Simulation, pl: Player, memory: Memory, out: Array[Box]
-) -> void:
+static func _add_contacts(sim: Simulation, pl: Player, memory: Memory, out: Array[Box]) -> void:
 	var events: SimEvents = sim.events
 	for i: int in range(events.count()):
 		var at := Vector2(float(events.xs[i]), float(events.ys[i])) / Fx.SUB
@@ -164,9 +162,7 @@ static func _add_hit_marks(
 		out.append(_box(CONTACT, Rect2(at - half, half * 2.0), "burn"))
 	elif kind == HitKind.FINISHER and sim.player.vitals.kindling.tier() >= Kindling.BLAZE:
 		var r: float = float(sim.combat.params.blaze_aoe_radius) / Fx.SUB
-		out.append(
-			_box(BURST, Rect2(at - Vector2(r, r), Vector2(r, r) * 2.0), "burst %.0f u" % r)
-		)
+		out.append(_box(BURST, Rect2(at - Vector2(r, r), Vector2(r, r) * 2.0), "burst %.0f u" % r))
 
 
 ## Where [param e]'s swing lands when it comes, as [method Enemy.attack_box] would give it on its
