@@ -1,0 +1,95 @@
+fixture zone1_03_control_nine_bounces
+doc Control for room 03 (BUILD.md s5 tech 3, s15 "a 10-bounce chain"; review F2): the best nine-bounce chain found (an air dash 9 frames and an air jump 17 frames after each bounce, 20 u/f kept on all nine) falls into the spikes at x 5431 u, 329 u short of the tunnel end (5760 u): ten bounces are needed, whatever is spent between them.
+room zone1/03_pogo_chain
+spawn 74 608
+frames 300
+input
+  0..5 R
+  6..8 R jump
+  9..39 R
+  40 R dash
+  41..44 R
+  45..47 R jump
+  48..54 R
+  55 R D attack
+  56..65 R
+  66 R dash
+  67..73 R
+  74 R jump
+  75..80 R
+  81 R D attack
+  82..91 R
+  92 R dash
+  93..99 R
+  100 R jump
+  101..106 R
+  107 R D attack
+  108..117 R
+  118 R dash
+  119..125 R
+  126 R jump
+  127..132 R
+  133 R D attack
+  134..143 R
+  144 R dash
+  145..151 R
+  152 R jump
+  153..158 R
+  159 R D attack
+  160..169 R
+  170 R dash
+  171..177 R
+  178 R jump
+  179..184 R
+  185 R D attack
+  186..195 R
+  196 R dash
+  197..203 R
+  204 R jump
+  205..210 R
+  211 R D attack
+  212..221 R
+  222 R dash
+  223..229 R
+  230 R jump
+  231..236 R
+  237 R D attack
+  238..247 R
+  248 R dash
+  249..255 R
+  256 R jump
+  257..262 R
+  263 R D attack
+  264..273 R
+  274 R dash
+  275..281 R
+  282 R jump
+  283..299 R
+end
+expect
+  # A hop over the 3-spike patch (frame 6), a ground dash-jump into the tunnel (dash on 40, jump on dash frame 6).
+  at 40 event.dash=1
+  at 45 event.jump=1 vx=5120
+  never 0..56 event.pogo=1
+  at 57 event.pogo=1 vx=5120 vy=-3388
+  never 58..82 event.pogo=1
+  at 83 event.pogo=1 vx=5120 vy=-3388
+  never 84..108 event.pogo=1
+  at 109 event.pogo=1 vx=5120 vy=-3388
+  never 110..134 event.pogo=1
+  at 135 event.pogo=1 vx=5120 vy=-3388
+  never 136..160 event.pogo=1
+  at 161 event.pogo=1 vx=5120 vy=-3388
+  never 162..186 event.pogo=1
+  at 187 event.pogo=1 vx=5120 vy=-3388
+  never 188..212 event.pogo=1
+  at 213 event.pogo=1 vx=5120 vy=-3388
+  never 214..238 event.pogo=1
+  at 239 event.pogo=1 vx=5120 vy=-3388
+  never 240..264 event.pogo=1
+  at 265 event.pogo=1 vx=5120 vy=-3388
+  never 266..299 event.pogo=1
+  mark hazard 266..299 event.hazard=1
+  at 290 x<5760u
+  at 290 x>5400u
+end

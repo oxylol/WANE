@@ -1,0 +1,29 @@
+fixture zone1_03_control_no_pogo
+doc Control for room 03 (BUILD.md s5 tech 3): every resource but the pogo (a ground dash-jump, its air jump, the air dash and the Ember Toss with its teleport, the best timing a search over every tick found) is stopped by the tunnel's ceiling and falls into the spikes 672 u inside it
+room zone1/03_pogo_chain
+spawn 74 608
+frames 200
+input
+  0..5 R
+  6..8 R jump
+  9..43 R
+  44 R dash
+  45..48 R
+  49..51 R jump
+  52..60 R
+  61..65 R jump
+  66 R U jump toss
+  67..71 R jump
+  72 R jump dash toss
+  73..199 R jump
+end
+expect
+  at 44 event.dash=1
+  at 49 event.jump=1
+  at 61 event.air_jump=1
+  at 66 event.toss=1
+  # Past the hall's patch and 600 u into the tunnel at best, then the spikes: sent back to safe ground.
+  mark hazard 40..199 event.hazard=1
+  at hazard x<1300u
+  never 0..199 x>1400u
+end

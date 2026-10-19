@@ -1,0 +1,27 @@
+fixture zone1_02_control_carry_jump
+doc Control for tech 2, from the second task-3 review: the farthest route without a ground dash-jump that a search over every tick found (docs/adr/0010). A ground dash runs flat past the edge (a ground dash does not fall), a coyote jump on dash frame 10 (a carry-over frame, not the dash-jump's 5 to 9) keeps only the carry's 10 u/f but keeps it all the way, then the air dash and, on its frame 9, the air jump: an air dash-jump, which keeps the air dash's 20 u/f (the third review: a jump on any dash's frames 5 to 9 is a dash-jump). Its feet reach 1539 u past the edge at the ledge's height and it falls into the 1664 u chasm: crossing takes a ground dash-jump.
+room zone1/02_dash_jump
+# The inputs of tests/replay/tech/tech02_control_carry_jump.fixture, 576 u right and 224 u down: room 02's chasm is test/chasm's (tests/unit/tools/test_gap_reach_room.gd).
+spawn 985 608
+frames 170
+input
+  0 R dash
+  1..8 R
+  9..43 R jump
+  44 R jump dash
+  45..50 R jump
+  51 R
+  52..169 R jump
+end
+expect
+  # No jump on the ground dash's frames 5 to 9: this is not the ground dash-jump.
+  never 4..8 event.jump=1
+  # A coyote ground jump on a carry-over frame, at the carry's 10 u/f.
+  at 9 event.jump=1 event.air_jump=0 vx=2560 state=air
+  at 44 event.dash=1
+  # The air jump on the air dash's frame 9: an air dash-jump at 20 u/f.
+  at 52 event.air_jump=1 vx=5120
+  mark below 10..169 y>618u
+  at below x<2720u
+  never 0..169 x>=2720u ground=1
+end

@@ -1,0 +1,34 @@
+fixture zone1_02_dash_jump_route
+doc BUILD.md s5 tech 2 "Dash-jump: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide"; s5 Dash "Jump during frames 5 to 9 keeps 100% dash speed"; docs/adr/0010 (Dash-jump); the same route as tech02_dash_jump_frame5_air_dash, from the west door
+room zone1/02_dash_jump
+spawn 74 608
+frames 246
+input
+  # The ditch (the safe first encounter): a running jump across it, held to its top.
+  0..29 R
+  30..41 R jump
+  42..99 R
+  # The island's run-up, then the dash at the near edge and the jump on dash frame 5, as in the
+  # tech 2 fixture, then the air jump on the way down and the air dash.
+  100 R dash
+  101..103 R
+  104..134 R jump
+  135 R
+  136..177 R jump
+  178 R U jump dash
+  179..215 R jump
+  # On the far ledge: run to the east door.
+  216..245 R
+end
+expect
+  at 30 event.jump=1
+  at 100 event.dash=1
+  at 104 event.jump=1 vx=5120
+  at 136 event.air_jump=1
+  at 178 event.dash=1
+  never 0..245 event.hazard=1
+  # Over the 1664 u of pit (it ends at 2720 u) and onto the east ledge, then through the east door.
+  mark land 179..243 event.land=1
+  at land y=608u x>2762u
+  at 244 event.room=1 room=zone1_03_pogo_chain x=74u
+end

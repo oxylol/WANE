@@ -1,0 +1,16 @@
+fixture zone1_01_control_run
+doc Control for room 01 (BUILD.md s5 tech 1): the hall dummy slashed once (tick 36), then the corridor run straight at the dummies with no attack and no dash: the first corridor dummy is a wall, it never passes x 870 u and never reaches the door.
+room zone1/01_dash_slash
+spawn 74 832
+frames 300
+input
+  0..35 R
+  36 R attack
+  37..299 R
+end
+expect
+  never 0..299 event.room=1
+  never 0..299 x>870u
+  at 299 x>800u
+  at 299 hearts<5
+end
