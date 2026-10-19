@@ -1,6 +1,30 @@
-# Zone 1, room 12 (stub, Phase 1 task 7): replaced by the room that teaches tech 12, Kindle-dash (BUILD.md s5).
+# Zone 1, room 12: Kindle-dash (BUILD.md s5 tech 12, "universal with the Kindle Votive: dash through a
+# wax wall ... to ignite it. Taught by a wax door"; docs/adr/0010 "Kindle-dash"). Grey box, not art.
+#
+# The game boots with the Kindle Votive (game/main.gd); fixtures say "option kindle 1".
+#
+# The route, west door to east door, 60 x 34 tiles (the camera's 1080 p view is 33.75 tiles):
+#  1. A flat run, then a SAFE first wax: a screen one tile thick (x 704..736), floor to ceiling, in
+#     the open with nothing to fall into. Dash into it: it ignites and the dash goes on through it.
+#  2. A real use: a spike chasm 192 u wide (x 1088..1280, spikes 160 u below the floor) whose far lip
+#     is capped by a WAX DOOR two tiles thick (x 1280..1344), floor to ceiling. A jump clears the
+#     chasm, but the door stands where the landing would be: dash into it from the air, burn through
+#     (the air jump comes back as the dash passes the wax) and land on the far ledge.
+#  3. 512 u of floor to the east door.
+#
+# Why Kindle is the only way across: the wax is a wall like any other without the Votive
+# (tech12_wax_blocks_without_kindle) and both screens run from the floor to the ceiling, so nothing
+# goes over or under them; a jump cannot clear a wall 512 u tall, and the pit below the door has
+# spikes, nothing to stand on. Controls: zone1/12_no_kindle_screen_holds,
+# zone1/12_no_kindle_door_holds.
+#
+# Stand-ins: the wax is a "tag=wax" solid and the pit is a row of spikes (a hazard is a respawn at
+# the safe point: the last ground the player stood on). The Snuffed that BUILD.md names beside wax
+# does not exist yet. A skilled run is about 4 s (74 u to the door at 9 u/f run, 180 u dashes).
+#
+# Doors: west and east are 128 u (4 tiles) tall, standing on the floor at y 544.
 room zone1/12_kindle_dash
-size 60 20
+size 60 34
 spawn 200 544
 tiles
 ############################################################
@@ -20,9 +44,25 @@ tiles
 ............................................................
 ............................................................
 ............................................................
+##################################......####################
+##################################......####################
+##################################......####################
+##################################......####################
+##################################......####################
+##################################^^^^^^####################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
+############################################################
 ############################################################
 ############################################################
 ############################################################
 end
+solid 704 32 736 544 tag=wax
+solid 1280 32 1344 544 tag=wax
 door west left 416 544 zone1/11_ember_toss_cancel east
 door east right 416 544 zone1/01_dash_slash west

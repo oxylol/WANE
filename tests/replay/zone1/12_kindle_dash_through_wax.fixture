@@ -1,0 +1,31 @@
+fixture zone1_12_kindle_dash_through_wax
+doc BUILD.md s5 tech 12 "Kindle-dash ... dash through a wax wall ... Taught by a wax door"; docs/adr/0014; zone 1 room 12. West arrival to the east door: a safe wax screen on the flat, then a wax door over the far lip of a spike chasm, burnt from the air
+room zone1/12_kindle_dash
+spawn 74 544
+option kindle 1
+frames 180
+input
+  0..53 R
+  54 R dash        # 147 u from the screen's face (704): the 9-frame dash (180 u) reaches and ignites it
+  55..101 R
+  102 R jump       # the last 8 u of the floor; the chasm (1088..1280) is under the whole jump
+  103..108 R
+  109 R dash       # at the apex, 146 u from the door's face (1280): the dash ignites it, the carry lands beyond it
+  110..179 R
+end
+expect
+  # The safe first wax: lit as the dash reaches its face, never a wall hit, the dash goes through.
+  mark screen 54..70 event.ignite=1
+  at screen x>690u state=dash
+  at 63 x>727u state=ground
+  # The door: lit mid-dash in the air above the chasm, nothing hit, nothing hurt.
+  mark door 109..125 event.ignite=1
+  at door x>1270u state=dash
+  never 0..179 hit_wall=1
+  never 0..179 event.hazard=1
+  at 118 x>1320u state=air
+  # Landed on the far ledge, past the door's far face (1344).
+  at 131 state=ground x>1344u
+  # The east door crossing, 3 s after the west arrival, into room 1 at its west arrival.
+  at 177 event.room=1 room=zone1_01_dash_slash x=74u
+end

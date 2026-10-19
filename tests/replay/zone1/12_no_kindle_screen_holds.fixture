@@ -1,0 +1,16 @@
+fixture zone1_12_no_kindle_screen_holds
+doc Control for zone 1 room 12 (tech 12): the same run and dash as the teaching fixture without the Kindle Votive; the safe wax screen is a wall like any other
+room zone1/12_kindle_dash
+spawn 74 544
+frames 90
+input
+  0..53 R
+  54 R dash
+  55..89 R
+end
+expect
+  never 0..89 event.ignite=1
+  # The wall's face is at 704; the body's half width is 10.
+  at 63 hit_wall=1 x=694u
+  during 63..89 x=694u
+end
