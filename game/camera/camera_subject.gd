@@ -60,7 +60,14 @@ static func of(sim: Simulation, ahead_frames: int = 0) -> CameraSubject:
 	var stick_down: bool = sim.input.stick_y() >= t and absi(sim.input.stick_x()) < t
 	var crouched: bool = pl.crouching and stick_down and b.on_ground and pl.loco == Player.GROUND
 	# A spell cast crouched (Radiance is cast with the stick held down) is fighting, as a strike is.
-	var fighting: bool = pl.action != Player.NO_ACTION or pl.spell != PlayerSpells.NONE
+	# So is holding the attack for the Charged strike (its 24 f charge is part of the strike, BUILD.md
+	# section 6), though no action runs during the hold (camera review 7, H3).
+	var fighting: bool = (
+		pl.action != Player.NO_ACTION
+		or pl.spell != PlayerSpells.NONE
+		or pl.charge_held > 0
+		or pl.charge_request > 0
+	)
 	s.looking_down = crouched and not fighting
 	s.look_held = crouched and fighting
 	s.dashing_up = pl.loco == Player.DASH and pl.dash_vy < 0
@@ -82,7 +89,9 @@ static func of(sim: Simulation, ahead_frames: int = 0) -> CameraSubject:
 	elif ahead_frames > 0:
 		s.ground_below = _ground_ahead(sim.world, pl, ahead_frames)
 	s.vy = float(b.vy) / Fx.SUB
-	s.respawned = sim.events.has(SimEvents.HAZARD)
+	# A hazard respawn and a death both send the player back to the spawn in one tick (camera review
+	# 7, H2: a death by a hit emits no hazard event).
+	s.respawned = sim.events.has(SimEvents.HAZARD) or sim.events.has(SimEvents.DEATH)
 	s.entered = sim.events.has(SimEvents.ROOM)
 	s.teleported = sim.events.has(SimEvents.TELEPORT)
 	return s

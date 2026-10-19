@@ -92,7 +92,7 @@ func _process(_delta: float) -> void:
 	combat_view.show_at(driver.alpha)
 	game_camera.show_at(driver.alpha)
 	# The shake moves the drawn view only, never the camera rig (BUILD.md section 6).
-	game_camera.offset = hit_feedback.shake_offset()
+	game_camera.apply_shake(hit_feedback.shake_offset())
 	debug_overlay.refresh()
 
 

@@ -1,0 +1,10 @@
+fixture cam7_death_far
+doc docs/adr/0011 (review 7, H2): walk off the shelf, run along the floor to the red dummy and die to its swing; the death sends Ash back to the spawn 1300 u away across and 1376 u up, and the view cuts with him
+room test/cam7_death_far
+option hearts 1
+frames 400
+input
+  0..140 R
+end
+expect
+end

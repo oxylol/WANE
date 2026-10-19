@@ -36,6 +36,14 @@ cam6_step_up_hops in:62982d29 content:80c3afb8 200:81b32685 60:851470fd 120:53be
 cam6_tp_down_dash_obottom in:863e5c46 content:13619166 124:33871c69 60:78e2bd06 120:68e2ac55
 cam6_tp_up_dash_ceiling in:693bfdfd content:15c63026 138:4020ba70 60:e03d44b5 120:38973b3f
 cam6_tp_up_dash_otop in:cab3f72a content:28d473ae 134:01716cf5 60:e1d501fc 120:c7df3962
+cam7_climb_letgo in:0d8d1c72 content:80c3afb8 260:2aab779c 60:72e5488a 120:7d95013b 180:6e63afd3 240:4372a741
+cam7_cling_walljump_fast in:28fd6d4b content:a70c4485 160:9b929f25 60:d0d8efb8 120:649646a2
+cam7_crouch_charge in:1dc99c68 content:80c3afb8 140:a6ed221a 60:13f375ac 120:d3985652
+cam7_death_far in:ec90068d content:93c37901 400:82bd26f8 60:eb3b2c51 120:269fb8c9 180:aa2529f1 240:48ddd192 300:cd316086 360:8bae0a74
+cam7_edge_hit in:0623762e content:7191693e 120:7963e570 60:76e44d7b 120:7963e570
+cam7_sandbox_death in:fef2cb06 content:8e960afb 260:cfb3e4e7 60:c1b02187 120:b7af5c41 180:28407555 240:343961de
+cam7_step_up_hop_off in:52c69048 content:80c3afb8 200:40deef33 60:851470fd 120:38b7e88b 180:daf8eef8
+cam7_tp_up_updash in:c0714fd2 content:80c3afb8 110:6d2b8402 60:09b11b53
 cam_air_spikes_pogo in:605bc4ab content:ca7b006b 260:b2638d01 60:ad5fc661 120:b57741c3 180:70cd8fcd 240:21dd9d48
 cam_box_100x33_roam in:fbd10a30 content:0ee32997 520:2467db49 60:32bdb65c 120:72595349 180:89a219b2 240:175e4e67 300:040b8bff 360:25f5f907 420:ed4e6778 480:5d0d8022
 cam_box_100x34_roam in:3f406ad2 content:91456eb5 520:f73c530f 60:0a28b02f 120:372b36ae 180:c577ab1f 240:ed22d939 300:6992fc7e 360:b20ca8ec 420:f515748a 480:26bc76db

@@ -218,7 +218,8 @@ func test_a_teleport_then_a_dash_on_toward_an_edge_needs_no_backstop() -> void:
 	# after a jump, at every screen shape: never the backstop, and the view's speed changes within
 	# the glide's limit.
 	var tuning: CameraTuning = load(CameraRig.TUNING_PATH) as CameraTuning
-	var accel: float = float(tuning.glide_accel_milli_u) / 1000.0
+	var glide_accel: float = float(tuning.glide_accel_milli_u) / 1000.0
+	var accel: float = float(tuning.vertical_accel_milli_u) / 1000.0
 	# A one-tile ceiling, a borderless top or a borderless bottom, and its spawn on the platform.
 	var rooms: Dictionary[String, Vector2i] = {
 		"test/cam6_ceiling_f12": Vector2i(960, 384),
@@ -244,7 +245,7 @@ func test_a_teleport_then_a_dash_on_toward_an_edge_needs_no_backstop() -> void:
 					if run.first(SimEvents.TELEPORT) < 0:
 						continue
 					teleports += 1
-					var problem: String = _speed_problem(run, accel)
+					var problem: String = _speed_problem(run, glide_accel, accel)
 					if run.rig.follow_misses > 0:
 						problem = "the backstop moved the view %d times" % run.rig.follow_misses
 					if problem != "":
@@ -259,16 +260,18 @@ func test_a_teleport_then_a_dash_on_toward_an_edge_needs_no_backstop() -> void:
 		fail("\n".join(problems))
 
 
-## The first tick on which the view's vertical speed changes by more than [param accel], other than
-## to slow at once to the player's own speed (ADR-0011), described, or "".
-func _speed_problem(run: CameraRun, accel: float) -> String:
+## The first tick on which the view's vertical speed changes by more than [param glide_accel] on a
+## glide tick or [param accel] on any other (the tick after a glide included: camera review 7, L1),
+## other than to slow at once to the player's own speed (ADR-0011), described, or "".
+func _speed_problem(run: CameraRun, glide_accel: float, accel: float) -> String:
 	for f: int in range(2, run.centers.size()):
 		if run.subjects[f].teleported or run.subjects[f].respawned or run.subjects[f].entered:
 			continue
+		var limit: float = glide_accel if run.gliding[f] else accel
 		var v: float = run.velocity(f).y
 		var was: float = run.velocity(f - 1).y
-		var lo: float = was - accel
-		var hi: float = was + accel
+		var lo: float = was - limit
+		var hi: float = was + limit
 		var player_vy: float = run.subjects[f].vy
 		if was > 0.0 and player_vy < was:
 			lo = minf(lo, player_vy)

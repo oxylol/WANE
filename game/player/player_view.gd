@@ -76,6 +76,7 @@ func capture(sim: Simulation) -> void:
 	if (
 		sim.events.has(SimEvents.TELEPORT)
 		or sim.events.has(SimEvents.HAZARD)
+		or sim.events.has(SimEvents.DEATH)
 		or sim.events.has(SimEvents.ROOM)
 	):
 		_before = _after

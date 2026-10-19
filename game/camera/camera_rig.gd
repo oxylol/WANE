@@ -87,6 +87,13 @@ var _glide_tick: int = 0
 var _glide_y: float = 0.0
 var _glide_rate_y: float = 0.0
 var _catching: bool = false
+## Whether the glide moved the view this tick, whether it did on the tick before the follow took
+## over again, and the view's own speed on that last glide tick (the follow's first tick after a
+## glide starts from it, so the view's speed changes by no more than the follow's acceleration;
+## camera review 7, L1).
+var _glide_applied: bool = false
+var _after_glide: bool = false
+var _glide_exit_vy: float = 0.0
 
 
 func _init(p_tuning: CameraTuning = null) -> void:
@@ -109,8 +116,14 @@ func anchor() -> Vector2:
 	return _anchor
 
 
-## True while a teleport's glide is still moving the view.
+## True on every tick a teleport's glide moved the view, its last included (the tick on which the
+## view's speed still carries the glide's final change; camera review 7, L1).
 func gliding() -> bool:
+	return _glide_applied
+
+
+## True while a teleport's glide has more to move (before this tick's move).
+func _glide_pending() -> bool:
 	return _glide_tick < _glide_frames or (_catching and _glide_y != 0.0)
 
 
@@ -122,6 +135,8 @@ func reset(s: CameraSubject, room: Rect2) -> void:
 	_glide_tick = 0
 	_glide_y = 0.0
 	_catching = false
+	_glide_applied = false
+	_after_glide = false
 	center = _base
 	previous = center
 
@@ -138,7 +153,8 @@ func step(s: CameraSubject, room: Rect2) -> void:
 	else:
 		_track(s, room)
 	var c: Vector2 = _base
-	if gliding():
+	_glide_applied = _glide_pending()
+	if _glide_applied:
 		var eased: float = 1.0
 		if _glide_tick < _glide_frames:
 			_glide_tick += 1
@@ -154,6 +170,8 @@ func step(s: CameraSubject, room: Rect2) -> void:
 		var budget: float = float(tuning.glide_accel_milli_u) / 1000.0 - absf(_vy - follow_vy)
 		c.y += _glide_offset_y(s, _glide_from.y * (1.0 - eased), budget)
 	center = _clear_player(c, s.box)
+	_after_glide = _glide_applied and not _glide_pending()
+	_glide_exit_vy = center.y - previous.y
 
 
 ## The glide's vertical offset from the follow this tick, [param nominal] (the smootherstep's)
@@ -273,7 +291,10 @@ func _track(s: CameraSubject, room: Rect2) -> void:
 	var c := Vector2(target.x, _base.y)
 	var lerp_w: float = float(tuning.vertical_lerp_permille) / 1000.0
 	var accel: float = float(tuning.vertical_accel_milli_u) / 1000.0
-	var bounds: Vector2 = _speed_bounds(s.vy, accel)
+	# The tick after a glide the follow starts from the view's own speed, with the glide's last
+	# change in it (camera review 7, L1).
+	var own_vy: float = _glide_exit_vy if _after_glide else _vy
+	var bounds: Vector2 = _speed_bounds(s.vy, accel, own_vy)
 	var vy: float = clampf((target.y - _base.y) * lerp_w, bounds.x, bounds.y)
 	if not s.supported and s.vy > 0.0 and s.box.end.y >= _support_y - 0.5:
 		# Ash is falling at or below the last support: the view never rises against the fall,
@@ -281,6 +302,12 @@ func _track(s: CameraSubject, room: Rect2) -> void:
 		# top). On the way down of a hop above it (in place, or up a staircase) the view carries on
 		# as it was, easing up to the support: the hop does not move it (camera review 6, M2).
 		vy = maxf(vy, 0.0)
+	elif not s.supported and s.vy > 0.0 and not _lands_at_support(s):
+		# Above the last support but falling away from it (off a ledge, off a climb, after a
+		# wall-jump: the ground the fall lands on is below the support): the view's rise only
+		# shrinks, at the follow's own acceleration, so it never lifts a tile against the fall
+		# (camera review 7, H1).
+		vy = maxf(vy, minf(own_vy + accel, 0.0))
 	elif not s.supported and s.vy < 0.0:
 		# Ash is rising: the view never sinks against the rise, even while it is still catching up
 		# with a fall it lagged (an air jump just above the floor; camera review 5, H2).
@@ -300,12 +327,12 @@ func _track(s: CameraSubject, room: Rect2) -> void:
 ## view still sinking into the look, stops the view and does not snap it into a rise (camera
 ## review 5). It never carries on against the player, and a jump or a kick, which the view lags
 ## anyway, loosens nothing.
-func _speed_bounds(player_vy: float, accel: float) -> Vector2:
-	var lo: float = _vy - accel
-	var hi: float = _vy + accel
-	if _vy > 0.0 and player_vy < _vy:
+func _speed_bounds(player_vy: float, accel: float, own_vy: float) -> Vector2:
+	var lo: float = own_vy - accel
+	var hi: float = own_vy + accel
+	if own_vy > 0.0 and player_vy < own_vy:
 		lo = minf(lo, player_vy if _player_vy > 0.0 else maxf(player_vy, 0.0))
-	elif _vy < 0.0 and player_vy > _vy:
+	elif own_vy < 0.0 and player_vy > own_vy:
 		hi = maxf(hi, player_vy if _player_vy < 0.0 else minf(player_vy, 0.0))
 	return Vector2(lo, hi)
 
@@ -356,6 +383,14 @@ func _commit_turn(s: CameraSubject, x: float) -> void:
 		_turn_ticks = 0
 
 
+## True when the fall Ash is in lands no lower than the last support: a hop toward it (the way
+## down of a hop in place, up a staircase, onto a ledge), where the view carries on easing up to
+## it, not a fall away from it ([member CameraSubject.ground_below], the steering envelope
+## included).
+func _lands_at_support(s: CameraSubject) -> bool:
+	return s.box.end.y + s.ground_below <= _support_y + 0.5
+
+
 ## The support height: the feet on the last support, or the feet whenever they fall below it.
 ## The eased height follows it down at once and up at a limited speed, so landing higher never
 ## starts the view with a jolt and a wall climb moves it steadily.
@@ -369,11 +404,11 @@ func _update_rest(s: CameraSubject) -> void:
 		_support_y = feet
 	if _support_y > _eased_y:
 		_eased_y = _support_y
-	elif s.supported or s.vy <= 0.0 or feet < _support_y - 0.5:
-		# Easing up to a higher support pauses only while Ash falls away from it (walking off the
-		# top of a climb, the feet at or below the last support), so the view never rises while
-		# Ash drops below where they stood; a hop's way down toward it does not pause it (camera
-		# review 6, M2).
+	elif s.supported or s.vy <= 0.0 or (feet < _support_y - 0.5 and _lands_at_support(s)):
+		# Easing up to a higher support pauses while Ash falls away from it (walking off the top
+		# of a climb, a hop off the far side of a ledge, a wall-jump away), so the view never rises
+		# while Ash drops; only a hop's way down toward it, onto that support or higher ground, does
+		# not pause it (camera review 6, M2; 7, H1: told apart by the ground the fall lands on).
 		_eased_y = maxf(_support_y, _eased_y - maxf(climbed, 0.0) - float(tuning.rest_rise_u))
 	if _rest_y(s) < _eased_y:
 		_raised = true

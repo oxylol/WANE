@@ -12,6 +12,7 @@ const FIXTURE_DIRS: Array[String] = [
 	"res://tests/replay/physics",
 	"res://tests/replay/camera",
 	"res://tests/replay/doors",
+	"res://tests/replay/combat",
 ]
 ## The screen shapes the game may run at (16:9, 16:10, 4:3, 21:9): GameCamera gives the rig the
 ## real screen's shape, showing a taller or wider screen more world.
@@ -329,7 +330,7 @@ func _first_problem(run: CameraRun) -> String:
 		var lead_swing: float = float(run.rig.tuning.lead_speed_u)
 		if not glide and absf(run.velocity(f).x) > absf(moved) + lead_swing + 0.001:
 			return "frame %d: the camera outruns the player across" % f
-		var problem: String = _vertical_speed_problem(run, f, glide)
+		var problem: String = _vertical_speed_problem(run, f, run.gliding[f])
 		if problem != "":
 			return "frame %d: %s" % [f, problem]
 	if run.longest_run_against() >= TILE_U:

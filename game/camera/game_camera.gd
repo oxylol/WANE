@@ -6,6 +6,8 @@ extends Camera2D
 
 var rig: CameraRig = CameraRig.new()
 var _room: Rect2 = Rect2()
+## The player's box after the latest tick (units), for [method apply_shake].
+var _box: Rect2 = Rect2()
 
 
 func _ready() -> void:
@@ -19,7 +21,9 @@ func begin(sim: Simulation) -> void:
 	_room = _room_of(sim)
 	_fit_zoom()
 	if sim.player != null:
-		rig.reset(_subject(sim), _room)
+		var s: CameraSubject = _subject(sim)
+		_box = s.box
+		rig.reset(s, _room)
 	show_at(1.0)
 
 
@@ -28,12 +32,41 @@ func step(sim: Simulation) -> void:
 	if sim.events.has(SimEvents.ROOM):
 		_room = _room_of(sim)
 	if sim.player != null:
-		rig.step(_subject(sim), _room)
+		var s: CameraSubject = _subject(sim)
+		_box = s.box
+		rig.step(s, _room)
 
 
 static func _room_of(sim: Simulation) -> Rect2:
 	var grid: TileGrid = sim.world.grid
 	return Rect2(0, 0, grid.width * TileGrid.TILE, grid.height * TileGrid.TILE)
+
+
+## Offsets the drawn view by [param shake] (screen shake: the drawn view only, never the rig),
+## but never so far that the player is drawn nearer than [member CameraTuning.edge_margin_u] to the
+## view's edge: where the follow holds the player on the margin (a room edge with no border tile),
+## a shake toward the player is cut short on that axis (camera review 7, M1).
+func apply_shake(shake: Vector2) -> void:
+	offset = shake_within_margin(
+		rig.center, shake, _box, rig.half_view(), float(rig.tuning.edge_margin_u)
+	)
+
+
+## [param shake] cut on each axis to what keeps [param player] at least [param margin] from the
+## edge of a view of half-size [param half] centred on [param center] plus the shake. Where the
+## view is already nearer than that (it never is, in play) the shake may not take it nearer.
+static func shake_within_margin(
+	center: Vector2, shake: Vector2, player: Rect2, half: Vector2, margin: float
+) -> Vector2:
+	var room: Vector2 = half - Vector2(margin, margin)
+	var lo: Vector2 = Vector2(
+		minf(player.end.x - room.x, center.x), minf(player.end.y - room.y, center.y)
+	)
+	var hi: Vector2 = Vector2(
+		maxf(player.position.x + room.x, center.x), maxf(player.position.y + room.y, center.y)
+	)
+	var drawn: Vector2 = center + shake
+	return Vector2(clampf(drawn.x, lo.x, hi.x), clampf(drawn.y, lo.y, hi.y)) - center
 
 
 ## Places the view at [param alpha] (0..1) between the last two ticks.

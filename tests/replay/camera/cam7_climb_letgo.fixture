@@ -1,0 +1,19 @@
+fixture cam7_climb_letgo
+doc docs/adr/0011 (review 7, H1): five kicks up the shaft wall, then the stick held away; Ash falls back past the last kick and the view does not rise against the fall
+room test/camera
+spawn 4440 3200
+frames 260
+input
+  0..22 R jump
+  23 R
+  24..46 R jump
+  47 R
+  48..70 R jump
+  71 R
+  72..94 R jump
+  95 R
+  96..118 R jump
+  119..259 L
+end
+expect
+end
