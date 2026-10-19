@@ -7,14 +7,19 @@ extends Enemy
 ## (parryable) swing, or a red (unparryable) one.
 ##
 ## Room entity: `entity dummy <x> <y> [attack=1] [period=<ticks between swings>] [red=1]
-## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1]`. hp and poise override the dummy's content for
-## one marker (a one-hit kill, a poise break on the first hit); facing sets the way it faces
-## before it first turns to the player.
+## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1] [trigger=<units>]`. trigger makes it an ambusher:
+## its rhythm runs only while the player is within that many units of it, horizontally, and starts
+## over from zero whenever she is not, so its first swing lands a fixed time after she comes into
+## range, whatever she did before (a boss that opens when you reach it). hp and poise override the
+## dummy's content for one marker (a one-hit kill, a poise break on the first hit); facing sets the
+## way it faces before it first turns to the player.
 
 ## Ticks between the end of one swing and the start of the next.
 var period: int = 90
 var attacks_on: bool = false
 var red: bool = false
+## Horizontal range of the ambush, in sub-pixels; 0 = the rhythm always runs.
+var trigger_range: int = 0
 var respawn_frames: int = 60
 var _idle: int = 0
 
@@ -31,6 +36,7 @@ static func from_entity(
 	d.attacks_on = e.prop_int("attack") != 0
 	d.period = maxi(1, e.prop_int("period", d.period))
 	d.red = e.prop_int("red") != 0
+	d.trigger_range = Fx.units(maxi(0, e.prop_int("trigger")))
 	d.light = e.prop_int("light", 1 if p_def.light else 0) != 0
 	d.max_hp = maxi(1, e.prop_int("hp", p_def.hp))
 	d.max_poise = maxi(1, e.prop_int("poise", p_def.poise))
@@ -44,6 +50,9 @@ func _think(player: Player) -> void:
 	if player != null:
 		facing = 1 if player.body.x > body.x else -1
 	if not attacks_on or def.attacks.is_empty():
+		return
+	if trigger_range > 0 and (player == null or absi(player.body.x - body.x) > trigger_range):
+		_idle = 0
 		return
 	_idle += 1
 	if _idle >= period:

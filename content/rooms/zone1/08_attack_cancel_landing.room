@@ -15,20 +15,23 @@
 #      landing's two last airborne frames and its two first grounded ones).
 #   C and D: dummies at 1244 and 1721 with an unparryable (red=1) swing, so the strike has to be
 #      the answer, not the parry (a press near a white swing parries it). Telegraph 24 f, 4 f
-#      active, 20 f recovery, 64 u in front of the dummy. Their swings are timed (period 104 and
-#      160, first active tick = period + 23) to land on the tick after the landing of the
-#      teaching route: the opening is one frame wide. The strike pressed 4 f before the landing
-#      kills the dummy on the landing frame; one pressed on the landing frame is live 2 f later,
-#      the swing lands first, is hit for a heart and the strike is broken.
+#      active, 20 f recovery, 64 u in front of the dummy. They are ambushers (trigger=284): the
+#      swing opens when Ash reaches the ledge, 284 u from the dummy, and its first active tick is
+#      23 f later, the tick after the teaching route's landing. The swing is tied to where Ash is,
+#      not to the clock, so nothing she did before (a kill's hitstop, a wait) moves it against
+#      her landing. The strike pressed 4 f before the landing kills the dummy on the landing
+#      frame; one pressed on the landing frame is live 2 f later, the swing lands first, is hit
+#      for a heart and the strike is broken, whatever the run before.
 #
-# Not the only way across, and why: a dummy is no wall and Phase 1 has no boss that blocks a door,
-# so a player can also wait on a ledge for a swing's 20 f recovery, or dash through it, and a
-# landing strike pressed in the same room costs only time. What the room does prove, with
-# fixtures: the way down that never stops (tests/replay/zone1/08_strike_on_the_way_down: 3 drops,
-# 0 hearts lost, 210 f, 3.5 s) is the only one that crosses the second and third swings with no
-# wait, because a run with no strike (08_control_no_strike) loses a heart to the second swing and
-# a strike pressed on the landing (08_control_strike_after_landing) loses one too and the dummy
-# lives. When the boss with the short window exists, its door can make this the only way.
+# What the room proves and what it does not (review F1 to F3): with fixtures, the way down that
+# never stops (tests/replay/zone1/08_strike_on_the_way_down: 3 drops, 0 hearts lost, 210 f) costs
+# no heart, and the plain alternatives each cost one: no strike (08_control_no_strike), a strike
+# pressed on the landing (08_control_strike_after_landing, 08_control_land_then_strike), waiting
+# before the run (08_control_wait) and one dash (08_control_one_dash). It is NOT enforced against
+# dashing: a dash (20 u/f) outruns a 24 f telegraph, so two dashes cross with 5 hearts in 174 f
+# (08_gap_two_dashes), faster than the teaching route. A dummy is no wall and Phase 1 has no boss
+# that blocks a door; when the boss with the short window exists, its door closes the gap and the
+# gap fixture becomes a control. Until then tech 8 is taught here, not enforced (PROGRESS.md).
 room zone1/08_attack_cancel_landing
 size 60 34
 spawn 74 480
@@ -69,7 +72,7 @@ tiles
 ############################################################
 end
 entity dummy 706 576 hp=10
-entity dummy 1244 768 attack=1 red=1 period=104 hp=10
-entity dummy 1721 960 attack=1 red=1 period=160 hp=10
+entity dummy 1244 768 attack=1 red=1 period=1 trigger=284 hp=10
+entity dummy 1721 960 attack=1 red=1 period=1 trigger=284 hp=10
 door west left 352 480 zone1/07_coyote_dash east
 door east right 832 960 zone1/09_reverse_pogo west

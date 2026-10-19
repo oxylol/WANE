@@ -1,0 +1,15 @@
+fixture zone1_08_control_one_dash
+doc Control for zone1_08_strike_on_the_way_down (review F2): one dash at frame 112, no strike. It carries Ash over the second dummy's swing but not through the third: the red swing lands on her at the third ledge
+room zone1/08_attack_cancel_landing
+spawn 74 480
+frames 175
+input
+  0..111 R
+  112 R dash
+  113..174 R
+end
+expect
+  never 0..163 hearts<5
+  never 0..174 event.kill=1
+  at 164 event.player_hit=1 hearts=4
+end

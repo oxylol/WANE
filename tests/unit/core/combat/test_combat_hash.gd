@@ -21,6 +21,7 @@ const NOT_STATE: Array[String] = [
 	"period",
 	"attacks_on",
 	"red",
+	"trigger_range",
 	"respawn_frames",
 	"_gravity",
 	"_terminal",

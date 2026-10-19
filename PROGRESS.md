@@ -94,6 +94,7 @@ None.
 
 1. **BUILD.md section 14's roadmap body and section 13's architecture diagram did not survive the export to Markdown** (`docs/BUILD.md` lines 692 and 777 read "[embedded content: ...]"). The Phase 1 gate sentence and the per-phase contents are therefore unknown; Phase 1 follows CLAUDE.md's kickoff order meanwhile. **Director: please paste the roadmap table (phases, gates, months) and the architecture diagram's text.**
 2. **The perf gate needs hardware we do not have in CI.** BUILD.md: "a stress room ... on a GPU runner", "60 fps ... on reference PC settings, 15.0 ms on the Deck profile". GitHub-hosted runners have no GPU. Task 8 builds the benchmark and runs it on what exists (software rendering here, the CPU budget everywhere); the GPU numbers need a self-hosted runner on the reference PC (RTX 4060-class) and a Steam Deck. **Director: can you provide either?**
+3. **Tech 8 (attack-cancel landing) is taught, not enforced, in zone 1 room 8.** A dash outruns a dummy's 24 f telegraph, so two dashes cross the room with 5 hearts in 174 f (`tests/replay/zone1/08_gap_two_dashes.fixture`, a known-gap fixture). Waiting, no strike, one dash and a strike pressed on the landing each cost a heart (controls). Closes when a boss with a short window blocks the door (Phase 2); then the gap fixture becomes a control.
 
 ## For the director
 
