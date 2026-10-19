@@ -1,0 +1,18 @@
+fixture zone1_08_control_strike_after_landing
+doc Control for zone1_08_strike_on_the_way_down: the strike pressed on each landing frame instead of 4 f before it is live only 2 f later, one frame after the second dummy's red swing lands on frame 127. Ash is hit, the strike is broken, and the dummy lives
+room zone1/08_attack_cancel_landing
+spawn 74 480
+frames 140
+input
+  0..62 R
+  63 R attack
+  64..125 R
+  126 R attack
+  127..139 R
+end
+expect
+  at 126 event.land=1 state=ground action=side1 action_frame=1 strike=0 hearts=5 enemy1.state=telegraph
+  at 127 enemy1.state=strike event.player_hit=1 hearts=4 action=none
+  never 127..139 event.kill=1
+  at 139 enemy1.hp=10
+end

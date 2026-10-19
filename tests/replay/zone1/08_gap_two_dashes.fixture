@@ -1,0 +1,20 @@
+fixture zone1_08_gap_two_dashes
+doc KNOWN GAP, not a teaching route (review F2): tech 8 is not enforced against dashing. A dash (20 u/f) outruns a 24 f telegraph, so two dashes (frames 100 and 132, one per swing) cross the room with 5 hearts and no kill in 174 f, 36 f faster than the teaching route (210 f). A dummy is no wall and Phase 1 has no boss that blocks a door; when the boss with the short window exists, its door closes this. If a change makes this fixture fail, the room has become enforced: turn it into a control
+room zone1/08_attack_cancel_landing
+spawn 74 480
+frames 180
+input
+  0..99 R
+  100 R dash
+  101..131 R
+  132 R dash
+  133..179 R
+end
+expect
+  never 0..179 hearts<5
+  never 0..179 event.kill=1
+  mark through 1..179 event.room=1
+  at through room=zone1_09_reverse_pogo
+  at 174 room=zone1_09_reverse_pogo
+  at 173 room=zone1_08_attack_cancel_landing
+end

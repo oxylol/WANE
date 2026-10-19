@@ -1,0 +1,12 @@
+fixture zone1_08_control_wait
+doc Control for zone1_08_strike_on_the_way_down (review F2): Ash waits 40 f before she starts and runs with no strike. Waiting does not move a swing off her: each dummy opens when she reaches its trigger line (the ledge), a fixed 23 f before its swing, so the same walk off the ledge is hit at the same distance whenever she starts
+room zone1/08_attack_cancel_landing
+spawn 74 480
+frames 170
+input
+  40..169 R
+end
+expect
+  at 163 enemy1.state=telegraph hearts=5
+  at 164 enemy1.state=strike event.player_hit=1 hearts=4
+end

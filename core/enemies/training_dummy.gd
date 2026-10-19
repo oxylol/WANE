@@ -8,12 +8,15 @@ extends Enemy
 ## (parryable) swing, or a red (unparryable) one.
 ##
 ## Room entity: `entity dummy <x> <y> [attack=1] [period=<ticks between swings>] [red=1]
-## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1] [solid=1]`. hp and poise override the dummy's
-## content for one marker (a one-hit kill, a poise break on the first hit); facing sets the way it
-## faces before it first turns to the player. `solid=1` gives it a body the player cannot pass
-## while it lives (a [SolidBox] as wide and tall as the dummy): a dash or a run stops at it, so
-## only a kill clears the way (zone 1 room 1, BUILD.md s5 tech 1). The body is out of the way
-## while the dummy is dead, and stays out while the player stands where it would come back.
+## [light=1] [hp=<n>] [poise=<n>] [facing=-1|1] [solid=1] [trigger=<units>]`. hp and poise override
+## the dummy's content for one marker (a one-hit kill, a poise break on the first hit); facing sets
+## the way it faces before it first turns to the player. `solid=1` gives it a body the player cannot
+## pass while it lives (a [SolidBox] as wide and tall as the dummy): a dash or a run stops at it, so
+## only a kill clears the way (zone 1 room 1, BUILD.md s5 tech 1). The body is out of the way while
+## the dummy is dead, and stays out while the player stands where it would come back. trigger makes
+## it an ambusher: its rhythm runs only while the player is within that many units of it,
+## horizontally, and starts over from zero whenever she is not, so its first swing lands a fixed
+## time after she comes into range, whatever she did before (a boss that opens when you reach it).
 
 ## Ticks between the end of one swing and the start of the next ([member DummyDef.swing_period],
 ## or the marker's), and ticks a kill keeps it down ([member DummyDef.respawn_frames]).
@@ -21,6 +24,8 @@ var period: int = 0
 var attacks_on: bool = false
 var red: bool = false
 var respawn_frames: int = 0
+## Horizontal range of the ambush, in sub-pixels; 0 = the rhythm always runs.
+var trigger_range: int = 0
 ## The body of a solid dummy (null for one the player walks through).
 var blocker: SolidBox
 var _idle: int = 0
@@ -39,6 +44,7 @@ static func from_entity(
 	d.respawn_frames = p_def.respawn_frames
 	d.period = maxi(1, e.prop_int("period", p_def.swing_period))
 	d.red = e.prop_int("red") != 0
+	d.trigger_range = Fx.units(maxi(0, e.prop_int("trigger")))
 	d.light = e.prop_int("light", 1 if p_def.light else 0) != 0
 	d.max_hp = maxi(1, e.prop_int("hp", p_def.hp))
 	d.max_poise = maxi(1, e.prop_int("poise", p_def.poise))
@@ -80,6 +86,9 @@ func _think(player: Player) -> void:
 	if player != null:
 		facing = 1 if player.body.x > body.x else -1
 	if not attacks_on or def.attacks.is_empty():
+		return
+	if trigger_range > 0 and (player == null or absi(player.body.x - body.x) > trigger_range):
+		_idle = 0
 		return
 	_idle += 1
 	if _idle >= period:
