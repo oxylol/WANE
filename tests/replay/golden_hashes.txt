@@ -1,6 +1,6 @@
 # Golden hashes per replay fixture: <name> in:<inputs> content:<content> <end tick>:<hash> <tick>:<hash> ...
 # Regenerate with: godot --headless --path . --script tools/replay/bless.gd
-# sim_version 9
+# sim_version 10
 a_fizzle_leaves_the_dash_alone in:4ae88386 content:3f34c633 20:01fbaff0
 a_kill_by_burn_stops_time in:ba080076 content:1e22ec3e 40:e5b4d798
 a_repress_breaks_the_charge_hold in:3176c03e content:3f34c633 60:c7fed922 60:c7fed922
@@ -190,12 +190,12 @@ dash_up_lip_stairs in:520107ca content:32b7db1b 120:7ae0cd28 60:5998b023 120:7ae
 dash_up_ramp_onto_door_at_crest in:79ddd85b content:c25175a1 14:bf195e6c
 ddash_runs_on_onto_lip in:2427ea8c content:884275b9 24:d03cbde4
 ddash_stairs_relanding_keeps_speed in:2d54f4be content:2d500db9 12:d5c3157f
-death_breaks_the_charge_hold in:494bd386 content:22434537 120:1f1cd019 60:f8abc20c 120:1f1cd019
-death_returns_to_the_spawn in:37783a3f content:1f16c2b3 70:a9253589 60:deb16564
+death_breaks_the_charge_hold in:494bd386 content:22434537 120:1f1cd019 60:56cb79c5 120:1f1cd019
+death_returns_to_the_spawn in:37783a3f content:1f16c2b3 70:e8fa0065 60:e5e5016a
 door_dash_carries_through in:263598ba content:943d49cf 14:a0aafe38
 door_ember_stays_behind in:a3ff046b content:943d49cf 40:75ec4102
 door_enemies_belong_to_their_room in:46336baa content:943d49cf 60:0cc71b44 60:0cc71b44
-door_hazard_after_a_door_stays_in_the_room in:b3e85e38 content:943d49cf 140:d2519f1d 60:290f82a9 120:e9cf7e52
+door_hazard_after_a_door_stays_in_the_room in:b3e85e38 content:943d49cf 140:45453837 60:290f82a9 120:e9cf7e52
 door_kill_ember_in_flight_reaches_ash in:68b21936 content:943d49cf 20:8fe15e5e
 door_vertical_fall_and_jump in:88a7029e content:1d8ca093 100:2aa17cdc 60:2dfb2d59
 door_walk_back_returns_through_the_same_door in:7b34b5c5 content:943d49cf 70:bfa5d55b 60:5c49dbf8
@@ -223,11 +223,12 @@ ground_turnaround in:33beeaaa content:3f34c633 24:8153ef96
 ground_turnaround_partial_speed in:314bbc52 content:3f34c633 20:e91f8e4a
 hazard_breaks_the_charge_hold in:50618004 content:3f806be4 90:c72d748a 60:b164e48c
 hazard_costs_a_heart in:aee1bb50 content:3f806be4 60:c70f6c22 60:c70f6c22
+hazard_invulnerability_covers_twenty_free_frames in:aee1bb50 content:3f806be4 60:c70f6c22 60:c70f6c22
 hazard_loop_stick_held_floor_spikes in:b9b4f718 content:3f806be4 200:16563a0f 60:2d432390 120:8e586257 180:dac10e48
-hazard_loop_stick_held_pit in:9450167e content:ab4fb735 200:d6be19a1 60:fe0f9223 120:a246e6b9 180:af776542
+hazard_loop_stick_held_pit in:9450167e content:ab4fb735 200:d6be19a1 60:aae4641e 120:a246e6b9 180:af776542
 hazard_respawn_drops_stale_dash in:0e459a63 content:ab4fb735 120:3a3a9568 60:3239f8d7 120:3a3a9568
 hazard_respawn_drops_stale_jump in:f6b331fd content:ab4fb735 120:e5bbabcd 60:6943f87d 120:e5bbabcd
-hazard_respawn_stays_off_the_lip in:9450167e content:ab4fb735 200:d6be19a1 60:fe0f9223 120:a246e6b9 180:af776542
+hazard_respawn_stays_off_the_lip in:9450167e content:ab4fb735 200:d6be19a1 60:aae4641e 120:a246e6b9 180:af776542
 input_buffer_latest_press in:79863b73 content:0004a7e8 30:a578b120
 invulnerability_covers_twenty_free_frames in:d2aadf2d content:4b02b614 100:52677094 60:0bf5c42f
 jump_air_jump in:b7248470 content:3f34c633 80:da4a2101 60:bda7d81b
@@ -301,7 +302,7 @@ radiance_at_blaze in:440b4d97 content:2a700f14 20:001a04ed
 radiance_below_blaze_is_kindle in:79713d12 content:2a700f14 20:91102db7
 radiance_bursts_with_a_dash_on_its_burst_frame in:4dcba264 content:2a700f14 20:3ae2e575
 red_swing_is_never_parried in:763eaf81 content:1f16c2b3 70:8382907a 60:706caf6c
-safe_ground_never_in_crawl_gap in:d8766008 content:7f3ff0ac 120:771930a5 60:b95a5b48 120:771930a5
+safe_ground_never_in_crawl_gap in:d8766008 content:7f3ff0ac 120:771930a5 60:946e147f 120:771930a5
 safe_ground_never_on_wax in:0becf621 content:fc8cea6c 400:c1028b6b 60:1d17af3e 120:461f8106 180:fed62156 240:614660fa 300:30064d1e 360:4b5425cb
 side1_hits_dummy_once in:f81113b6 content:2a700f14 30:fc5931cb
 side1_recoil_moves_the_player in:f81113b6 content:2a700f14 30:fc5931cb
@@ -315,17 +316,17 @@ strike_stick_a_little_up_is_side in:6d7e934e content:3f34c633 30:9535d243
 strike_stick_up_diagonal in:57ec28be content:3f34c633 40:8294aa3b
 subframe_tap_is_kept in:a4cbd804 content:0004a7e8 12:18c73f07
 tech01_dash_slash in:ec876087 content:3f34c633 60:4566c77b 60:4566c77b
-tech02_control_all_resources in:21692cf2 content:c04fb7c1 160:c364efd2 60:5de48e88 120:7e72e5d5
-tech02_control_carry_jump in:1c2f714f content:c04fb7c1 170:e4dc0cbd 60:30464f8e 120:af5fcb94
-tech02_control_carry_toss in:92bb2f4d content:c04fb7c1 260:0321ffb4 60:3b8210be 120:d2b1d0cf 180:0d480b64 240:974f154e
+tech02_control_all_resources in:21692cf2 content:c04fb7c1 160:012dc681 60:5de48e88 120:7e72e5d5
+tech02_control_carry_jump in:1c2f714f content:c04fb7c1 170:e4dc0cbd 60:30464f8e 120:d04efb5a
+tech02_control_carry_toss in:92bb2f4d content:c04fb7c1 260:0321ffb4 60:3b8210be 120:d2b1d0cf 180:b576ce42 240:974f154e
 tech02_control_pogo_floor in:5e5df4a8 content:c04fb7c1 260:dc75652c 60:8e006d36 120:0005c282 180:10d49f15 240:0a854d3f
 tech02_control_toss_fall_teleport in:aee0dcf1 content:c04fb7c1 260:b3db69ba 60:a6573ec0 120:0075f10c 180:87cd5d7f 240:1e393b1a
-tech02_control_toss_wall_kick in:78eb59ee content:c04fb7c1 320:d0084dc4 60:3b8210be 120:d2b1d0cf 180:4bff1db8 240:4b44cddc 300:6fb6c613
+tech02_control_toss_wall_kick in:78eb59ee content:c04fb7c1 320:d0084dc4 60:3b8210be 120:d2b1d0cf 180:e8b72eda 240:4b44cddc 300:6fb6c613
 tech02_dash_jump_frame10_is_carry in:9642115b content:3f34c633 30:d9252d3b
 tech02_dash_jump_frame5 in:17dfbb43 content:c04fb7c1 120:e8b12127 60:6c8ca988 120:e8b12127
 tech02_dash_jump_frame5_air_dash in:f4b55486 content:c04fb7c1 200:dc70cff4 60:d224d622 120:f93d5648 180:2695b7a2
 tech02_dash_jump_frame9 in:5f91e689 content:c04fb7c1 120:bcbc826c 60:9557b514 120:bcbc826c
-tech02_respawn_does_not_keep_the_ember in:3315f63e content:ab4fb735 200:fec4f85a 60:7c59064f 120:c2004227 180:eb543829
+tech02_respawn_does_not_keep_the_ember in:3315f63e content:ab4fb735 200:fec4f85a 60:7c59064f 120:c2004227 180:c9e5aceb
 tech02_running_jump_falls in:4eba2e51 content:c04fb7c1 120:5be32ca7 60:979418a5 120:5be32ca7
 tech03_pogo_chain in:4c404dd3 content:25c08c95 420:18f784e2 60:9adbcd09 120:daf3c888 180:993faf6e 240:c29d1559 300:df419de7 360:5ba41c9e 420:18f784e2
 tech04_pogo_dash_reset in:c9c1cb70 content:25c08c95 330:bfe06655 60:3f424387 120:714a1b9e 180:e7b51ba9 240:df985ebd 300:f52da255
@@ -371,9 +372,10 @@ tech12_wax_blocks_without_kindle in:40ff9ea8 content:65e95bd7 40:2cf1938f
 telegraph_cue_keeps_its_word_through_hitstop in:2c12b81d content:22434537 60:e3c754ed 60:e3c754ed
 telegraph_cue_twenty_before_the_hit in:6042678f content:22434537 60:b9883fdd 60:b9883fdd
 telegraph_cue_waits_for_hitstop_before_it in:2242ebd8 content:22434537 60:14a681d4 60:14a681d4
-toss_ember_goes_out_on_hazard_respawn in:f1e92d2a content:ab4fb735 140:4bcf5675 60:28943af9 120:722731d3
+teleport_ends_the_side1_recoil in:40784cc6 content:2a700f14 30:b7aeab55
+toss_ember_goes_out_on_hazard_respawn in:f1e92d2a content:ab4fb735 140:4bcf5675 60:28943af9 120:b8a45127
 toss_on_cling_frame_goes_away in:af40b10a content:a9bbd17e 40:64faa736
-turn_after_hazard_in_wall_jump_lock in:0aea8fa3 content:3d50fa7b 50:9e7c5ee9
+turn_after_hazard_in_wall_jump_lock in:0aea8fa3 content:3d50fa7b 50:f8d91287
 up_strike_dash_cancel_edges in:6de57ae7 content:3f34c633 30:6c304e67
 up_strike_never_cancels_itself in:d0e9e39d content:3f34c633 24:49c7186a
 up_strike_no_jump in:98b7f90b content:3f34c633 30:2e842051

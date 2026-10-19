@@ -433,8 +433,7 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 
 
 ## The speeds this tick's air move will give the body ([method _move_air]), worked out without
-## changing anything: the jump state its gravity reads and updates is put back. For trying the
-## move ahead ([method PlayerWall.met]).
+## changing anything (the jump state it reads and updates is put back), for [method PlayerWall.met].
 func air_velocity_ahead(ring: InputRing, dx: int) -> Vector2i:
 	var kept := Vector3i(jump_frame, apex_hang_left, turn_left)
 	var kept_flags: Array[bool] = [jump_released, jump_cut, apex_hang_used]
@@ -954,8 +953,8 @@ func hurtbox() -> Rect2i:
 	return PlayerContacts.hurtbox(self)
 
 
-## After an ember-toss teleport: any dash or rising jump ends, the spell's invulnerability starts,
-## and the player is airborne (with no coyote time) or, on ground, has landed.
+## After an ember-toss teleport: any dash, rising jump or side 1 recoil ends, the spell's
+## invulnerability starts, and the player is airborne (no coyote time) or, on ground, has landed.
 func teleported(invuln_frames: int, ring: InputRing) -> void:
 	if loco == DASH:
 		end_dash(false)
@@ -966,6 +965,7 @@ func teleported(invuln_frames: int, ring: InputRing) -> void:
 	jump_fresh = false
 	jump_cut = false
 	carry_frames = 0
+	recoil_left = 0
 	wall_side = 0
 	wall_coyote = 0
 	wall_coyote_side = 0

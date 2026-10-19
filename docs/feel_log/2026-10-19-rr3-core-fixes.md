@@ -2,7 +2,7 @@
 
 - Author: Claude
 - BUILD.md section and table row: section 5 (feel rules: "No move has more than 2 frames of startup unless it has armor"; Pogo, "chains are infinite with rhythm"; landing and wall rules), section 6 (Taper side 1 "player recoils 60 u/s", Charged, Kindle "cancelable from f 8", Player hit "any action ends it", "20 f of invulnerability after the hitstop"); docs/adr/0010, docs/adr/0013.
-- Fixture(s): 22 new in `tests/replay/combat/` and `tests/replay/movement/` (each fails on the code before the fix), rooms `dummy_swing_behind` and `dummy_swing_wall`; `tests/unit/core/combat/test_training_dummy.gd`.
+- Fixture(s): 22 in all (20 from the first pass, 2 from the follow-up review F1 and F2) in `tests/replay/combat/` and `tests/replay/movement/` (each fails on the code before the fix), rooms `dummy_swing_behind` and `dummy_swing_wall`; `tests/unit/core/combat/test_training_dummy.gd`.
 - Contact sheet: `docs/feel_log/2026-10-19-rr3-core-fixes.png`: `side1_recoil_moves_the_player` filmed from frame 2, every second frame with the F3 overlay: Ash (cyan) stands still through the hitstop, then is carried away from the dummy; before, the gap never opened.
 
 ## Change
@@ -45,3 +45,4 @@ Committed fixtures whose path moved (per-tick probe values compared before and a
 
 - Side 1's recoil is only 8 u (60 u/s for 8 f). Play the training dummy at close range: if it should read stronger, raise `recoil_frames` or the strike's recoil.
 - Armor on a hit: the hit still freezes Ash for 8 f but does not push him; decide whether an armored hit should skip the hitstop as well.
+- Follow-up review (F1, F2): `Simulation.VERSION` 10; 15 existing fixtures' hashes moved (the hazard's invulnerability is hashed) and were re-blessed with the 2 new ones; no expectation changed.

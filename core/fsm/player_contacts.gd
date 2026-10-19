@@ -114,7 +114,9 @@ static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	pl.toss.startup = 0
 	if b.on_ground:
 		pl.restore_airtime()
-	pl.invuln = pl.kit.hazard_invuln_frames
+	# One over, as a hit's (player_combat.gd): the counter drops at the start of the next tick, so
+	# the free frames after the hazard's tick are the full count (task 6 core review 2, F2).
+	pl.invuln = pl.kit.hazard_invuln_frames + 1
 	pl.queued_attack_left = 0
 	# Nothing of the wall or the turn carries over either: a wall-jump's direction lock would
 	# leave the sprite facing the old way for its frames (movement review 5, L7).

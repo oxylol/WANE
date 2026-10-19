@@ -11,7 +11,7 @@ const HASH_INTERVAL: int = 60
 ## Simulation version. Bump it in the same commit as any change that moves a golden hash
 ## (tools/replay/bless.gd refuses to re-bless otherwise), so old replays report "recorded by an
 ## older build" instead of a desync.
-const VERSION: int = 9
+const VERSION: int = 10
 
 ## Where a Wick's content lives: <root><wick>/movement.tres, kit.tres, taper.tres.
 const WICK_ROOT: String = "res://content/wicks/"
