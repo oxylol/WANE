@@ -137,3 +137,15 @@ func test_a_door_that_is_not_carved_is_flagged_and_carving_clears_its_strip_prob
 	assert_array(_real()).is_empty()
 	assert_array(_panel.canvas.flagged_doors).contains(["east"])
 	assert_str(_panel.problems_list.get_item_text(0)).contains("no target yet")
+
+
+func test_undoing_the_selected_door_away_deselects_it() -> void:
+	_panel.create(A_ID, 40, 20)
+	_tool(RoomCanvas.Tool.DOOR)
+	_drag(Vector2(1260, 330), Vector2(1250, 420))
+	assert_int(_panel.canvas.selected_door).is_equal(0)
+	_doc().undo()
+	assert_int(_panel.canvas.selected_door).is_equal(-1)
+	assert_bool(_panel.door_section.visible).is_false()
+	_panel.canvas.delete_selected()
+	assert_array(_doc().room.doors).is_empty()

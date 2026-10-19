@@ -12,7 +12,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind.
 - `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/`, `core/clock/` empty.
 - `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `game/lighting/`, `shaders/`, `assets/`.
-- `content/` see Tunable numbers. `tools/ci/` test gate; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics bench; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; no room editor yet.
+- `content/` see Tunable numbers. `tools/ci/` test gate; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics bench; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; `tools/room_editor/` the room editor (below).
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, rooms, tech), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/`, `tests/screenshot/` empty.
 - `ci/` `ci/test.sh`, `ci/lint.sh`, `ci/setup_godot.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
 
@@ -24,6 +24,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - Combat: `core/combat/combat.gd resolve`: effects age, player hits (strike, spells, pogo, trails), enemy hits (parry window).
 - Collision moves: `core/physics/collision_world.gd move_x`, `:367 move_y`, `:455 landing_contact`, `:520 walk`, `:853 drop_through`.
 - Rooms: `core/rooms/room_data.gd parse` (problems in `errors`), `:91 load_id`, `:348 build_world`; `core/rooms/room_set.gd reach` (rooms reachable by doors); `core/rooms/room_joins.gd errors`.
+- Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel` (toolbar, palette, inspector, problems); `tools/room_editor/room_canvas.gd RoomCanvas` (mouse to edits); `tools/room_editor/room_document.gd RoomDocument` (edits, `problems`, `save`, undo), with `tools/room_editor/room_door_edits.gd RoomDoorEdits` and `tools/room_editor/room_object_edits.gd RoomObjectEdits`; `tools/room_editor/entity_kinds.gd EntityKinds`; picture: `tools/room_editor/screenshot.gd`.
 - Input: `core/sim/input_ring.gd push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
 - Hashes: `core/sim/state_hasher.gd add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd encode`, `core/sim/replay_player.gd verify`.
 - Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
@@ -81,4 +82,5 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0012-debug-overlay-and-frame-stepper` F3 overlay from the latest tick; F4 to F6 step.
 - `0013-combat` Combat resolves once per tick, after all movement.
 - `0014-doors-and-zones` Paired `door` lines, crossed inside the strip.
+- `0015-room-editor-install` Plugin in `addons/room_editor/` as a shim, code in `tools/room_editor/`; the editor shows the loader's problems.
 - `0000-template` The ADR template.

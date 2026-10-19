@@ -65,12 +65,12 @@ func _init() -> void:
 
 
 func set_document(doc: RoomDocument) -> void:
-	if document != null and document.changed.is_connected(queue_redraw):
-		document.changed.disconnect(queue_redraw)
+	if document != null and document.changed.is_connected(_on_document_changed):
+		document.changed.disconnect(_on_document_changed)
 	document = doc
 	_select(-1, -1, -1)
 	if document != null:
-		document.changed.connect(queue_redraw)
+		document.changed.connect(_on_document_changed)
 	fit()
 
 
@@ -113,6 +113,31 @@ func _select(solid: int, entity: int, door: int) -> void:
 	selected_door = door
 	selection_changed.emit()
 	queue_redraw()
+
+
+## Redraws, and drops a selection that an undo (or any edit) has taken away.
+func _on_document_changed() -> void:
+	var room: RoomData = document.room
+	if (
+		selected_solid >= room.solids.size()
+		or selected_entity >= room.entities.size()
+		or selected_door >= room.doors.size()
+	):
+		_select(-1, -1, -1)
+	queue_redraw()
+
+
+## Selects solid box [param index] (the panel shows its properties).
+func select_solid(index: int) -> void:
+	_select(index, -1, -1)
+
+
+func select_entity(index: int) -> void:
+	_select(-1, index, -1)
+
+
+func select_door(index: int) -> void:
+	_select(-1, -1, index)
 
 
 ## Removes the selected box, entity or door.
@@ -502,11 +527,44 @@ func _draw_door(k: int) -> void:
 	draw_rect(strip, Color(color, 0.22))
 	draw_rect(strip, SELECTED if k == selected_door else color, false, 3.0 / zoom)
 	draw_rect(_door_rect(d, true), Color(color, 0.7), false, 1.0 / zoom)
+	if k == selected_door:
+		_draw_handles(d, strip)
 	var label: String = "%s -> %s : %s" % [d.name, d.target_room, d.target_door]
-	var anchor: Vector2 = strip.position + Vector2(4, 22)
-	if d.side == RoomData.RIGHT:
-		anchor.x -= 150.0
-	_label(anchor + Vector2(0, 40), label, color)
+	var font_size: int = int(16.0 / zoom)
+	var width: float = (
+		ThemeDB.fallback_font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	)
+	var gap: float = 10.0 / zoom
+	var at: Vector2 = strip.get_center() + Vector2(0.0, font_size * 0.35)
+	match d.side:
+		RoomData.LEFT:
+			at.x = strip.end.x + gap
+		RoomData.RIGHT:
+			at.x = strip.position.x - gap - width
+		RoomData.TOP:
+			at = Vector2(strip.get_center().x - width * 0.5, strip.end.y + gap + font_size)
+		RoomData.BOTTOM:
+			at = Vector2(strip.get_center().x - width * 0.5, strip.position.y - gap)
+	_label(at, label, color)
+
+
+## The two ends of the selected door's opening, the squares a drag takes to resize it.
+func _draw_handles(d: RoomData.Door, strip: Rect2) -> void:
+	var half: float = 5.0 / zoom
+	var horizontal: bool = d.side == RoomData.LEFT or d.side == RoomData.RIGHT
+	var ends: Array[Vector2] = []
+	if horizontal:
+		ends = [
+			Vector2(strip.get_center().x, strip.position.y),
+			Vector2(strip.get_center().x, strip.end.y)
+		]
+	else:
+		ends = [
+			Vector2(strip.position.x, strip.get_center().y),
+			Vector2(strip.end.x, strip.get_center().y)
+		]
+	for end: Vector2 in ends:
+		draw_rect(Rect2(end - Vector2(half, half), Vector2(half, half) * 2.0), SELECTED)
 
 
 func _label(at: Vector2, text: String, color: Color) -> void:

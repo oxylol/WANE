@@ -107,7 +107,11 @@ func build() -> void:
 	canvas.custom_minimum_size = Vector2(400, 300)
 	canvas.hovered.connect(_on_hovered)
 	canvas.selection_changed.connect(_sync_inspector)
-	body.add_child(canvas)
+	var beside := HSplitContainer.new()
+	beside.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	beside.add_child(canvas)
+	beside.add_child(_inspector())
+	body.add_child(beside)
 	add_child(body)
 	status = Label.new()
 	add_child(status)
@@ -236,7 +240,18 @@ func _palette() -> ScrollContainer:
 	kind_edit = _field(box, "New entity kind")
 	kind_edit.text = EntityKinds.DUMMY
 	kind_edit.text_changed.connect(func(t: String) -> void: canvas.entity_kind = t.strip_edges())
-	box.add_child(HSeparator.new())
+	return scroll
+
+
+## The selection's properties: one section for a door, a solid box or an entity, shown for the
+## one selected.
+func _inspector() -> ScrollContainer:
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(300, 0)
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(box)
 	box.add_child(_door_inspector())
 	box.add_child(_solid_inspector())
 	box.add_child(_entity_inspector())
@@ -247,15 +262,16 @@ func _door_inspector() -> VBoxContainer:
 	door_section = VBoxContainer.new()
 	door_section.visible = false
 	door_section.add_child(_label("Door"))
-	door_name_edit = _field(door_section, "name")
+	door_name_edit = _field(door_section, "Name")
 	_on_commit(door_name_edit, _on_door_name)
+	door_section.add_child(_label("Side"))
 	door_side_picker = OptionButton.new()
 	for n: String in RoomData.SIDE_NAMES:
 		door_side_picker.add_item(n)
 	door_side_picker.item_selected.connect(func(i: int) -> void: _on_door_side(i))
 	door_section.add_child(door_side_picker)
 	var span := HBoxContainer.new()
-	span.add_child(_label("Tiles"))
+	span.add_child(_label("Opening, tiles"))
 	door_from_box = _spin(0, 400)
 	door_to_box = _spin(0, 400)
 	door_from_box.value_changed.connect(func(_v: float) -> void: _on_door_span())
@@ -264,8 +280,8 @@ func _door_inspector() -> VBoxContainer:
 	span.add_child(_label("to"))
 	span.add_child(door_to_box)
 	door_section.add_child(span)
-	door_room_edit = _field(door_section, "leads to room (zone1/r02)")
-	door_target_edit = _field(door_section, "leads to door")
+	door_room_edit = _field(door_section, "Leads to room (zone1/r02)")
+	door_target_edit = _field(door_section, "Leads to door")
 	_on_commit(door_room_edit, _on_door_target)
 	_on_commit(door_target_edit, _on_door_target)
 	door_hint = _label("")
@@ -280,7 +296,7 @@ func _solid_inspector() -> VBoxContainer:
 	solid_section = VBoxContainer.new()
 	solid_section.visible = false
 	solid_section.add_child(_label("Solid box"))
-	solid_tag_edit = _field(solid_section, "tag (pogo, wax)")
+	solid_tag_edit = _field(solid_section, "Tag (pogo, wax)")
 	_on_commit(solid_tag_edit, _on_solid_options)
 	solid_cling_box = CheckBox.new()
 	solid_cling_box.text = "Wall-cling holds (off is cling=0)"
@@ -297,7 +313,7 @@ func _entity_inspector() -> VBoxContainer:
 	entity_section.add_child(entity_title)
 	entity_form = VBoxContainer.new()
 	entity_section.add_child(entity_form)
-	entity_props_edit = _field(entity_section, "all properties: key=value ...")
+	entity_props_edit = _field(entity_section, "All properties: key=value ...")
 	_on_commit(entity_props_edit, _on_entity_text)
 	entity_section.add_child(_button("Delete entity", func() -> void: canvas.delete_selected()))
 	return entity_section
@@ -331,7 +347,12 @@ static func _tile_icon(t: int) -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 
+## A text field under a caption.
 func _field(box: VBoxContainer, hint: String) -> LineEdit:
+	var caption := _label(hint)
+	caption.add_theme_font_size_override("font_size", 12)
+	caption.modulate = Color(1.0, 1.0, 1.0, 0.65)
+	box.add_child(caption)
 	var e := LineEdit.new()
 	e.placeholder_text = hint
 	box.add_child(e)

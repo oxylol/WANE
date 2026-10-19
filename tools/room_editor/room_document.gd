@@ -74,9 +74,9 @@ func height_u() -> int:
 
 ## Everything wrong with the room as it would be saved, in the order a run meets it: the loader's
 ## own errors for the text (format, geometry, doors), the joins of boxes and tiles (ADR-0008),
-## the doors' targets and pairs against the rooms they lead to when those exist (ADR-0014), and what only the
-## editor can see: a spawn point outside the room or inside a wall, an entity outside the room
-## or with a property its kind does not read, a path that is not the room's id.
+## the doors' targets and pairs against the rooms they lead to when those exist (ADR-0014), and
+## what only the editor can see: a spawn point outside the room or inside a wall, an entity outside
+## the room or with a property its kind does not read, a path that is not the room's id.
 func problems() -> PackedStringArray:
 	var check: RoomData = RoomData.parse(text())
 	var out: PackedStringArray = check.errors.duplicate()
