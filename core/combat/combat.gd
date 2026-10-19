@@ -80,6 +80,9 @@ func _age_effects(pl: Player) -> void:
 
 ## The strike box against every enemy; returns the player's hitstop from it.
 func _strike(pl: Player) -> int:
+	# With no enemy in the room the box matters only for a Blaze strike's trail.
+	if enemies.is_empty() and pl.vitals.kindling.tier() < Kindling.BLAZE:
+		return 0
 	var box: Rect2i = pl.strike_box()
 	if box.size == Vector2i.ZERO:
 		return 0
@@ -314,8 +317,9 @@ func _base_hitstop(kind: int) -> int:
 ## spent: one press parries every swing that lands on its tick, and nothing after (task 6 review,
 ## H4).
 func _enemy_attacks(pl: Player, ring: InputRing) -> void:
-	var press: bool = ring.any_press_age(InputFrame.ATTACK, _parry_age()) >= 0
 	var parried: bool = false
+	var press: bool = false
+	var press_read: bool = false
 	for i: int in range(enemies.size()):
 		var e: Enemy = enemies[i]
 		if e.attack_spent or pl.is_invulnerable():
@@ -328,6 +332,11 @@ func _enemy_attacks(pl: Player, ring: InputRing) -> void:
 		if away == 0:
 			away = -e.facing
 		var at: Vector2i = box.intersection(pl.hurtbox()).get_center()
+		# The press is read before any parry this tick spends it: every swing landing on this
+		# tick sees the same answer.
+		if not press_read:
+			press = ring.any_press_age(InputFrame.ATTACK, _parry_age()) >= 0
+			press_read = true
 		if e.attack.parryable and press:
 			_parry(pl, e, away, at)
 			parried = true

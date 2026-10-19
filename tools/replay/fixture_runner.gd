@@ -13,6 +13,11 @@ extends RefCounted
 ##
 ## An expectation that cannot be evaluated (a value reference outside the run, a word compared
 ## with a number, a word the key never takes) fails; nothing passes vacuously.
+##
+## The suite runs in several processes at once ([member shards]): each runs an interleaved share
+## of the fixtures ([code]tools/replay/fixture_shard.gd[/code]) and reports every result on its
+## output; this process checks them against the golden file, blesses, and keeps the time
+## (ADR-0006).
 
 const FIXTURE_ROOT: String = "res://tests/replay"
 const GOLDEN_PATH: String = "res://tests/replay/golden_hashes.txt"
@@ -26,10 +31,20 @@ const PLAYBACK_EVERY: int = 4
 const VERSION_PREFIX: String = "# sim_version "
 ## BUILD.md section 13 budget for the whole fixture suite.
 const SUITE_BUDGET_MSEC: int = 10000
+## The most processes the suite runs in, and the script each runs.
+const MAX_SHARDS: int = 4
+const SHARD_SCRIPT: String = "res://tools/replay/fixture_shard.gd"
+## A shard's output line carrying one fixture's result.
+const RESULT_PREFIX: String = "fixture-result "
 
 var results: Array[Result] = []
 ## The suite's time limit in milliseconds; 0 for none (an instrumented coverage run).
 var budget_msec: int = SUITE_BUDGET_MSEC
+## Processes to run the suite in: 1 runs every fixture in this one (an instrumented coverage run
+## must); 0 runs one per processor, up to [constant MAX_SHARDS].
+var shards: int = 0
+## The script each shard runs (a test points it elsewhere to see a shard die).
+var shard_script: String = SHARD_SCRIPT
 
 
 ## Outcome of one fixture.
@@ -48,6 +63,35 @@ class Result:
 		passed = false
 		messages.append(message)
 
+	## The result as one line of tab-separated fields, each escaped as a C string (a shard reports
+	## its results this way; [method from_line] reads it back exactly).
+	func to_line() -> String:
+		var fields: PackedStringArray = [
+			name, path, "1" if passed else "0", str(frames), str(msec), hash_line
+		]
+		fields.append_array(messages)
+		var escaped: PackedStringArray = []
+		for field: String in fields:
+			escaped.append(field.c_escape())
+		return "\t".join(escaped)
+
+	static func from_line(line: String) -> Result:
+		var fields: PackedStringArray = line.split("\t")
+		var r := Result.new()
+		if fields.size() < 6:
+			r.fail("unreadable shard result: %s" % line)
+			return r
+		for i: int in range(fields.size()):
+			fields[i] = fields[i].c_unescape()
+		r.name = fields[0]
+		r.path = fields[1]
+		r.passed = fields[2] == "1"
+		r.frames = fields[3].to_int()
+		r.msec = fields[4].to_float()
+		r.hash_line = fields[5]
+		r.messages = fields.slice(6)
+		return r
+
 
 ## Runs every fixture under [constant FIXTURE_ROOT]. With [param bless] the golden file is
 ## rewritten from this run instead of checked. Returns true if everything passed.
@@ -59,17 +103,17 @@ func run_all(bless: bool = false) -> bool:
 	var names: Dictionary[String, String] = {}
 	var failed: int = 0
 	var paths: Array[String] = FileWalk.find(FIXTURE_ROOT, [".fixture"])
-	for i: int in range(paths.size()):
-		var path: String = paths[i]
-		var fx: Fixture = Fixture.parse_file(path)
-		var play_back: bool = path.begins_with(CORE_FIXTURES) or i % PLAYBACK_EVERY == 0
-		var result: Result = run_fixture(fx, play_back)
+	var count: int = shards if shards > 0 else mini(OS.get_processor_count(), MAX_SHARDS)
+	if count > 1:
+		results = run_sharded(paths, count)
+	else:
+		results = run_paths(paths)
+	for result: Result in results:
 		if names.has(result.name):
 			result.fail("duplicate fixture name (also %s)" % names[result.name])
-		names[result.name] = path
+		names[result.name] = result.path
 		if not bless and result.passed:
 			_check_golden(result, golden, golden_version)
-		results.append(result)
 	for r: Result in results:
 		if not r.passed:
 			failed += 1
@@ -84,13 +128,89 @@ func run_all(bless: bool = false) -> bool:
 				printerr("FAIL golden entry '%s' has no fixture; re-bless" % stale)
 				failed += 1
 	var elapsed: int = Time.get_ticks_msec() - started
-	print("%d fixtures, %d failed, %d ms" % [results.size(), failed, elapsed])
+	var busy: float = 0.0
+	for r: Result in results:
+		busy += r.msec
+	print(
+		(
+			"%d fixtures, %d failed, %d ms (%d ms of fixture time in %d processes)"
+			% [results.size(), failed, elapsed, roundi(busy), count]
+		)
+	)
 	if budget_msec > 0 and elapsed > budget_msec:
 		printerr("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
 		failed += 1
 	if bless and failed == 0:
 		return _bless(golden, golden_version)
 	return failed == 0
+
+
+## Runs the fixtures at [param paths] (the whole suite's, in path order) whose place in it is
+## [param shard] modulo [param of], in this process: one shard's share, or all of them.
+func run_paths(paths: Array[String], shard: int = 0, of: int = 1) -> Array[Result]:
+	var out: Array[Result] = []
+	for i: int in range(shard, paths.size(), of):
+		var path: String = paths[i]
+		var play_back: bool = path.begins_with(CORE_FIXTURES) or i % PLAYBACK_EVERY == 0
+		out.append(run_fixture(Fixture.parse_file(path), play_back))
+	return out
+
+
+## Runs [param paths] in [param count] processes at once, each [constant SHARD_SCRIPT] with its
+## share, and returns their results in path order. A fixture whose result never came back (its
+## process died) fails with what that process printed last.
+func run_sharded(paths: Array[String], count: int) -> Array[Result]:
+	var outputs: Array[Array] = []
+	var codes: Array[int] = []
+	var threads: Array[Thread] = []
+	outputs.resize(count)
+	codes.resize(count)
+	for k: int in range(count):
+		var output: Array[String] = []
+		outputs[k] = output
+		var thread := Thread.new()
+		thread.start(_run_shard.bind(k, count, output, codes))
+		threads.append(thread)
+	for thread: Thread in threads:
+		thread.wait_to_finish()
+	var by_path: Dictionary[String, Result] = {}
+	for k: int in range(count):
+		for chunk: Variant in outputs[k]:
+			for line: String in str(chunk).split("\n"):
+				if line.begins_with(RESULT_PREFIX):
+					# Windows ends the lines with "\r\n".
+					var fields: String = line.trim_prefix(RESULT_PREFIX).trim_suffix("\r")
+					var result: Result = Result.from_line(fields)
+					by_path[result.path] = result
+	var out: Array[Result] = []
+	for i: int in range(paths.size()):
+		if by_path.has(paths[i]):
+			out.append(by_path[paths[i]])
+			continue
+		var lost := Result.new()
+		lost.name = paths[i].get_file().get_basename()
+		lost.path = paths[i]
+		var k: int = i % count
+		var tail: String = str(outputs[k][0]).right(400) if not outputs[k].is_empty() else ""
+		lost.fail("shard %d of %d (exit %d) returned no result: %s" % [k, count, codes[k], tail])
+		out.append(lost)
+	return out
+
+
+func _run_shard(k: int, count: int, output: Array[String], codes: Array[int]) -> void:
+	var args: PackedStringArray = [
+		"--headless",
+		"--path",
+		ProjectSettings.globalize_path("res://"),
+		"--script",
+		shard_script,
+		"--",
+		"--shard",
+		str(k),
+		"--of",
+		str(count),
+	]
+	codes[k] = OS.execute(OS.get_executable_path(), args, output, true)
 
 
 ## Runs one parsed fixture and checks its expectations and replay round-trip; with

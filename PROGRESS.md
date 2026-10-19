@@ -82,7 +82,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Gate | Status |
 | --- | --- |
 | Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 93.6% and CI gates at 85% |
-| Replay fixtures run headless in under 10 seconds | green, to watch: the fixture stage takes 7.9 to 8.3 s for all 378 fixtures here. Combat made every tick 35% slower and took it to 10.7 s; the input ring's queries, the probes and the content digest were made cheaper (task 6 feel log) with every state hash unchanged. Task 7's fixtures and task 8's perf work have to keep it under: the movement step (about 30 us of a tick's 68) is next |
+| Replay fixtures run headless in under 10 seconds | green: 4.1 to 4.6 s for all 378 fixtures here, run in four processes at once (ADR-0006, Shards), 7.7 s of fixture time in all. CI's Windows runner took 9.9 s in one process at task 6 and 13.4 s two commits before, so the suite is sharded and the state hash is native (480 us to 56 us a hash, once a second in the game too). The fixture time is printed beside the wall clock to keep its growth visible; the simulation's own cost is task 8's stress-room gate |
 | Export for Windows, Linux, macOS and Deck on every merge, booting to the Hearth | carried: no export presets yet and the Hearth is not in Phase 1; the export job lands with the first presets |
 | Credits and legal screen listing Godot's third-party licenses (docs/LICENSES.md) | carried to the Phase 2 UI work |
 

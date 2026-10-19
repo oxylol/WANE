@@ -181,7 +181,9 @@ func _stage_fixtures() -> bool:
 	var runner_script: GDScript = load(runner_path) as GDScript
 	var runner: Object = runner_script.new()
 	if not _time_budget:
+		# An instrumented coverage run: one process, so the instrumentation sees every fixture.
 		runner.set("budget_msec", 0)
+		runner.set("shards", 1)
 	var ok: bool = runner.call("run_all")
 	return ok
 

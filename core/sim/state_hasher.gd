@@ -3,53 +3,38 @@ extends RefCounted
 ## Order-dependent 32-bit hash of simulation state, for replay desync detection (BUILD.md
 ## section 13, "a desync is a P0 bug caught by a state hash every 60 ticks").
 ##
-## MurmurHash3 (x86, 32-bit) block mixing over 32-bit words; each 64-bit integer contributes its
-## low and high words. Pure integer arithmetic within the signed 64-bit range, so the result is
-## identical on every platform.
+## Every value is appended to a buffer of 64-bit words (a bool as 0 or 1; a string as its UTF-8
+## length, then its bytes zero-padded to whole words), and the value is the first four bytes of
+## the buffer's SHA-256, read as an unsigned little-endian integer. The buffer's bytes are the
+## words in little-endian order: Godot runs only on little-endian machines, so the result is the
+## same on every platform. The SHA-256 is Godot's native one: mixing each word in GDScript
+## (MurmurHash3, the first version) took about 440 us per state hash (docs/adr/0006).
 
-const _C1: int = 0xCC9E2D51
-const _C2: int = 0x1B873593
-
-var _h: int = 0
-var _words: int = 0
+var _words: PackedInt64Array = PackedInt64Array()
 
 
 func _init(seed_value: int = 0) -> void:
-	_h = seed_value & Fx.MASK32
+	_words.append(seed_value)
 
 
 func add_int(v: int) -> void:
-	_add_word(v & Fx.MASK32)
-	_add_word((v >> 32) & Fx.MASK32)
+	_words.append(v)
 
 
 func add_bool(v: bool) -> void:
-	_add_word(1 if v else 0)
+	_words.append(1 if v else 0)
 
 
 func add_string(s: String) -> void:
 	var bytes: PackedByteArray = s.to_utf8_buffer()
-	add_int(bytes.size())
-	# _add_word inlined: content hashing feeds every byte of every name through here.
-	var h: int = _h
-	for b: int in bytes:
-		var k: int = Fx.rotl32(Fx.mul32(b, _C1), 15)
-		h = Fx.rotl32(h ^ Fx.mul32(k, _C2), 13)
-		h = (Fx.mul32(h, 5) + 0xE6546B64) & Fx.MASK32
-	_h = h
-	_words += bytes.size()
+	_words.append(bytes.size())
+	bytes.resize((bytes.size() + 7) & ~7)
+	_words.append_array(bytes.to_int64_array())
 
 
 ## The finished hash, a non-negative integer below 2^32.
 func value() -> int:
-	return Fx.fmix32(_h ^ (_words & Fx.MASK32))
-
-
-func _add_word(k: int) -> void:
-	k = Fx.mul32(k, _C1)
-	k = Fx.rotl32(k, 15)
-	k = Fx.mul32(k, _C2)
-	_h ^= k
-	_h = Fx.rotl32(_h, 13)
-	_h = (Fx.mul32(_h, 5) + 0xE6546B64) & Fx.MASK32
-	_words += 1
+	var ctx := HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	ctx.update(_words.to_byte_array())
+	return ctx.finish().decode_u32(0)
