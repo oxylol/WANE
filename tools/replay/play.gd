@@ -86,7 +86,7 @@ func _initialize() -> void:
 			every = maxi(1, args[i + 1].to_int())
 			i += 2
 		elif a == "--set" and i + 1 < args.size():
-			if not _set_tuning(args[i + 1]):
+			if not TuningOverride.apply(args[i + 1], _held):
 				quit(2)
 				return
 			i += 2
@@ -106,25 +106,6 @@ func _initialize() -> void:
 	var err: Error = img.save_png(out)
 	print("wrote %s (%dx%d): %s" % [out, img.get_width(), img.get_height(), error_string(err)])
 	quit(0 if err == OK else 1)
-
-
-## Applies "res://path.tres:property=value" to the loaded (cached) resource, so the next
-## simulations built from that path use it.
-func _set_tuning(spec: String) -> bool:
-	var colon: int = spec.rfind(":")
-	var eq: int = spec.find("=", colon)
-	if colon <= 0 or eq < 0:
-		printerr("--set needs <res path>:<property>=<int>, got '%s'" % spec)
-		return false
-	var res: Resource = load(spec.substr(0, colon))
-	var prop: String = spec.substr(colon + 1, eq - colon - 1)
-	if res == null or not prop in res:
-		printerr("--set: no property '%s' on %s" % [prop, spec.substr(0, colon)])
-		return false
-	res.set(prop, spec.substr(eq + 1).to_int())
-	_held.append(res)
-	print("set %s" % spec)
-	return true
 
 
 ## Runs one fixture and draws its panel, labelled [param label].

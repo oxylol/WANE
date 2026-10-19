@@ -31,4 +31,6 @@ end
 
 Run: `godot --headless --path . --script tools/ci/run_tests.gd -- --stage fixtures`.
 After an intended simulation change: `godot --headless --path . --script tools/replay/bless.gd`, then commit `golden_hashes.txt` with the change.
-Watch one: `tools/replay/play.gd` (Phase 1 task 5) plays a fixture with the F3 overlay and writes a contact sheet.
+Watch one:
+- `tools/replay/play.gd` draws a fixture's whole path in one panel, headless.
+- `tools/replay/film.gd --overlay on --zoom 3` films it tick by tick through the game's own views with the F3 overlay on: the frame-stepped contact sheet (docs/adr/0012). It needs a display, or `xvfb-run`.

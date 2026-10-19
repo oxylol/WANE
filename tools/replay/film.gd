@@ -10,12 +10,18 @@ extends SceneTree
 ## It renders, so it needs a display; headless machines run it under a virtual one:
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 \
 ##     --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- \
-##     <out.png> [--every N] [--from F] [--frames K] [--scale S] <fixture>...
+##     <out.png> [--every N] [--from F] [--frames K] [--scale S] [--overlay on] [--zoom Z] \
+##     [--set <res path>:<prop>=<int>] <fixture>...
 ##
 ## Options apply to the fixtures after them: --every N films every N-th tick (default 10),
 ## --from F starts at tick F and --frames K films K frames (default 12) per fixture, --scale S
-## divides the frame size (default 6). Frame numbers are drawn top left, the fixture's number
-## at the start of its row.
+## divides the frame size (default 6), and --overlay on|off draws the game's own F3 overlay
+## (docs/adr/0012: the boxes, the state, the tick and the input history) instead of the camera's
+## working: the frame-stepped contact sheet of CLAUDE.md's working method, step 5. With the overlay
+## on, --zoom Z (default 1) magnifies the world Z times around the player so the boxes can be read
+## against each other at sheet size; the overlay's text stays on the screen. --set changes a
+## tuning value for the fixtures after it, as in play.gd. Frame numbers are drawn top left, the
+## fixture's number at the start of its row.
 ##
 ## Each row ends with the player's track on screen over every tick of the fixture: where the
 ## centre of the player's box sat across the view (blue) and down it (orange), from the view's
@@ -35,6 +41,8 @@ const BAND := Color(0.5, 0.15, 0.15, 0.5)
 const TRACK_PX_PER_TICK: int = 2
 
 var _rows: Array[Image] = []
+## Resources changed by --set, held so the resource cache keeps the changed copies.
+var _held: Array[Resource] = []
 
 
 ## Draws the camera's working over the world.
@@ -69,6 +77,8 @@ func _film() -> void:
 	var from: int = 0
 	var count: int = 12
 	var shrink: int = 6
+	var f3: bool = false
+	var zoom: float = 1.0
 	var i: int = 1
 	while i < args.size():
 		var a: String = args[i]
@@ -85,8 +95,20 @@ func _film() -> void:
 		elif a == "--scale" and has_value:
 			shrink = maxi(1, args[i + 1].to_int())
 			i += 2
+		elif a == "--overlay" and has_value:
+			f3 = args[i + 1] == "on"
+			i += 2
+		elif a == "--set" and has_value:
+			if not TuningOverride.apply(args[i + 1], _held):
+				quit(2)
+				return
+			i += 2
+		elif a == "--zoom" and has_value:
+			zoom = maxf(1.0, args[i + 1].to_float())
+			i += 2
 		else:
-			var row: Image = await _film_one(a, every, from, count, shrink)
+			var opts := Vector2(float(shrink), zoom if f3 else 1.0)
+			var row: Image = await _film_one(a, every, from, count, opts, f3)
 			if row == null:
 				quit(1)
 				return
@@ -98,7 +120,9 @@ func _film() -> void:
 	quit(0 if err == OK else 1)
 
 
-func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> Image:
+## Films one fixture; [param opts] is the shrink (x) and the zoom around the player (y).
+func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f3: bool) -> Image:
+	var shrink: int = int(opts.x)
 	var fx: Fixture = Fixture.parse_file(path)
 	var sim := Simulation.new(fx.scenario)
 	var problems: PackedStringArray = fx.errors.duplicate()
@@ -113,13 +137,22 @@ func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> 
 	var camera := GameCamera.new()
 	var overlay := Overlay.new()
 	overlay.rig = camera.rig
-	for n: Node in [room_view, player_view, overlay, camera]:
+	var debug := DebugOverlay.new()
+	# The drawer filmed, and the one left off the stage (freed by hand at the end).
+	var drawer: Node2D = debug
+	var spare: Node2D = overlay
+	if not f3:
+		drawer = overlay
+		spare = debug
+	for n: Node in [room_view, player_view, drawer, camera]:
 		stage.add_child(n)
 	root.add_child(stage)
 	camera.make_current()
 	room_view.show_world(sim.world)
 	player_view.begin(sim)
 	camera.begin(sim)
+	debug.attach_sim(sim, camera)
+	debug.set_shown(f3)
 	var frames: Array[Image] = []
 	var labels: Array[int] = []
 	var track := PackedVector2Array()
@@ -127,6 +160,7 @@ func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> 
 		sim.step(fx.input_frame(f))
 		player_view.capture(sim)
 		camera.step(sim)
+		debug.capture()
 		var view: Rect2 = camera.rig.view_rect()
 		var b: Body = sim.player.body
 		var centre := Vector2(float(b.x) / Fx.SUB, float(b.y - b.height / 2) / Fx.SUB)
@@ -140,7 +174,11 @@ func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> 
 		room_view.refresh()
 		player_view.show_at(1.0)
 		camera.show_at(1.0)
+		if opts.y > 1.0:
+			camera.zoom *= opts.y
+			camera.position = overlay.player.get_center()
 		overlay.queue_redraw()
+		debug.refresh()
 		await RenderingServer.frame_post_draw
 		await RenderingServer.frame_post_draw
 		var shot: Image = root.get_viewport().get_texture().get_image()
@@ -152,6 +190,7 @@ func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> 
 	var tuning: CameraTuning = camera.rig.tuning
 	var view_size: Vector2 = camera.rig.view_size
 	stage.queue_free()
+	spare.free()
 	await process_frame
 	if frames.is_empty():
 		printerr("%s: no frame to film from tick %d (it has %d)" % [path, from, fx.frame_total])
@@ -161,7 +200,10 @@ func _film_one(path: String, every: int, from: int, count: int, shrink: int) -> 
 	var half := Vector2(float(pb.half_w), float(pb.height) * 0.5) / Fx.SUB
 	var bands: Vector2 = (Vector2.ONE * tuning.edge_margin_u + half) / view_size
 	var track_img: Image = _track(track, labels, frames[0].get_height(), bands)
-	return _strip(frames, labels, _rows.size() + 1, track_img)
+	var drawn: Array[int] = []
+	if not f3:
+		drawn = labels
+	return _strip(frames, drawn, _rows.size() + 1, track_img)
 
 
 ## The player's track on screen (see the description at the top), [param h] pixels tall.
@@ -189,6 +231,8 @@ func _track(track: PackedVector2Array, filmed: Array[int], h: int, bands: Vector
 
 ## A row of [param frames], each labelled with its tick, [param number] at the start and
 ## [param track] at the end.
+## One fixture's row; [param labels] are drawn over the frames unless empty (the F3 overlay
+## prints the tick itself).
 func _strip(frames: Array[Image], labels: Array[int], number: int, track: Image) -> Image:
 	var fw: int = frames[0].get_width()
 	var fh: int = frames[0].get_height()
@@ -203,7 +247,8 @@ func _strip(frames: Array[Image], labels: Array[int], number: int, track: Image)
 		shot.convert(Image.FORMAT_RGBA8)
 		var at := Vector2i(head + k * (fw + GAP_PX), 0)
 		img.blit_rect(shot, Rect2i(Vector2i.ZERO, shot.get_size()), at)
-		ContactSheet.digits(img, at + Vector2i(4, 4), labels[k], ContactSheet.TEXT, 2)
+		if not labels.is_empty():
+			ContactSheet.digits(img, at + Vector2i(4, 4), labels[k], ContactSheet.TEXT, 2)
 	var end := Vector2i(head + frames.size() * (fw + GAP_PX), 0)
 	img.blit_rect(track, Rect2i(Vector2i.ZERO, track.get_size()), end)
 	return img

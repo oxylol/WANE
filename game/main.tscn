@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://game/main.gd" id="1"]
 [ext_resource type="Script" path="res://game/input/input_layer.gd" id="2"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://game/rooms/room_view.gd" id="4"]
 [ext_resource type="Script" path="res://game/player/player_view.gd" id="5"]
 [ext_resource type="Script" path="res://game/camera/game_camera.gd" id="6"]
+[ext_resource type="Script" path="res://game/debug/debug_overlay.gd" id="7"]
+[ext_resource type="Script" path="res://game/debug/debug_controls.gd" id="8"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1")
@@ -26,3 +28,9 @@ script = ExtResource("5")
 
 [node name="GameCamera" type="Camera2D" parent="World"]
 script = ExtResource("6")
+
+[node name="DebugOverlay" type="Node2D" parent="World"]
+script = ExtResource("7")
+
+[node name="DebugControls" type="Node" parent="."]
+script = ExtResource("8")

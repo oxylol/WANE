@@ -155,6 +155,7 @@ dash_on_cling_frame_goes_away in:493258b1 content:a9e50607 60:4f96e79b 60:4f96e7
 dash_ride_reaches_walk_stop in:c044b272 content:95b5af55 11:44aec9d9
 dash_same_distance in:ebf96d2d content:bf0ce14f 50:34fead37
 dash_slash_buffered_down_strike in:5283b133 content:bf0ce14f 30:eba9e92b
+dash_up_lip_stairs in:affd98c7 content:76506d28 120:3d3caa9b 60:01c1cc3e 120:3d3caa9b
 dash_up_ramp_onto_door_at_crest in:a76113c0 content:09f50db6 14:3e38d383
 ddash_runs_on_onto_lip in:b6f9d75a content:6be2ec27 24:2eabd2ec
 ddash_stairs_relanding_keeps_speed in:4575fcd5 content:d16ace58 12:98f25ab2
@@ -286,6 +287,7 @@ walk_down_ramp12_off_lip_stays_grounded in:b81fe041 content:d4b084b1 120:af2b419
 walk_down_ramp45_off_door_stays_grounded in:3d1fde3d content:09f50db6 120:141c9826 60:17f6acc5 120:141c9826
 walk_steps_down_small_lips in:84760467 content:f4324216 90:7553965b 60:ebe1f449
 walk_steps_up_small_lips in:40353b12 content:f4324216 170:53c90264 60:ba47bfbc 120:e98ad3c3
+walk_up_lip_stairs in:fdf83bae content:76506d28 200:d9bfc47f 60:001cee05 120:d2455100 180:7c816e58
 walk_up_ramp12_onto_lip_at_crest in:4fb2f1e7 content:d4b084b1 60:40a013a5 60:40a013a5
 walk_up_ramp45_onto_door_at_crest in:48389e4f content:09f50db6 60:17f6acc5 60:17f6acc5
 walk_up_ramp45_onto_lip_far_past_crest in:6781536d content:fcc1b680 60:2f4860b4 60:2f4860b4

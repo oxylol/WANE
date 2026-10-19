@@ -1,0 +1,23 @@
+fixture dash_up_lip_stairs
+doc ground dashes right up both staircases of test/lip_stairs: two lips a tick on the 45-degree stair (task 5 review, H3).
+room test/lip_stairs
+spawn 300 544
+frames 120
+input
+  0 R dash
+  1..29 R
+  30 R dash
+  31..59 R
+  60 R dash
+  61..89 R
+  90 R dash
+  91..119 R
+end
+expect
+  # Ground dashes walk up both staircases: up to three 8 u lips in a dash tick on the second.
+  during 0..38 state!=air
+  at 61 nudge_y=-8u
+  at 62 nudge_y=-24u
+  during 60..68 state=dash
+  at 66 y=464u
+end

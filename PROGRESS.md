@@ -13,7 +13,7 @@
 | 2 | Physics sweep: AABB, slopes to 45 degrees, one-way platforms, corner correction | in review: fixed through six review rounds (ADR-0008); the sixth round's fixes are committed and their re-review runs next. Committed with task 3, whose player its fixtures and tests run through |
 | 3 | Ash: ground, jump, dash, wall, pogo; one fixture per table row and per tech interaction | in review: every row and all 12 tech interactions have fixtures, with control runs; fixed through four review rounds (ADR-0010); the fourth round's fixes are committed and their re-review runs next |
 | 4 | Camera | in review: fixed through five review rounds (ADR-0011); the fifth round's fixes are committed and their re-review runs next |
-| 5 | F3 debug overlay and frame-stepper | in progress, not yet committed: overlay, boxes, input history and stepper built and unit-tested (ADR-0012); wiring into the game and the filmed contact sheet remain |
+| 5 | F3 debug overlay and frame-stepper | in review: the overlay (boxes, state, frame counter, input history) and the stepper (F3 to F6) are in the game and film every contact sheet (`film.gd --overlay on`); the view eases corner-correction nudges; fixed through one review round (ADR-0012); its re-review runs next |
 | 6 | Taper, Flame, Kindling, parry, spells, hit feedback, training dummy with poise | in progress: the Taper's strikes and the pogo are committed with task 3; Flame, hearts, Kindling, the dummy, hit feedback and slow motion are built and unit-tested but not yet integrated or committed |
 | 7 | Room editor plugin and grey-box zone 1 (12 rooms, 12 tech interactions in order) | in progress: the room format (ADR-0009) is committed; the editor's document, history and panel are built but not committed; zone 1 is not built |
 | 8 | Stress room (200 enemies, 40 procs, Pitch lighting) and perf benchmark in CI | not started (the physics bench exists: ADR-0008) |
@@ -21,7 +21,7 @@
 
 ## Next
 
-Task 5: commit the F3 overlay and the frame-stepper with their first review's fixes; re-review physics (round 7), movement (round 5), the camera (round 6) and task 5 (round 2) and fix what they find; then task 6's integration.
+Re-review physics (round 7), movement (round 5), the camera (round 6) and task 5 (round 2), and fix what they find; then task 6: the Taper's combat side, Flame, Kindling, parry, spells and hit feedback against the training dummy.
 
 ## Immaculate Checklist (BUILD.md section 15)
 
@@ -39,9 +39,9 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Pogo keeps full horizontal speed; 10-bounce chain across the zone 1 spike pit at 4 bounces/s | yes | partial: speed kept (`pogo_keeps_horizontal`, `pogo_dash_jump_speed`), ten bounces cross the 3360 u test pit (`tech03_pogo_chain`); the zone 1 pit is task 7 |
 | Pogo resets air dash; pogo, dash, pogo crosses the hidden-room gap | yes | partial: `pogo_resets`, `tech04_pogo_dash_reset` on the test gap; the hidden room is task 7 |
 | Wall-kick climbs a single wall without feeling stuck | yes | green on fixtures: 176 u every 24 f, held, tapped or mashed (`tech05_wall_kick_climb`, `tech05_wall_kick_mash`); the feel is the director's to play |
-| Landing on a 1-pixel ledge edge lands; nudge invisible | yes | partial: a fall or a diagonal dash lands from the near side by the corner lift and from the far side by the far-edge landing (`ground_corner_lift`, `far_edge_landing_lands`, `down_dash_lands_on_ledge_far_corner`, `test_physics_fuzz_lift.gd`); every nudge is recorded for the view to ease, but nothing eases it before task 5, so a step on a slope still shows as a snap of up to 18 u |
+| Landing on a 1-pixel ledge edge lands; nudge invisible | yes | partial: a fall or a diagonal dash lands from the near side by the corner lift and from the far side by the far-edge landing (`ground_corner_lift`, `far_edge_landing_lands`, `down_dash_lands_on_ledge_far_corner`, `test_physics_fuzz_lift.gd`); the view eases every nudge over 3 frames and never falls more than the run's largest nudge behind (task 5; `test_a_corner_correction_nudge_never_snaps_the_drawn_player` over ten fixtures, two of them staircases of lips); whether the ease reads as invisible is the director's to judge once Ash is drawn: up a dashed staircase the drawn feet sit inside the steps, up to 24 u, for a few frames |
 | Head bumping a ceiling corner by under 6 units slides around it | yes | green: `jump_ceiling_nudge` slides, `jump_ceiling_bump` (7 u) bumps |
-| Camera never shows the player within 80 units of the screen edge | yes | green over all 305 movement, tech, physics and camera fixtures at 16:9, 16:10, 4:3 and 21:9, held by the follow alone with no backstop correction, and over the fourth review's sweeps (falls beside walls and down shafts 96 to 288 u wide, wall-jumps up every shaft width, look-drops of 64 to 256 u, borderless room edges, long ramps) and the fifth review's fixtures (`cam5_*`) (`test_camera_rig.gd`, `test_camera_review*.gd`); the re-review of the fifth round's fixes runs next; the zone 1 loop is task 7 |
+| Camera never shows the player within 80 units of the screen edge | yes | green over all 307 movement, tech, physics and camera fixtures at 16:9, 16:10, 4:3 and 21:9, held by the follow alone with no backstop correction, and over the fourth review's sweeps (falls beside walls and down shafts 96 to 288 u wide, wall-jumps up every shaft width, look-drops of 64 to 256 u, borderless room edges, long ramps) and the fifth review's fixtures (`cam5_*`) (`test_camera_rig.gd`, `test_camera_review*.gd`); the re-review of the fifth round's fixes runs next; the zone 1 loop is task 7 |
 | 60-second movement-only loop through zone 1 playable with eyes on the character | yes (the director plays it) | not started: needs zone 1 (task 7) |
 | *Combat* | | |
 | Attack comes out on frame 3 from a neutral press, every time, including during hitstop | yes | partial: the strike box is live on frame 3 from a neutral press (`dash_cancels_attack`); hitstop is task 6 |
@@ -72,9 +72,9 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Run beatable with the starting kit on Wane | no: needs a full run | carried |
 | Seeded replay reproduces bit-for-bit on Windows, Linux and Deck | partial: every fixture replays bit-for-bit against its golden hashes on Linux, Windows and macOS CI; a full run and the Deck come later | in progress: green for all fixtures |
 | *Process* | | |
-| Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 4 (`docs/feel_log/`) |
-| Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement), 0011 (camera) |
-| F3 overlay shows hitboxes, state, frame counter and input history | yes | in progress (task 5) |
+| Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 5 (`docs/feel_log/`) |
+| Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement), 0011 (camera), 0012 (debug overlay and frame-stepper) |
+| F3 overlay shows hitboxes, state, frame counter and input history | yes | green: F3 in any build, F4 pause, F5 one tick, F6 ten (ADR-0012; `test_debug_overlay.gd`, `test_debug_boxes.gd`, `test_input_history.gd`); every tech and physics fixture plays to the same hash with the overlay reading every tick; the task 5 sheet is filmed through it |
 | CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | green for unit, replay, coverage and lint; the perf gate is task 8 |
 
 ## CI gates from BUILD.md section 13 not on the checklist
@@ -82,7 +82,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Gate | Status |
 | --- | --- |
 | Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 93.6% and CI gates at 85% |
-| Replay fixtures run headless in under 10 seconds | green: the fixture stage takes about 7.5 s for all 307 fixtures here (building a simulation costs 1.4 ms: ADR-0006) |
+| Replay fixtures run headless in under 10 seconds | green: the fixture stage takes about 7.5 s for all 309 fixtures here (building a simulation costs 1.4 ms: ADR-0006) |
 | Export for Windows, Linux, macOS and Deck on every merge, booting to the Hearth | carried: no export presets yet and the Hearth is not in Phase 1; the export job lands with the first presets |
 | Credits and legal screen listing Godot's third-party licenses (docs/LICENSES.md) | carried to the Phase 2 UI work |
 

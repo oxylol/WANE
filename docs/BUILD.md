@@ -169,7 +169,7 @@ The simulation runs at a fixed 60 Hz; all numbers below are in frames (f) at 60 
 | Turnaround | 2 f, keeps 60% speed in the new direction | Never a dead frame on reversal |
 | Crouch | Hitbox 44 to 28 tall; cannot move; drops through one-way platforms on down+jump | The crouched box cannot move in the air either; crouch and drop-through need the stick straight down (docs/adr/0010) |
 | Slope handling | Up to 45°, speed unchanged; no sliding on slopes |  |
-| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared; on the ground the 8 u nudge steps the player up onto a lip, such as a door left open as a floor (docs/adr/0008) |
+| Corner correction | Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners | The player never clips a corner they visually cleared; on the ground the 8 u nudge steps the player up onto a lip, such as a door left open as a floor (docs/adr/0008); the collider moves at once and the drawn player eases onto it over 3 frames, never more than the largest nudge behind, so no single nudge is seen as a hop (`content/player_view.tres`, docs/adr/0012) |
 
 ### Jump
 

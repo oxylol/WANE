@@ -1,0 +1,15 @@
+fixture walk_up_lip_stairs
+doc walk right up both staircases of test/lip_stairs: every lip is an 8 u ground corner correction, one every 16 u on the first and every 8 u on the 45-degree second (task 5 review, H3: the drawn player must follow a run of nudges without falling behind).
+room test/lip_stairs
+spawn 300 544
+frames 200
+input
+  0..199 R
+end
+expect
+  # Up the first staircase (a lip every 16 u) and the second (every 8 u) on the ground.
+  during 0..50 ground=1
+  at 30 y=464u
+  during 75..135 ground=1
+  at 100 y=464u
+end

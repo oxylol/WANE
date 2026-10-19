@@ -34,6 +34,10 @@ var room: RoomData
 var world: CollisionWorld
 var player: Player
 var events: SimEvents = SimEvents.new()
+## The input frame the latest tick consumed, exactly as given (the F3 overlay's input history
+## reads it: during hitstop the ring folds presses together). Presentation only; never read by
+## the simulation.
+var last_input: InputFrame = InputFrame.new()
 ## Problems found while building the simulation (a missing room, invalid content). A simulation
 ## with load errors still runs, but tools must treat it as a failure.
 var load_errors: PackedStringArray = PackedStringArray()
@@ -95,6 +99,7 @@ func _load_content(path: String) -> Resource:
 ## Advances the world by one tick with [param frame] as player one's input.
 func step(frame: InputFrame) -> void:
 	events.clear()
+	last_input = frame
 	if player != null and player.freeze > 0:
 		input.merge(frame)
 	else:
