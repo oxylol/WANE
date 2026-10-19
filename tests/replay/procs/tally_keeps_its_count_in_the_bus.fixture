@@ -1,0 +1,15 @@
+fixture tally_keeps_its_count_in_the_bus
+doc docs/adr/0015: a listener keeps no state of its own; its Votive's counter, held by the bus and hashed, is the one thing it may remember from proc to proc. A test Votive at a sure chance counts its procs and every third one hits for 5. The 3-hit chain (10, 10, 16 at frames 2, 9 and 17, as in chain_rising_weight) procs it three times: the third proc, on the finisher's tick, hits.
+room test/dummy
+option votive_test_tally 1
+frames 30
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 2 event.proc=1 enemy.hp=190
+  at 9 event.proc=1 enemy.hp=180
+  at 17 event.proc=1 procs=1 enemy.hp=159 proc_events=2
+end

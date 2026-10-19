@@ -120,14 +120,20 @@ extends Resource
 @export var pogo_chain_frame: int = 6
 
 
-## Compiled sub-pixel values. See [MovementParams].
-func compile() -> MovementParams:
+## Compiled sub-pixel values. See [MovementParams]. [param run_speed_bonus_permille] is the run
+## speed the run's Votives add, per-mille of [member run_speed_ups] (docs/adr/0015): the most the
+## Wick runs at, on the ground and in the air; the acceleration and deceleration times are kept,
+## so they scale with it, and the turnaround and the landing follow it. Nothing else moves.
+func compile(run_speed_bonus_permille: int = 0) -> MovementParams:
 	var p := MovementParams.new()
 	p.half_w = Fx.units(width_u) / 2
 	p.height = Fx.units(height_u)
 	p.crouch_height = Fx.units(crouch_height_u)
 	p.stick_threshold = stick_threshold
-	p.run_speed = Fx.speed(run_speed_ups)
+	# Fx.speed with the bonus inside the one rounding: with no bonus it is Fx.speed exactly.
+	p.run_speed = Fx.div_round(
+		run_speed_ups * Fx.SUB * (1000 + run_speed_bonus_permille), Fx.HZ * 1000
+	)
 	p.run_accel = Fx.per_tick(p.run_speed, run_accel_frames)
 	p.run_decel = Fx.per_tick(p.run_speed, run_decel_frames)
 	p.turn_keep_percent = turn_keep_percent

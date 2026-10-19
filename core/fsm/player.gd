@@ -146,6 +146,10 @@ var home_y: int = 0
 
 ## Kit: the Kindle Votive lets the dash ignite wax and Snuffed (tech 12).
 var kindle_dash: bool = false
+## The run's Votives (docs/adr/0015): the bus hears every pogo bounce. A "run" Votive may take the
+## ground dash's cooldown away ([member dash_free], as at Kindling White).
+var procs: ProcBus
+var dash_free: bool = false
 
 ## Ember toss (Ash's spell, tech 11).
 var toss: EmberToss

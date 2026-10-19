@@ -104,6 +104,7 @@ func test_the_enemy_view_draws_every_state() -> void:
 	for _i: int in range(def.attacks[0].telegraph + 1):
 		list[Enemy.STRIKE].step(null)
 	list[Enemy.STAGGER].stagger(30)
+	list[Enemy.STUN].stun(30)
 	list[Enemy.DEAD].take_hit(def.hp, 0, 0)
 	assert_str(list[Enemy.STRIKE].state_name()).is_equal("strike")
 	assert_bool(list[Enemy.DEAD].is_alive()).is_false()
@@ -119,6 +120,7 @@ func test_the_enemy_view_draws_every_state() -> void:
 	assert_float(view.shown[Enemy.TELEGRAPH].telegraph).is_greater_equal(0.0)
 	assert_bool(view.shown[Enemy.STRIKE].attack.size != Vector2.ZERO).is_true()
 	assert_bool(view.shown[Enemy.DEAD].alive).is_false()
+	assert_int(view.shown[Enemy.STUN].state).is_equal(Enemy.STUN)
 
 
 func _shown(since_hit: int) -> EnemyView.Shown:

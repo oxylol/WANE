@@ -14,7 +14,7 @@ Everything that decides what happens in a run lives here, and nothing else does 
 | `physics/` | The AABB sweep against the room's collision grid: slopes to 45 degrees, one-way platforms, corner correction |
 | `fsm/` | Player (and later enemy) state machines |
 | `combat/` | Hitboxes, hurtboxes, damage, hitstop, Flame, Kindling, parry, spells |
-| `items/` | Proc event bus, Votive stacking |
+| `items/` | The proc event bus, Votive stacking, the Votive resource and the API its listener script is handed (docs/adr/0015). Votives themselves are content: `content/votives/` |
 | `clock/` | The Wane Clock and the Dark |
 | `rng/` | Seeded RNG with split streams |
 | `rooms/` | Room data, as loaded from `content/rooms/` |

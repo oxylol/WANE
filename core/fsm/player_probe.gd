@@ -127,6 +127,8 @@ static func _number(pl: Player, key: String) -> Variant:
 			return pl.invuln
 		"hearts":
 			return pl.vitals.hearts.current
+		"max_hearts":
+			return pl.vitals.hearts.max_hearts
 		"flame":
 			return pl.vitals.flame.value
 		"kindling":

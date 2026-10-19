@@ -7,25 +7,38 @@ extends RefCounted
 ##    enemies take their burn damage.
 ## 2. The player's hits: the strike box, Kindle's cone and Radiance's burst, the pogo box, then
 ##    the Blaze trails. A strike or cast hits each enemy once.
-## 3. The enemies' hits: an attack's live box touching the hurtbox of a player who is not
+## 3. The procs: every proc event raised by 1 and 2 (a Taper hit, a pogo, a Kindle tick, Radiance
+##    reaching an enemy) is rolled and its procs fired, chains included ([ProcBus];
+##    docs/adr/0015).
+## 4. The enemies' hits: an attack's live box touching the hurtbox of a player who is not
 ##    invulnerable lands once; it is parried if the player pressed attack in the 8 frames up to it.
 ##
-## The player's hits come first, so a strike that kills or staggers an enemy on the tick its
-## attack would land takes that attack away. Hitstop is set on whoever a hit froze and counts from
-## the next tick; the player's input keeps being read meanwhile ([InputRing]).
+## The player's hits and their procs come first, so a strike or proc that kills, staggers or stuns
+## an enemy on the tick its attack would land takes that attack away. Hitstop is set on whoever a
+## hit froze and counts from the next tick; the player's input keeps being read meanwhile
+## ([InputRing]).
 
 var params: CombatParams
 var events: SimEvents
+## The run's Votives and the proc event bus (docs/adr/0015).
+var procs: ProcBus
 var enemies: Array[Enemy] = []
 var embers: Array[KillEmber] = []
 var trails: Array[FireTrail] = []
 ## Ticks left of Radiance's full light (presentation lights the room; later systems read it).
 var light_left: int = 0
 
+## Where the enemies stand, for the procs' radius and nearest-enemy questions ([EnemyCells]): built
+## at the first question of a tick's resolve and kept until the resolve ends; outside a resolve
+## every question builds it afresh.
+var _cells: EnemyCells = EnemyCells.new()
+var _indexed: bool = false
 
-func _init(p_params: CombatParams, p_events: SimEvents) -> void:
+
+func _init(p_params: CombatParams, p_events: SimEvents, p_procs: ProcBus) -> void:
 	params = p_params
 	events = p_events
+	procs = p_procs
 
 
 ## One tick of combat, after everything has moved. [param pl] may be null (no player).
@@ -43,6 +56,7 @@ func leave_room(pl: Player) -> void:
 
 
 func resolve(pl: Player, ring: InputRing) -> void:
+	_indexed = false
 	_age_effects(pl)
 	if pl == null:
 		return
@@ -52,6 +66,8 @@ func resolve(pl: Player, ring: InputRing) -> void:
 	_radiance(pl)
 	stop = maxi(stop, _pogo(pl, ring))
 	_trails(pl)
+	procs.resolve(self, pl)
+	_indexed = false
 	if stop > 0:
 		pl.freeze = maxi(pl.freeze, stop)
 	_enemy_attacks(pl, ring)
@@ -85,7 +101,12 @@ func _age_effects(pl: Player) -> void:
 	for k: int in range(enemies.size()):
 		var e: Enemy = enemies[k]
 		if e.burn_tick(pl.kit.burn_period):
-			_damage(pl, k, pl.kit.burn_damage, HitKind.BURN, Vector2i.ZERO)
+			# A burn tick is one of Kindle's ticks: a proc event (BUILD.md section 6, "Kindle 0.5
+			# per tick"; docs/adr/0015).
+			var tier: int = pl.vitals.kindling.tier()
+			var dealt: int = _damage(pl, k, pl.kit.burn_damage, HitKind.BURN, Vector2i.ZERO)
+			var c: Vector2i = e.centre()
+			procs.raise(ProcSource.KINDLE, k, c.x, c.y, dealt, tier)
 
 
 # --- the player's hits -----------------------------------------------------------------------
@@ -143,7 +164,8 @@ func _strike_hit(pl: Player, i: int, atk: AttackDef) -> int:
 		vy = -knock
 	elif kind == HitKind.FINISHER:
 		vy = -params.finisher_launch
-	var stop: int = _land(pl, i, damage, kind, dir, vx, vy)
+	var bonus: int = procs.blade_bonus(ProcSource.TAPER, i)
+	var stop: int = _land(pl, i, damage, kind, dir, vx, vy, bonus)
 	pl.vitals.flame.gain(params.flame_per_hit)
 	if atk.recoil_ups > 0 and dir.x != 0:
 		pl.body.vx -= dir.x * Fx.speed(atk.recoil_ups)
@@ -196,13 +218,18 @@ func _radiance(pl: Player) -> void:
 	light_left = pl.kit.radiance_light
 	var c: Vector2i = _centre(pl.body)
 	events.add(SimEvents.RADIANCE, c.x, c.y)
-	for e: Enemy in enemies:
+	var tier: int = pl.vitals.kindling.tier()
+	for k: int in range(enemies.size()):
+		var e: Enemy = enemies[k]
 		if not e.is_alive():
 			continue
 		var away: int = signi(e.body.x - pl.body.x)
 		if away == 0:
 			away = pl.facing
 		e.knock_vx = away * pl.kit.radiance_push
+		# Radiance reaching an enemy is a proc event (docs/adr/0015), though it deals no damage.
+		var at: Vector2i = e.centre()
+		procs.raise(ProcSource.RADIANCE, k, at.x, at.y, 0, tier)
 
 
 ## The pogo box against pogo-able enemies: a bounce off the first one touched, and a hit on it.
@@ -220,7 +247,10 @@ func _pogo(pl: Player, ring: InputRing) -> int:
 			continue
 		e.last_strike = pl.strike_serial
 		PlayerContacts.bounce(pl, ring, box)
-		var stop: int = _land(pl, i, pl.down_attack.damage, HitKind.POGO, Vector2i.DOWN)
+		var bonus: int = procs.blade_bonus(ProcSource.POGO, i)
+		var stop: int = _land(
+			pl, i, pl.down_attack.damage, HitKind.POGO, Vector2i.DOWN, 0, 0, bonus
+		)
 		pl.vitals.flame.gain(params.flame_per_pogo)
 		return stop
 	return 0
@@ -267,19 +297,31 @@ func _blaze_burst(pl: Player, hit: int, at: Vector2i) -> void:
 
 
 ## A hit that counts: damage with Kindling's bonus, knockback, a Kindling hit, hitstop on the
-## enemy, and the kill. Returns the hitstop the player takes from it.
+## enemy, the kill, and its proc event. [param bonus] is the damage Votives add to a Taper or pogo
+## hit: it is dealt, but the hit's hitstop is weighed without it, so items change what a hit does,
+## never how it feels (BUILD.md section 1, pillar 2; docs/adr/0015). Returns the hitstop the player
+## takes from it.
 func _land(
-	pl: Player, i: int, damage: int, kind: int, dir: Vector2i, vx: int = 0, vy: int = 0
+	pl: Player,
+	i: int,
+	damage: int,
+	kind: int,
+	dir: Vector2i,
+	vx: int = 0,
+	vy: int = 0,
+	bonus: int = 0
 ) -> int:
 	var e: Enemy = enemies[i]
 	var tier: int = pl.vitals.kindling.tier()
-	var dealt: int = pl.vitals.kindling.boost(damage)
+	var dealt: int = pl.vitals.kindling.boost(damage + bonus)
+	var weight: int = pl.vitals.kindling.boost(damage)
 	var killed: bool = e.take_hit(dealt, vx, vy)
 	pl.vitals.kindling.add()
-	var stop: int = params.hitstop_for(_base_hitstop(kind), dealt)
+	var stop: int = params.hitstop_for(_base_hitstop(kind), weight)
 	var c: Vector2i = e.centre()
 	var value: int = HitKind.encode(kind, dir.x, dir.y, tier)
 	events.add(SimEvents.HIT, c.x, c.y, value)
+	procs.raise(_proc_source(kind), i, c.x, c.y, dealt, tier)
 	if killed:
 		stop = maxi(stop, params.hitstop_kill)
 		_kill(i, value)
@@ -289,21 +331,84 @@ func _land(
 	return stop
 
 
-## Damage that is not a hit (burns, trails, the AoE): no knockback (a strike's knockback is kept:
-## task 6 review, H1), no hitstop, no Kindling, no Flame. A kill by it still has the Kill row's
-## hitstop on both (BUILD.md section 6, "Kill | 3 f": task 6 review, presentation M1).
-func _damage(pl: Player, i: int, damage: int, kind: int, dir: Vector2i) -> void:
+## Damage that is not a hit (burns, trails, the AoE, a Votive's proc): no knockback (a strike's
+## knockback is kept: task 6 review, H1), no hitstop, no Kindling, no Flame. A kill by it still has
+## the Kill row's hitstop on both (BUILD.md section 6, "Kill | 3 f": task 6 review, presentation
+## M1). Returns the damage dealt, or -1 if the enemy was already dead.
+func _damage(pl: Player, i: int, damage: int, kind: int, dir: Vector2i) -> int:
 	var e: Enemy = enemies[i]
 	if not e.is_alive():
-		return
+		return -1
 	var c: Vector2i = e.centre()
 	var value: int = HitKind.encode(kind, dir.x, dir.y, pl.vitals.kindling.tier())
-	var killed: bool = e.take_damage(pl.vitals.kindling.boost(damage))
+	var dealt: int = pl.vitals.kindling.boost(damage)
+	var killed: bool = e.take_damage(dealt)
 	events.add(SimEvents.HIT, c.x, c.y, value)
 	if killed:
 		e.freeze = maxi(e.freeze, params.hitstop_kill)
 		pl.freeze = maxi(pl.freeze, params.hitstop_kill)
 		_kill(i, value)
+	return dealt
+
+
+## The proc event a hit of [param kind] raises ([ProcSource]): Kindle's cone is its first tick, a
+## pogo is a pogo, every other hit a Taper hit.
+static func _proc_source(kind: int) -> int:
+	match kind:
+		HitKind.SPELL:
+			return ProcSource.KINDLE
+		HitKind.POGO:
+			return ProcSource.POGO
+	return ProcSource.TAPER
+
+
+# --- what procs do (docs/adr/0015) -----------------------------------------------------------
+
+
+## A Votive's proc hit on enemy [param i] for [param damage]: proc damage, which is not a Taper hit
+## ([method _damage]: health and poise with Kindling's bonus, a kill's ember and the Kill row's
+## hitstop; no knockback, no hitstop of its own, no Kindling hit, no Flame), shown as a hit of kind
+## [constant HitKind.PROC]. Returns the damage dealt, or -1 if there is no such living enemy.
+func proc_hit(pl: Player, i: int, damage: int) -> int:
+	if pl == null or i < 0 or i >= enemies.size():
+		return -1
+	return _damage(pl, i, damage, HitKind.PROC, Vector2i.ZERO)
+
+
+## Stuns every living enemy whose centre is within [param radius] sub-pixels of [param at] for
+## [param frames] ticks ([method Enemy.stun]), in the room's order; returns how many.
+func stun_within(at: Vector2i, radius: int, frames: int) -> int:
+	var found: PackedInt32Array = _query(at, radius, -1)
+	found.sort()
+	var centres: PackedInt32Array = _cells.centres
+	for k: int in found:
+		enemies[k].stun(frames)
+		events.add(SimEvents.STUN, centres[2 * k], centres[2 * k + 1], k)
+	return found.size()
+
+
+## The living enemy whose centre is nearest [param at], within [param radius] sub-pixels, other
+## than [param skip]; ties go to the lower index. -1 if none.
+func nearest_enemy(at: Vector2i, radius: int, skip: int) -> int:
+	var best: int = -1
+	var best_d: int = 0
+	var centres: PackedInt32Array = _cells.centres
+	for k: int in _query(at, radius, skip):
+		var dx: int = centres[2 * k] - at.x
+		var dy: int = centres[2 * k + 1] - at.y
+		var dd: int = dx * dx + dy * dy
+		if best < 0 or dd < best_d or (dd == best_d and k < best):
+			best = k
+			best_d = dd
+	return best
+
+
+## The living enemies other than [param skip] within [param radius] of [param at] ([EnemyCells]).
+func _query(at: Vector2i, radius: int, skip: int) -> PackedInt32Array:
+	if not _indexed:
+		_cells.build(enemies)
+		_indexed = procs.resolving()
+	return _cells.within(enemies, at, radius, skip)
 
 
 ## Enemy [param i] died to a hit whose event value is [param value]: the kill event carries it, so

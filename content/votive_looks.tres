@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ProcLooks" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/vfx/proc_looks.gd" id="1"]
+[ext_resource type="Script" path="res://game/vfx/proc_look.gd" id="2"]
+
+[resource]
+script = ExtResource("1")
+looks = Array[ExtResource("2")]([])
+fallback_colours = Array[Color]([Color(0.35, 0.9, 1, 1), Color(1, 0.4, 0.8, 1), Color(0.55, 1, 0.35, 1)])
+fallback_size_u = 28
+fallback_frames = 6

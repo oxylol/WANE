@@ -9,11 +9,17 @@ extends Node2D
 ## unparryable one (section 12: "parryable and unparryable differ in shape and sound as well as
 ## color"; section 15: distinguishable "with flashes set to 0"). The cue stays through the
 ## landing frame, the last of the parry window, and the live swing keeps its colour and outline
-## while it is active. A staggered enemy slumps; health and poise show as two thin bars. Reads
-## the simulation, never writes it.
+## while it is active. A staggered enemy slumps; a stunned one (a Votive's stun, docs/adr/0015)
+## slumps in its own colour under a row of three small diamonds; health and poise show as two thin
+## bars. Reads the simulation, never writes it.
 
 const BODY := Color(0.55, 0.52, 0.48)
 const STAGGERED := Color(0.4, 0.55, 0.75)
+const STUNNED := Color(0.75, 0.68, 0.4)
+const STUN_MARK := Color(1.0, 0.92, 0.55)
+## The stun's diamonds: their half size and the gap above the body.
+const STUN_MARK_PX: float = 4.0
+const STUN_GAP_PX: float = 26.0
 const DEAD := Color(0.35, 0.33, 0.3, 0.35)
 const HIT_FLASH := Color(1.0, 1.0, 1.0)
 ## What a hit shows at a flash setting of 0: an outline colour change, no flash.
@@ -187,6 +193,18 @@ func show_at(alpha: float) -> void:
 
 
 ## Shows [param sim]'s enemies as they are now, with no interpolation (tools that draw one state).
+## Three small diamonds in a row above a stunned enemy.
+func _draw_stun_mark(box: Rect2) -> void:
+	var y: float = box.position.y - STUN_GAP_PX
+	var h: float = STUN_MARK_PX
+	for k: int in range(3):
+		var x: float = box.get_center().x + (k - 1) * h * 3.0
+		var pts := PackedVector2Array(
+			[Vector2(x, y - h), Vector2(x + h, y), Vector2(x, y + h), Vector2(x - h, y)]
+		)
+		draw_colored_polygon(pts, STUN_MARK)
+
+
 func show_now(sim: Simulation) -> void:
 	capture(sim)
 	capture(sim)
@@ -205,10 +223,12 @@ func _draw_enemy(s: Shown, at: Rect2) -> void:
 		draw_rect(box, DEAD)
 		return
 	var colour: Color = BODY
-	if s.state == Enemy.STAGGER:
-		colour = STAGGERED
+	if s.state == Enemy.STAGGER or s.state == Enemy.STUN:
+		colour = STAGGERED if s.state == Enemy.STAGGER else STUNNED
 		box = Rect2(box.position + Vector2(0, box.size.y * 0.3), box.size * Vector2(1, 0.7))
 	draw_rect(box, body_colour(s, colour))
+	if s.state == Enemy.STUN:
+		_draw_stun_mark(box)
 	# The facing side.
 	var eye_x: float = box.end.x - 8.0 if s.facing > 0 else box.position.x + 2.0
 	draw_rect(Rect2(eye_x, box.position.y + 10.0, 6.0, 6.0), Color(0.1, 0.1, 0.12))

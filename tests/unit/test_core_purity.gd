@@ -1,6 +1,18 @@
 extends GdUnitTestSuite
 ## CorePurity: the mechanical gate for CLAUDE.md architecture rules 1 and 2.
 
+const LISTENER: String = (
+	"extends VotiveListener\n## A doc comment may say 120 u and 10%.\n\n"
+	+ 'const RADIUS: String = "radius_u"\n\n\n'
+	+ "func on_proc(api: ProcApi) -> void:\n"
+	+ "\tvar n: int = api.counter() + 1\n"
+	+ "\tif api.source() == ProcSource.TAPER and api.roll_permille(api.param(RADIUS)):\n"
+	+ "\t\tapi.stun_within(api.param(RADIUS), -1)\n"
+	+ "\tapi.set_counter(n)\n\n\n"
+	+ "func params_used() -> PackedStringArray:\n"
+	+ "\treturn PackedStringArray([RADIUS])\n"
+)
+
 
 func _problems(code: String) -> PackedStringArray:
 	return CorePurity.new().check_source(code)
@@ -62,3 +74,52 @@ func test_lookalikes_are_allowed() -> void:
 func test_strip_line() -> void:
 	assert_str(CorePurity.strip_line('a = "x # y" # c')).is_equal('a = "" ')
 	assert_str(CorePurity.strip_line("b = 'q\\'s' + 1")).is_equal("b = '' + 1")
+
+
+# --- Votive listeners: the API boundary (docs/adr/0015) -------------------------------------
+
+
+func _listener_problems(code: String) -> PackedStringArray:
+	return CorePurity.new().check_listener(code)
+
+
+func test_a_listener_within_the_api_passes() -> void:
+	assert_array(Array(_listener_problems(LISTENER))).is_empty()
+
+
+func test_every_listener_rule_fires() -> void:
+	var cases: Array[String] = [
+		"var held: int = 0",
+		"static var held: int = 0",
+		"class_name Sneaky",
+		"class Inner:",
+		"signal rang",
+		"@tool",
+		"func f(api: ProcApi) -> void:\n\tapi._bus.votives.clear()",
+		'func f() -> void:\n\tvar s: Script = load("res://x.gd")',
+		'func f(api: ProcApi) -> void:\n\tapi.call("hit", 0, 1)',
+		'func f(api: ProcApi) -> void:\n\tapi.set("_level", 0)',
+		"func f() -> void:\n\tprint(self)",
+		"func f(api: ProcApi) -> void:\n\tapi.hit(api.target(), 12)",
+		"func f(api: ProcApi) -> void:\n\tapi.stun_within(0x40, 1)",
+		"func f(api: ProcApi) -> void:\n\tvar c: Combat = null",
+		"func f(api: ProcApi) -> void:\n\tvar r: Rng = Rng.seeded(1, 2)",
+		"func f() -> void:\n\tvar x: float = 0",
+		"func f() -> void:\n\tvar t: int = Time.get_ticks_msec()",
+	]
+	for code: String in cases:
+		var source: String = "extends VotiveListener\n\n\n" + code + "\n"
+		(
+			assert_array(Array(_listener_problems(source)))
+			. override_failure_message("expected a problem in: " + code)
+			. is_not_empty()
+		)
+
+
+func test_a_listener_extends_votive_listener() -> void:
+	assert_array(Array(_listener_problems("extends RefCounted\n"))).is_not_empty()
+	assert_array(Array(_listener_problems("func on_proc() -> void:\n\tpass\n"))).is_not_empty()
+
+
+func test_the_repository_listeners_pass() -> void:
+	assert_array(Array(CorePurity.new().check_votives())).is_empty()

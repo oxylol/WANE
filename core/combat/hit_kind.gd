@@ -6,8 +6,9 @@ extends RefCounted
 ## are tinted by the tier the hit used (task 6 review, presentation L3).
 
 ## BURN is the small damage that is not a hit: a burn tick, a Blaze trail, a finisher's AoE.
-## PLAYER is an enemy's hit on the player.
-enum { LIGHT, FINISHER, CHARGED, POGO, SPELL, PARRY, BURN, PLAYER }
+## PLAYER is an enemy's hit on the player. PROC is a Votive's proc damage (docs/adr/0015), shown by
+## its proc's own effect rather than a hit spark.
+enum { LIGHT, FINISHER, CHARGED, POGO, SPELL, PARRY, BURN, PLAYER, PROC }
 
 
 ## The event value for a hit of [param kind] travelling along ([param dx], [param dy]), each -1,

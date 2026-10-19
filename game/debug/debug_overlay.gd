@@ -27,9 +27,11 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 	DebugBoxes.KILL_EMBER: Color(1.0, 0.75, 0.3, 1.0),
 	DebugBoxes.ENEMY_DEAD: Color(0.55, 0.5, 0.6, 0.55),
 	DebugBoxes.DOOR: Color(0.4, 1.0, 0.9, 0.7),
+	DebugBoxes.PROC: Color(1.0, 0.85, 0.35, 1.0),
 }
 ## Boxes that are filled as well as outlined (the ones that hit something).
 const FILLED: Array[int] = [
+	DebugBoxes.PROC,
 	DebugBoxes.STRIKE,
 	DebugBoxes.POGO,
 	DebugBoxes.HAZARD,
@@ -285,6 +287,36 @@ func _player_lines(sim: Simulation, pl: Player) -> PackedStringArray:
 		)
 	)
 	lines.append(_combat_line(sim, pl))
+	lines.append_array(proc_lines(sim))
+	return lines
+
+
+## The run's Votives with their stacks, and the procs that fired this tick (task 8,
+## docs/adr/0015): how many, from how many proc events, the deepest chain level, and by Votive.
+func proc_lines(sim: Simulation) -> PackedStringArray:
+	var bus: ProcBus = sim.procs
+	var held: PackedStringArray = []
+	for i: int in range(bus.votives.size()):
+		held.append("%s x%d" % [bus.votives[i].id, bus.stacks[i]])
+	var lines: PackedStringArray = [
+		"votives %s" % (", ".join(held) if not held.is_empty() else "none")
+	]
+	var fired: PackedStringArray = []
+	for i: int in range(bus.votives.size()):
+		var count: int = bus.fired_slots.count(i)
+		if count > 0:
+			fired.append("%s x%d" % [bus.votives[i].id, count])
+	lines.append(
+		(
+			"procs this tick %d from %d events, deepest L%d%s"
+			% [
+				bus.fired(),
+				bus.raised,
+				bus.deepest(),
+				(": " + ", ".join(fired)) if not fired.is_empty() else ""
+			]
+		)
+	)
 	return lines
 
 

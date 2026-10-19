@@ -1,0 +1,17 @@
+fixture coin_seed_2
+doc docs/adr/0015, determinism: the same inputs and Votive as coin_seed_1 on seed 2: its coins fall tails, tails, heads. The third coin stuns a dummy the finisher has just staggered (the poise break comes first, as the hit lands before its proc): the stun is counted and the stagger's 30 frames hold, the longer of the two.
+seed 2
+room test/dummy
+option votive_test_coin 1
+frames 50
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 2 event.proc=1 event.stun=0 enemy.state=idle
+  at 9 event.proc=1 event.stun=0 enemy.state=idle
+  at 17 event.proc=1 event.stun=1 enemy.state=stagger
+  during 17..48 enemy.state=stagger
+end

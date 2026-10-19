@@ -206,6 +206,9 @@ func _header(words: PackedStringArray, line_number: int) -> void:
 			scenario.spawn_x = _int_word(words, 1, line_number)
 			scenario.spawn_y = _int_word(words, 2, line_number)
 		"option":
+			# Option names are identifiers: "votive_<id>" names a Votive file (docs/adr/0015).
+			if not words[1].is_valid_identifier():
+				errors.append("line %d: option '%s' is not an identifier" % [line_number, words[1]])
 			if scenario.options.has(words[1]):
 				errors.append("line %d: option '%s' given twice" % [line_number, words[1]])
 			scenario.options[words[1]] = _int_word(words, 2, line_number)

@@ -8,9 +8,10 @@ extends RefCounted
 ## M1); and combat's (task 6, docs/adr/0013): each enemy's hurtbox with its state, health and
 ## poise (a dead enemy has no hurtbox: it is drawn as a dimmer outline, kind ENEMY_DEAD), its live
 ## attack box (white for a parryable attack, red for an unparryable one), Kindle's cone, Blaze's
-## fire trails and the kill embers flying home. BUILD.md section 5: "shows
-## hitboxes"; CLAUDE.md rule 8. Boxes are the latest tick's, exactly as the simulation resolves
-## them, never interpolated.
+## fire trails and the kill embers flying home; and the procs that fired this tick (task 8,
+## docs/adr/0015), one mark at each point a Votive fired, labelled with each Votive and the chain
+## levels it fired at. BUILD.md section 5: "shows hitboxes"; CLAUDE.md rule 8. Boxes are the
+## latest tick's, exactly as the simulation resolves them, never interpolated.
 
 enum {
 	COLLIDER,
@@ -29,11 +30,15 @@ enum {
 	KILL_EMBER,
 	ENEMY_DEAD,
 	DOOR,
+	PROC,
 }
 
 ## Half the size of the marker drawn at the ember, and at a bounce.
 const EMBER_HALF_U: float = 4.0
 const CONTACT_HALF_U: float = 6.0
+const PROC_HALF_U: float = 5.0
+## A proc label's line, in units (the overlay's 18 px text and a little air).
+const PROC_LABEL_LINE_U: float = 22.0
 ## How far above the telegraph cue's highest point an enemy's label is drawn.
 const LABEL_CLEAR_U: float = 4.0
 
@@ -42,7 +47,8 @@ class Box:
 	var kind: int = COLLIDER
 	var rect: Rect2 = Rect2()
 	var label: String = ""
-	## How far above the box's top the label is drawn, in units (clear of the telegraph's bar).
+	## How far above the box's top the label is drawn, in units (clear of the telegraph's bar);
+	## negative draws it below (a proc's mark).
 	var label_lift: float = 0.0
 
 
@@ -101,7 +107,58 @@ static func collect(sim: Simulation, view: Rect2) -> Array[Box]:
 			out.append(
 				_box(CONTACT, units(_hurtbox_at(pl, events.xs[i], events.ys[i])), "hazard hit")
 			)
+	_add_procs(sim, out)
 	return out
+
+
+## One mark at each point a proc fired this tick, labelled "<votive> L<level>..." for one Votive,
+## or "<n> procs, <k> Votives, L<level>..." for several (the overlay's text lists them by Votive):
+## the label of a burst stays short enough not to bury the enemies' own.
+static func _add_procs(sim: Simulation, out: Array[Box]) -> void:
+	var events: SimEvents = sim.events
+	var points: Array[Vector2i] = []
+	var labels: Dictionary[Vector2i, PackedStringArray] = {}
+	for i: int in range(events.count()):
+		if events.kinds[i] != SimEvents.PROC:
+			continue
+		var point := Vector2i(events.xs[i], events.ys[i])
+		var slot: int = events.values[i] % ProcBus.LEVEL_SHIFT
+		var level: int = events.values[i] / ProcBus.LEVEL_SHIFT
+		var votive_id: String = (
+			sim.procs.votives[slot].id if slot < sim.procs.votives.size() else "?"
+		)
+		if not labels.has(point):
+			points.append(point)
+			labels[point] = PackedStringArray()
+		var parts: PackedStringArray = labels[point]
+		parts.append("%s L%d" % [votive_id, level])
+		labels[point] = parts
+	for k: int in range(points.size()):
+		var at := Vector2(points[k]) / Fx.SUB
+		var half := Vector2(PROC_HALF_U, PROC_HALF_U)
+		var box: Box = _box(PROC, Rect2(at - half, half * 2.0), _fold(labels[points[k]]))
+		# Below the mark, a line lower for each mark before it this tick: clear of the enemies'
+		# labels above them and of a neighbour's proc label.
+		box.label_lift = -(half.y * 2.0 + PROC_LABEL_LINE_U * (k + 1))
+		out.append(box)
+
+
+## "a L1, a L2" as "a L1 L2"; "a L1, b L1, a L3" as "3 procs, 2 Votives, L1 L3".
+static func _fold(parts: PackedStringArray) -> String:
+	var ids: PackedStringArray = []
+	var levels: PackedStringArray = []
+	for part: String in parts:
+		var space: int = part.rfind(" ")
+		var votive_id: String = part.substr(0, space)
+		var level: String = part.substr(space + 1)
+		if not ids.has(votive_id):
+			ids.append(votive_id)
+		if not levels.has(level):
+			levels.append(level)
+	levels.sort()
+	if ids.size() == 1:
+		return "%s %s" % [ids[0], " ".join(levels)]
+	return "%d procs, %d Votives, %s" % [parts.size(), ids.size(), " ".join(levels)]
 
 
 ## The player's hurtbox with the body's bottom-centre at ([param x], [param y]) (sub-pixels).

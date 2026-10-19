@@ -34,7 +34,7 @@ static func bounce(pl: Player, ring: InputRing, box: Rect2i) -> void:
 	PlayerWall.refresh(pl)
 	b.vy = -pl.p.pogo_bounce
 	pl.air_jumps_left = pl.p.air_jumps
-	pl.air_dashes_left = pl.p.air_dashes
+	pl.air_dashes_left = maxi(pl.air_dashes_left, pl.p.air_dashes)
 	pl.jump_frame = 0
 	pl.jump_cut = false
 	pl.since_bounce = 1
@@ -49,6 +49,9 @@ static func bounce(pl: Player, ring: InputRing, box: Rect2i) -> void:
 	# "Anything on bounce": the down-strike hands control straight back.
 	pl.action = Player.NO_ACTION
 	pl.action_frame = 0
+	# The run's Votives hear the bounce (Second Ember's air dashes: docs/adr/0015).
+	if pl.procs != null:
+		pl.procs.bounced(pl)
 
 
 static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:

@@ -118,6 +118,7 @@ func test_parse_errors() -> void:
 		"fixture a\ndoc x\nframes 9\nexpect\nat 3 tick<run\nend\n",  # ordering a word
 		"fixture a\ndoc x\nframes 9\nexpect\nat 3 tick=5x\nend\n",  # malformed value
 		"fixture a\ndoc x\nframes 9\nend\n",  # end outside a block
+		"fixture a\ndoc x\nframes 9\noption votive-bell 1\n",  # an option name not an identifier
 	]
 	for text: String in cases:
 		(

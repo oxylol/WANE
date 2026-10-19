@@ -25,6 +25,27 @@ func test_any_value_changes_the_hash() -> void:
 	assert_int(_hash(c)).is_not_equal(base)
 
 
+## A Votive's listener is content (docs/adr/0015): its source is in the fingerprint, so two
+## Votives that differ only in what their listener does hash differently.
+func test_a_listener_scripts_source_changes_the_hash() -> void:
+	var a: Votive = (load("res://tests/votives/chain_spark.tres") as Votive).duplicate(true)
+	var b: Votive = a.duplicate(true)
+	assert_int(_hash(b)).is_equal(_hash(a))
+	var source: String = a.listener.source_code
+	a.listener = _script(source)
+	b.listener = _script(source)
+	assert_int(_hash(b)).is_equal(_hash(a))
+	b.listener = _script(source.replace("api.target()", "api.nearest_enemy(1, true)"))
+	assert_int(_hash(b)).is_not_equal(_hash(a))
+
+
+func _script(source: String) -> GDScript:
+	var script := GDScript.new()
+	script.source_code = source
+	script.reload()
+	return script
+
+
 func test_null_and_nested_values() -> void:
 	var h := StateHasher.new()
 	ContentHash.add_resource(h, null)

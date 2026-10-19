@@ -1,0 +1,15 @@
+fixture chain_stops_at_depth_three
+doc BUILD.md s6 Item procs, "Proc chains are allowed (a proc can trigger another) to a depth of 3, then stop" (docs/adr/0015). A test Votive whose proc hits the enemy it fired on, at a sure chance (10 stacks of 10%): one Taper hit fires it at levels 1, 2 and 3 on the hit's tick, each a 1-damage proc hit; the level-3 hit raises its event (the fourth) and nothing fires on it. Proc damage takes no hitstop of its own: the player's 2 f are the Taper hit's.
+room test/dummy
+option votive_test_chain_spark 10
+frames 30
+input
+  0 attack
+end
+expect
+  at 1 event.hit=0 procs=0
+  at 2 event.hit=1 event.proc=1 procs=3 proc.test_chain_spark=3 proc_level=3 proc_events=4
+  at 2 enemy.hp=187 freeze=2 enemy.freeze=2 kindling=1 flame=11
+  never 3..29 procs>0
+  at 29 enemy.hp=187 votive.test_chain_spark=10
+end

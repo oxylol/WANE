@@ -6,8 +6,13 @@ extends GdUnitTestSuite
 ## Fields that are not state: compiled tuning, the shared world and event list, the body (hashed
 ## through its position fields), the lists audited item by item, and the training dummy's room
 ## marker settings and the gravity compiled from its content, which never change in a run and are
-## content (the room and the enemy's numbers are in the content fingerprint).
+## content (the room and the enemy's numbers are in the content fingerprint). The proc bus is hashed
+## on its own (tests/unit/core/items/test_proc_bus.gd); combat's query cells are rebuilt from the
+## enemies every tick they are asked for.
 const NOT_STATE: Array[String] = [
+	"procs",
+	"_cells",
+	"_indexed",
 	"params",
 	"_params",
 	"world",

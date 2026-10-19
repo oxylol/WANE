@@ -43,10 +43,16 @@ static func add_room(h: StateHasher, room: RoomData) -> void:
 ## declaration order; a sub-resource contributes its own digest. Hashing natively keeps building a
 ## simulation cheap: feeding every byte of every name through [StateHasher] took 3.7 ms of the
 ## 4.2 ms [Simulation] constructor. [method @GlobalScope.var_to_bytes] is Godot's portable binary
-## encoding, the same on every platform.
+## encoding, the same on every platform. A script held as a value (a Votive's listener: its
+## behaviour is content, docs/adr/0015) contributes its path and its source text.
 static func _digest(res: Resource) -> PackedByteArray:
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
+	var as_script: Script = res as Script
+	if as_script != null:
+		ctx.update(var_to_bytes(as_script.resource_path))
+		ctx.update(var_to_bytes(as_script.source_code))
+		return ctx.finish()
 	var script: Script = res.get_script()
 	ctx.update(var_to_bytes(script.resource_path if script != null else res.get_class()))
 	for prop_name: String in _script_variables(res):

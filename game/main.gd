@@ -11,9 +11,11 @@ const LAST_REPLAY_PATH: String = "user://replays/last_session.wrp"
 ## The zone the game boots into: its start room, the Kindle Votive in hand (Phase 1 has no
 ## Votive pickups; the zone's twelfth room teaches the kindle-dash: docs/adr/0014). Run with
 ## `-- --room=<id>` to start in any room instead (the room editor's Play does), the sandbox
-## included.
+## included. A session starts with no Votives; `-- --votive=<id>:<stacks>` (as often as wanted)
+## gives it some, to play them before pickups exist (docs/adr/0015).
 const START_ZONE: String = "res://content/zones/zone1.tres"
 const ROOM_ARG: String = "--room="
+const VOTIVE_ARG: String = "--votive="
 
 @onready var input_layer: InputLayer = $InputLayer
 @onready var driver: SimDriver = $SimDriver
@@ -58,12 +60,17 @@ func _ready() -> void:
 ## Kindle Votive.
 func _scenario() -> Scenario:
 	var seed_value: int = int(Time.get_unix_time_from_system())
-	for arg: String in OS.get_cmdline_user_args():
-		if arg.begins_with(ROOM_ARG):
-			return Scenario.make(seed_value, arg.trim_prefix(ROOM_ARG))
 	var zone: ZoneDef = load(START_ZONE) as ZoneDef
 	var scenario: Scenario = Scenario.make(seed_value, zone.start_room)
 	scenario.options["kindle"] = 1
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with(ROOM_ARG):
+			scenario.room = arg.trim_prefix(ROOM_ARG)
+			scenario.options.erase("kindle")
+		elif arg.begins_with(VOTIVE_ARG):
+			var spec: PackedStringArray = arg.trim_prefix(VOTIVE_ARG).split(":")
+			var stacks: int = spec[1].to_int() if spec.size() > 1 else 1
+			scenario.options[Simulation.VOTIVE_OPTION + spec[0]] = stacks
 	return scenario
 
 

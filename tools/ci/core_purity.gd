@@ -4,6 +4,14 @@ extends RefCounted
 ## no floats, no float maths, no Node or engine singletons, no frame callbacks, no unseeded
 ## randomness, no file writes (the core may read content, never write). Comments and string
 ## literals are ignored. Run by tools/ci/run_tests.gd.
+##
+## Votive listener scripts (content/votives/, tests/votives/) run inside the core, so they obey the
+## same rules, and the API boundary besides (docs/adr/0015): a listener extends VotiveListener and
+## names no class but the API's; it keeps no state of its own (no member or static variables, no
+## class_name, inner class, signal or annotation); it reaches nothing around the API (no member
+## whose name starts with an underscore, no reflection, no loading, no self); and it holds no
+## number of its own (CLAUDE.md rule 6: integer literals other than 0 and 1 belong in its
+## resource).
 
 const PATTERNS: Array[String] = [
 	"\\bfloat\\b",
@@ -41,8 +49,47 @@ const LABELS: Array[String] = [
 	"file write (I/O belongs to services in game/)",
 ]
 
+## The roots holding Votive listener scripts.
+const LISTENER_ROOTS: Array[String] = ["res://content/votives", "res://tests/votives"]
+## The only classes a listener may name: the API it is handed, the base it extends, the event
+## sources it may compare, and the value types the API returns.
+const LISTENER_CLASSES: Array[String] = [
+	"VotiveListener",
+	"VotiveApi",
+	"ProcApi",
+	"BladeHitApi",
+	"BounceApi",
+	"RunApi",
+	"ProcSource",
+	"PackedStringArray",
+	"String",
+]
+const LISTENER_PATTERNS: Array[String] = [
+	"^(static\\s+)?var\\b",
+	"^(class_name|class|signal|@\\w+)\\b",
+	"\\._",
+	(
+		"\\b(get|set|call|callv|call_deferred|get_meta|set_meta|has_meta|get_script|set_script"
+		+ "|connect|emit_signal|get_indexed|set_indexed|get_property_list|has_method|free"
+		+ "|notification|load|preload|instance_from_id|get_node|str_to_var|bytes_to_var"
+		+ "|Callable|Expression|ClassDB)\\s*\\("
+	),
+	"\\bself\\b",
+	"(?<![\\w.])([2-9]|[1-9]\\d+|0[xXbB][0-9a-fA-F_]+)(?![\\w.])",
+]
+const LISTENER_LABELS: Array[String] = [
+	"listener state (a member or static variable; the counter is the API's)",
+	"a class_name, inner class, signal or annotation on a listener",
+	"reaching around the API (an underscore member)",
+	"reflection or loading",
+	"self",
+	"a number of its own (CLAUDE.md rule 6: it belongs in the Votive's resource)",
+]
+
 var _compiled: Array[RegEx] = []
 var _labels: Array[String] = []
+var _listener_rules: Array[RegEx] = []
+var _class_word: RegEx = RegEx.create_from_string("\\b[A-Z][a-z0-9]+[A-Za-z0-9]*\\b")
 
 
 func _init() -> void:
@@ -51,6 +98,8 @@ func _init() -> void:
 		re.compile(PATTERNS[i])
 		_compiled.append(re)
 		_labels.append(LABELS[i])
+	for pattern: String in LISTENER_PATTERNS:
+		_listener_rules.append(RegEx.create_from_string(pattern))
 
 
 ## Violations in [param source] as "line N: <label>: <code>" strings.
@@ -68,12 +117,57 @@ func check_source(source: String) -> PackedStringArray:
 	return problems
 
 
-## Every violation under res://core.
+## Every violation under res://core, and in every Votive listener ([method check_votives]).
 func check_core() -> PackedStringArray:
 	var problems: PackedStringArray = []
 	for path: String in FileWalk.find("res://core", [".gd"]):
 		for p: String in check_source(FileAccess.get_file_as_string(path)):
 			problems.append("%s %s" % [path, p])
+	problems.append_array(check_votives())
+	return problems
+
+
+## Every violation in the Votive listener scripts under [constant LISTENER_ROOTS].
+func check_votives() -> PackedStringArray:
+	var problems: PackedStringArray = []
+	for root: String in LISTENER_ROOTS:
+		for path: String in FileWalk.find(root, [".gd"]):
+			for p: String in check_listener(FileAccess.get_file_as_string(path)):
+				problems.append("%s %s" % [path, p])
+	return problems
+
+
+## The core's rules and the listener's API boundary on [param source], a Votive listener script.
+func check_listener(source: String) -> PackedStringArray:
+	var problems: PackedStringArray = check_source(source)
+	var extends_base: bool = false
+	var line_number: int = 0
+	for line: String in source.split("\n"):
+		line_number += 1
+		var code: String = strip_line(line)
+		if code.strip_edges() == "":
+			continue
+		if code.strip_edges() == "extends VotiveListener":
+			extends_base = true
+			continue
+		if code.strip_edges().begins_with("extends"):
+			problems.append("line %d: a listener extends VotiveListener: %s" % [line_number, line])
+			continue
+		for i: int in range(_listener_rules.size()):
+			if _listener_rules[i].search(code) != null:
+				problems.append(
+					"line %d: %s: %s" % [line_number, LISTENER_LABELS[i], line.strip_edges()]
+				)
+		for m: RegExMatch in _class_word.search_all(code):
+			if not LISTENER_CLASSES.has(m.get_string()):
+				problems.append(
+					(
+						"line %d: names %s, which is not the listener API: %s"
+						% [line_number, m.get_string(), line.strip_edges()]
+					)
+				)
+	if not extends_base:
+		problems.append("line 1: a listener extends VotiveListener")
 	return problems
 
 
