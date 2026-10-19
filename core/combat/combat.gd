@@ -146,7 +146,10 @@ func _strike_hit(pl: Player, i: int, atk: AttackDef) -> int:
 	var stop: int = _land(pl, i, damage, kind, dir, vx, vy)
 	pl.vitals.flame.gain(params.flame_per_hit)
 	if atk.recoil_ups > 0 and dir.x != 0:
-		pl.body.vx -= dir.x * Fx.speed(atk.recoil_ups)
+		# A displacement over recoil_frames ticks after the hitstop, on top of the run
+		# ([code]Player._recoil_move[/code]; task 6 core review 2, H2).
+		pl.recoil_vx = -dir.x * Fx.speed(atk.recoil_ups)
+		pl.recoil_left = params.recoil_frames
 	if kind == HitKind.FINISHER and pl.vitals.kindling.tier() >= Kindling.BLAZE:
 		_blaze_burst(pl, i, e.centre())
 	return stop

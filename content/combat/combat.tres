@@ -36,6 +36,7 @@ player_hit_knockback_ups = 300
 player_hit_invuln_frames = 20
 player_hit_knock_frames = 12
 hazard_damage = 1
+recoil_frames = 8
 parry_window_frames = 8
 parry_knockback_ups = 200
 parry_stagger_frames = 40

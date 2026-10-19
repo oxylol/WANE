@@ -48,6 +48,8 @@ static func hash_into(pl: Player, h: StateHasher) -> void:
 		pl.spell_dir.y,
 		pl.knock_left,
 		pl.knock_vx,
+		pl.recoil_left,
+		pl.recoil_vx,
 		pl.charge_held,
 		pl.charge_request,
 		pl.charge_stick.x,
@@ -71,6 +73,7 @@ static func hash_into(pl: Player, h: StateHasher) -> void:
 		pl.dash_landed,
 		pl.wall_fresh,
 		pl.radiance_burst,
+		pl.charge_broken,
 	]:
 		h.add_bool(b)
 	h.add_string(pl.chain_next)

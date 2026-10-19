@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="EnemyDef" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DummyDef" load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://core/enemies/enemy_def.gd" id="1"]
+[ext_resource type="Script" path="res://core/enemies/dummy_def.gd" id="1"]
 [ext_resource type="Script" path="res://core/enemies/enemy_attack.gd" id="2"]
 
 [sub_resource type="Resource" id="swing"]
@@ -41,3 +41,5 @@ pogoable = true
 gravity_ups2 = 3000
 terminal_ups = 1500
 attacks = Array[ExtResource("2")]([SubResource("swing"), SubResource("red")])
+respawn_frames = 60
+swing_period = 90

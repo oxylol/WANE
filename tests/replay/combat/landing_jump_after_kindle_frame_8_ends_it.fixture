@@ -1,0 +1,16 @@
+fixture landing_jump_after_kindle_frame_8_ends_it
+doc Task 6 core review 2, M1 (the second half); docs/adr/0013, Kindle "from its frame 8 a dash, jump, strike or toss cancels it". Kindle cast high in the air on 10 (its frame 1); a jump pressed on 23 fires on the landing (25, Kindle frame 16) and, like any action from frame 8, ends the spell there. Before the fix a jump fired by the landing never ended it.
+room test/flat
+option flame 33
+frames 40
+input
+  2 jump
+  4 jump
+  10 spell
+  23 jump
+end
+expect
+  at 10 event.cast=1 spell=kindle
+  mark land 20..32 event.land=1
+  at land event.jump=1 spell=none
+end

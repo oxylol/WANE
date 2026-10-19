@@ -65,7 +65,8 @@ var jump_frame: int = 0
 var jump_released: bool = false
 var jump_cut: bool = false
 ## The jump began this tick or last: its first airborne move skips gravity, so a jump fired on
-## the landing frame rises exactly like one pressed on the ground.
+## the landing frame rises exactly like one pressed on the ground. Cleared wherever something
+## else takes over that first rise, so it never skips a later fall's gravity (review 6, M2).
 var jump_fresh: bool = false
 ## Apex hang: frames of reduced gravity left, and whether this jump has used its hang.
 var apex_hang_left: int = 0
@@ -135,11 +136,16 @@ var radiance_burst: bool = false
 ## After a hit, the frames the knockback still holds the stick's sideways push off, and its speed.
 var knock_left: int = 0
 var knock_vx: int = 0
-## Attack held frames as of last tick, the frames a Charged strike's request still waits, and the
-## stick on the frame the hold was let go: the strike goes that way (task 6 review, M4).
+## A strike's recoil (side 1, 60 u/s): frames left and sub-pixels a tick.
+var recoil_left: int = 0
+var recoil_vx: int = 0
+## Attack held frames as of last tick (0 while the hold cannot arm the Charged strike), frames a
+## Charged request still waits, and the stick when the hold was let go (the strike goes that way).
 var charge_held: int = 0
 var charge_request: int = 0
 var charge_stick: Vector2i = Vector2i.ZERO
+## The hold under way can no longer arm the Charged strike (an up- or down-strike press, a death).
+var charge_broken: bool = false
 ## The room's spawn point, where a death sends the player.
 var home_x: int = 0
 var home_y: int = 0
@@ -244,15 +250,17 @@ func step(ring: InputRing) -> void:
 	if channel and spell != PlayerSpells.MEND:
 		_turn(dx)
 	var still: bool = spell == PlayerSpells.MEND
+	var moved_from: int = events.count()  # actions a landing or cling fires count too
 	_move(ring, 0 if still else dx, 0 if still else dy)
+	PlayerCombat.recoil_move(self)
 	if knock_left > 0:
 		knock_left -= 1
 	_after_move(ring, 0 if still else dx, 0 if still else dy)
+	PlayerCombat.after_actions(self, moved_from)
 	toss.step(self)
 
 
-## A hit: the strike, spell and dash under way end, with the dash's carry-over and an attack it
-## held for later.
+## A hit: the strike, spell and dash under way end, with their carry-over, recoil and queued attack.
 func interrupt() -> void:
 	if action != NO_ACTION:
 		_end_action()
@@ -260,6 +268,7 @@ func interrupt() -> void:
 	if loco == DASH:
 		end_dash(false)
 	carry_frames = 0
+	recoil_left = 0
 	queued_attack_left = 0
 
 
@@ -407,6 +416,7 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 		ground_dash_cooldown = p.dash_ground_cooldown
 	else:
 		air_dashes_left -= 1
+	PlayerContacts.rise_before_dash(self)
 	loco = DASH
 	# A dash taken on the landing frame (pre_start) counts that frame as frame 0: its nine
 	# moving frames and its invulnerability start on the next tick, as a jump fired on the landing
@@ -870,17 +880,22 @@ func _arrive() -> void:
 	_touch_down()
 	body.vy = 0
 	jump_frame = 0
+	jump_fresh = false
 	jump_cut = false
 	wall_side = 0
 
 
-## A jump, dash or strike pressed within its buffer before the landing starts on its frame.
-## [param walked_on] says the landing's step went on after touching down (see
-## [method _land_in_stride]).
+## A jump, dash, strike or Mend pressed within its buffer before the landing starts on its frame
+## ([param walked_on]: the step went on after touching down, see [method _land_in_stride]).
+## A spell that holds actions back holds the jump too.
 func _landing_actions(
 	ring: InputRing, dx: int, dy: int, after_move: bool = true, walked_on: bool = false
 ) -> void:
-	if ring.has_press(InputFrame.JUMP, p.jump_buffer_frames) and strike_allows_jump(walked_on):
+	if (
+		ring.has_press(InputFrame.JUMP, p.jump_buffer_frames)
+		and strike_allows_jump(walked_on)
+		and not PlayerSpells.holds(self)
+	):
 		ring.consume(InputFrame.JUMP)
 		# Down and jump onto a one-way platform drops through it, as on the ground.
 		if dy > 0 and dx == 0 and world.can_drop_through(body):
@@ -893,6 +908,8 @@ func _landing_actions(
 	# jump (physics review 7, M1): a missed down-strike gives way to a strike pressed before it.
 	if loco == GROUND or walked_on:
 		PlayerStrikes.try_attack(self, ring, walked_on)
+	if loco == GROUND:
+		PlayerSpells.try_mend(self, ring)
 
 
 ## The airtime is over: resources, the landing event and safe ground. Also run by a diagonal air
@@ -946,6 +963,7 @@ func teleported(invuln_frames: int, ring: InputRing) -> void:
 	left_by_jump = true
 	air_frames = 0
 	jump_frame = 0
+	jump_fresh = false
 	jump_cut = false
 	carry_frames = 0
 	wall_side = 0

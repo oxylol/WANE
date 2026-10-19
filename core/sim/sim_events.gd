@@ -38,7 +38,11 @@ const PARRY: String = "parry"
 const PLAYER_HIT: String = "player_hit"
 ## A kill's ember reaches the player and its Flame is granted.
 const EMBER_HOME: String = "ember_home"
-## The player's hearts ran out (Phase 1: back to the room's spawn).
+## The player's hearts ran out (Phase 1: back to the room's spawn). x and y are where the player
+## died (bottom-centre, sub-pixels, before the send-back); by the end of the tick the player stands
+## at the room's spawn. Sent for any death, by an enemy's hit (after its [constant PLAYER_HIT], in
+## combat's resolve) or by a hazard (after its [constant HAZARD], in the player's step); the value
+## is 0.
 const DEATH: String = "death"
 ## A spell or Mend starts (the value is [PlayerSpells] KINDLE, RADIANCE or MEND).
 const CAST: String = "cast"
@@ -75,6 +79,12 @@ func add(kind: String, x: int, y: int, value: int = 0) -> void:
 
 func has(kind: String) -> bool:
 	return kinds.has(kind)
+
+
+## True if [param kind] was added at index [param from] or later: an event since that point of
+## the tick ([method count] taken then).
+func has_since(kind: String, from: int) -> bool:
+	return kinds.find(kind, from) >= 0
 
 
 func count() -> int:

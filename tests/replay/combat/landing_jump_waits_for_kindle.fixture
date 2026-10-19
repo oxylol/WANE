@@ -1,0 +1,16 @@
+fixture landing_jump_waits_for_kindle
+doc Task 6 core review 2, M1, and movement review 6, L1; BUILD.md s6 Spells, Kindle "cancelable from f 8"; docs/adr/0013. Kindle cast in the air on 18 (its frame 1), jump pressed on 19, the landing on 21 (Kindle frame 4): the jump waits in its buffer to Kindle's frame 8 (25) and ends the spell there, as the same press on the ground does. Before the fix it fired on the landing and Kindle ran on beside it.
+room test/flat
+option flame 33
+frames 40
+input
+  2 jump
+  18 spell
+  19 jump
+end
+expect
+  at 18 event.cast=1 spell=kindle
+  at 21 event.land=1
+  never 19..24 event.jump=1
+  at 25 event.jump=1 spell=none
+end

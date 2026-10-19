@@ -1,6 +1,7 @@
 fixture telegraph_cue_keeps_its_word_through_hitstop
-doc docs/adr/0013, the telegraph cue (task 6 review, M4): struck on frame 40, after its cue on 33, the dummy is held 2 f by the hit's hitstop but its swing is committed and still lands on 53, 20 ticks after the cue. Before the cue a hit's hitstop delays both (telegraph_cue_waits_for_hitstop_before_it).
+doc docs/adr/0013, the telegraph cue (task 6 review, M4): struck on frame 40, after its cue on 33, the dummy is held 2 f by the hit's hitstop but its swing is committed and still lands on 53, 20 ticks after the cue. Ash starts 12 u closer so side 1's recoil (60 u/s for 8 f after the hitstop, 8 u) leaves him inside the swing's reach. Before the cue a hit's hitstop delays both (telegraph_cue_waits_for_hitstop_before_it).
 room test/dummy_swing
+spawn 212 544
 frames 60
 input
   38 attack

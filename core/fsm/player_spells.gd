@@ -89,12 +89,13 @@ static func stop(pl: Player) -> void:
 	pl.spell_dir = Vector2i.ZERO
 
 
-## Ends a spell that allows the action the player took this tick (see [constant ACTION_EVENTS]).
-static func yield_to_actions(pl: Player) -> void:
+## Ends a spell that allows the action the player took this tick (see [constant ACTION_EVENTS]),
+## counting the tick's events from [param from] on.
+static func yield_to_actions(pl: Player, from: int = 0) -> void:
 	if pl.spell == NONE or holds(pl):
 		return
 	for kind: String in ACTION_EVENTS:
-		if pl.events.has(kind):
+		if pl.events.has_since(kind, from):
 			stop(pl)
 			return
 
@@ -116,11 +117,20 @@ static func try_start(pl: Player, ring: InputRing) -> void:
 			stop(pl)
 		if pl.loco == Player.DASH:
 			pl.end_dash(true)
-		_cast(pl, stick)
+		_cast(pl, stick, ring)
 		return
+	try_mend(pl, ring)
+
+
+## Starts a buffered Mend press still held, if Mend can start: no spell or strike under way, on
+## the ground. Also tried on a landing, after the move, so a Mend pressed up to its buffer before
+## the landing starts on the landing frame, as a jump, dash or strike does (task 6 core review 2,
+## M2: it started a frame late, and a press 8 frames early aged out).
+static func try_mend(pl: Player, ring: InputRing) -> void:
 	if pl.spell != NONE or pl.current_attack() != null:
 		return
-	if ring.has_press(InputFrame.MEND, p.attack_buffer_frames) and ring.is_held(InputFrame.MEND):
+	var buffer: int = pl.p.attack_buffer_frames
+	if ring.has_press(InputFrame.MEND, buffer) and ring.is_held(InputFrame.MEND):
 		if _can_mend(pl):
 			ring.consume(InputFrame.MEND)
 			_start_mend(pl)
@@ -150,7 +160,7 @@ static func _radiance_asked(pl: Player, stick: Vector2i) -> bool:
 	return stick.y > 0 and grounded and pl.vitals.kindling.tier() >= Kindling.BLAZE
 
 
-static func _cast(pl: Player, stick: Vector2i) -> void:
+static func _cast(pl: Player, stick: Vector2i, ring: InputRing) -> void:
 	var k: KitParams = pl.kit
 	var v: Vitals = pl.vitals
 	var grounded: bool = pl.loco == Player.GROUND
@@ -164,8 +174,16 @@ static func _cast(pl: Player, stick: Vector2i) -> void:
 	var dir := Vector2i(0, stick.y)
 	if stick.y == 0 or (stick.y > 0 and grounded):
 		# Forward: the stick's side if it leans one way, else the way the player faces. Down on
-		# the ground is the floor.
-		if stick.x != 0 and pl.loco != Player.WALL:
+		# the ground is the floor. On a wall, or on the tick the player reaches one, it goes away
+		# from the wall, as a side strike does (docs/adr/0010, Wall; movement review 6, M3: cast on
+		# the cling tick, the cone went through the wall).
+		var thr: int = pl.p.stick_threshold
+		var wall: int = PlayerWall.met(
+			pl, ring, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+		)
+		if wall != 0:
+			pl.facing = -wall
+		elif stick.x != 0 and pl.loco != Player.WALL:
 			pl.facing = stick.x
 		dir = Vector2i(pl.facing, 0)
 	_begin(pl, KINDLE, dir)
@@ -196,6 +214,7 @@ static func _can_mend(pl: Player) -> bool:
 static func _start_mend(pl: Player) -> void:
 	pl.vitals.flame.spend(pl.kit.mend_cost)
 	pl.body.vx = 0
+	pl.recoil_left = 0
 	_begin(pl, MEND, Vector2i.ZERO)
 
 

@@ -19,10 +19,12 @@ tiles
 end
 """
 
+const DUMMY_PATH: String = "res://content/enemies/dummy.tres"
+
 var _world: CollisionWorld
 var _events: SimEvents
 var _params: CombatParams
-var _def: EnemyDef
+var _def: DummyDef
 
 
 func before_test() -> void:
@@ -31,7 +33,7 @@ func before_test() -> void:
 	_world = room.build_world()
 	_events = SimEvents.new()
 	_params = (load(CombatTuning.PATH) as CombatTuning).compile()
-	_def = load("res://content/enemies/dummy.tres") as EnemyDef
+	_def = load(DUMMY_PATH) as DummyDef
 
 
 func _dummy(props: Dictionary[String, String] = {}) -> TrainingDummy:
@@ -162,3 +164,32 @@ func test_its_state_is_in_the_hash() -> void:
 	hb = StateHasher.new()
 	b.hash_into(hb)
 	assert_int(ha.value()).is_not_equal(hb.value())
+
+
+## Task 6 core review 2, L2 (CLAUDE.md rule 6): the respawn time and the swing's rhythm are the
+## content's, not literals in core; a room marker's period still overrides the content's.
+func test_the_respawn_and_the_swing_period_come_from_content() -> void:
+	_def = _def.duplicate(true) as DummyDef
+	_def.respawn_frames = 7
+	_def.swing_period = 13
+	var d: TrainingDummy = _dummy({"attack": "1"})
+	assert_int(d.respawn_frames).is_equal(7)
+	assert_int(d.period).is_equal(13)
+	assert_int(_dummy({"attack": "1", "period": "5"}).period).is_equal(5)
+	assert_bool(d.take_hit(500, 0, 0)).is_true()
+	for _i: int in range(6):
+		d.step(null)
+	assert_bool(d.is_alive()).is_false()
+	d.step(null)
+	assert_bool(d.is_alive()).is_true()
+
+
+func test_content_holds_the_dummy_numbers() -> void:
+	var loaded: DummyDef = load(DUMMY_PATH) as DummyDef
+	assert_object(loaded).is_not_null()
+	assert_array(Array(loaded.validate())).is_empty()
+	assert_int(loaded.respawn_frames).is_equal(60)
+	assert_int(loaded.swing_period).is_equal(90)
+	var bad: DummyDef = loaded.duplicate(true) as DummyDef
+	bad.respawn_frames = 0
+	assert_array(Array(bad.validate())).is_not_empty()

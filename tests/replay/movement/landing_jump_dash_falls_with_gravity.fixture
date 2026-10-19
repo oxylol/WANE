@@ -1,0 +1,17 @@
+fixture landing_jump_dash_falls_with_gravity
+doc Movement review 6, M2 (the leak): the air jump spent on 0, a jump buffered into the landing (26), a dash on 27 off test/cliff's edge. The first tick after the dash falls with full gravity (213 sub-pixels a tick), as a plain ground dash off the same edge does (landing_jump_dash_falls_control). Before the fix the jump's "not risen yet" flag outlived the dash and that tick skipped gravity (vy 0).
+room test/cliff
+spawn 800 200
+frames 70
+input
+  0 jump
+  24 jump
+  27 R dash
+  28..69 R
+end
+expect
+  at 26 event.land=1 event.jump=1
+  at 27 event.dash=1
+  at 36 dash_frame=0 vy=213
+  at 37 vy=426
+end

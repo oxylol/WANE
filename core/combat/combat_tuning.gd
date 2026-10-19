@@ -67,6 +67,9 @@ const PATH: String = "res://content/combat/combat.tres"
 @export var player_hit_knock_frames: int = 12
 ## Not in BUILD.md: the hearts a hazard costs (docs/adr/0013).
 @export var hazard_damage: int = 1
+## Not in BUILD.md: the frames a strike's recoil (side 1, "player recoils 60 u/s") carries the
+## player, counted after the hit's hitstop, on top of the run (docs/adr/0013).
+@export var recoil_frames: int = 8
 
 @export_group("Parry")
 ## "Press attack in the 8 f before an enemy's hit lands", "enemy knocked back 200 u/s and
@@ -127,6 +130,7 @@ func compile() -> CombatParams:
 	c.player_hit_invuln_frames = player_hit_invuln_frames
 	c.player_hit_knock_frames = player_hit_knock_frames
 	c.hazard_damage = hazard_damage
+	c.recoil_frames = recoil_frames
 	c.parry_window_frames = parry_window_frames
 	c.parry_knockback = Fx.speed(parry_knockback_ups)
 	c.parry_stagger_frames = parry_stagger_frames
@@ -181,6 +185,7 @@ func validate() -> PackedStringArray:
 		player_hit_invuln_frames,
 		player_hit_knock_frames,
 		hazard_damage,
+		recoil_frames,
 		blaze_trail_frames,
 		blaze_trail_damage,
 		blaze_aoe_radius_u,

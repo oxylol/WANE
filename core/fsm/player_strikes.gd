@@ -17,7 +17,7 @@ static func try_attack(pl: Player, ring: InputRing, landed: bool = false) -> voi
 	var p: MovementParams = pl.p
 	if PlayerSpells.holds(pl):
 		return
-	if pl.charge_request > 0 and _try_charged(pl):
+	if pl.charge_request > 0 and _try_charged(pl, ring):
 		return
 	var fresh: bool = ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames)
 	if fresh:
@@ -77,12 +77,19 @@ static func try_attack(pl: Player, ring: InputRing, landed: bool = false) -> voi
 		elif dx != 0 and pl.loco != Player.WALL:
 			pl.facing = dx
 	start(pl, want)
+	# Only a side press's hold arms the Charged strike: a hold whose press started an up- or
+	# down-strike never does (docs/adr/0013; movement review 6, H1: holding attack through a pogo
+	# and letting go fired a sideways Charged strike in the air that refused the next pogo).
+	if (want == "up" or want == "down") and ring.is_held(InputFrame.ATTACK):
+		PlayerCombat.break_charge(pl)
 
 
 ## The Charged strike a release asked for ([member Player.charge_request]; docs/adr/0013): as soon
 ## as no strike runs, and out of a dash from the frame a strike may cancel it. It goes the way the
-## stick leans, else the way the player faces. True if it started.
-static func _try_charged(pl: Player) -> bool:
+## stick leans, else the way the player faces; on a wall, or on the tick the player reaches one,
+## away from it, as a side strike does (docs/adr/0010, Wall; movement review 6, M3). True if it
+## started.
+static func _try_charged(pl: Player, ring: InputRing) -> bool:
 	if pl.current_attack() != null:
 		return false
 	if pl.loco == Player.DASH:
@@ -90,8 +97,14 @@ static func _try_charged(pl: Player) -> bool:
 			return false
 		pl.end_dash(true)
 	# The way the stick held when the hold was let go, however long the request waited.
-	var dx: int = PlayerInput.axis(pl.charge_stick.x, pl.p.stick_threshold)
-	if dx != 0 and pl.loco != Player.WALL:
+	var thr: int = pl.p.stick_threshold
+	var dx: int = PlayerInput.axis(pl.charge_stick.x, thr)
+	var wall: int = PlayerWall.met(
+		pl, ring, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+	)
+	if wall != 0:
+		pl.facing = -wall
+	elif dx != 0 and pl.loco != Player.WALL:
 		pl.facing = dx
 	pl.charge_request = 0
 	start(pl, "charged")

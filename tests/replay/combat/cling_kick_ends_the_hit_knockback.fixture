@@ -1,0 +1,16 @@
+fixture cling_kick_ends_the_hit_knockback
+doc Movement review 6, M1; BUILD.md s6 Player hit "(any action ends it)"; docs/adr/0013. The swing knocks Ash left into a wall in the air; holding left, Ash clings, and the jump pressed in the hitstop kicks off the wall on the cling frame. The kick ends the knockback, so it carries Ash away from the wall. Before the fix the knockback (-5 u/f) took over from the next tick and the kick went straight up the face.
+room test/dummy_swing_wall
+frames 90
+input
+  30 jump
+  34 jump
+  58 jump
+  62..89 L
+end
+expect
+  at 53 event.player_hit=1
+  mark kick 62..70 event.wall_kick=1
+  at kick knock=0
+  at kick+1 vx>0
+end

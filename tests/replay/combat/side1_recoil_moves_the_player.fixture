@@ -1,0 +1,14 @@
+fixture side1_recoil_moves_the_player
+doc Task 6 core review 2, H2; BUILD.md s6 Taper, Side 1 "player recoils 60 u/s"; docs/adr/0013. Side 1 lands on the dummy on frame 2 (2 f of hitstop: 3 and 4 hold); from frame 5 the recoil carries Ash back 1 u a tick (60 u/s) for its 8 frames, whatever the stick says, 8 u in all. Before the fix the recoil was a speed the next free tick's deceleration erased: Ash never moved.
+room test/dummy
+frames 30
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1
+  at 4 x=200u
+  at 5 x=199u
+  at 12 x=192u
+  at 20 x=192u
+end

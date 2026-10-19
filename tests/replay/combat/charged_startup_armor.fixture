@@ -1,0 +1,13 @@
+fixture charged_startup_armor
+doc Movement review 6, H2; BUILD.md s5 feel rule "No move has more than 2 frames of startup unless it has armor"; the Charged strike has 3 f of startup too (armor_frames 3, docs/adr/0013). Attack held from 28 and let go on 55: the Charged strike starts on 55, the same tick the red dummy's swing lands. The heart is lost and the hitstop holds Ash, but the strike is not interrupted and there is no knockback.
+room test/dummy_red
+spawn 208 544
+frames 80
+input
+  28..54 attack
+end
+expect
+  at 55 event.charge_release=1 action=charged event.player_hit=1 hearts=4 freeze=8 knock=0
+  at 63 action=charged action_frame=1 x=x@55
+  at 64 action_frame=2
+end

@@ -15,4 +15,7 @@ expect
   at 14 event.pogo=1 since_bounce=1 action=none
   never 15..18 event.attack=1
   at 19 event.attack=1 action=down action_frame=1 since_bounce=6
+  # The hold that began a down-strike never arms the Charged strike (movement review 6, H1).
+  never 0..49 action=charged
+  never 0..49 event.charge_release=1
 end

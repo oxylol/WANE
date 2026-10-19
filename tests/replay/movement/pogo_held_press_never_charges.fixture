@@ -1,0 +1,19 @@
+fixture pogo_held_press_never_charges
+doc Movement review 6, H1; docs/adr/0013 The Charged strike: a hold whose press started a down-strike (or an up-strike) never arms the Charged strike. A down-strike pressed early and held 27 f whiffs; let go on 27 and pressed again on 28, the second press pogoes the spikes on 32. Before the fix the release fired a Charged strike in the air on 27 that refused the pogo press, and Ash fell into the spikes on 33.
+room test/spikes
+spawn 600 60
+frames 40
+input
+  0..26 D attack
+  27 D
+  28..34 D attack
+end
+expect
+  at 0 action=down
+  at 26 charge_held=0
+  never 0..39 event.charge_release=1
+  never 0..39 event.charge_ready=1
+  at 28 action=down
+  at 32 event.pogo=1
+  never 25..39 event.hazard=1
+end

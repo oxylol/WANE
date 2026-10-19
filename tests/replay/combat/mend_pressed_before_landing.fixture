@@ -1,0 +1,14 @@
+fixture mend_pressed_before_landing
+doc Task 6 core review 2, M2; BUILD.md s5 "Landing: 0 f of lag", s15 "buffered inputs fire on the first free frame"; docs/adr/0013 Mend. Mend pressed and held from 13, 8 frames before the landing on 21, with a heart missing and 33 Flame: it starts on the landing frame, as a jump, dash or strike pressed in its buffer does. Before the fix it started a frame late (pressed on 14 or 15), and a press 8 frames early aged out and never started.
+room test/flat
+option hearts 4
+option flame 33
+frames 40
+input
+  2 jump
+  13..39 mend
+end
+expect
+  at 21 event.land=1 event.cast=1 spell=mend spell_frame=1 vx=0
+  at 22 spell=mend spell_frame=2
+end

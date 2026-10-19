@@ -1,0 +1,17 @@
+fixture landing_jump_then_dash_rises
+doc Movement review 6, M2; docs/adr/0010 Jump, "Every jump rises". A jump buffered into the landing (33) fires there and first rises on the next tick; a dash pressed on that tick goes from the risen body (15 u up), as the same jump and dash from standing do (landing_jump_then_dash_control). Before the fix the dash replaced the rise: the jump never left the floor and Ash dashed along it.
+room test/flat
+frames 60
+input
+  0 jump
+  10 jump
+  31 jump
+  34 R dash
+  35..59 R
+end
+expect
+  at 33 event.land=1 event.jump=1 yu=544
+  at 34 event.dash=1 state=dash yu=529
+  never 34..43 ground=1
+  at 42 yu=529
+end

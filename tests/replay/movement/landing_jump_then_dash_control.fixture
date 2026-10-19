@@ -1,0 +1,15 @@
+fixture landing_jump_then_dash_control
+doc Movement review 6, M2, the control for landing_jump_then_dash_rises: the same jump then dash from standing. The jump rises 15 u on its frame, and the dash on the next goes level from there.
+room test/flat
+frames 60
+input
+  20 jump
+  21 R dash
+  22..59 R
+end
+expect
+  at 20 event.jump=1 yu=529
+  at 21 event.dash=1 state=dash yu=529
+  never 21..30 ground=1
+  at 29 yu=529
+end

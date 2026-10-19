@@ -133,6 +133,10 @@ static func _number(pl: Player, key: String) -> Variant:
 			return pl.vitals.kindling.hits
 		"spell_frame":
 			return pl.spell_frame
+		"spell_dir_x":
+			return pl.spell_dir.x
+		"spell_dir_y":
+			return pl.spell_dir.y
 		"knock":
 			return pl.knock_left
 		"charge_held":

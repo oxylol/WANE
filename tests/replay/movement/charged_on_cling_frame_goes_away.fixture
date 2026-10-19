@@ -1,0 +1,16 @@
+fixture charged_on_cling_frame_goes_away
+doc Movement review 6, M3; docs/adr/0010 Wall, "A press on the tick the player reaches a wall is a press on the wall". The Charged strike let go on the tick the fall clings to the shaft wall (24) goes away from the wall, as a side strike, dash or toss on that tick does (strike_on_cling_frame_goes_away). Before the fix it went into the wall: its box was live on the wall side on 27 to 32 while Ash faced away.
+room test/shaft
+spawn 690 100
+frames 50
+input
+  0..9 attack
+  10..23 R attack
+  24..49 R
+end
+expect
+  at 0 action=side1
+  at 24 event.wall_cling=1 event.charge_release=1 action=charged
+  at 24 action_dir=-1 facing=-1
+  at 27 strike=1 action_dir=-1
+end

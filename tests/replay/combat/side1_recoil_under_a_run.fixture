@@ -1,0 +1,15 @@
+fixture side1_recoil_under_a_run
+doc Task 6 core review 2, H2; BUILD.md s6 Taper, Side 1 "player recoils 60 u/s" and "Attack while running does not slow the player". The recoil is added to the run, never in place of it: running at the dummy and striking, Ash keeps the run's speed (vx) and the recoil only takes 1 u a tick off the distance covered for its 8 frames.
+room test/dummy
+spawn 100 544
+frames 40
+input
+  0..9 R
+  10 R attack
+  11..39 R
+end
+expect
+  mark hit 10..20 event.hit=1
+  at hit+3 vx=9u
+  at hit+10 vx=9u x=64u+x@(hit+2)
+end
