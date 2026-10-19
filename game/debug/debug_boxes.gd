@@ -44,18 +44,33 @@ const LABEL_CLEAR_U: float = 4.0
 ## has already forgotten it: the swing each telegraphing enemy is about to land (a parry
 ## staggers the enemy and clears its attack on the tick the swing lands, so the box that was
 ## parried is gone from the simulation on that very tick: task 5 review 3, M1). Index for index
-## with the combat's enemies. Fed by [method note] after every tick.
+## with the combat's enemies. Fed by [method note] after every tick, and read on the tick that
+## follows: [member swings] is the state before the tick just noted, because the overlay notes a
+## tick and then draws it (game/main.gd, tools/replay/film.gd).
 class Memory:
 	extends RefCounted
+	## The swings as they stood before the latest noted tick.
 	var swings: Array[Rect2i] = []
+	var _current: Array[Rect2i] = []
+	var _tick: int = -1
 
-	## Takes what [param sim] holds after a tick.
+	## Takes what [param sim] holds after a tick. Noting the same tick twice keeps the
+	## generation before it; a jump in time (a new session, a rewind) forgets it.
 	func note(sim: Simulation) -> void:
-		swings.clear()
 		if sim == null or sim.combat == null:
+			swings.clear()
+			_current.clear()
+			_tick = -1
 			return
+		if sim.tick == _tick + 1:
+			swings = _current
+		elif sim.tick != _tick:
+			swings = []
+		_tick = sim.tick
+		var now: Array[Rect2i] = []
 		for e: Enemy in sim.combat.enemies:
-			swings.append(DebugBoxes.swing_box(e) if e.state == Enemy.TELEGRAPH else Rect2i())
+			now.append(DebugBoxes.swing_box(e) if e.state == Enemy.TELEGRAPH else Rect2i())
+		_current = now
 
 
 class Box:

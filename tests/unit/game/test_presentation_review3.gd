@@ -25,13 +25,11 @@ func _labelled(boxes: Array[DebugBoxes.Box], kind: int, text: String) -> DebugBo
 	return null
 
 
-## Steps [param fx] to frame [param to] and returns the simulation, feeding [param memory].
-func _play(fx: Fixture, to: int, memory: DebugBoxes.Memory = null) -> Simulation:
+## Steps [param fx] to frame [param to] and returns the simulation.
+func _play(fx: Fixture, to: int) -> Simulation:
 	var sim := Simulation.new(fx.scenario)
 	for f: int in range(to + 1):
 		sim.step(fx.input_frame(f))
-		if memory != null and f < to:
-			memory.note(sim)
 	return sim
 
 
@@ -65,13 +63,18 @@ func test_a_parry_marks_the_swing_that_was_parried_and_the_window_is_labelled() 
 	# Presentation review r3, M1: the parry tick's swing box was never drawn on any frame (a parry
 	# staggers the enemy, which clears its attack), and nothing showed the parry window.
 	var fx: Fixture = _fixture("combat/parry_window_first_frame")
-	var memory := DebugBoxes.Memory.new()
+	# The production order (game/main.gd, tools/replay/film.gd): step, DebugOverlay.capture()
+	# (which notes the tick), then draw (collect). Round 4, M1: the memory used to be refreshed
+	# from the post-parry state before the draw, so no "parried" box was ever drawn.
+	var overlay: DebugOverlay = auto_free(DebugOverlay.new())
 	var window_ticks: int = 0
 	var sim := Simulation.new(fx.scenario)
+	overlay.attach_sim(sim, null)
 	var parry_seen: bool = false
 	for f: int in range(fx.frame_total):
 		sim.step(fx.input_frame(f))
-		var boxes: Array[DebugBoxes.Box] = DebugBoxes.collect(sim, Rect2(), memory)
+		overlay.capture()
+		var boxes: Array[DebugBoxes.Box] = DebugBoxes.collect(sim, Rect2(), overlay._memory)
 		if _labelled(boxes, DebugBoxes.ENEMY, "PARRY WINDOW OPEN") != null:
 			window_ticks += 1
 		if sim.events.has(SimEvents.PARRY):
@@ -81,7 +84,9 @@ func test_a_parry_marks_the_swing_that_was_parried_and_the_window_is_labelled() 
 			assert_object(swing).is_not_null()
 			var at := Vector2(float(sim.events.xs[0]), float(sim.events.ys[0])) / Fx.SUB
 			assert_bool(swing.rect.has_point(at)).is_true()
-		memory.note(sim)
+			# Collecting twice (a paused frame redrawn) draws the same box.
+			boxes = DebugBoxes.collect(sim, Rect2(), overlay._memory)
+			assert_object(_labelled(boxes, DebugBoxes.ATTACK_WHITE, "parried")).is_not_null()
 	assert_bool(parry_seen).is_true()
 	# The window is the parry window's frames before the landing.
 	assert_int(window_ticks).is_equal(sim.combat.params.parry_window_frames)
