@@ -1,0 +1,15 @@
+fixture teleport_ends_the_side1_recoil
+doc Task 6 core review 2, F1; docs/adr/0013 (a dash, cling, hit, Mend, death, send-back or teleport ends the side 1 recoil). Side 1 hits on frame 3, the recoil would run 6 to 13, and the ember toss on frame 9 puts Ash on the ember at x=240; he must stay there. Before the fix he slid 5 u off it by frame 13.
+room test/dummy
+frames 30
+input
+  0 toss
+  1 attack
+  9 toss
+end
+expect
+  at 9 event.teleport=1
+  at 9 x=240u
+  at 13 x=240u
+  at 20 x=240u
+end

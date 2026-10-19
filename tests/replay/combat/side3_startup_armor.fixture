@@ -1,0 +1,19 @@
+fixture side3_startup_armor
+doc Movement review 6, H2; BUILD.md s5 feel rule "No move has more than 2 frames of startup unless it has armor"; docs/adr/0010 Strikes, "Side 3's startup"; docs/adr/0013 The player hit. The chain of chain_rising_weight, 39 frames later, against the red (unparryable) dummy whose swing lands on frame 53: side 3 starts on 53 and the swing lands on its first startup frame. The armor keeps the finisher: the heart is lost and the hit's 8 f of hitstop hold Ash, but there is no knockback, and side 3 carries on from its frame 1 after the hitstop. Before the fix the finisher ended on the hit.
+room test/dummy_red
+spawn 208 544
+frames 80
+input
+  39 attack
+  46 attack
+  53 attack
+end
+expect
+  at 46 action=side2
+  at 53 event.player_hit=1 hearts=4 action=side3 action_frame=1 freeze=8 knock=0
+  at 61 action=side3 action_frame=1 x=x@53
+  at 62 action_frame=2
+  at 64 strike=1 action_frame=4
+  at 64 event.hit=1
+  at 73 x=x@53
+end

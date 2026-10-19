@@ -31,6 +31,7 @@ var player_hit_knockback: int = 0
 var player_hit_invuln_frames: int = 0
 var player_hit_knock_frames: int = 0
 var hazard_damage: int = 0
+var recoil_frames: int = 0
 var parry_window_frames: int = 0
 var parry_knockback: int = 0
 var parry_stagger_frames: int = 0

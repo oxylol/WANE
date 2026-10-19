@@ -90,7 +90,7 @@ func test_the_enemy_view_draws_every_state() -> void:
 	var room: RoomData = RoomData.parse(ROOM)
 	var world: CollisionWorld = room.build_world()
 	var events := SimEvents.new()
-	var def: EnemyDef = load("res://content/enemies/dummy.tres") as EnemyDef
+	var def: DummyDef = load("res://content/enemies/dummy.tres") as DummyDef
 	var list: Array[Enemy] = []
 	for state: int in range(Enemy.STATE_NAMES.size()):
 		var e := RoomData.RoomEntity.new()

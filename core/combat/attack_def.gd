@@ -6,6 +6,9 @@ extends Resource
 ## this strike) on which another action may interrupt it. Hitboxes are rectangles in units,
 ## relative to the player's bottom-centre, with +x pointing the way the strike faces.
 
+## The longest startup a strike may have without armor through it (BUILD.md section 5).
+const MAX_UNARMORED_STARTUP: int = 2
+
 ## Strike id: side1, side2, side3, up, down, charged.
 @export var id: String = ""
 @export var startup: int = 2
@@ -38,6 +41,10 @@ extends Resource
 @export var air_only: bool = false
 ## Frames the attack button must be held to release this strike (charged: 24); 0 = a press.
 @export var charge_frames: int = 0
+## Frames from the strike's frame 1 on which a hit on the player does not interrupt it (side 3 and
+## the Charged strike: 3, their startup). BUILD.md section 5: "No move has more than 2 frames of
+## startup unless it has armor" (docs/adr/0010, Side 3's startup; docs/adr/0013, The player hit).
+@export var armor_frames: int = 0
 
 
 func total_frames() -> int:
@@ -64,4 +71,13 @@ func validate() -> PackedStringArray:
 		e.append("%s: pogo window must lie inside the strike" % id)
 	if dash_from < 0 or dash_from > total_frames():
 		e.append("%s: dash_from must lie inside the strike" % id)
+	if armor_frames < 0 or armor_frames > total_frames():
+		e.append("%s: armor_frames must lie inside the strike" % id)
+	if startup > MAX_UNARMORED_STARTUP and armor_frames < startup:
+		e.append(
+			(
+				"%s: a startup over %d frames needs armor through it (BUILD.md section 5)"
+				% [id, MAX_UNARMORED_STARTUP]
+			)
+		)
 	return e

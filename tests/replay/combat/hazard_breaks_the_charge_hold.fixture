@@ -1,0 +1,15 @@
+fixture hazard_breaks_the_charge_hold
+doc Task 6 core review 2, M3 (lead decision); docs/adr/0013 The Charged strike: a hazard's send-back breaks the hold as a death does. Attack held from 0 while Ash falls onto the spikes and is sent back to safe ground; let go there 30 frames later: no Charged strike.
+room test/spikes
+spawn 600 60
+frames 90
+input
+  0..59 attack
+end
+expect
+  mark sent 1..40 event.hazard=1
+  at sent charge_held=0
+  at sent+1 charge_held=0
+  never 0..89 event.charge_release=1
+  never 0..89 action=charged
+end

@@ -1,0 +1,17 @@
+fixture kindle_from_cling_goes_away
+doc Movement review 6, M3, the control for kindle_on_cling_frame_goes_away: Kindle cast forward a tick after the cling (stick still toward the wall) goes away from the wall.
+room test/shaft
+option flame 33
+spawn 690 100
+frames 50
+input
+  0..9
+  10..24 R
+  25 R spell
+  26..49 R
+end
+expect
+  at 24 event.wall_cling=1
+  at 25 event.cast=1 spell=kindle state=wall
+  at 25 spell_dir_x=-1 spell_dir_y=0 facing=-1
+end

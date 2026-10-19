@@ -11,7 +11,7 @@ const HASH_INTERVAL: int = 60
 ## Simulation version. Bump it in the same commit as any change that moves a golden hash
 ## (tools/replay/bless.gd refuses to re-bless otherwise), so old replays report "recorded by an
 ## older build" instead of a desync.
-const VERSION: int = 8
+const VERSION: int = 10
 
 ## Where a Wick's content lives: <root><wick>/movement.tres, kit.tres, taper.tres.
 const WICK_ROOT: String = "res://content/wicks/"
@@ -122,9 +122,11 @@ func _load_enemy_defs(content: StateHasher) -> void:
 			if not ENEMY_KINDS.has(e.kind) or _enemy_defs.has(e.kind):
 				continue
 			var path: String = ENEMY_ROOT + e.kind + ".tres"
-			var def: EnemyDef = _load_content(path) as EnemyDef
+			# Every enemy is a training dummy until the zones' enemies arrive: its content is a
+			# DummyDef (an EnemyDef with its respawn and swing period).
+			var def: DummyDef = _load_content(path) as DummyDef
 			if def == null:
-				load_errors.append("missing enemy content at %s" % path)
+				load_errors.append("missing dummy content (a DummyDef) at %s" % path)
 				continue
 			ContentHash.add_resource(content, def)
 			_enemy_defs[e.kind] = def
@@ -146,7 +148,9 @@ func _build_enemies() -> void:
 	for e: RoomData.RoomEntity in room.entities:
 		if _enemy_defs.has(e.kind):
 			combat.enemies.append(
-				TrainingDummy.from_entity(e, _enemy_defs[e.kind], combat_params, world, events)
+				TrainingDummy.from_entity(
+					e, _enemy_defs[e.kind] as DummyDef, combat_params, world, events
+				)
 			)
 
 

@@ -255,14 +255,17 @@ Combat is melee-first and directional. The player's blade (the Taper) strikes in
 
 | Strike | Startup | Active | Recovery | Damage | Knockback | Cancel into |
 | --- | --- | --- | --- | --- | --- | --- |
-| Side 1 | 2 f | 4 f | 8 f | 10 | 120 u/s away, player recoils 60 u/s | Side 2 from f 6, dash from f 4, jump any frame |
+| Side 1 | 2 f | 4 f | 8 f | 10 | 120 u/s away, player recoils 60 u/s for 8 f (8 u in all) | Side 2 from f 6, dash from f 4, jump any frame |
 | Side 2 | 2 f | 4 f | 8 f | 10 | 140 u/s | Side 3 from f 6, dash from f 4 |
-| Side 3 (finisher) | 3 f | 5 f | 12 f | 16 | 260 u/s, launches light enemies | Dash from f 5 |
+| Side 3 (finisher) | 3 f, armored | 5 f | 12 f | 16 | 260 u/s, launches light enemies | Dash from f 5 |
 | Up | 2 f | 5 f | 9 f | 10 | 200 u/s up (juggle) | Dash from f 4, air attack any frame |
 | Down (air only) | 2 f | 7 f (pogo hitbox f 3 to 9) | 4 f | 10 | Bounces player (section 5) | Anything on bounce; dash from f 4 (section 5: dash cancels any attack; docs/adr/0010) |
-| Charged (hold 24 f, then let go) | 24 f charge, 3 f startup | 6 f | 14 f | 36 | 400 u/s, breaks guards | Dash from f 8 |
+| Charged (hold 24 f, then let go) | 24 f charge, 3 f startup, armored | 6 f | 14 f | 36 | 400 u/s, breaks guards | Dash from f 8 |
 
 - The chain resets if no attack input within 20 f of recovery ending.
+- Armor: Side 3 and the Charged strike are armored through their 3 f of startup. A hit on those frames costs its hearts, Kindling tier and hitstop, but the strike is not interrupted and Ash is not knocked back (docs/adr/0010, docs/adr/0013). The rule of section 5 (more than 2 f of startup needs armor) is enforced on strikes by content validation; spells are exempt (docs/adr/0013).
+- The side 1 recoil is a push of 60 u/s carried for 8 f after the hitstop, on top of the run; a dash, a cling, a hit, Mend, a death, a send-back or an ember-toss teleport ends it.
+- Charged hold: only a hold whose press started a side strike arms the Charged strike. A hold from an up or down press (a pogo) never charges, and a death or a hazard send-back breaks a hold until the button is let go or pressed afresh.
 - Attacking turns the player instantly; there is no turn-lock.
 - Attack range: the hitbox extends 68 u from the player's center (sprite blade is about 50 u). Enemies feel reachable.
 - Attack while running does not slow the player. Attack while dashing is a dash-slash.

@@ -60,6 +60,8 @@ The landing does three things:
 - it restores the air jump and air dash, clears the ground dash cooldown (BUILD.md Dash: "Cooldown: 24 f on ground, resets on landing or wall-cling") and makes the next wall-cling fresh;
 - it lowers horizontal speed above run speed to run speed on the landing frame, before a buffered jump fires: the air keeps a dash-jump's or a pogo's speed, but bunny-hopping cannot carry a dash-jump on forever ("the ground slows back to run speed");
 - a jump, dash or attack pressed within its buffer before landing starts on the landing frame. A jump or attack counts the landing frame as its frame 1. A dash counts it as frame 0, so its nine moving frames and its invulnerability start on the next tick, just as a landing jump first rises on the next tick.
+  - **A dash on the tick after a landing jump.** A jump fired on the landing has not risen yet (`jump_fresh`: its first rise comes on the next tick). A dash taken on that tick first takes the rise, as a dash the tick after a jump pressed on the ground does, then starts from there: every jump rises. Anything else that replaces the rise (a teleport, a bounce, a landing, a send-back) clears the flag, so it never skips the gravity of a later fall (movement review 6, M2: the dash ate the jump, and the stale flag skipped a tick of the fall after it).
+  - **A jump held back by a spell.** A landing's or a cling's buffered jump waits out Kindle's frames 1 to 7 as a jump on the ground does (ADR-0013; movement review 6, L1).
   - A jump started on the landing frame (or on a cling frame) counts its frames from its first airborne move, as a jump from the ground does, so a buffered tap jump peaks at the same 77.9 u as any tap (`jump_tap_buffered_on_landing`).
   - A buffered jump with the stick straight down onto a one-way drops through it, as on the ground.
   - A diagonal air dash that touches down fires a buffered jump on the touch-down frame, if the dash has reached its jump frames (a dash-jump, as from any dash).
@@ -151,7 +153,7 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
   The up-strike's "air attack any frame" is a cancel into another air strike, not a jump, and not into itself: an up press every 3 frames restarted it each time, a fresh box every third frame (fourth review, M6; `up_strike_never_cancels_itself`).
 - **Landing** never interrupts a strike (tech 8).
 - **Turning.** Side strikes turn the player instantly and do not slow a run (BUILD.md section 6). On a wall they go away from it: the stick holds toward the wall to keep the cling.
-- **Side 3's startup.** BUILD.md's Taper table gives the finisher 3 frames of startup, and its feel rules say "no move has more than 2 frames of startup unless it has armor". The table stands, and the finisher gets armor through its startup: a hit on those frames does not interrupt it (task 6, which adds hits to the player, builds it; third review, L7). Spells (section 6's spell table, 3 to 6 frames) are not moves in that rule's sense: each is a deliberate cast with its own startup in its own table.
+- **Side 3's startup.** BUILD.md's Taper table gives the finisher 3 frames of startup, and its feel rules say "no move has more than 2 frames of startup unless it has armor". The table stands, and the finisher gets armor through its startup: a hit on those frames does not interrupt it (task 6, which adds hits to the player, builds it; third review, L7). Built in the task 6 reviews: `AttackDef.armor_frames` (3 on side 3 and the Charged strike), docs/adr/0013, The player hit. Spells (section 6's spell table, 3 to 6 frames) are not moves in that rule's sense: each is a deliberate cast with its own startup in its own table.
 
 **Pogo.**
 - The down-strike's 36 x 24 u box is live on its frames 3 to 9.
@@ -187,6 +189,7 @@ A straight-down air dash that reaches the floor cannot go on, so it ends there: 
 - **The throw.**
   - A press throws the ember in the stick's 8-way direction on the frame it was pressed (facing when neutral). From a wall cling it goes away from the wall, as side strikes and dashes do; thrown into the wall, it stopped 9 u from the player and spent the cooldown (`tech11_toss_from_cling_goes_away`).
   - Thrown on the tick the player reaches a wall it goes away from it too (see Wall).
+  - So are the Charged strike and Kindle (ADR-0013): let go of or cast on the tick the fall clings, they go away from the wall (`PlayerStrikes._try_charged`, `PlayerSpells._cast`; movement review 6, M3).
   - It is out at the player's centre on the throw's frame 4 and flies 600 u/s until a wall, a floor or a ceiling, or for 40 frames, then waits 120 frames. "3 f startup" counts as the Taper's does: frames 1 to 3 wind up, so the ember appeared a frame early until the fourth review (L2).
   - A press during the 3-frame startup does nothing (it is used up), so a double press cannot teleport the moment the ember appears.
 - **The teleport.**

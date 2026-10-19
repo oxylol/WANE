@@ -1,0 +1,14 @@
+fixture landing_jump_dash_falls_control
+doc Movement review 6, M2, the control for landing_jump_dash_falls_with_gravity: a plain ground dash from the same x on the same tick off the same edge; the first tick after it falls with full gravity.
+room test/cliff
+spawn 800 320
+frames 70
+input
+  27 R dash
+  28..69 R
+end
+expect
+  at 27 event.dash=1
+  at 36 dash_frame=0 vy=213
+  at 37 vy=426
+end

@@ -1,0 +1,18 @@
+fixture landing_jump_ends_the_hit_knockback
+doc Task 6 core review 2, H1, and movement review 6, M1; BUILD.md s6 Player hit "300 u/s away for 12 f (any action ends it)"; docs/adr/0013. Hit low in the air on 53 with the air jump spent; a jump pressed in the hitstop fires on the landing, and the knockback ends with it: from the next tick the stick steers. From the next tick the air control turns the speed toward the stick, right of 0 by the jump's fifth frame. Before the fix the knockback ran on 8 more frames (vx -5 u/f) against the stick.
+room test/dummy_swing
+frames 90
+input
+  25 jump
+  33 jump
+  58 jump
+  63..80 R
+end
+expect
+  at 53 event.player_hit=1
+  mark jump 62..70 event.land=1 event.jump=1
+  at jump knock=0
+  at jump+1 vx>vx@jump
+  at jump+2 vx>vx@(jump+1)
+  at jump+5 vx>0
+end

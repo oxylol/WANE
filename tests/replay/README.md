@@ -45,7 +45,7 @@ What a fixture's expectations, `trace.gd` and the F3 overlay can read (`Simulati
 - Movement: `state` (ground, air, dash, wall), `facing`, `crouch`, `air_frames`, `air_jumps`, `air_dashes`, `dash_frame`, `dash_cooldown`, `carry`, `jump_frame`, `jump_cut`, `wall`, `wall_frames`, `wall_lock`, `invuln` (1 or 0), `invuln_frames`.
 - Strikes: `action` (none or a strike id), `chain` (the next side strike), `action_frame`, `action_dir`, `strike` and `pogo_live` (a live box, 1 or 0), `since_bounce`, `charge_held`, `charge_request`.
 - The Ember Toss: `ember` (1 while out), `ember_x`, `ember_y`, `toss_cooldown`.
-- Combat (docs/adr/0013): `hearts`, `flame`, `kindling` (hits), `tier` (ember, flame, blaze, white), `spell` (none, kindle, radiance, mend), `spell_frame`, `freeze` (hitstop frames left), `knock` (knockback frames left), `embers` (kill embers in flight), `light` (Radiance's ticks left).
+- Combat (docs/adr/0013): `hearts`, `flame`, `kindling` (hits), `tier` (ember, flame, blaze, white), `spell` (none, kindle, radiance, mend), `spell_frame`, `spell_dir_x`, `spell_dir_y` (the cast's direction, -1, 0 or 1), `freeze` (hitstop frames left), `knock` (knockback frames left), `embers` (kill embers in flight), `light` (Radiance's ticks left).
 - Enemies: `enemy.<key>` reads the room's first enemy, `enemy<n>.<key>` its n-th from 0: `hp`, `poise`, `state` (idle, telegraph, strike, recover, stagger, dead), `x`, `y`, `vx` (its knockback), `vy`, `facing`, `freeze`, `burn`.
 
 Scenario options a fixture may set (`option <name> <value>`): `kindle` (the Kindle Votive's dash, tech 12), and starting vitals `hearts`, `flame` and `kindling`.

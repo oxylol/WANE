@@ -37,6 +37,9 @@ static func bounce(pl: Player, ring: InputRing, box: Rect2i) -> void:
 	pl.air_dashes_left = pl.p.air_dashes
 	pl.jump_frame = 0
 	pl.jump_cut = false
+	# A bounce on the frame a landing jump fired replaces that jump's first rise (movement review
+	# 6, M2: the flag skipped the next tick's gravity).
+	pl.jump_fresh = false
 	pl.since_bounce = 1
 	if pl.loco == Player.WALL:
 		pl.wall_side = 0
@@ -83,7 +86,9 @@ static func check_hazards(pl: Player, ring: InputRing) -> void:
 ## ember thrown before goes out (the throw's cooldown runs on): left out, a teleport to it would
 ## undo the send-back. Every press still buffered is used up, so nothing pressed over the hazard
 ## fires at the safe ground, and a stick held through the send-back is ignored until it is let go
-## or turned (movement review 4, M1 and M2).
+## or turned (movement review 4, M1 and M2). An attack still held breaks its hold: the Charged
+## strike needs a fresh press (task 6 core review 2, M3: a hold armed before a death fired at the
+## spawn).
 static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	var b: Body = pl.body
 	b.x = x
@@ -95,6 +100,9 @@ static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	pl.dash_frame = 0
 	pl.carry_frames = 0
 	pl.jump_frame = 0
+	pl.jump_fresh = false
+	pl.recoil_left = 0
+	PlayerCombat.break_charge(pl)
 	PlayerSpells.stop(pl)
 	pl.radiance_burst = false
 	pl.knock_left = 0
@@ -106,7 +114,9 @@ static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	pl.toss.startup = 0
 	if b.on_ground:
 		pl.restore_airtime()
-	pl.invuln = pl.kit.hazard_invuln_frames
+	# One over, as a hit's (player_combat.gd): the counter drops at the start of the next tick, so
+	# the free frames after the hazard's tick are the full count (task 6 core review 2, F2).
+	pl.invuln = pl.kit.hazard_invuln_frames + 1
 	pl.queued_attack_left = 0
 	# Nothing of the wall or the turn carries over either: a wall-jump's direction lock would
 	# leave the sprite facing the old way for its frames (movement review 5, L7).
@@ -243,3 +253,14 @@ static func wax_ahead(pl: Player, v: Vector2i) -> Array[SolidBox]:
 ## into it, even from a cling to it (tech 12; movement review 5, M4).
 static func burns_through(pl: Player, v: Vector2i) -> bool:
 	return not wax_ahead(pl, v).is_empty()
+
+
+## A jump fired after last tick's move (on a landing or a cling) has not risen yet. A dash taken
+## now starts from where that first rise puts the body, as a dash the tick after a jump pressed on
+## the ground does: every jump rises (movement review 6, M2: the dash replaced the rise, and the
+## flag left set skipped a later tick's gravity).
+static func rise_before_dash(pl: Player) -> void:
+	if not pl.jump_fresh:
+		return
+	pl.jump_fresh = false
+	pl.world.move_y(pl.body, pl.body.vy, pl.p.corner_slide)

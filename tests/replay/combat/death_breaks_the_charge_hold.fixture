@@ -1,0 +1,19 @@
+fixture death_breaks_the_charge_hold
+doc Task 6 core review 2, M3 (lead decision); docs/adr/0013 The Charged strike: a death breaks the hold, and the Charged strike needs a fresh press after the player is sent back. Attack held from 5; the swing kills Ash (1 heart) on 55; let go on 76 at the spawn: no Charged strike. A fresh press on 80 held 24 of Ash's own frames (its side 1 hits the dummy: 2 f of hitstop) arms it again on 105, and letting go on 106 asks for it. Before the fix the hold survived the death and the release fired a Charged strike at the spawn.
+room test/dummy_swing
+spawn 208 544
+option hearts 1
+frames 120
+input
+  5..75 attack
+  80..105 attack
+end
+expect
+  at 55 event.death=1 charge_held=0
+  at 56 charge_held=0
+  never 56..79 event.charge_release=1
+  never 56..79 action=charged
+  at 104 charge_held=23
+  at 105 event.charge_ready=1
+  at 106 event.charge_release=1 action=charged
+end

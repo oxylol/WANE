@@ -2,7 +2,8 @@ class_name TrainingDummy
 extends Enemy
 ## The grey-box training dummy (Phase 1 task 6: "against a grey-box training dummy with poise").
 ## It stands, faces the player, takes hits, staggers when its poise breaks and comes back
-## [member respawn_frames] after it dies, so every hit, finisher, kill and pogo can be practised.
+## [member respawn_frames] after it dies ([DummyDef]), so every hit, finisher, kill and pogo can
+## be practised.
 ## With attacks on it swings at a steady rhythm so the parry can be practised too: a white
 ## (parryable) swing, or a red (unparryable) one.
 ##
@@ -11,25 +12,27 @@ extends Enemy
 ## one marker (a one-hit kill, a poise break on the first hit); facing sets the way it faces
 ## before it first turns to the player.
 
-## Ticks between the end of one swing and the start of the next.
-var period: int = 90
+## Ticks between the end of one swing and the start of the next ([member DummyDef.swing_period],
+## or the marker's), and ticks a kill keeps it down ([member DummyDef.respawn_frames]).
+var period: int = 0
 var attacks_on: bool = false
 var red: bool = false
-var respawn_frames: int = 60
+var respawn_frames: int = 0
 var _idle: int = 0
 
 
-## Builds a dummy from a room entity marker.
+## Builds a dummy from a room entity marker and its content.
 static func from_entity(
 	e: RoomData.RoomEntity,
-	p_def: EnemyDef,
+	p_def: DummyDef,
 	p_params: CombatParams,
 	p_world: CollisionWorld,
 	p_events: SimEvents
 ) -> TrainingDummy:
 	var d := TrainingDummy.new(p_def, p_params, p_world, p_events, Fx.units(e.x_u), Fx.units(e.y_u))
 	d.attacks_on = e.prop_int("attack") != 0
-	d.period = maxi(1, e.prop_int("period", d.period))
+	d.respawn_frames = p_def.respawn_frames
+	d.period = maxi(1, e.prop_int("period", p_def.swing_period))
 	d.red = e.prop_int("red") != 0
 	d.light = e.prop_int("light", 1 if p_def.light else 0) != 0
 	d.max_hp = maxi(1, e.prop_int("hp", p_def.hp))

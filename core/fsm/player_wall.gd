@@ -30,7 +30,12 @@ static func cling(pl: Player, side: int, ring: InputRing) -> void:
 	pl.carry_frames = 0
 	pl.facing = -side
 	pl.events.add(SimEvents.WALL_CLING, pl.body.x, pl.body.y, side)
-	if ring.has_press(InputFrame.JUMP, p.jump_buffer_frames) and pl.strike_allows_jump():
+	# A spell that holds actions back holds this jump too (movement review 6, L1).
+	if (
+		ring.has_press(InputFrame.JUMP, p.jump_buffer_frames)
+		and pl.strike_allows_jump()
+		and not PlayerSpells.holds(pl)
+	):
 		ring.consume(InputFrame.JUMP)
 		jump_off(pl, side, PlayerInput.axis(ring.stick_x(), p.stick_threshold))
 
