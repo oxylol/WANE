@@ -23,16 +23,27 @@
 # post 2 spends the dash; every step after needs the one the last bounce gave back: pogo, dash,
 # pogo, the reference hidden-room gap. A fall lands on the floor and costs only the climb.
 #
-# Why only that way (every number measured: docs/feel_log/2026-10-19-zone1-b.md). Without the reset
-# a climb has one air dash and one Ember Toss. A post two steps up (896 u, a down-strike reaching it
-# with the feet 864 u up) needs more than a bounce, its air jump and the toss (782 u: the ember
-# 400 u up, and an air jump a second bounce gives back before the teleport). The toss's best is
-# its landing trick: the ember thrown from the top of the climb (960 u up, after post 2), a fall to
-# the floor that gives the air jump and the dash back, the teleport, the up-dash onto post 4: it
-# tops out 1859 u up, 179 u under the alcove's floor with the 10 u ledge-grab
-# (tests/replay/zone1/04_control_no_reset_toss). The natural try, pogo, dash, pogo and no second
-# dash, stops 155 u under post 3's reach (04_control_no_second_dash). The chute is smooth, and its
-# 2048 u are beyond any climb from the floor.
+# Why this way (every number measured: docs/feel_log/2026-10-19-zone1-b.md; docs/adr/0015). The
+# cheapest way, by far: 7.5 s to the alcove. Without the reset a climb has one air dash and one
+# Ember Toss, and a single toss cannot make up for it. A post two steps up (896 u, a down-strike
+# reaching it with the feet 864 u up) needs more than a bounce, its air jump and the toss (782 u:
+# the ember 400 u up, and an air jump a second bounce gives back before the teleport). The toss's
+# best is its landing trick: the ember thrown from the top of the climb (960 u up, after post 2), a
+# fall to the floor that gives the air jump and the dash back, the teleport, the up-dash onto post
+# 4: it tops out 1859 u up, 179 u under the alcove's floor with the 10 u ledge-grab
+# (tests/replay/zone1/04_control_no_reset_toss, one toss). The natural try, pogo, dash, pogo and no
+# second dash, stops 155 u under post 3's reach (04_control_no_second_dash).
+#
+# It is not the only way, and no geometry can make it so (ADR-0015). A post is a place to bounce
+# for as long as the player likes, and a bounce costs nothing, so the toss's 12 s cooldown can be
+# waited out on it: a toss from post k puts the ember over post k+1, the player falls back onto
+# post k, bounces until the ember has flown, teleports, and bounces on post k+1 until the toss is
+# back. Four tosses climb the whole tower with no air dash after the approach, in 2516 ticks (42 s)
+# against the teaching route's 450 (tests/replay/zone1/bypass/04_bypass_toss_wait). Whatever a
+# dash does from a point, the toss's 400 u flight does from the same point at least as far, so a
+# step the dash crosses the toss crosses: the posts could only be made unwaitable-on, and a
+# bounce is a bounce. The room teaches the tech by making it the climb that takes a fifth of the
+# time and none of the waiting; the alcove holds a Lantern-tier Votive, not a progress gate.
 room zone1/04_pogo_dash_reset
 size 60 76
 spawn 74 2336

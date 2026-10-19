@@ -1,5 +1,5 @@
 fixture zone1_05_control_no_kick
-doc BUILD.md s5 tech 5 "Taught by a well"; zone 1 room 5's control: the strongest climb without a neutral kick or a wall-jump falls short of the exit; docs/adr/0010 (the fresh cling, the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+doc BUILD.md s5 tech 5 "Taught by a well"; zone 1 room 5's control: the strongest climb with ONE Ember Toss and without a neutral kick or a wall-jump falls short of the exit (it shows those two moves are not enough without a kick or a wall-jump, not that kicks are required: 05_wall_jump_dash_cycle climbs faster, docs/adr/0015); docs/adr/0010 (the fresh cling, the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
 room zone1/05_wall_kick_climb
 spawn 74 2400
 frames 330

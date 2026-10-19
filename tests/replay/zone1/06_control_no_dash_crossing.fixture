@@ -1,5 +1,5 @@
 fixture zone1_06_control_no_dash_crossing
-doc BUILD.md s5 tech 6 "Taught by a shaft"; zone 1 room 6's control: the walls are too far apart for a crossing without the dash; the farthest crossing without one (a kick from the top of band 0 and the air jump on the tick that carries furthest) meets the left wall below band 1; docs/feel_log/2026-10-19-zone1-b.md
+doc BUILD.md s5 tech 6 "Taught by a shaft"; zone 1 room 6's control: the walls are too far apart for a crossing without the dash and without the Ember Toss; the farthest crossing without one (a kick from the top of band 0 and the air jump on the tick that carries furthest) meets the left wall below band 1; docs/feel_log/2026-10-19-zone1-b.md
 room zone1/06_wall_jump_dash
 spawn 74 1888
 frames 282

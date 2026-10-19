@@ -17,16 +17,19 @@
 # (the first cling since the wall-jump gives both back again). The first crossing is over the floor,
 # where a miss costs only a fall; the fourth lands on the exit floor.
 #
-# Why only that way (every number measured: docs/feel_log/2026-10-19-zone1-b.md). A band is too
+# Why this way (every number measured: docs/feel_log/2026-10-19-zone1-b.md). A band is too
 # short to climb on its own (kicking past its top meets smooth wall), so each must be left for the
 # next one across the shaft. Without the dash the farthest crossing (a kick from the band's top and
 # the air jump on the tick that carries furthest; a wall-jump carries 40 u less) meets the far wall
 # 69 u too low for the next band (tests/replay/zone1/06_control_no_dash_crossing); with the dash the
 # teaching route meets each next wall 84 to 93 u inside its band's reach (387 u above the cling it
-# left; the best dash crossing measured, a kick, the air jump and an up-dash, 508 u). The Ember Toss
-# carries one crossing at most: its landing trick (the ember thrown from above band 0, a fall to the
+# left; the best dash crossing measured, a kick, the air jump and an up-dash, 508 u). One Ember
+# Toss does carry a no-dash crossing: thrown up and away from the top of band 0 with an air jump
+# it reaches band 1 (a grid search of 576 plans), so the 69 u shortfall above holds for a crossing
+# without the toss. The toss's landing trick (the ember thrown from above band 0, a fall to the
 # floor, the teleport 400 u up) reaches band 2, and the crossing from there falls 74 u short of
-# band 3 (06_control_no_dash_toss).
+# band 3 (06_control_no_dash_toss). A toss per crossing, waiting its 12 s out on a band between
+# them, is not modelled here: docs/adr/0015 records that no room can rule it out.
 room zone1/06_wall_jump_dash
 size 60 62
 spawn 74 1888
