@@ -9,7 +9,7 @@ input
   113..174 R
 end
 expect
-  never 0..163 hearts<5
+  never 0..164 hearts<5
   never 0..174 event.kill=1
-  at 164 event.player_hit=1 hearts=4
+  at 165 event.player_hit=1 hearts=4
 end

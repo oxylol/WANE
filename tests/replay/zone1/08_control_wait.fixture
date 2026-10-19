@@ -7,6 +7,6 @@ input
   40..169 R
 end
 expect
-  at 163 enemy1.state=telegraph hearts=5
-  at 164 enemy1.state=strike event.player_hit=1 hearts=4
+  at 162 enemy1.state=telegraph hearts=5
+  at 163 enemy1.state=strike event.player_hit=1 hearts=4
 end

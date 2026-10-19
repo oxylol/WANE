@@ -5,6 +5,12 @@
 - BUILD.md sections: 3 (hidden rooms "hold a guaranteed Lantern-tier Votive or a Lamplighter note"; "the tech differs, the access does not"), 5 (the twelve core tech interactions, "taught by the world"; Wall-jump "Resets double jump and air dash"; the fresh-cling rule of ADR-0010), 6 (Ember Toss: 0 Flame, 12 s cooldown)
 - Checklist lines: "Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap"; "Wall-kick climbs a single wall without the player ever feeling stuck to it"; "wall-jump, then dash, then wall-cling the next wall"
 
+## Summary
+
+- A zone 1 tech room makes its tech the cheapest route and a control fixture proves what the single-use alternatives cannot do; it does not claim to be the only route.
+- Room 4: the Ember Toss's 12 s cooldown can be waited out on a spike post, four tosses reach the alcove in 2516 ticks (`tests/replay/zone1/bypass/04_bypass_toss_wait`), costed and recorded, not closed.
+- Rooms 5 and 6: the fresh-cling rule of ADR-0010 lets other moves climb; each room's controls show what the tech saves.
+
 ## Context
 
 Zone 1's rooms 4 to 6 were written to make their tech "the only way", with control fixtures that try the strongest alternatives. The review of those rooms found two routes the controls did not model:

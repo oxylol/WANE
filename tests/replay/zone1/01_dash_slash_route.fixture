@@ -1,8 +1,8 @@
 fixture zone1_01_dash_slash_route
-doc BUILD.md s5 tech 1 "Dash-slash: dash into attack, frame-perfect cancel. Taught by a tight corridor of weak enemies"; s5 Dash "cancelable into attack from frame 6"; s6 Taper side 1 (10 damage). The route: the hall dummy, then a dash and a slash on the dash frames 6 to 9 for each of the ten solid corridor dummies, as the ground cooldown allows; 357 ticks to the east door, no hit taken.
+doc BUILD.md s5 tech 1 "Dash-slash: dash into attack, frame-perfect cancel. Taught by a tight corridor of weak enemies"; s5 Dash "cancelable into attack from frame 6"; s6 Taper side 1 (10 damage). The route: the hall dummy, then a dash and a slash on the dash frames 6 to 9 for each of the ten solid corridor dummies, as the ground cooldown allows; 358 ticks to the east door, no hit taken.
 room zone1/01_dash_slash
 spawn 74 832
-frames 358
+frames 359
 input
   0 R dash
   1..7 R
@@ -60,13 +60,13 @@ input
   276 R dash
   277..280 R
   281 R attack
-  282..357 R
+  282..358 R
 end
 expect
-  never 0..356 event.room=1
-  at 357 event.room=1 room=zone1_02_dash_jump
-  never 0..357 event.player_hit=1
-  at 356 hearts=5
+  never 0..357 event.room=1
+  at 358 event.room=1 room=zone1_02_dash_jump
+  never 0..358 event.player_hit=1
+  at 357 hearts=5
   at 23 event.kill=1
   at 63 event.kill=1
   at 87 event.kill=1

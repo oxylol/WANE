@@ -24,3 +24,11 @@ The tuned values become the spec: when a number changes here, the same commit ch
 | 2026-10-19 | [corner-correction ease on runs](2026-10-19-nudge-ease-runs.md) | The cap moves from the gap to the catch-up speed's change: no hitch up a staircase of lips, at the cost of lag up a dashed one |
 | 2026-10-19 | [task 7: zone 1 rooms 4 to 6](2026-10-19-zone1-b.md) | The pogo-dash tower to a hidden alcove, the kick-climb well, the wall-jump-dash shaft; each sized against the Ember Toss's landing trick; a wall-jump and up-dash cycle out-climbs kicks (director question) |
 | 2026-10-19 | [task 7: room editor](2026-10-19-task7-room-editor.md) | The plugin: every tile kind, boxes, the dummy's properties, doors drawn, moved, resized and paired, resize, the loader's problems live, Play |
+| 2026-10-19 | [task 7: zone 1 rooms 1 to 3](2026-10-19-zone1-a.md) | The dash-slash corridor of solid dummies, the dash-jump ditch and island, the pogo-chain spike tunnel; each beside the strongest single-use control |
+| 2026-10-19 | [task 7: zone 1 room 7](2026-10-19-zone1-07-coyote-dash.md) | Room 7: a trench and a chasm taught by the coyote ticks and the air dash kept in hand; first implementation, no tuned number changed |
+| 2026-10-19 | [task 7: zone 1 room 8](2026-10-19-zone1-08.md) | Three drops, two ambusher dummies tied to Ash's position; the strike pressed 4 f before the landing wins, the one on the landing loses |
+| 2026-10-19 | [task 7: zone 1 room 9](2026-10-19-zone1-reverse-pogo.md) | Room 9: the reverse pogo; first implementation, no tuned number changed |
+| 2026-10-19 | [task 7: zone 1 room 10](2026-10-19-zone1-10-crouch-dash-under.md) | Room 10: the crouch-dash under a low roof; first implementation and a review pass on the far half's layout |
+| 2026-10-19 | [task 7: zone 1 room 11](2026-10-19-zone1-11-ember-toss-cancel.md) | Room 11: the Ember-toss cancel over a long chasm (ADR-0017); first implementation, no tuned number changed |
+| 2026-10-19 | [task 7: zone 1 room 12](2026-10-19-zone1-room12.md) | Room 12: the Kindle-dash through a wax screen and a wax door over a chasm; first implementation, no tuned number changed |
+| 2026-10-19 | [task 7: zone 1 whole](2026-10-19-merge-zone1.md) | The rooms re-timed on the fixed engine (rooms 1 and 8), and the 60-second loop through all twelve rooms: 3584 ticks |

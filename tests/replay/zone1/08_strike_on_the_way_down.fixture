@@ -8,9 +8,9 @@ input
   59 R attack
   60..121 R
   122 R attack
-  123..177 R
-  178 R attack
-  179..229 R
+  123..179 R
+  180 R attack
+  181..229 R
 end
 expect
   # Drop 1, the safe dummy: the strike is pressed 4 f before the landing, so its active frames
@@ -23,12 +23,12 @@ expect
   # Drop 2: the dummy's swing is already telegraphed and would land on frame 127 (its first
   # active tick). The strike kills it on the landing frame, a tick before: nothing lands on Ash.
   at 126 event.land=1 state=ground action=side1 action_frame=5 event.kill=1 enemy1.state=dead
-  # Drop 3: the same again, the swing due on frame 183.
-  at 182 event.land=1 state=ground action=side1 action_frame=5 event.kill=1 enemy2.state=dead
+  # Drop 3: the same again, the swing due on frame NNN.
+  at 184 event.land=1 state=ground action=side1 action_frame=5 event.kill=1 enemy2.state=dead
   never 0..229 hearts<5
   # The strike goes on through the landing to its last frame, 14, and the run never stops.
-  at 194 action=side1 action_frame=14
-  at 195 action=none
+  at 196 action=side1 action_frame=14
+  at 197 action=none
   mark through 1..229 event.room=1
   at through room=zone1_09_reverse_pogo state=ground
 end

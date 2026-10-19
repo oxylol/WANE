@@ -13,9 +13,9 @@
 #
 # What the room measures (tests/replay/zone1/01_*, hall dummy and ten corridor dummies, all killed):
 #   dash-slash chain (a dash, a slash on the dash's frames 6 to 9, a dash again as the ground
-#     cooldown allows): 357 ticks to the east door, no hit taken (5 hearts);
-#   running slashes (the best a plain attacker does, slashing the moment a dummy is in reach): 429
-#     ticks (72 more), no hit taken (zone1_01_control_run_slashes);
+#     cooldown allows): 358 ticks to the east door, no hit taken (5 hearts);
+#   running slashes (the best a plain attacker does, slashing the moment a dummy is in reach): 434
+#     ticks (76 more), no hit taken (zone1_01_control_run_slashes);
 #   dashing without slashing (a dash every 24 ticks): stopped by the first corridor dummy, never
 #     crosses (zone1_01_control_dash_only);
 #   running without slashing: stopped the same way (zone1_01_control_run).
@@ -64,13 +64,13 @@ end
 door west left 704 832 zone1/12_kindle_dash east
 door east right 704 832 zone1/02_dash_jump west
 entity dummy 448 832 hp=10 solid=1
-entity dummy 880 832 hp=10 attack=1 period=30 solid=1
-entity dummy 1120 832 hp=10 attack=1 period=30 solid=1
-entity dummy 1360 832 hp=10 attack=1 period=30 solid=1
-entity dummy 1600 832 hp=10 attack=1 period=30 solid=1
-entity dummy 1840 832 hp=10 attack=1 period=30 solid=1
-entity dummy 2080 832 hp=10 attack=1 period=30 solid=1
-entity dummy 2320 832 hp=10 attack=1 period=30 solid=1
-entity dummy 2560 832 hp=10 attack=1 period=30 solid=1
-entity dummy 2800 832 hp=10 attack=1 period=30 solid=1
-entity dummy 3040 832 hp=10 attack=1 period=30 solid=1
+entity dummy 880 832 attack=1 hp=10 period=30 solid=1
+entity dummy 1120 832 attack=1 hp=10 period=30 solid=1
+entity dummy 1360 832 attack=1 hp=10 period=30 solid=1
+entity dummy 1600 832 attack=1 hp=10 period=30 solid=1
+entity dummy 1840 832 attack=1 hp=10 period=30 solid=1
+entity dummy 2080 832 attack=1 hp=10 period=30 solid=1
+entity dummy 2320 832 attack=1 hp=10 period=30 solid=1
+entity dummy 2560 832 attack=1 hp=10 period=30 solid=1
+entity dummy 2800 832 attack=1 hp=10 period=30 solid=1
+entity dummy 3040 832 attack=1 hp=10 period=30 solid=1

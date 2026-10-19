@@ -57,6 +57,6 @@ tiles
 ############################################################
 end
 solid 1056 896 1088 960 tag=pogo
-entity guard 1072 960 faces=west
 door west left 832 960 zone1/08_attack_cancel_landing east
 door east right 832 960 zone1/10_crouch_dash_under west
+entity guard 1072 960 faces=west

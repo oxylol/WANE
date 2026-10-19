@@ -1,5 +1,5 @@
 fixture zone1_08_control_no_strike
-doc Control for zone1_08_strike_on_the_way_down: the same run with no strike at all. Nothing in the room stops Ash (a dummy is no wall), but the second dummy opens when Ash reaches its trigger line at the ledge and its swing lands on the tick after she lands, frame 124, and Ash runs into it
+doc Control for zone1_08_strike_on_the_way_down: the same run with no strike at all. Nothing in the room stops Ash (a dummy is no wall), but the second dummy opens when Ash reaches its trigger line at the ledge and its swing lands on the tick she lands, frame 123 (the side 1 recoil costs the teaching route 9 u that this run does not lose, so the swing is a frame sooner against her than against the teaching route), and Ash runs into it
 room zone1/08_attack_cancel_landing
 spawn 74 480
 frames 130
@@ -7,6 +7,6 @@ input
   0..129 R
 end
 expect
-  at 123 event.land=1 state=ground enemy1.state=telegraph hearts=5
-  at 124 enemy1.state=strike event.player_hit=1 hearts=4
+  at 122 state=air enemy1.state=telegraph hearts=5
+  at 123 event.land=1 state=ground enemy1.state=strike event.player_hit=1 hearts=4
 end

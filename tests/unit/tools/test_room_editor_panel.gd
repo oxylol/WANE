@@ -169,7 +169,7 @@ func test_the_dummy_is_placed_and_its_properties_are_edited_from_the_form() -> v
 	_click(Vector2(704, 576))
 	assert_str(_doc().room.entities[0].kind).is_equal("dummy")
 	assert_bool(_panel.entity_section.visible).is_true()
-	assert_int(_panel.entity_controls.size()).is_equal(7)
+	assert_int(_panel.entity_controls.size()).is_equal(9)
 	(_panel.entity_controls["attack"] as CheckBox).button_pressed = true
 	(_panel.entity_controls["period"] as SpinBox).value = 45
 	(_panel.entity_controls["hp"] as SpinBox).value = 12

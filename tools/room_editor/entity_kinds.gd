@@ -50,6 +50,8 @@ static func props_of(kind: String) -> Array[PropSpec]:
 		out.append(PropSpec.new("hp", "Hit points", Type.COUNT, 9999))
 		out.append(PropSpec.new("poise", "Poise", Type.COUNT, 9999))
 		out.append(PropSpec.new("facing", "Faces (before it turns)", Type.FACING))
+		out.append(PropSpec.new("solid", "Solid (a body the player cannot pass)", Type.FLAG))
+		out.append(PropSpec.new("trigger", "Ambush range (units; 0 = always)", Type.COUNT, 9999))
 	return out
 
 

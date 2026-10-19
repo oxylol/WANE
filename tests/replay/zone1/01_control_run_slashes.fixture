@@ -1,8 +1,8 @@
 fixture zone1_01_control_run_slashes
-doc Control for room 01 (BUILD.md s5 tech 1): the best a plain attacker does, running down the corridor and slashing the moment a solid dummy is in reach, no dash: it clears all eleven dummies and reaches the east door at tick 429, 72 ticks after the dash-slash route (357), no hit taken.
+doc Control for room 01 (BUILD.md s5 tech 1): the best a plain attacker does, running down the corridor and slashing the moment a solid dummy is in reach, no dash: it clears all eleven dummies and reaches the east door at tick 434, 76 ticks after the dash-slash route (358; the side 1 slash's 8-frame recoil slows the run after each of the eleven slashes, so the control gives up 5 more ticks than before), no hit taken.
 room zone1/01_dash_slash
 spawn 74 832
-frames 430
+frames 435
 input
   0..35 R
   36 R attack
@@ -32,13 +32,13 @@ input
   330 R attack
   331..356 R
   357 R attack
-  358..429 R
+  358..434 R
 end
 expect
-  never 0..428 event.room=1
-  at 429 event.room=1 room=zone1_02_dash_jump
-  never 0..429 event.player_hit=1
-  at 428 hearts=5
+  never 0..433 event.room=1
+  at 434 event.room=1 room=zone1_02_dash_jump
+  never 0..434 event.player_hit=1
+  at 433 hearts=5
   at 38 event.kill=1
   at 89 event.kill=1
   at 119 event.kill=1

@@ -13,11 +13,17 @@
 #      watch the strike go on to its last frame with no landing lag (Taper side 1: 2 f startup,
 #      4 f active, 8 f recovery, 68 u reach, so a press 4 f before the landing is live on the
 #      landing's two last airborne frames and its two first grounded ones).
-#   C and D: dummies at 1244 and 1721 with an unparryable (red=1) swing, so the strike has to be
+#   C and D: dummies at 1235 and 1730 with an unparryable (red=1) swing, so the strike has to be
 #      the answer, not the parry (a press near a white swing parries it). Telegraph 24 f, 4 f
-#      active, 20 f recovery, 64 u in front of the dummy. They are ambushers (trigger=284): the
-#      swing opens when Ash reaches the ledge, 284 u from the dummy, and its first active tick is
-#      23 f later, the tick after the teaching route's landing. The swing is tied to where Ash is,
+#      active, 20 f recovery, 64 u in front of the dummy. They are ambushers (trigger=284 and
+#      293): the swing opens when Ash reaches the ledge, 284 u from C (293 from D, 9 u before its
+#      ledge), and its first active tick is 23 f later, the tick after the teaching route's
+#      landing. (Placed after the merge of the movement and combat fixes: side 1's 8-frame recoil
+#      slows the run 1 u a frame while it lasts, so the teaching route reaches each ledge 9 u
+#      later than it did, 16 u later by drop 3; C stands 9 u nearer and D 9 u further, with D's
+#      trigger 9 u longer, so that the route's kill falls on the landing frame again, a tick
+#      before the swing. The runs with no strike before them have no recoil, are 9 u ahead, and
+#      meet C's swing on their landing tick, not after it; they are hit all the same.) The swing is tied to where Ash is,
 #      not to the clock, so nothing she did before (a kill's hitstop, a wait) moves it against
 #      her landing. The strike pressed 4 f before the landing kills the dummy on the landing
 #      frame; one pressed on the landing frame is live 2 f later, the swing lands first, is hit
@@ -71,8 +77,8 @@ tiles
 ############################################################
 ############################################################
 end
-entity dummy 706 576 hp=10
-entity dummy 1244 768 attack=1 red=1 period=1 trigger=284 hp=10
-entity dummy 1721 960 attack=1 red=1 period=1 trigger=284 hp=10
 door west left 352 480 zone1/07_coyote_dash east
 door east right 832 960 zone1/09_reverse_pogo west
+entity dummy 706 576 hp=10
+entity dummy 1235 768 attack=1 hp=10 period=1 red=1 trigger=284
+entity dummy 1730 960 attack=1 hp=10 period=1 red=1 trigger=293

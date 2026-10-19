@@ -13,7 +13,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015). `core/clock/` empty.
 - `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `game/lighting/`, `shaders/`, `assets/`.
 - `content/` see Tunable numbers. `tools/ci/` test gate; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics bench; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; `tools/room_editor/` the room editor (below).
-- `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, rooms, tech), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/`, `tests/screenshot/` empty.
+- `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/`, `tests/screenshot/` empty.
 - `ci/` `ci/test.sh`, `ci/lint.sh`, `ci/setup_godot.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
 
 ## Entry points
@@ -43,7 +43,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `content/wicks/ash/movement.tres` (`core/fsm/movement_tuning.gd compile`), `content/wicks/ash/kit.tres` (`core/fsm/kit_tuning.gd compile`), `content/wicks/ash/taper.tres` (AttackSet); loaded by `Simulation._build_player`.
 - `content/combat/combat.tres` (`core/combat/combat_tuning.gd compile`); `content/physics/world.tres` (WorldTuning); `content/enemies/dummy.tres` (EnemyDef; kinds in `Simulation.ENEMY_KINDS`); `content/zones/zone1.tres` (ZoneDef).
 - Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`.
-- Rooms: `content/rooms/zone1/` (12 tech rooms), `content/rooms/sandbox.room`. A tuning change needs a feel-log entry, a BUILD.md update, and a re-bless.
+- Rooms: `content/rooms/zone1/` (12 tech rooms; routes, controls and `zone1_loop` in `tests/replay/zone1/`), `content/rooms/sandbox.room`. A tuning change needs a feel-log entry, a BUILD.md update, and a re-bless.
 
 ## Commands (repo root; `godot` on PATH or `GODOT`)
 
