@@ -1,28 +1,90 @@
-# Zone 1, room 7 (stub, Phase 1 task 7): replaced by the room that teaches tech 7, Coyote dash (BUILD.md s5).
+# Zone 1, room 7: Coyote dash (BUILD.md s5, the twelve core tech interactions, 7: "dash off a ledge
+# within coyote time keeps ground cooldown rules. Taught by a cliff"; docs/adr/0010, Dash: a dash
+# within 6 frames of walking off a ledge is a ground dash, so the air dash stays in hand).
+# Grey box (Phase 1), not art. 60 x 34 tiles, floor top at y 864, doors 128 u tall (y 736 to 864).
+#
+# The way: arrival plateau (x 0 to 384, open above), then a tunnel under a stand-in "overhang", a
+# solid box 44 u over the floor (the standing body's height: a jump cannot climb, so the cliff
+# asks for dashes, not height). Under it, left to right:
+#   - Trench A (x 576 to 768): the safe first encounter. 32 u deep, solid floor, no hazard: a
+#     ground dash from its edge crosses it (z1_07_coyote_dash, frame 58), and walking in costs one
+#     jump back out (the roof leaves exactly enough room).
+#   - The island (x 768 to 992), a run-up.
+#   - Chasm B (x 992 to 1604, 612 u): a row of pit tiles 32 u under the floor, the far ledge's lip
+#     at x 1604 (a box flush with the floor, x 1604 to 1632; smooth, no cling). The tech: walk off
+#     the edge, dash on one of the first 6 airborne ticks (the coyote dash: horizontal, ground
+#     cooldown, air dash untouched), air dash about 16 to 17 frames later and air jump about 24 to
+#     25 frames after the first dash (on the air dash's last frames, a dash-jump) to lift from the
+#     pit's lip to the ledge.
+#   - The far ledge under the roof to x 1664, then open sky and the east door (x 1920).
+#
+# Ticks, from the edge. Ash runs at 9 u a tick and the floor ends under her during one tick (94
+# in z1_07_coyote_dash, from spawn 74: x 997.5 after tick 93, 1006.5 after tick 94). A dash read on
+# that tick finds her on the floor: it is an ordinary ground dash, with the same cooldown and air
+# dash as a coyote dash, and it starts as far along as any ground dash can. The coyote window is
+# the 6 ticks after it (95 to 100); a dash on 101 is the air dash. The first version of this room
+# set its control on tick 93 and the lip 14 u past that route's reach: a dash on 94 crosses it
+# (movement review: tech skippable), because the run's phase moves the last grounded x by up to
+# 9 u and the lip was set against one phase.
+#
+# Why it is built this way, and what it is not. The dash is flat and the roof is low, so every
+# route over B is made of dashes; what a coyote dash adds over a dash read on the last tick on the
+# floor is the few ticks of running past the edge (9 u a tick, up to 54 u). Measured on this room by
+# tools/replay/coyote_scan.gd (every plan holds right and presses a first dash, a second dash 12 to
+# 20 ticks later or none, and a jump 12 to 36 ticks after the first, held; the first dash from the
+# last ticks on the floor to the sixth airborne tick; all nine phases of the run, since the
+# floor ends at a different x for each; a crossing is standing on the far side): a first dash read
+# on the floor (ticks 93 and 94) crosses a lip at x 1590 or nearer (598 u) and none a lip at 1594
+# or farther; a coyote dash crosses a lip at 1622 (630 u) at the best phase (2 plans, 5 at 1616),
+# and this one at 1604 with 6 to 10 plans for each phase. Up-right second dashes, earlier ground dashes (to 4 ticks before
+# the last) and standing starts from every spawn on the island from x 800 to 860 add no
+# crossing (scan results in the feel log). The lip, 14 u past the farthest ground route and 18 u
+# short of the farthest coyote one (to the nearest 6 u), is where the two differ by the width of a few ticks of
+# running, which is all there is to teach. It is NOT proven the only way: a search is not a proof,
+# and the Ember Toss (gap_reach.gd: a toss carries a route past a tech 2 sized gap) was only
+# tried once (a throw from the edge stopped about 90 u out) and not searched. Flagged for the
+# director: play it, and if anything else crosses, move the lip box (x 1604) farther out.
+# Fixtures: tests/replay/zone1/07_*.
 room zone1/07_coyote_dash
-size 60 20
-spawn 200 544
+size 60 34
+spawn 200 864
 tiles
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+............................................................
+............................................................
+............................................................
+............................................................
+##################......#######....................#########
+###############################~~~~~~~~~~~~~~~~~~~~#########
 ############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-............................................................
-............................................................
-............................................................
-............................................................
+############################################################
 ############################################################
 ############################################################
 ############################################################
 end
-door west left 416 544 zone1/06_wall_jump_dash east
-door east right 416 544 zone1/08_attack_cancel_landing west
+solid 384 0 1664 820 cling=0
+solid 1604 864 1632 896 cling=0
+door west left 736 864 zone1/06_wall_jump_dash east
+door east right 736 864 zone1/08_attack_cancel_landing west

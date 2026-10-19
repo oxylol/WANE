@@ -1,0 +1,35 @@
+fixture z1_07_coyote_dash
+doc BUILD.md s5 tech 7 "Coyote dash: dash off a ledge within coyote time keeps ground cooldown rules. Taught by a cliff"; docs/adr/0010 Dash (a coyote dash is a ground dash and leaves the air dash); content/rooms/zone1/07_coyote_dash.room
+room zone1/07_coyote_dash
+spawn 74 864
+frames 170
+input
+  0..57 R
+  # Trench A, the safe first encounter: a ground dash from its edge (x 576) crosses it.
+  58 R dash
+  59..96 R
+  # Chasm B's edge is at x 992: Ash is still on the floor when tick 94's input is read and walks
+  # off during it (a dash on 94 is a ground dash, the control). Ticks 95 to 100 are her 6 coyote
+  # ticks; 97 is the third: a ground dash all the same, the air dash left in hand.
+  97 R dash
+  98..113 R
+  # The air dash, still in hand, 17 frames later.
+  114 R dash
+  115..121 R
+  # The air jump, held, on the air dash's ninth frame (a dash-jump: it keeps the dash's speed) and
+  # rises from the pit's lip to the far ledge's height.
+  122..169 R jump
+end
+expect
+  at 58 event.dash=1 state=dash
+  at 66 state=dash dash_frame=9
+  at 93 state=ground ground=1
+  at 94 state=air air_frames=0
+  # The coyote dash: horizontal, on the ground cooldown, the air dash untouched.
+  at 97 event.dash=1 state=dash air_frames=3 vy=0 vx=5120 dash_cooldown=24 air_dashes=1
+  at 114 event.dash=1 state=dash air_dashes=0
+  at 122 event.air_jump=1
+  never 0..169 event.hazard=1
+  mark cross 150..169 event.room=1
+  at cross room=zone1_08_attack_cancel_landing
+end
