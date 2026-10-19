@@ -1,0 +1,21 @@
+fixture zone1_09_control_forward_pogo
+doc Control for tests/replay/zone1/09_reverse_pogo.fixture: the same run, dash, hop and strike with the stick straight down instead of back and down. The pogo still carries Ash over the guard, but facing forward: it lands behind the guard with its back to the guard's back. Turning back is what makes the reverse pogo
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 150
+input
+  0..78 R
+  79 R dash
+  80..84 R
+  85..86 R jump
+  87..90 R
+  91 D attack
+  92..149
+end
+expect
+  mark bounce 92..99 event.pogo=1
+  at bounce facing=1 vx>2304
+  mark land bounce+1..149 event.land=1
+  at land x>1098u y=960u facing=1
+end

@@ -1,0 +1,34 @@
+fixture zone1_09_reverse_pogo
+doc BUILD.md s5 tech 9 "Reverse pogo: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy"; ADR-0010 Reverse pogo ("it takes a dash's speed ... Zone 1's tech 9 room must give the player room to dash at the shielded enemy"); ADR-0014 doors. From the west arrival Ash runs the runway, dashes at the guard (a pogo block 32 x 64 u, x 1056 to 1088), short-hops on dash frame 6, turns back with the down-strike while still flying forward (tests/replay/tech/tech09_reverse_pogo.fixture, 416 u further on), lands behind the guard facing it, and runs on through the east door
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 220
+input
+  # The runway: 79 ticks of running put Ash at x 762, 294 u before the guard, the distance tech09 dashes from.
+  0..78 R
+  79 R dash
+  80..84 R
+  85..86 R jump
+  87..90 R
+  # Back and down with the strike: any strike on ticks 88 to 93 (dash+9 to dash+14, 6 ticks; 09_reverse_pogo_strike_88 and _93 are the edges) bounces off the guard's head and lands behind it.
+  91 L D attack
+  # Landed on frame 135 (facing the guard): on to the door.
+  92..135
+  136..219 R
+end
+expect
+  at 78 x>740u x<790u ground=1
+  at 79 state=dash vx=20u
+  at 85 event.jump=1 vx=20u
+  at 91 facing=-1 vx>0
+  # The down-strike finds the guard's head with Ash still flying forward, facing back: the bounce keeps the speed.
+  mark bounce 92..99 event.pogo=1
+  at bounce facing=-1 vx>2304
+  # Over the guard and down behind it, its body clear of the east face (1088 u), still facing it.
+  mark land bounce+1..160 event.land=1
+  at land x>1098u y=960u facing=-1
+  during bounce..land facing=-1
+  mark through land+1..219 event.room=1
+  at through room=zone1_10_crouch_dash_under state=ground
+end

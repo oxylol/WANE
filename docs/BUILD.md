@@ -231,7 +231,7 @@ All of these must work for every Wick (with their overrides) and be taught by th
 6. **Wall-jump dash**: wall-jump, then dash, then wall-cling the next wall. Taught by a shaft.
 7. **Coyote dash**: dash off a ledge within coyote time keeps ground cooldown rules. Taught by a cliff.
 8. **Attack-cancel landing**: landing never interrupts an attack. Taught by a boss with a short window.
-9. **Reverse pogo**: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy.
+9. **Reverse pogo**: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy. Until the shielded enemy exists (Phase 1 grey boxes), room 9 teaches it with a pogo-block guard and does not gate it: a plain jump crosses, since no door or geometry can ask which way Ash faces (docs/adr/0010 "Reverse pogo").
 10. **Crouch-dash under**: crouch, then dash, keeps the 28-tall hitbox for the dash. Taught by a low gap.
 11. **Ember-toss cancel** (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm.
 12. **Kindle-dash** (universal with the Kindle Votive): dash through a wax wall or a Snuffed to ignite it. Taught by a wax door.

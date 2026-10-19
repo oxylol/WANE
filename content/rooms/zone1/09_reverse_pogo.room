@@ -1,7 +1,25 @@
-# Zone 1, room 9 (stub, Phase 1 task 7): replaced by the room that teaches tech 9, Reverse pogo (BUILD.md s5).
+# Zone 1, room 9: Reverse pogo (BUILD.md s5 tech 9: "pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy").
+# ADR-0010 "Reverse pogo": the dash is the forgiving way in (a short-hop dash-jump at the enemy and a down-and-back strike, 6 ticks to strike in),
+# so the room gives a runway (x 74 to 762 = 79 ticks of running, 294 u before the guard, the distance tech09 dashes from) and a landing run
+# behind it (1088 to the east strip at 1856 u).
+# Stand-in (no shielded enemy exists yet): the guard is a pogo block 32 x 64 u (the training dummy's size) at x 1056..1088, standing on the floor
+# (y 960), as in tests/replay/rooms/shield.room; `entity guard` is a marker only (faces=west: the shield side; the back is the east side), nothing
+# simulates it. The block is passive: the first encounter is walking up to it with nothing to fear.
+# The route: run to x 762, dash at the guard on tick 79, dash-jump on dash frame 6 or 7 (vx 5120 = 20 u/f), turn back (stick left) with the
+# down-strike on tick 88 to 93 (dash+9 to dash+14): the bounce keeps the forward speed, Ash sails over the block and lands behind it facing it,
+# and walks on to the east door. Fixtures: tests/replay/zone1/09_*.fixture.
+# Taught, not gated (ADR-0010 "Reverse pogo", BUILD.md s5 tech 9): no tech can be required here. A guard standing in the open is 64 u tall and a
+# plain jump clears or stands on it (09_note_plain_jump_crosses: a run and one jump leaves by the east door); the reverse pogo differs from a
+# jump over it only in which way Ash faces on landing, and a door cannot ask that. Any jump high enough to strike the guard's head from above
+# is a jump that clears it, so no geometry can gate the strike either. BUILD.md's reason for the tech, the shielded enemy's unshielded back,
+# needs a combat the Phase 1 stand-ins do not have (no enemy blocks a strike yet); the shield is the gate, and this room changes when it exists.
+# What the route with the tech gives is Ash behind the guard facing its back, the one position its shield cannot cover.
+# The dash is not the only way to it: a running jump from the guard's west face (jump on 108) with a late strike (115) also lands behind it,
+# facing it (09_reverse_pogo_without_dash), but its window is 2 ticks to the dash route's 6. The controls show a forward pogo lands facing
+# away, and a hop at the guard with an early strike (107) falls back in front of it.
 room zone1/09_reverse_pogo
-size 60 20
-spawn 200 544
+size 60 34
+spawn 74 960
 tiles
 ############################################################
 #..........................................................#
@@ -16,13 +34,29 @@ tiles
 #..........................................................#
 #..........................................................#
 #..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
+#..........................................................#
 ............................................................
 ............................................................
 ............................................................
 ............................................................
+############################################################
 ############################################################
 ############################################################
 ############################################################
 end
-door west left 416 544 zone1/08_attack_cancel_landing east
-door east right 416 544 zone1/10_crouch_dash_under west
+solid 1056 896 1088 960 tag=pogo
+entity guard 1072 960 faces=west
+door west left 832 960 zone1/08_attack_cancel_landing east
+door east right 832 960 zone1/10_crouch_dash_under west

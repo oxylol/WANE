@@ -1,0 +1,18 @@
+fixture zone1_09_reverse_pogo_without_dash
+doc ADR-0010 "Reverse pogo" (corrected): the dash is the forgiving way to the reverse pogo, not the only one. A running jump from the guard's west face (jump on 108, x 1032) clears its head by 21 u; a back-and-down strike 7 ticks later (115) catches the head at x 1093 with 7.9 u/f of forward speed left, the bounce keeps it, and Ash lands behind the guard facing it. The window is 2 ticks (115 and 116 for this jump) against the dash route's 6 (09_reverse_pogo); an early strike (09_control_hop_lands_in_front) falls back in front
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 260
+input
+  0..107 R
+  108..109 R jump
+  110..114 R
+  115 L D attack
+end
+expect
+  mark bounce 116..130 event.pogo=1
+  at bounce facing=-1 vx>1024
+  mark land bounce+1..259 event.land=1
+  at land x>1098u y=960u facing=-1
+end
