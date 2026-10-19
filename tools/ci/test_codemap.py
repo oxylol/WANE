@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Keeps docs/CODEMAP.md honest: python3 tools/ci/test_codemap.py
 
-Every repo path written in backticks must exist, a `path:LINE symbol` entry must point inside the
-file at a symbol that is really there, every docs/adr/NNNN file must be listed, and the map must
-stay small (its whole point is to cost an agent fewer tokens than exploring).
+Every repo path written in backticks must exist, a `path symbol` entry's file must define the
+symbol (as a func, var, const, class, signal or enum; no line numbers, which drift with every edit),
+every docs/adr/NNNN file must be listed, and the map must stay small (its whole point is to cost an
+agent fewer tokens than exploring).
 """
 import re
 import unittest
@@ -12,9 +13,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 CODEMAP = ROOT / "docs" / "CODEMAP.md"
 MAX_CHARS = 12000
-# A backtick span that is a repo path: no spaces or wildcards, optionally `:LINE` and a symbol.
+# A backtick span that is a repo path: no spaces or wildcards, optionally a symbol after a space.
 SPAN = re.compile(r"`([^`\n]+)`")
-ENTRY = re.compile(r"(?P<path>[\w./-]+)(?::(?P<line>\d+)(?: (?P<symbol>\w+))?)?")
+ENTRY = re.compile(r"(?P<path>[\w./-]+)(?: (?P<symbol>\w+))?")
 FILE_SUFFIXES = (".gd", ".md", ".tres", ".room", ".fixture", ".sh", ".py", ".txt", ".yml")
 ADR_STEM = re.compile(r"\d{4}-[\w-]+")
 
@@ -38,17 +39,16 @@ class Codemap(unittest.TestCase):
         missing = [m["path"] for m in found if not (ROOT / m["path"]).exists()]
         self.assertEqual(missing, [], "paths in docs/CODEMAP.md that do not exist")
 
-    def test_line_entries_point_at_their_symbol(self) -> None:
+    def test_entries_name_a_symbol_their_file_defines(self) -> None:
         stale = []
         for m in entries(self.text):
-            if m["line"] is None or not (ROOT / m["path"]).is_file():
+            if m["symbol"] is None or not (ROOT / m["path"]).is_file():
                 continue
             source = (ROOT / m["path"]).read_text(encoding="utf-8")
-            if int(m["line"]) > len(source.split("\n")):
-                stale.append(f"{m[0]}: the file has fewer lines")
-            elif m["symbol"] and not re.search(rf"\b{m['symbol']}\b", source):
-                stale.append(f"{m[0]}: no {m['symbol']} in the file")
-        self.assertEqual(stale, [], "stale path:LINE entries in docs/CODEMAP.md")
+            kinds = r"(?:static\s+)?(?:func|var|const|class_name|class|signal|enum)"
+            if not re.search(rf"^\s*{kinds}\s+{m['symbol']}\b", source, re.MULTILINE):
+                stale.append(f"{m[0]}: {m['path']} defines no {m['symbol']}")
+        self.assertEqual(stale, [], "stale path symbol entries in docs/CODEMAP.md")
 
     def test_every_adr_is_listed(self) -> None:
         stems = sorted(p.stem for p in (ROOT / "docs" / "adr").glob("[0-9][0-9][0-9][0-9]-*.md"))
@@ -64,10 +64,8 @@ class Codemap(unittest.TestCase):
         self.assertLessEqual(len(self.text), MAX_CHARS, "docs/CODEMAP.md grew too long; prune it")
 
     def test_entry_pattern(self) -> None:
-        sample = "`core/a.gd:12 step` `:5 x` `ci/test.sh` `Fx.SUB` `a b/c.gd` `res://x.gd` `k@m`"
-        self.assertEqual(
-            [m[0] for m in entries(sample)], ["core/a.gd:12 step", "ci/test.sh"]
-        )
+        sample = "`core/a.gd step` `:5 x` `ci/test.sh` `Fx.SUB` `a b/c d.gd` `res://x.gd` `k@m`"
+        self.assertEqual([m[0] for m in entries(sample)], ["core/a.gd step", "ci/test.sh"])
 
 
 if __name__ == "__main__":

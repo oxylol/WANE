@@ -2,7 +2,7 @@
 
 Godot 4.7.2, strict GDScript, headless. `core/` is the deterministic 60 Hz simulation (no Node, ints in 1/256-unit sub-pixels, `Fx.SUB`); `game/` draws it; `content/` holds every tunable number; a run is a seed plus inputs. Law `CLAUDE.md`; spec `docs/BUILD.md` (s5 movement, s6 combat, s13 architecture, s15 checklist; headings only); status `PROGRESS.md`.
 
-`path:LINE symbol` drifts; `tools/ci/test_codemap.py` checks the file and symbol exist.
+Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap.py` checks each path exists and defines its symbol.
 
 ## Directories
 
@@ -18,29 +18,29 @@ Godot 4.7.2, strict GDScript, headless. `core/` is the deterministic 60 Hz simul
 
 ## Entry points
 
-- Loop: `game/sim_driver.gd:133 _process` to `game/sim_driver.gd:241 _run_owed_ticks` to `game/sim_driver.gd:261 step_once`: `InputLayer.poll`, `Simulation.step`, `ReplayRecorder.record`, signal `ticked`. `game/main.gd:70 _on_ticked` then updates views, camera, feedback, HUD, overlay. Slow motion is the driver's (`game/sim_driver.gd:113 slow`).
-- Simulation: `core/sim/simulation.gd:59 _init` builds rng, ring, rooms, world, tunings, player, enemies. `core/sim/simulation.gd:180 step`: ring push, `Player.step`, each `Enemy.step`, `Combat.resolve`, `_take_door`, tick+1, hash every 60 ticks. `VERSION` is line 14.
-- Player: `core/fsm/player.gd:214 step`: hitstop, timers, strike and spell advance, turn, crouch, toss, dash, jump, attack, spell start, `_move`, `_after_move`.
-- Combat: `core/combat/combat.gd:45 resolve`: effects age, player hits (strike, spells, pogo, trails), enemy hits (parry window).
-- Collision moves: `core/physics/collision_world.gd:51 move_x`, `:367 move_y`, `:455 landing_contact`, `:520 walk`, `:853 drop_through`.
-- Rooms: `core/rooms/room_data.gd:104 parse` (problems in `errors`), `:91 load_id`, `:348 build_world`; `core/rooms/room_set.gd:20 reach` (rooms reachable by doors); `core/rooms/room_joins.gd:31 errors`.
-- Input: `core/sim/input_ring.gd:70 push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
-- Hashes: `core/sim/state_hasher.gd:20 add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd:12 add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd:65 encode`, `core/sim/replay_player.gd:64 verify`.
-- Fixtures: `tools/replay/fixture.gd:96 parse_file`; `tools/replay/fixture_runner.gd:98 run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
-- Films: `tools/replay/film.gd:67 _initialize` (the game's own views, F3 on); `tools/replay/play.gd:72 _initialize` (headless).
-- Camera: `game/camera/camera_rig.gd:130 step` (per tick), `game/camera/game_camera.gd:40 show_at` (between ticks).
-- Feedback: `game/feedback/hit_feedback.gd:58 on_tick` reads SimEvents; sparks via `game/vfx/vfx_budget.gd:81 spawn` and `:134 claim_screen`, sounds via `game/audio/voices.gd:38 play`.
-- F3: `game/debug/debug_overlay.gd:111 toggle`; `game/debug/debug_controls.gd:39 handle_key` (F3 overlay, F4 pause, F5 one tick, F6 ten).
+- Loop: `game/sim_driver.gd _process` to `game/sim_driver.gd _run_owed_ticks` to `game/sim_driver.gd step_once`: `InputLayer.poll`, `Simulation.step`, `ReplayRecorder.record`, signal `ticked`. `game/main.gd _on_ticked` then updates views, camera, feedback, HUD, overlay. Slow motion is the driver's (`game/sim_driver.gd slow`).
+- Simulation: `core/sim/simulation.gd _init` builds rng, ring, rooms, world, tunings, player, enemies. `core/sim/simulation.gd step`: ring push, `Player.step`, each `Enemy.step`, `Combat.resolve`, `_take_door`, tick+1, hash every 60 ticks. `VERSION` sits at the top.
+- Player: `core/fsm/player.gd step`: hitstop, timers, strike and spell advance, turn, crouch, toss, dash, jump, attack, spell start, `_move`, `_after_move`.
+- Combat: `core/combat/combat.gd resolve`: effects age, player hits (strike, spells, pogo, trails), enemy hits (parry window).
+- Collision moves: `core/physics/collision_world.gd move_x`, `:367 move_y`, `:455 landing_contact`, `:520 walk`, `:853 drop_through`.
+- Rooms: `core/rooms/room_data.gd parse` (problems in `errors`), `:91 load_id`, `:348 build_world`; `core/rooms/room_set.gd reach` (rooms reachable by doors); `core/rooms/room_joins.gd errors`.
+- Input: `core/sim/input_ring.gd push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
+- Hashes: `core/sim/state_hasher.gd add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd encode`, `core/sim/replay_player.gd verify`.
+- Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
+- Films: `tools/replay/film.gd _initialize` (the game's own views, F3 on); `tools/replay/play.gd _initialize` (headless).
+- Camera: `game/camera/camera_rig.gd step` (per tick), `game/camera/game_camera.gd show_at` (between ticks).
+- Feedback: `game/feedback/hit_feedback.gd on_tick` reads SimEvents; sparks via `game/vfx/vfx_budget.gd spawn` and `:134 claim_screen`, sounds via `game/audio/voices.gd play`.
+- F3: `game/debug/debug_overlay.gd toggle`; `game/debug/debug_controls.gd handle_key` (F3 overlay, F4 pause, F5 one tick, F6 ten).
 
 ## Fixture language (spec: `tests/replay/README.md`, ADR-0006)
 
 Header `fixture`, `doc` (required), `seed`, `room <id>` (test/<name> means <name>.room in `tests/replay/rooms/`; other ids are in `content/rooms/`), `wick`, `spawn x y`, `option k v`, `frames N`; blocks `input ... end` (`<frame> jump|atk|dash|spell|mend|vessel|toss|L|R|U|D`, `!jump` a one-tick tap) and `expect ... end` (`at F`, `during A..B`, `never A..B`, `mark name A..B`).
-A condition is `key op value`. The key is a `core/sim/simulation.gd:278 probe` key: player keys in `core/fsm/player_probe.gd:10 read`, `enemy.<k>` and `enemy<n>.<k>` in `core/enemies/enemy_probe.gd:10 read`, `event.<name>`, `held.<BUTTON>`, `press_age.<BUTTON>`. The value is an integer, `12u` (units, times 256), `key@mark`, `key@(mark+3)`, sums, or a word. A word must be an identifier listed by `probe_words(key)` (`state`, `action`, `chain`, `spell`, `tier`, `room`, enemy `state`) or the fixture fails; so does any expectation that cannot be evaluated.
+A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: player keys in `core/fsm/player_probe.gd read`, `enemy.<k>` and `enemy<n>.<k>` in `core/enemies/enemy_probe.gd read`, `event.<name>`, `held.<BUTTON>`, `press_age.<BUTTON>`. The value is an integer, `12u` (units, times 256), `key@mark`, `key@(mark+3)`, sums, or a word. A word must be an identifier listed by `probe_words(key)` (`state`, `action`, `chain`, `spell`, `tier`, `room`, enemy `state`) or the fixture fails; so does any expectation that cannot be evaluated.
 
 ## Tunable numbers (.tres files in BUILD.md units, compiled at load, each with `validate()`)
 
-- `content/wicks/ash/movement.tres` (`core/fsm/movement_tuning.gd:124 compile`), `content/wicks/ash/kit.tres` (`core/fsm/kit_tuning.gd:80 compile`), `content/wicks/ash/taper.tres` (AttackSet); loaded by `Simulation._build_player`.
-- `content/combat/combat.tres` (`core/combat/combat_tuning.gd:91 compile`); `content/physics/world.tres` (WorldTuning); `content/enemies/dummy.tres` (EnemyDef; kinds in `Simulation.ENEMY_KINDS`); `content/zones/zone1.tres` (ZoneDef).
+- `content/wicks/ash/movement.tres` (`core/fsm/movement_tuning.gd compile`), `content/wicks/ash/kit.tres` (`core/fsm/kit_tuning.gd compile`), `content/wicks/ash/taper.tres` (AttackSet); loaded by `Simulation._build_player`.
+- `content/combat/combat.tres` (`core/combat/combat_tuning.gd compile`); `content/physics/world.tres` (WorldTuning); `content/enemies/dummy.tres` (EnemyDef; kinds in `Simulation.ENEMY_KINDS`); `content/zones/zone1.tres` (ZoneDef).
 - Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`.
 - Rooms: `content/rooms/zone1/` (12 tech rooms), `content/rooms/sandbox.room`. A tuning change needs a feel-log entry, a BUILD.md update, and a re-bless.
 
