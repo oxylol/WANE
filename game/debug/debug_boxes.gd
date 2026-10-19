@@ -2,8 +2,10 @@ class_name DebugBoxes
 extends RefCounted
 ## The rectangles the F3 overlay draws, read from the simulation in world units: the player's
 ## collider, hurtbox, strike and pogo boxes, the ember, the room's solid boxes, the hazard part
-## of every spike tile in view, and a mark where a pogo bounced this tick (the strike hands control
-## back on that tick, so its box is already gone: task 5 review, M10). BUILD.md section 5: "shows
+## of every hazard tile in view, a mark where a pogo bounced this tick (the strike hands control
+## back on that tick, so its box is already gone: task 5 review, M10), and the hurtbox that touched
+## a hazard this tick (the send-back has already moved the player to safe ground: task 5 review 2,
+## M1). BUILD.md section 5: "shows
 ## hitboxes"; CLAUDE.md rule 8. Boxes are the latest tick's, exactly as the simulation resolves
 ## them, never interpolated.
 
@@ -60,7 +62,18 @@ static func collect(sim: Simulation, view: Rect2) -> Array[Box]:
 			var at := Vector2(float(events.xs[i]), float(events.ys[i])) / Fx.SUB
 			var half := Vector2(CONTACT_HALF_U, CONTACT_HALF_U)
 			out.append(_box(CONTACT, Rect2(at - half, half * 2.0), "bounce"))
+		elif events.kinds[i] == SimEvents.HAZARD:
+			out.append(
+				_box(CONTACT, units(_hurtbox_at(pl, events.xs[i], events.ys[i])), "hazard hit")
+			)
 	return out
+
+
+## The player's hurtbox with the body's bottom-centre at ([param x], [param y]) (sub-pixels).
+static func _hurtbox_at(pl: Player, x: int, y: int) -> Rect2i:
+	var now: Rect2i = pl.hurtbox()
+	var b: Body = pl.body
+	return Rect2i(now.position + Vector2i(x - b.x, y - b.y), now.size)
 
 
 ## A sub-pixel rectangle in units.

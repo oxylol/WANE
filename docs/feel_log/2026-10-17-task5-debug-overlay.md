@@ -85,8 +85,8 @@ What the sheet shows was checked frame by frame against BUILD.md sections 5 and 
   - The down-strike starts on frame 51.
   - Its box, labelled "down + pogo", shows from its frame 3 (frame 53) through its frame 6.
   - On frame 57 Ash bounces off the spikes, the strike ends, and the bounce mark shows where.
-- Row 5: the collider steps 11 u up onto the crest's door in one frame (frame 17). The drawn player is below it by 11, 8 and 3 u on frames 17 to 19, and meets it on frame 20.
-- Row 6: up the staircase the collider rises 8, 8, 16, 8 and 8 u on frames 90 to 94. The drawn player rises 0, 8, 8, 8 and 8 u, and is never more than 16 u (the largest single nudge there) behind.
+- Row 5: the collider steps 11 u up onto the crest's door in one frame (frame 17). The drawn player is below it by 11, 8.25 and 2.75 u on frames 17 to 19, and meets it on frame 20.
+- Row 6: up the staircase the collider rises 8, 8, 16, 8 and 8 u on frames 90 to 94. The drawn player rises 0, 2, 4, 8 and 12 u, its speed changing by at most a quarter of the run's nudge a frame, and is at most 26 u behind (re-filmed with the ease's rule for runs: feel log 2026-10-19).
 
 ## How it plays now
 

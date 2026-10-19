@@ -48,6 +48,7 @@ func test_f3_shows_and_hides_the_overlay() -> void:
 
 func test_f4_pauses_and_f5_steps_exactly_one_tick() -> void:
 	_driver.paused = false
+	_controls.handle_key(KEY_F3)
 	_controls.handle_key(KEY_F4)
 	assert_bool(_driver.paused).is_true()
 	var tick: int = _driver.sim.tick
@@ -61,6 +62,7 @@ func test_f4_pauses_and_f5_steps_exactly_one_tick() -> void:
 
 func test_f5_does_nothing_while_the_game_runs() -> void:
 	_driver.paused = false
+	_controls.handle_key(KEY_F3)
 	var tick: int = _driver.sim.tick
 	_controls.handle_key(KEY_F5)
 	assert_int(_driver.sim.tick).is_equal(tick)
@@ -96,7 +98,37 @@ func test_other_keys_are_left_to_the_game() -> void:
 	assert_bool(_controls.handle_key(KEY_SPACE)).is_false()
 
 
+func test_the_stepper_keys_do_nothing_with_the_overlay_hidden() -> void:
+	# Task 5 review 2, M2: F4 with the overlay hidden froze the game with nothing on screen.
+	_driver.paused = false
+	assert_bool(_overlay.shown).is_false()
+	for key: Key in [KEY_F4, KEY_F5, KEY_F6]:
+		assert_bool(_controls.handle_key(key)).is_false()
+	assert_bool(_driver.paused).is_false()
+
+
+func test_hiding_the_overlay_resumes_play() -> void:
+	_driver.paused = false
+	_controls.handle_key(KEY_F3)
+	_controls.handle_key(KEY_F4)
+	assert_bool(_driver.paused).is_true()
+	_controls.handle_key(KEY_F3)
+	assert_bool(_overlay.shown).is_false()
+	assert_bool(_driver.paused).is_false()
+
+
+func test_a_pause_draws_the_tick_the_overlay_shows() -> void:
+	# Task 5 review 2, L1: at 144 Hz the views kept drawing a frame between ticks after F4, the
+	# player 9 u off the overlay's boxes until the first step.
+	_driver.paused = false
+	_driver.alpha = 0.083
+	_controls.handle_key(KEY_F3)
+	_controls.handle_key(KEY_F4)
+	assert_float(_driver.alpha).is_equal(1.0)
+
+
 func test_a_press_made_while_paused_lands_on_the_next_step() -> void:
+	_controls.handle_key(KEY_F3)
 	Input.action_press(InputLayer.ACTION_PREFIX + "jump")
 	_controls.handle_key(KEY_F5)
 	assert_bool(_driver.sim.input.latest().was_pressed(InputFrame.JUMP)).is_true()

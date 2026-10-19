@@ -1,8 +1,9 @@
 extends Node
 ## Boot scene: wires the input layer to the fixed-step driver, starts a session in the sandbox
 ## room, and attaches the views to the driver's ticks (the camera and the player step once per
-## tick and draw between ticks at the driver's interpolation factor). The F3 debug overlay and the
-## frame-stepper's keys (F4 pause, F5 step) are part of every build (docs/adr/0012).
+## tick and draw between ticks at the driver's interpolation factor). The F3 debug overlay and its
+## frame-stepper are part of every build: F3 overlay, F4 pause, F5 one tick, F6 ten
+## (docs/adr/0012).
 
 const LAST_REPLAY_PATH: String = "user://replays/last_session.wrp"
 ## The room the game boots into until zone 1 exists (Phase 1 task 7).

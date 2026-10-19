@@ -1,0 +1,13 @@
+fixture walk_up_two_lips
+doc docs/adr/0012, the drawn player and a corner-correction nudge (task 5 review 2, H1): a walk right up two 8 u lips 9 u apart, nudged on two ticks in a row. The collider steps up both on frames 12 and 13; the drawn player climbs them steadily (tests/unit/game/test_views.gd) where the old ease drew the whole second lip on its tick.
+room test/two_lips
+spawn 300 544
+frames 40
+input
+  0..39 R
+end
+expect
+  during 0..39 ground=1
+  at 12 nudge_y=-8u
+  at 13 nudge_y=-8u
+end

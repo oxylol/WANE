@@ -310,6 +310,7 @@ walk_up_ramp12_onto_lip_at_crest in:4fb2f1e7 content:0ee09c2d 60:9a950f4b 60:9a9
 walk_up_ramp45_onto_door_at_crest in:48389e4f content:7ef098d4 60:388fa07f 60:388fa07f
 walk_up_ramp45_onto_lip_far_past_crest in:6781536d content:f3817e74 60:1487984f 60:1487984f
 walk_up_ramp45_onto_lip_past_crest in:a66a185a content:b993bd83 60:077270d2 60:077270d2
+walk_up_two_lips in:0e9e4fc8 content:37c31219 40:7266b9e7
 wall_cling_budget_carries_to_other_wall in:96d7225d content:50113a02 200:bdeb4082 60:e64c7aa4 120:baf990b3 180:f1f55891
 wall_cling_buffered_jump in:717dec03 content:50113a02 40:d84b6724
 wall_cling_down_drops in:d753848c content:50113a02 60:1c929016 60:1c929016

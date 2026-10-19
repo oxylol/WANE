@@ -25,16 +25,17 @@ BUILD.md leaves open:
 
 **Keys** (`game/debug/debug_controls.gd`, keyboard only, on every build):
 - F3 shows and hides the overlay.
-- F4 pauses and resumes the simulation.
-- While paused, F5 steps exactly one tick and F6 steps ten.
+- With the overlay shown, F4 pauses and resumes the simulation, and while paused F5 steps exactly one tick and F6 steps ten. The stepper is part of the overlay: with it hidden F4 to F6 do nothing, and hiding it while paused resumes play. A stray F4 used to freeze the game with nothing on screen to say so (second review, M2).
+- A pause draws the tick it stopped on, the one the overlay's boxes show (the driver's interpolation factor goes to 1): at 144 Hz a pause mid-dash used to leave the grey box 9 u behind its boxes until the first step (second review, L1).
 - No debug key takes a modifier, and no game binding uses one of them (a test checks the bindings). Ten steps were Shift+F5 until the first review: Shift is the keyboard's dash, and held through the ten steps it dashed 190 u.
 - Stepping goes through `SimDriver.step_once`, the same path play uses. It polls the controller for that tick, records the tick in the replay, and fires the views' tick signal. A press made while paused is latched by the input layer and lands on the next step, exactly as a press between two ticks does in play.
 
 **Boxes** (`game/debug/debug_boxes.gd`):
 - player: the collider, the hurtbox, the live strike box, the live pogo box, the ember;
 - room: every enabled solid box with its tag;
-- hazards: the part of every spike tile in view that hurts (below the world's spike inset);
-- a mark where a pogo bounced, on the bounce's tick: the down-strike hands control back then, so its box is already gone on the frame the hit resolved.
+- hazards: the part of every spike tile in view that hurts (below the world's spike inset), and every pit tile;
+- a mark where a pogo bounced, on the bounce's tick: the down-strike hands control back then, so its box is already gone on the frame the hit resolved;
+- a mark of the hurtbox that touched a hazard, on the hazard's tick: the send-back has already moved the player to safe ground then, so the hurtbox drawn that tick touches nothing (second review, M1).
 - They are read from the latest tick, never interpolated. The overlay shows what the simulation resolved, so at 144 Hz the boxes step once per tick while the grey boxes glide.
 
 **Text** (`game/debug/debug_overlay.gd`) uses Godot's embedded default font at 18 px, already listed in docs/LICENSES.md for exactly this use, on 26 px lines (the font's height). It shows:
@@ -61,9 +62,10 @@ The overlay records the input history every tick even while hidden, so it is com
 
 **The drawn player and a corner-correction nudge** (`game/player/player_view.gd`). The simulation moves the collider by a whole nudge (a step up or down a lip, a lift onto a ledge's corner, a slide round a ceiling corner; up to 18 u) in one tick, and the overlay shows it on that tick. The drawn player does not hop:
 - On the tick of the nudge it moves only as it was moving anyway: it is drawn where the collider would have been without the nudge.
-- It then eases onto the collider over `nudge_ease_frames` (3, `content/player_view.tres`; feel log 2026-10-17 corner-correction ease), along a cubic that from rest is a smoothstep.
-- A nudge arriving during an ease adds to what is left and starts a new cubic from the speed the drawn player already has (a Hermite cubic), so a staircase of lips is followed, not stalled at each lip.
-- The offset never exceeds the largest single nudge of the run on either axis. Without the cap and the carried speed, the first version fell 64 u behind on a dashed staircase, then hopped 31 u (first review).
+- It then closes the gap with a catch-up speed that changes by at most a share of the run's nudge a tick (the largest nudge since it last met the collider), braking so it meets the collider at rest. From rest a nudge eases in exactly `nudge_ease_frames` (3, `content/player_view.tres`; feel log 2026-10-17 corner-correction ease) along a triangle of speeds: a quarter, a half and a quarter of the nudge (2, 4 and 2 u for an 8 u lip).
+- A nudge arriving during an ease adds to what is left, and the speed carries on from where it was, so a staircase of lips is climbed steadily, never stalled at each lip and never hopped.
+- The gap never exceeds `nudge_lag_percent` (200) of the run's nudge; past it the drawn player would move by the excess at once, but no fixture comes past it. The first version, with no cap and no carried speed, fell 64 u behind on a dashed staircase, then hopped 31 u (first review). The second capped the gap at the run's nudge by moving the drawn player itself, so a nudge arriving at the cap was drawn whole in its tick: a two-step stair walked showed the second lip as an 8 u hop, and a walked staircase hitched every few frames (second review, H1; feel log 2026-10-19 corner-correction ease on runs).
+- What it costs: up a staircase the drawn player falls further behind than one lip, up to 12 u on a walked 1:2 stair of 8 u lips and 48 u (a little more than Ash's height) for two frames on a 45-degree staircase dashed three lips a tick (director question).
 - Teleports and `begin` clear it.
 
 The simulation never sees this, so no hash moves.
@@ -80,6 +82,9 @@ The simulation never sees this, so no hash moves.
 | Draw the nudge as it happens (snap) | An 8 to 18 u hop in one tick is exactly what "the nudge is invisible" rules out |
 | Ease the nudge over 1 or 6 frames | 1 is the snap one tick late. 6 leaves the feet inside the floor, or over it, for five ticks (83 ms), long enough to read as a pose |
 | A critically damped spring for the ease | It follows staircases about as well, but never quite reaches the collider (an endless tail), where the cubic meets it on an exact frame that tests can check |
+| Cap the gap at the run's nudge by moving the drawn player (the second version) | A nudge arriving at the cap is drawn whole in its tick: the hop again, every few frames up a walked staircase |
+| A cap on the catch-up speed (0.625 of the nudge a tick) | It still changes speed at once, and up a dashed staircase it falls ever further behind: the collider climbs 64 u in three ticks there, the cap catches up at most 45 u |
+| A soft cap: the speed's limit growing with the gap past one nudge | Every version tried offline on the fixtures' nudges brought back a jolt where the limit grows (the speed changing by up to 0.7 of the nudge in a tick) for 12 to 16 u less lag on the dashed staircase |
 | Keep the drawn body out of solid ground | Clamping it out of the step it was nudged onto is the hop again |
 | Ease in the simulation | The collider must be where the physics put it, or the hitboxes would disagree with what the overlay shows; presentation stays out of `core/` |
 
@@ -90,7 +95,7 @@ The overlay is how every feel claim gets checked. A late input, an eaten cancel 
 ## Consequences
 
 - `tools/replay/film.gd --overlay on --zoom 3` films fixtures through the real views with the overlay on: the frame-stepped contact sheet the working method asks for, from task 5 on. It needs a display, or `xvfb-run` on a headless machine.
-- The overlay's collider (white) and the drawn player can differ for three ticks after a nudge, by no more than the largest nudge of the run; that is the ease, not a bug. The drawn body can overlap the step it was nudged onto for those ticks: a whole lip deep on a dashed staircase.
+- The overlay's collider (white) and the drawn player can differ while a nudge eases (three ticks after a lone nudge, a few more after a staircase), by no more than twice the largest nudge of the run; that is the ease, not a bug. The drawn body can overlap the step it was nudged onto meanwhile: more than a whole lip deep on a dashed staircase.
 - The keys are keyboard only, as BUILD.md's "F3" says; a pad chord waits for a need on the Deck.
 - Every new system adds its boxes and lines here: enemies, their attack boxes and parry windows in task 6.
 - The overlay is part of every build, so it must stay cheap. It draws only while shown, and the boxes come from one pass over the simulation's lists.

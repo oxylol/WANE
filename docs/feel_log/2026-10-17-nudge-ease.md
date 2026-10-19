@@ -1,5 +1,7 @@
 # 2026-10-17: Corner-correction ease, 6 frames to 3
 
+(The ease's rule for runs of nudges changed on 2026-10-19: see [corner-correction ease on runs](2026-10-19-nudge-ease-runs.md). This entry and its sheet record the 3-frame tuning with the earlier rule.)
+
 - Author: Claude
 - BUILD.md section and table row:
   - section 5, Ground, "Corner correction: Horizontal: 8 u nudge over ledge corners; vertical: 6 u nudge around ceiling corners";

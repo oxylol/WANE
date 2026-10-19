@@ -3,9 +3,10 @@ extends Node2D
 ## Grey-box Ash: the collider coloured by state with a mark on the facing side, and the ember
 ## when it is out. Drawn between the last two simulation ticks (BUILD.md section 13: "Rendering
 ## interpolates between the last two simulation states"). A corner-correction nudge is eased: on
-## its tick the drawn player keeps moving as it was, then catches up with the collider over
-## [member PlayerViewTuning.nudge_ease_frames] (BUILD.md section 15: "the corner-correction nudge
-## is invisible"). A placeholder until the rig (Phase 2); it reads the core and never writes it.
+## its tick the drawn player keeps moving as it was, then catches up with the collider, from rest
+## over [member PlayerViewTuning.nudge_ease_frames] (BUILD.md section 15: "the corner-correction
+## nudge is invisible"). A placeholder until the rig (Phase 2); it reads the core and never writes
+## it.
 
 const STATE_COLOURS: Dictionary[String, Color] = {
 	"ground": Color(0.35, 0.70, 1.00),
@@ -29,16 +30,14 @@ var _facing: int = 1
 var _invulnerable: bool = false
 var _alpha: float = 1.0
 ## Where the drawn player sits relative to the collider while a nudge eases (units), after the
-## tick before the latest and after the latest; the offset the ease started from, its speed then
-## (units per tick) and the ticks since.
+## tick before the latest and after the latest, and how fast it is closing that gap (units a
+## tick, on each axis).
 var _offset_before: Vector2 = Vector2.ZERO
 var _offset_after: Vector2 = Vector2.ZERO
-var _ease_from: Vector2 = Vector2.ZERO
-var _ease_speed: Vector2 = Vector2.ZERO
-var _ease_tick: int = 0
-## The largest nudge on each axis since the drawn player last met the collider: the offset never
-## exceeds it.
-var _ease_cap: Vector2 = Vector2.ZERO
+var _catch: Vector2 = Vector2.ZERO
+## The largest nudge on each axis since the drawn player last met the collider: the run's nudge,
+## which sets how hard it may catch up and how far it may fall behind.
+var _run: Vector2 = Vector2.ZERO
 
 
 ## Starts from [param sim]'s state with nothing to interpolate from.
@@ -81,56 +80,68 @@ func capture(sim: Simulation) -> void:
 func _stop_ease() -> void:
 	_offset_before = Vector2.ZERO
 	_offset_after = Vector2.ZERO
-	_ease_from = Vector2.ZERO
-	_ease_speed = Vector2.ZERO
-	_ease_cap = Vector2.ZERO
-	_ease_tick = tuning.nudge_ease_frames
+	_catch = Vector2.ZERO
+	_run = Vector2.ZERO
 
 
 ## Advances the ease by a tick; [param nudge] is this tick's corner correction, reversed (where
-## the collider was, from where it is). The offset eases to nothing along a cubic over
-## nudge_ease_frames: from rest it is a smoothstep; a nudge arriving while one eases adds to what
-## is left and starts a new cubic from the speed the drawn player already has, so a run of nudges
-## (a staircase of lips) is followed smoothly, never stalling at each one. The offset never
-## exceeds the largest single nudge of the run on either axis: up a staircase the drawn player
-## follows one lip behind at most rather than falling ever further back (task 5 review, H3).
+## the collider was, from where it is). Each axis closes its gap with a speed that changes by at
+## most a share of the run's nudge a tick (task 5 review 2, H1: an ease that moved the drawn
+## player by a whole lip in one tick showed a staircase as a hop every few frames), braking so it
+## meets the collider at rest:
+## - from rest a nudge eases along a triangle of speeds over nudge_ease_frames (an 8 u lip over 3
+##   frames: 2, 4 and 2 u), and on its own tick the drawn player moves only as it was moving;
+## - a nudge arriving during an ease adds to what is left, and the speed carries on from where it
+##   was, so up a staircase of lips the drawn player climbs steadily;
+## - it never falls more than nudge_lag_percent of the run's nudge behind (the lag the speed's
+##   limit alone would allow up a staircase dashed three lips a tick is twice the nudge).
 func _ease_nudge(nudge: Vector2) -> void:
 	_offset_before = _offset_after
-	var frames: int = tuning.nudge_ease_frames
-	if _ease_tick >= frames:
-		_ease_cap = Vector2.ZERO
-	_ease_tick = mini(_ease_tick + 1, frames)
-	var now: Vector2 = _eased(_ease_tick)
-	if nudge != Vector2.ZERO:
-		_ease_cap = _ease_cap.max(nudge.abs())
-		_ease_speed = _eased_speed(_ease_tick)
-		_ease_from = (now + nudge).clamp(-_ease_cap, _ease_cap)
-		_ease_tick = 0
-		now = _ease_from
-	_offset_after = now
+	var share: float = _accel_share(tuning.nudge_ease_frames)
+	var lag_max: float = float(tuning.nudge_lag_percent) / 100.0
+	for axis: int in [0, 1]:
+		var gap: float = _offset_after[axis]
+		var speed: float = _catch[axis]
+		if gap == 0.0:
+			speed = 0.0
+			_run[axis] = 0.0
+		var accel: float = _run[axis] * share
+		var want: float = signf(gap) * _braking_speed(absf(gap), accel)
+		speed = clampf(want, speed - accel, speed + accel)
+		if speed * gap > 0.0 and absf(speed) > absf(gap):
+			speed = gap
+		gap -= speed
+		if nudge[axis] != 0.0:
+			_run[axis] = maxf(_run[axis], absf(nudge[axis]))
+			gap += nudge[axis]
+		var bound: float = _run[axis] * lag_max
+		if absf(gap) > bound:
+			speed += gap - signf(gap) * bound
+			gap = signf(gap) * bound
+		_offset_after[axis] = gap
+		_catch[axis] = speed
 
 
-## The offset [param k] ticks into the current ease: the Hermite cubic from the start offset and
-## speed to nothing, at rest, at nudge_ease_frames.
-func _eased(k: int) -> Vector2:
-	var frames: int = tuning.nudge_ease_frames
-	if k >= frames:
-		return Vector2.ZERO
-	var t: float = float(k) / frames
-	var from: float = 2.0 * t * t * t - 3.0 * t * t + 1.0
-	var speed: float = t * t * t - 2.0 * t * t + t
-	return _ease_from * from + _ease_speed * (speed * frames)
+## The share of the run's nudge the catch-up speed may change by in a tick: from rest, a nudge
+## then eases in exactly [param frames] ticks along a triangle of speeds (for 3 frames 1, 2 and 1
+## quarters of it).
+static func _accel_share(frames: int) -> float:
+	var half: int = frames / 2
+	if frames % 2 == 1:
+		return 1.0 / float((half + 1) * (half + 1))
+	return 1.0 / float(half * (half + 1))
 
 
-## The offset's speed (units per tick) [param k] ticks into the current ease.
-func _eased_speed(k: int) -> Vector2:
-	var frames: int = tuning.nudge_ease_frames
-	if k >= frames:
-		return Vector2.ZERO
-	var t: float = float(k) / frames
-	var from: float = (6.0 * t * t - 6.0 * t) / frames
-	var speed: float = 3.0 * t * t - 4.0 * t + 1.0
-	return _ease_from * from + _ease_speed * speed
+## The fastest speed a gap of [param gap] can be closed at this tick and still be met at rest,
+## slowing by at most [param accel] a tick: after a step of v the speeds can fall no faster than
+## v - accel, v - 2 accel, ... to a last step of at most accel, so the gap must hold all of them.
+## With m such steps after this one the gap holds at most (m + 1) v - accel m (m + 1) / 2, which
+## sets v for the m that fits.
+static func _braking_speed(gap: float, accel: float) -> float:
+	if gap <= 0.0 or accel <= 0.0:
+		return 0.0
+	var m: int = ceili((sqrt(1.0 + 8.0 * gap / accel) - 1.0) * 0.5) - 1
+	return (gap + accel * m * (m + 1) * 0.5) / (m + 1)
 
 
 ## Draws at [param alpha] (0..1) between the last two ticks.

@@ -110,6 +110,25 @@ func test_a_bounce_is_marked_on_its_tick() -> void:
 	assert_str(marks[0].label).is_equal("bounce")
 
 
+func test_a_hazard_hit_marks_the_hurtbox_that_touched() -> void:
+	# Task 5 review 2, M1: the send-back moves the player to safe ground on the tick it touches the
+	# spikes, so the hurtbox drawn that tick never touched anything. The overlay marks the hurtbox
+	# where it touched, over the spikes' hazard box.
+	var sim: Simulation = _sim_at("res://tests/replay/camera/cam_hazard.fixture", 14)
+	assert_bool(sim.events.has(SimEvents.HAZARD)).is_true()
+	var boxes: Array[DebugBoxes.Box] = DebugBoxes.collect(sim, WIDE_VIEW)
+	var marks: Array[DebugBoxes.Box] = _of(boxes, DebugBoxes.CONTACT)
+	assert_int(marks.size()).is_equal(1)
+	assert_str(marks[0].label).is_equal("hazard hit")
+	var hurt: Rect2 = _of(boxes, DebugBoxes.HURTBOX)[0].rect
+	assert_vector(marks[0].rect.size).is_equal(hurt.size)
+	var touches: bool = false
+	for h: DebugBoxes.Box in _of(boxes, DebugBoxes.HAZARD):
+		touches = touches or h.rect.intersects(marks[0].rect)
+		assert_bool(h.rect.intersects(hurt)).is_false()
+	assert_bool(touches).is_true()
+
+
 func test_the_down_strike_names_its_one_box_once() -> void:
 	# Task 5 review, L14: its strike box is its pogo box; the labels printed over each other.
 	var sim: Simulation = _sim_at("res://tests/replay/tech/tech03_pogo_chain.fixture", 54)

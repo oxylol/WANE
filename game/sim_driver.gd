@@ -174,6 +174,15 @@ func _run_owed_ticks() -> void:
 		_accumulator = 0.0
 
 
+## Pauses or resumes the frame-stepper. Paused, the views draw the newest tick, the one the F3
+## overlay shows, not a frame between ticks (task 5 review 2, L1: at 144 Hz a pause mid-dash drew
+## the player 9 u behind its boxes until the first step).
+func set_paused(on: bool) -> void:
+	paused = on
+	if on:
+		alpha = 1.0
+
+
 ## Polls input and advances the simulation by exactly one tick.
 func step_once() -> void:
 	var frame: InputFrame = input_layer.poll() if input_layer != null else InputFrame.new()
