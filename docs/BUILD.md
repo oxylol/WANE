@@ -284,7 +284,7 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 | Tier | Hits | Effect |
 | --- | --- | --- |
 | Ember | 0 to 7 | Baseline |
-| Flame | 8 to 19 | +10% damage; hit sparks turn orange; Votive procs +10% chance |
+| Flame | 8 to 19 | +10% damage; hit sparks turn orange; Votive procs +10% chance (relative: 10% becomes 11%; docs/adr/0015) |
 | Blaze | 20 to 39 | +20% damage; attacks leave a 10 f fire trail that damages; finishers cause a small AoE |
 | White | 40+ | +30% damage; dash has no cooldown; every 10th hit is an automatic Charged strike; the screen's ambient light rises slightly |
 
@@ -326,9 +326,9 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 
 ### Item procs
 
-- Every Taper hit, pogo, spell tick and Dust scale is a **proc event** with a proc coefficient (Taper 1.0, pogo 0.8, Kindle 0.5 per tick, Dust 0.3 per scale, Radiance 0.2).
-- Votives listen for events. A 10% proc Votive on a 0.5-coefficient hit is a 5% chance. Stacking adds chance linearly to a cap of 100%, then adds extra rolls.
-- Proc chains are allowed (a proc can trigger another) to a depth of 3, then stop. This is what makes a late run look like fireworks without breaking the frame budget.
+- Every Taper hit, pogo, spell tick and Dust scale is a **proc event** with a proc coefficient (Taper 1.0, pogo 0.8, Kindle 0.5 per tick, Dust 0.3 per scale, Radiance 0.2). Kindle's cone is its first tick and each burn tick another; Radiance reaching an enemy is an event; a pogo off the world and the Blaze tier's fire are not (docs/adr/0015).
+- Votives listen for events. A 10% proc Votive on a 0.5-coefficient hit is a 5% chance. Stacking adds chance linearly to a cap of 100%, then adds extra rolls. The coefficient and the Flame tier's bonus scale the stacked chance, and the split past 100% comes last (docs/adr/0015).
+- Proc chains are allowed (a proc can trigger another) to a depth of 3, then stop. This is what makes a late run look like fireworks without breaking the frame budget. Procs resolve after the player's hits and before the enemies'; a proc's own hit is proc damage, with no hitstop, knockback, Kindling or Flame of its own, and its kill is a kill (docs/adr/0015).
 
 ### Enemy-side rules
 
@@ -439,6 +439,7 @@ Votives are stackable passive items: 120 at launch, four tiers, every one a proc
 - **Hyperbolic** for defensive stats (armor, damage reduction): `1 − 1 / (1 + 0.1 × stacks)`, so 10 stacks is 50%, never 100%.
 - **Diminishing** only where a hard cap would feel bad (cooldown reduction: each stack removes 15% of what remains).
 - A tooltip shows the live number with stacks counted. No hidden math.
+- All four are integers, exactly: chances in parts per million, the hyperbolic curve rounded down so it never reaches 100%, each diminishing removal rounded down (docs/adr/0015).
 
 ### Vessels (active items)
 

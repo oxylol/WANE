@@ -1,0 +1,12 @@
+fixture bell_fifteen_stacks_rolls_a_second
+doc BUILD.md s8 Stacking math: "at 15 stacks, every hit plus a 50% chance of a second" (docs/adr/0015: the chance over 100% is split, one sure proc and one PROCS draw for the rest). Seed 1's first draw is 20,548 of a million, under 500,000: the hit rings twice. Seed 2's (bell_fifteen_stacks_rings_once) is 850,925: once.
+seed 1
+room test/dummy
+option votive_bell_of_the_vigil 15
+frames 10
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 procs=2 proc.bell_of_the_vigil=2 proc_level=1
+end

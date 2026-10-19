@@ -1,0 +1,17 @@
+fixture coin_seed_1
+doc docs/adr/0015, determinism: every roll is a PROCS draw in a fixed order, so a run is a seed and its inputs. A test Votive that procs on every hit (a sure chance: the bus draws nothing) and then rolls a 50% coin of its own (one PROCS draw each) to stun the dummy for 10 frames. Three hits of the chain (frames 2, 9, 17): seed 1's coins fall tails, heads, tails; seed 2's (coin_seed_2) tails, tails, heads. On the finisher's tick the hit breaks the dummy's poise first, and a stun never shortens the stagger.
+seed 1
+room test/dummy
+option votive_test_coin 1
+frames 30
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 2 event.proc=1 event.stun=0 enemy.state=idle
+  at 9 event.proc=1 event.stun=1 enemy.state=stun
+  during 9..16 enemy.state=stun
+  at 17 event.proc=1 event.stun=0 enemy.state=stagger
+end

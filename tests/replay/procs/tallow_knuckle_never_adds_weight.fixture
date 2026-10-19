@@ -1,0 +1,11 @@
+fixture tallow_knuckle_never_adds_weight
+doc BUILD.md s1 pillar 2, "Items change what your hits do; they never change how your hits feel"; s6 Hit feedback, "damage above 30 adds 1 f of hitstop per 10 damage" (docs/adr/0015). Ten Knuckles make side 1 deal 10 + 30 = 40, which on its own would weigh 3 f; the hit keeps a light hit's 2 f, weighed by its own 10.
+room test/dummy
+option votive_tallow_knuckle 10
+frames 20
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=160 freeze=2 enemy.freeze=2
+end

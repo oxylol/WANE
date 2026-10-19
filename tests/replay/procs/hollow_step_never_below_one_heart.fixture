@@ -1,0 +1,10 @@
+fixture hollow_step_never_below_one_heart
+doc docs/adr/0015: the hearts Hollow Step takes stop at one (BUILD.md leaves the floor open; a Soot item that killed its carrier would be no wager). Nine stacks would take nine of five hearts; Ash keeps one.
+room test/flat
+option votive_hollow_step 9
+frames 2
+input
+end
+expect
+  at 0 hearts=1 max_hearts=1
+end

@@ -1,0 +1,15 @@
+fixture bell_rings_on_every_hit_at_ten_stacks
+doc BUILD.md s8 Stacking math, "A 10%-chance Lantern at 10 stacks procs every hit"; Bell of the Vigil, "10% chance on hit to ring, stunning everything in 120 u; stacks add chance" (docs/adr/0015: a sure chance draws no roll). Each hit of the chain rings once and stuns the dummy; the finisher's poise break staggers it.
+room test/dummy
+option votive_bell_of_the_vigil 10
+frames 30
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 2 event.hit=1 procs=1 proc.bell_of_the_vigil=1 event.stun=1 enemy.state=stun
+  at 9 event.hit=1 procs=1 event.stun=1 enemy.state=stun
+  at 17 event.hit=1 procs=1 event.stun=1 enemy.state=stagger
+end

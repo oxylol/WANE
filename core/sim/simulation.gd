@@ -11,7 +11,7 @@ const HASH_INTERVAL: int = 60
 ## Simulation version. Bump it in the same commit as any change that moves a golden hash
 ## (tools/replay/bless.gd refuses to re-bless otherwise), so old replays report "recorded by an
 ## older build" instead of a desync.
-const VERSION: int = 10
+const VERSION: int = 11
 
 ## Where a Wick's content lives: <root><wick>/movement.tres, kit.tres, taper.tres.
 const WICK_ROOT: String = "res://content/wicks/"
@@ -19,6 +19,8 @@ const WICK_ROOT: String = "res://content/wicks/"
 const ENEMY_ROOT: String = "res://content/enemies/"
 ## The room entity kinds that are enemies.
 const ENEMY_KINDS: Array[String] = ["dummy"]
+## A scenario option naming a Votive: "votive_<id>" with its stacks (docs/adr/0015).
+const VOTIVE_OPTION: String = "votive_"
 
 var scenario: Scenario
 ## Ticks completed. The input applied by the n-th call to [method step] is input frame n - 1,
@@ -43,6 +45,9 @@ var events: SimEvents = SimEvents.new()
 ## The combat rules, and the combat in this room: its enemies and effects (docs/adr/0013).
 var combat_params: CombatParams
 var combat: Combat
+## The run's Votives and the proc event bus (docs/adr/0015). A run starts with none; a scenario
+## gives them with "votive_<id>" options.
+var procs: ProcBus
 ## The input frame the latest tick consumed, exactly as given (the F3 overlay's input history
 ## reads it: during hitstop the ring folds presses together). Presentation only; never read by
 ## the simulation.
@@ -52,6 +57,8 @@ var last_input: InputFrame = InputFrame.new()
 var load_errors: PackedStringArray = PackedStringArray()
 
 var _world_tuning: WorldTuning
+## The Wick's movement as authored, recompiled when a Votive changes its run speed.
+var _movement: MovementTuning
 ## Every enemy kind's numbers, for the rooms this run can reach.
 var _enemy_defs: Dictionary[String, EnemyDef] = {}
 
@@ -90,7 +97,14 @@ func _init(p_scenario: Scenario) -> void:
 		combat_tuning = CombatTuning.new()
 	ContentHash.add_resource(content, combat_tuning)
 	combat_params = combat_tuning.compile()
-	combat = Combat.new(combat_params, events)
+	var proc_tuning: ProcTuning = _load_content(ProcTuning.PATH) as ProcTuning
+	if proc_tuning == null:
+		load_errors.append("missing proc tuning at %s" % ProcTuning.PATH)
+		proc_tuning = ProcTuning.new()
+	ContentHash.add_resource(content, proc_tuning)
+	procs = ProcBus.new(proc_tuning, events, rng.procs())
+	combat = Combat.new(combat_params, events, procs)
+	_load_votives(content)
 	player = _build_player(content)
 	_load_enemy_defs(content)
 	_build_enemies()
@@ -100,7 +114,48 @@ func _init(p_scenario: Scenario) -> void:
 		var sy: int = scenario.spawn_y if scenario.spawn_y >= 0 else room.spawn_y_u
 		player.spawn(Fx.units(sx), Fx.units(sy))
 		player.kindle_dash = scenario.option("kindle") != 0
+		player.procs = procs
+		_apply_run_mods()
 		_apply_vitals_options(player.vitals)
+
+
+## Gives the run [param count] stacks of [param votive] (a pickup, later; a scenario's Votives at
+## the start) and applies what its "run" trigger changes. False if it could not be given.
+func give_votive(votive: Votive, count: int) -> bool:
+	if not procs.give(votive, count):
+		return false
+	_apply_run_mods()
+	return true
+
+
+## The Votives a scenario names ("votive_<id>" options, with their stacks), in the order of their
+## option keys: that is their run order. Each Votive's resource and listener script join the
+## content fingerprint.
+func _load_votives(content: StateHasher) -> void:
+	for key: String in scenario.sorted_option_keys():
+		if not key.begins_with(VOTIVE_OPTION):
+			continue
+		var votive_id: String = key.trim_prefix(VOTIVE_OPTION)
+		var count: int = scenario.option(key)
+		var path: String = Votive.path_for(votive_id)
+		var votive: Votive = _load_content(path) as Votive
+		if votive == null:
+			load_errors.append("option %s: no Votive at %s" % [key, path])
+			continue
+		ContentHash.add_resource(content, votive)
+		if count < 1 or not procs.give(votive, count):
+			load_errors.append("option %s: cannot give %d stacks of %s" % [key, count, path])
+
+
+## What the run's "run" Votives change, applied to the Wick: its movement recompiled with the run
+## speed, the ground dash's cooldown, its maximum hearts (docs/adr/0015).
+func _apply_run_mods() -> void:
+	if player == null:
+		return
+	var mods: RunMods = procs.run_mods()
+	player.p = _movement.compile(mods.run_speed_permille)
+	player.dash_free = mods.dash_free
+	player.vitals.hearts.set_max(combat_params.hearts + mods.max_hearts_delta)
 
 
 ## Starting vitals a scenario may set (fixtures, and later modes): options "hearts", "flame" and
@@ -166,6 +221,7 @@ func _build_player(content: StateHasher) -> Player:
 	if movement == null or kit_tuning == null or taper == null:
 		load_errors.append("wick '%s' has incomplete content in %s" % [scenario.wick, dir])
 		return null
+	_movement = movement
 	return Player.new(movement.compile(), kit_tuning.compile(), taper, combat_params, world, events)
 
 
@@ -183,6 +239,7 @@ func _load_content(path: String) -> Resource:
 ## Advances the world by one tick with [param frame] as player one's input.
 func step(frame: InputFrame) -> void:
 	events.clear()
+	procs.begin_tick()
 	last_input = frame
 	if player != null and player.freeze > 0:
 		input.merge(frame)
@@ -268,6 +325,7 @@ func state_hash() -> int:
 	if player != null:
 		player.hash_into(h)
 	combat.hash_into(h)
+	procs.hash_into(h)
 	return h.value()
 
 
@@ -295,9 +353,17 @@ func probe(key: String) -> Variant:
 		"room":
 			# A fixture word: the room's id with its slashes as underscores.
 			value = room.id.replace("/", "_")
+		"procs":
+			value = procs.fired()
+		"proc_events":
+			value = procs.raised
+		"proc_level":
+			value = procs.deepest()
 		_:
 			if key.begins_with("enemy"):
 				return EnemyProbe.read(combat, key)
+			if key.begins_with("proc.") or key.begins_with("votive."):
+				return _probe_votive(key)
 			value = _probe_input(key)
 			if value == null and player != null:
 				value = PlayerProbe.read(player, events, key)
@@ -317,6 +383,18 @@ func probe_words(key: String) -> PackedStringArray:
 	if player == null:
 		return PackedStringArray()
 	return PlayerProbe.words(player, key)
+
+
+## "proc.<id>": the procs Votive <id> fired this tick; "votive.<id>": its stacks. Null for an id
+## that names no Votive file, so a misspelt id fails a fixture rather than reading 0.
+func _probe_votive(key: String) -> Variant:
+	var dot: int = key.find(".")
+	var votive_id: String = key.substr(dot + 1)
+	if not Votive.exists(votive_id):
+		return null
+	if key.begins_with("proc."):
+		return procs.fired(votive_id)
+	return procs.stacks_of(votive_id)
 
 
 func _probe_input(key: String) -> Variant:

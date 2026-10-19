@@ -1,0 +1,12 @@
+fixture tallow_knuckle_not_on_kindle
+doc docs/adr/0015: the Knuckle adds to the blade's hits, not a spell's. Kindle's cone deals its 30 (BUILD.md s6 Spells) with a Knuckle in hand, as in kindle_reaches_a_far_dummy.
+room test/dummy_far
+option flame 33
+option votive_tallow_knuckle 3
+frames 10
+input
+  0 spell
+end
+expect
+  at 4 event.hit=1 enemy.hp=170
+end

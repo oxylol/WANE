@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Votive" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/items/votive.gd" id="1"]
+[ext_resource type="Script" path="res://core/items/stacking_curve.gd" id="2"]
+[ext_resource type="Script" path="res://content/votives/hollow_step.gd" id="3"]
+
+[sub_resource type="Resource" id="curve"]
+script = ExtResource("2")
+kind = 0
+first_stack = 1
+per_stack = 1
+
+[resource]
+script = ExtResource("1")
+id = "hollow_step"
+display_name = "Hollow Step"
+tier = 4
+curve = SubResource("curve")
+unit = "count"
+listens_to = PackedStringArray("run")
+listener = ExtResource("3")
+params = Dictionary[String, int]({})
+hit_coefficient_permille = 0
+mechanical_line = "Your dash has no cooldown. Max hearts -{total}, never below one. -{per_stack} per stack."
+in_world_line = "I left the warm part of me on a stair somewhere above. I have not gone back for it. I do not remember the way."
+author = "the Hollow"

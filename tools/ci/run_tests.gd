@@ -31,6 +31,9 @@ const UNIT_MAX_ERRORS: int = 50
 const UNIT_TIME_LIMIT_SECONDS: int = 600
 ## A quiet run shows at most this many failures per stage and says how many it left out.
 const MAX_FAILURES_SHOWN: int = 12
+## The unit stage's limit in a run that is slow on purpose (--no-time-budget: the instrumented copy
+## runs several times slower, and the camera suites alone take over ten minutes in it).
+const SLOW_UNIT_TIME_LIMIT_SECONDS: int = 2400
 
 var _errors: ErrorCounter = ErrorCounter.new()
 var _time_budget: bool = true
@@ -344,6 +347,9 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 	var watch := UnitWatch.new()
 	watch.quiet = _quiet
 	var started_msec: int = Time.get_ticks_msec()
+	var unit_limit: int = _unit_time_limit
+	if not _time_budget:
+		unit_limit = maxi(unit_limit, SLOW_UNIT_TIME_LIMIT_SECONDS)
 	while true:
 		var running: bool = OS.is_process_running(pid)
 		var got: int = 0
@@ -358,8 +364,8 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 		var stop: String = ""
 		if watch.errors >= UNIT_MAX_ERRORS:
 			stop = "%d engine or script errors" % watch.errors
-		elif Time.get_ticks_msec() - started_msec > _unit_time_limit * 1000:
-			stop = "the %d s time limit" % _unit_time_limit
+		elif Time.get_ticks_msec() - started_msec > unit_limit * 1000:
+			stop = "the %d s time limit" % unit_limit
 		if stop != "":
 			OS.kill(pid)
 			_complain("  unit run stopped after %s" % stop)

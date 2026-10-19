@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ProcTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/items/proc_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+taper_permille = 1000
+pogo_permille = 800
+kindle_permille = 500
+dust_permille = 300
+radiance_permille = 200
+chain_depth = 3
+flame_tier_chance_permille = 100

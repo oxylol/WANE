@@ -1,0 +1,14 @@
+fixture bell_on_kindle_ticks_at_half_chance
+doc BUILD.md s6 Item procs: "A 10% proc Votive on a 0.5-coefficient hit is a 5% chance"; "Kindle 0.5 per tick" (docs/adr/0015: Kindle's cone is its first tick, each burn tick another). Ten Bells are a sure ring on a Taper hit but 50% on a Kindle tick. On seed 2 the cone's tick draws 850,925 of a million (no ring) and the first burn tick 387,794 (a ring).
+seed 2
+room test/dummy_far
+option flame 33
+option votive_bell_of_the_vigil 10
+frames 22
+input
+  0 spell
+end
+expect
+  at 4 event.hit=1 enemy.hp=170 proc_events=1 procs=0
+  at 19 event.hit=1 enemy.hp=168 proc_events=1 procs=1 event.stun=1
+end

@@ -1,0 +1,12 @@
+fixture bell_fifteen_stacks_rings_once
+doc The pair of bell_fifteen_stacks_rolls_a_second on seed 2, whose first PROCS draw (850,925 of a million) is over the 50% left after the sure proc: the hit rings once.
+seed 2
+room test/dummy
+option votive_bell_of_the_vigil 15
+frames 10
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 procs=1 proc.bell_of_the_vigil=1
+end

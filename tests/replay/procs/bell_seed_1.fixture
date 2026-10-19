@@ -1,0 +1,24 @@
+fixture bell_seed_1
+doc docs/adr/0015, determinism: a run is a seed and its inputs. Five Bells (50%) over six Taper hits (three side 1, side 2 pairs, the chain let go between them, with a short walk to stay in reach): one PROCS draw a hit, in order. Seed 1's draws ring on the first and the sixth hit; seed 2's (bell_seed_2) on the second and the sixth.
+seed 1
+room test/tough_dummy
+option votive_bell_of_the_vigil 5
+frames 120
+input
+  0 attack
+  7 attack
+  30..32 R
+  50 attack
+  57 attack
+  70..72 R
+  100 attack
+  107 attack
+end
+expect
+  at 2 event.hit=1 procs=1
+  at 9 event.hit=1 procs=0
+  at 52 event.hit=1 procs=0
+  at 59 event.hit=1 procs=0
+  at 102 event.hit=1 procs=0
+  at 109 event.hit=1 procs=1
+end

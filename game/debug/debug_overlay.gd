@@ -28,6 +28,7 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 	DebugBoxes.ENEMY_DEAD: Color(0.55, 0.5, 0.6, 0.55),
 	DebugBoxes.DOOR: Color(0.4, 1.0, 0.9, 0.7),
 	DebugBoxes.BURST: Color(1.0, 0.7, 0.2, 0.8),
+	DebugBoxes.PROC: Color(1.0, 0.85, 0.35, 1.0),
 }
 ## An enemy's box is a hairline: the enemy's telegraph cue outlines the same rectangle in white
 ## (EnemyView, 3 px), and a 2 px violet line over it read as lavender (task 6 review 2, L8).
@@ -36,6 +37,7 @@ const ENEMY_LINE_PX: float = 1.0
 const BOX_LINE_PX: float = 2.0
 ## Boxes that are filled as well as outlined (the ones that hit something).
 const FILLED: Array[int] = [
+	DebugBoxes.PROC,
 	DebugBoxes.STRIKE,
 	DebugBoxes.POGO,
 	DebugBoxes.HAZARD,
@@ -298,6 +300,36 @@ func _player_lines(sim: Simulation, pl: Player) -> PackedStringArray:
 		)
 	)
 	lines.append(_combat_line(sim, pl))
+	lines.append_array(proc_lines(sim))
+	return lines
+
+
+## The run's Votives with their stacks, and the procs that fired this tick (task 8,
+## docs/adr/0015): how many, from how many proc events, the deepest chain level, and by Votive.
+func proc_lines(sim: Simulation) -> PackedStringArray:
+	var bus: ProcBus = sim.procs
+	var held: PackedStringArray = []
+	for i: int in range(bus.votives.size()):
+		held.append("%s x%d" % [bus.votives[i].id, bus.stacks[i]])
+	var lines: PackedStringArray = [
+		"votives %s" % (", ".join(held) if not held.is_empty() else "none")
+	]
+	var fired: PackedStringArray = []
+	for i: int in range(bus.votives.size()):
+		var count: int = bus.fired_slots.count(i)
+		if count > 0:
+			fired.append("%s x%d" % [bus.votives[i].id, count])
+	lines.append(
+		(
+			"procs this tick %d from %d events, deepest L%d%s"
+			% [
+				bus.fired(),
+				bus.raised,
+				bus.deepest(),
+				(": " + ", ".join(fired)) if not fired.is_empty() else ""
+			]
+		)
+	)
 	return lines
 
 

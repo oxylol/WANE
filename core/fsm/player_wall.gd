@@ -7,7 +7,8 @@ extends RefCounted
 
 
 ## Starts a cling on [param side]. The first cling since a landing, wall-jump or pogo restores the
-## air jump and air dash (BUILD.md: "resets on wall-cling") and starts a fresh 90 f slide; a
+## air jump and air dash (BUILD.md: "resets on wall-cling"; never taking away air dashes a Votive
+## granted beyond the Wick's own: docs/adr/0015) and starts a fresh 90 f slide; a
 ## re-grip continues the slide it interrupted. Every cling clears the ground dash cooldown
 ## ("resets on landing or wall-cling"). A jump pressed before the cling fires on the cling frame,
 ## as one pressed before landing does.
@@ -21,7 +22,7 @@ static func cling(pl: Player, side: int, ring: InputRing) -> void:
 		pl.wall_fresh = false
 		pl.wall_frames = 0
 		pl.air_jumps_left = p.air_jumps
-		pl.air_dashes_left = p.air_dashes
+		pl.air_dashes_left = maxi(pl.air_dashes_left, p.air_dashes)
 	pl.ground_dash_cooldown = 0
 	pl.body.vx = 0
 	pl.body.vy = mini(pl.body.vy, p.wall_slide_speed)
@@ -41,7 +42,8 @@ static func cling(pl: Player, side: int, ring: InputRing) -> void:
 
 
 ## Holding away is a wall-jump, which restores the air jump and air dash (BUILD.md: "Resets double
-## jump and air dash") and makes the next cling fresh. Anything else is a kick: a fixed kick, like
+## jump and air dash"; as a cling does, never taking a Votive's extra air dashes away) and makes the
+## next cling fresh. Anything else is a kick: a fixed kick, like
 ## the pogo's bounce (no early-release cut, no apex hang), that restores nothing (its row lists no
 ## reset). So a climb is one full kick per apex however the button is pressed: timed kicks and
 ## mashing climb at the same rate (docs/adr/0010).
@@ -53,7 +55,7 @@ static func jump_off(pl: Player, side: int, dx: int) -> void:
 		pl.body.vx = away * p.wall_jump_away
 		pl.wall_lock = p.wall_jump_lock
 		pl.air_jumps_left = p.air_jumps
-		pl.air_dashes_left = p.air_dashes
+		pl.air_dashes_left = maxi(pl.air_dashes_left, p.air_dashes)
 		refresh(pl)
 	else:
 		pl.start_jump(p.wall_kick_up, SimEvents.WALL_KICK)

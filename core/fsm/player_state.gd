@@ -74,6 +74,7 @@ static func hash_into(pl: Player, h: StateHasher) -> void:
 		pl.wall_fresh,
 		pl.radiance_burst,
 		pl.charge_broken,
+		pl.dash_free,
 	]:
 		h.add_bool(b)
 	h.add_string(pl.chain_next)

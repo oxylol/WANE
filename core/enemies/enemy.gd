@@ -8,9 +8,12 @@ extends RefCounted
 ## An attack runs telegraph, active, recovery ([EnemyAttack]); its hitbox is live on the active
 ## frames and the first of them is the tick the hit lands, which is what a parry is timed against.
 
-enum { IDLE, TELEGRAPH, STRIKE, RECOVER, STAGGER, DEAD }
+## STUN is a stagger that poise did not cause: a Votive's stun (docs/adr/0015).
+enum { IDLE, TELEGRAPH, STRIKE, RECOVER, STAGGER, DEAD, STUN }
 
-const STATE_NAMES: Array[String] = ["idle", "telegraph", "strike", "recover", "stagger", "dead"]
+const STATE_NAMES: Array[String] = [
+	"idle", "telegraph", "strike", "recover", "stagger", "dead", "stun"
+]
 
 var def: EnemyDef
 var params: CombatParams
@@ -106,7 +109,7 @@ func step(player: Player) -> void:
 			if state == DEAD:
 				_move()
 			return
-		STAGGER:
+		STAGGER, STUN:
 			_stagger_left -= 1
 			if _stagger_left <= 0:
 				_set_state(IDLE)
@@ -246,6 +249,22 @@ func stagger(frames: int) -> void:
 	cue_sent = false
 	_stagger_left = frames
 	_set_state(STAGGER)
+
+
+## Stunned for [param frames] (a Votive's stun; docs/adr/0015): as a stagger, the attack under way
+## is lost (a telegraph past its cue too, as a poise break loses it) and the enemy does nothing but
+## carry its momentum until it ends; poise is untouched. A stun never shortens a stagger or a stun
+## already running: the longer of the two holds. The dead are not stunned.
+func stun(frames: int) -> void:
+	if not is_alive() or frames <= 0:
+		return
+	if state == STAGGER or state == STUN:
+		_stagger_left = maxi(_stagger_left, frames)
+		return
+	attack = null
+	cue_sent = false
+	_stagger_left = frames
+	_set_state(STUN)
 
 
 ## Kind behaviour while idle: face, decide to attack. The base enemy just stands.

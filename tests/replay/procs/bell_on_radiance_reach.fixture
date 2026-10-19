@@ -1,0 +1,14 @@
+fixture bell_on_radiance_reach
+doc BUILD.md s6 Item procs, "Radiance 0.2" (docs/adr/0015: Radiance reaching an enemy is a proc event, though it deals no damage). Fifty Bells are 500% x 0.2 = a sure ring: Radiance's burst reaches both dummies, each reach rings, and each ring stuns both.
+room test/dummy_pair
+option flame 66
+option kindling 20
+option votive_bell_of_the_vigil 50
+frames 12
+input
+  0 D spell
+end
+expect
+  at 5 event.radiance=0 procs=0
+  at 6 event.radiance=1 proc_events=2 procs=2 enemy0.state=stun enemy1.state=stun
+end

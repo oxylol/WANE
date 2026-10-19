@@ -6,6 +6,13 @@ extends Node
 ## budget manager and sounds through the voice priority system (CLAUDE.md rule 7). Hitstop and
 ## knockback are the simulation's; this only shows them. Randomness here (spark variants, the
 ## +-3% pitch) never reaches the simulation.
+##
+## A Votive's proc shows as its look ([ProcLooks]) at [constant VfxBudget.PROC] priority, below
+## every hit, burn and telegraph (docs/adr/0015). A proc on the point a hit landed this tick is
+## part of that hit's feedback: it joins the hit's group, so the hit's own spark never refuses it,
+## and each Votive shows once per hit however many times it fired there; anywhere else (a chain's
+## arc to another enemy, Radiance's reach, a bounce) it takes its cell only if nothing more
+## important holds it. A proc's damage shows by its proc's mark, never a hit spark.
 
 ## Asks the driver to run at [param scale] of real time for [param ticks] ticks.
 signal slow_motion(scale: float, ticks: int)
@@ -18,6 +25,7 @@ const SPARK_TINTS: Array[Color] = [
 ]
 
 var tuning: FeedbackTuning
+var looks: ProcLooks
 var shake: ScreenShake
 var vfx: VfxBudget
 var voices: Voices
@@ -41,10 +49,15 @@ var _group: int = 0
 ## feedback; a burn ranks below it (a burn tick, a Blaze trail or the AoE never displaces a
 ## Taper spark).
 var _group_priority: int = VfxBudget.PLAYER
+## This tick: the group of the hit at each point (sub-pixels), and the procs already shown in each
+## group (by group and Votive slot).
+var _hit_groups: Dictionary[Vector2i, int] = {}
+var _procs_shown: Dictionary[Vector2i, bool] = {}
 
 
-func _init(p_tuning: FeedbackTuning = null) -> void:
+func _init(p_tuning: FeedbackTuning = null, p_looks: ProcLooks = null) -> void:
 	tuning = p_tuning if p_tuning != null else load(FeedbackTuning.PATH) as FeedbackTuning
+	looks = p_looks if p_looks != null else load(ProcLooks.PATH) as ProcLooks
 	shake = ScreenShake.new(tuning)
 	flash_scale = tuning.flash_default_scale
 
@@ -73,12 +86,19 @@ func on_tick(sim: Simulation) -> void:
 	if sim.player != null:
 		var b: Body = sim.player.body
 		_origin = Vector2(float(b.x), float(b.y - b.height / 2)) / Fx.SUB
+	_hit_groups.clear()
+	_procs_shown.clear()
 	var e: SimEvents = sim.events
 	for i: int in range(e.count()):
 		var at := Vector2(float(e.xs[i]) / Fx.SUB, float(e.ys[i]) / Fx.SUB)
 		match e.kinds[i]:
 			SimEvents.HIT:
+				if HitKind.kind_of(e.values[i]) == HitKind.PROC:
+					continue
 				_on_hit(at, e.values[i])
+				_hit_groups[Vector2i(e.xs[i], e.ys[i])] = _group
+			SimEvents.PROC:
+				_on_proc(sim, Vector2i(e.xs[i], e.ys[i]), e.values[i])
 			SimEvents.KILL:
 				_on_kill(at, e.values[i])
 			SimEvents.PARRY:
@@ -141,6 +161,35 @@ func _on_hit(at: Vector2, value: int) -> void:
 			_split()
 			_play("thump", at, Voices.HIT)
 	_play("hit", at, Voices.HIT, variant)
+
+
+## A Votive's proc: its look's mark, in the group of the hit at its point if there is one (once
+## per Votive per hit), else on its own at [constant VfxBudget.PROC] priority.
+func _on_proc(sim: Simulation, point: Vector2i, value: int) -> void:
+	if vfx == null:
+		return
+	var slot: int = value % ProcBus.LEVEL_SHIFT
+	if slot >= sim.procs.votives.size():
+		return
+	var group: int = _hit_groups.get(point, 0)
+	if group != 0:
+		var key := Vector2i(group, slot)
+		if _procs_shown.has(key):
+			return
+		_procs_shown[key] = true
+	var look: ProcLook = looks.look_for(sim.procs.votives[slot].id, slot)
+	var at := Vector2(point) / Fx.SUB
+	vfx.spawn(
+		VfxBudget.PROC_MARK,
+		VfxBudget.PROC,
+		at,
+		Vector2.UP,
+		look.shape,
+		float(look.size_u),
+		look.colour,
+		group,
+		look.frames
+	)
 
 
 func _on_kill(at: Vector2, value: int) -> void:

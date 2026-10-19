@@ -1,0 +1,16 @@
+fixture stress_burst_fires_thirty_nine
+doc BUILD.md s13 Testing and CI, "a stress room (200 enemies, 40 procs, Pitch lighting)"; s6 Item procs, chains "to a depth of 3, then stop" (docs/adr/0015). The stress set: three test Votives at a sure chance whose procs arc to the nearest other enemy within 160 u for 1 damage. One Taper hit on the near dummy fires 3 procs at level 1 (each hitting the far dummy), 9 at level 2 (each back on the near one) and 27 at level 3 (on the far one), 39 in all from 40 proc events, on the hit's tick. The far dummy's 30 points of proc damage break its poise (30): proc damage takes poise.
+room test/dummy_pair
+option votive_test_stress_arc_a 1
+option votive_test_stress_arc_b 1
+option votive_test_stress_arc_c 1
+frames 20
+input
+  0 attack
+end
+expect
+  at 1 procs=0 proc_events=0
+  at 2 procs=39 proc_events=40 proc_level=3 proc.test_stress_arc_a=13 proc.test_stress_arc_b=13 proc.test_stress_arc_c=13
+  at 2 enemy0.hp=181 enemy1.hp=170 enemy1.state=stagger enemy0.state=idle freeze=2 kindling=1 flame=11
+  never 3..19 procs>0
+end

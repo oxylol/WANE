@@ -1,0 +1,14 @@
+fixture a_kill_by_a_proc_is_a_kill
+doc docs/adr/0015, what a proc's hit is: proc damage, not a Taper hit. On the 12-health dummy the Taper hit leaves 2; the chain spark's level-1 proc takes 1 and its level-2 proc kills. A kill by a proc is a kill (BUILD.md s7, "Every kill releases an ember"; s6 Kill, 3 f): an ember flies, and both stop for the Kill row's 3 frames; the procs added no Kindling and no Flame of their own (one hit, 11 Flame). The level-3 proc still fires, on a dead enemy, and its hit lands nowhere: no fourth event.
+room test/dummy_twelve
+option votive_test_chain_spark 10
+frames 30
+input
+  0 attack
+end
+expect
+  at 2 event.kill=1 procs=3 proc_level=3 proc_events=3 enemy.hp=0 enemy.state=dead
+  at 2 embers=1 freeze=3 enemy.freeze=3 kindling=1 flame=11
+  mark home 3..25 event.ember_home=1
+  at home flame=22
+end

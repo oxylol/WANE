@@ -55,6 +55,12 @@ const HEAL: String = "heal"
 ## The attack has been held long enough for the Charged strike, and the hold let go to ask for it.
 const CHARGE_READY: String = "charge_ready"
 const CHARGE_RELEASE: String = "charge_release"
+## A Votive's proc fired (docs/adr/0015), where its event was (a bounce's at the player's centre):
+## the value is the Votive's slot in the run ([member ProcBus.votives]) plus
+## [constant ProcBus.LEVEL_SHIFT] times the proc's chain level.
+const PROC: String = "proc"
+## An enemy was stunned (the value is its index in [member Combat.enemies]).
+const STUN: String = "stun"
 
 var kinds: Array[String] = []
 var xs: Array[int] = []

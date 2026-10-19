@@ -28,23 +28,28 @@ static func seeded(seed_value: int, stream_id: int = 0) -> Rng:
 	return r
 
 
-## Next raw 32-bit value in [0, 2^32).
+## Next raw 32-bit value in [0, 2^32). The state words are below 2^32, so x5, x9 and the rotations'
+## shifts stay well inside 64 bits: plain integer maths with a mask is exactly the generator's
+## modulo-2^32 arithmetic, without a function call per operation (the proc bus draws here on every
+## chance it rolls: docs/adr/0015). test_rng.gd pins the outputs.
 func next_u32() -> int:
-	var result: int = Fx.mul32(Fx.rotl32(Fx.mul32(_s1, 5), 7), 9)
+	var x: int = (_s1 * 5) & Fx.MASK32
+	x = ((x << 7) | (x >> 25)) & Fx.MASK32
+	var result: int = (x * 9) & Fx.MASK32
 	var t: int = (_s1 << 9) & Fx.MASK32
 	_s2 ^= _s0
 	_s3 ^= _s1
 	_s1 ^= _s2
 	_s0 ^= _s3
 	_s2 ^= t
-	_s3 = Fx.rotl32(_s3, 11)
+	_s3 = ((_s3 << 11) | (_s3 >> 21)) & Fx.MASK32
 	return result
 
 
 ## Uniform integer in [0, n). Unbiased (rejection sampling). [param n] must be in [1, 2^32];
 ## larger spans are a programming error.
 func below(n: int) -> int:
-	assert(n <= 0x100000000, "Rng.below: span %d exceeds 2^32" % n)
+	assert(n <= 0x100000000, "Rng.below: the span exceeds 2^32")
 	if n <= 1 or n > 0x100000000:
 		return 0
 	var limit: int = (0x100000000 / n) * n

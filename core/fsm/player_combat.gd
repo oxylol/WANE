@@ -6,10 +6,11 @@ extends RefCounted
 
 
 ## Before the player's actions each tick: the Charged strike's hold is read, and at Kindling White
-## the ground dash has no cooldown ("dash has no cooldown").
+## the ground dash has no cooldown ("dash has no cooldown"), nor with a Votive that takes it away
+## ([member Player.dash_free]: Hollow Step, docs/adr/0015).
 static func before_actions(pl: Player, ring: InputRing) -> void:
 	_track_charge(pl, ring)
-	if pl.vitals.kindling.tier() >= Kindling.WHITE:
+	if pl.vitals.kindling.tier() >= Kindling.WHITE or pl.dash_free:
 		pl.ground_dash_cooldown = 0
 
 

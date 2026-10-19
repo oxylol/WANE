@@ -1,0 +1,13 @@
+fixture bell_flame_tier_adds_a_tenth
+doc BUILD.md s6 Kindling, Flame tier: "Votive procs +10% chance", relative (docs/adr/0015: 90% becomes 99%). Nine Bells on a Taper hit: on seed 7 the draw is 982,532 of a million, over 90% but under 99%. At Kindling 8 (Flame) the hit rings; at 7 (Ember) it does not (bell_flame_tier_control).
+seed 7
+room test/dummy
+option votive_bell_of_the_vigil 9
+option kindling 8
+frames 10
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 procs=1 event.stun=1
+end

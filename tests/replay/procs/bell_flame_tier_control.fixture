@@ -1,0 +1,13 @@
+fixture bell_flame_tier_control
+doc Control for bell_flame_tier_adds_a_tenth: the same seed and draw at Kindling 7, the Ember tier, where nine Bells are 90% and the draw (982,532) misses.
+seed 7
+room test/dummy
+option votive_bell_of_the_vigil 9
+option kindling 7
+frames 10
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 procs=0 event.stun=0 proc_events=1
+end

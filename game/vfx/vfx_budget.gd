@@ -22,17 +22,19 @@ extends Node2D
 ## telegraph stays readable under 30 Votives (section 15).
 ##
 ## Phase 1 draws grey-box shapes: sparks are short strokes, bursts are rings, smears are arcs,
-## embers are dots, Radiance's ring is a wide arc. Effects age once per simulation tick, before the
-## tick's new effects are born (see [method HitFeedback.on_tick]), so each is drawn from age 0.
+## embers are dots, Radiance's ring is a wide arc, and a Votive's proc is its look's shape
+## ([ProcLook]: under ten frames, at [constant PROC] priority, so a hit or a telegraph always wins
+## its cell; docs/adr/0015). Effects age once per simulation tick, before the tick's new effects
+## are born (see [method HitFeedback.on_tick]), so each is drawn from age 0.
 
-enum { SPARK, BURST, SMEAR, EMBER, TELEGRAPH, RING }
+enum { SPARK, BURST, SMEAR, EMBER, TELEGRAPH, RING, PROC_MARK }
 ## Priorities, low to high. SPELL is Radiance's burst and ring, which must show whatever spark
 ## the cell holds.
 enum { AMBIENT, PROC, BURN, HIT, TELEGRAPH_PRIORITY, PLAYER, SPELL }
 ## Screen-space effects: the white flash and the chromatic split are bright; the vignette is not.
 enum { SCREEN_FLASH, SCREEN_SPLIT, SCREEN_VIGNETTE }
 
-const BRIGHT: Array[int] = [SPARK, BURST, SMEAR, RING]
+const BRIGHT: Array[int] = [SPARK, BURST, SMEAR, RING, PROC_MARK]
 const SCREEN_BRIGHT: Array[int] = [SCREEN_FLASH, SCREEN_SPLIT]
 const COLOURS: Dictionary[int, Color] = {
 	SPARK: Color(1.0, 0.95, 0.8),
@@ -41,6 +43,7 @@ const COLOURS: Dictionary[int, Color] = {
 	EMBER: Color(1.0, 0.55, 0.15),
 	TELEGRAPH: Color(1.0, 1.0, 1.0),
 	RING: Color(1.0, 0.95, 0.8),
+	PROC_MARK: Color(1.0, 1.0, 1.0),
 }
 ## Half the angle a smear's arc sweeps, in radians.
 const SMEAR_HALF_ANGLE: float = 1.1
@@ -82,8 +85,9 @@ func _init(p_tuning: FeedbackTuning = null) -> void:
 	tuning = p_tuning if p_tuning != null else load(FeedbackTuning.PATH) as FeedbackTuning
 
 
-## Spawns an effect, in [param tint] if one is given (its alpha above 0) or the kind's colour;
-## false if the budget refused it. Effects of the same non-zero [param group] share their cell.
+## Spawns an effect, in [param tint] if one is given (its alpha above 0) or the kind's colour, for
+## [param life] ticks if given (above 0) or the kind's lifetime; false if the budget refused it.
+## Effects of the same non-zero [param group] share their cell.
 func spawn(
 	kind: int,
 	priority: int,
@@ -92,7 +96,8 @@ func spawn(
 	variant: int = 0,
 	size: float = 1.0,
 	tint: Color = Color(0, 0, 0, 0),
-	group: int = 0
+	group: int = 0,
+	life: int = 0
 ) -> bool:
 	var cell := Vector2i((at / float(tuning.vfx_cell_u)).floor())
 	var shares: bool = false
@@ -120,7 +125,7 @@ func spawn(
 	e.dir = dir.normalized() if dir != Vector2.ZERO else Vector2.RIGHT
 	e.variant = variant
 	e.colour = tint if tint.a > 0.0 else COLOURS[kind]
-	e.life = lifetime(kind)
+	e.life = life if life > 0 else lifetime(kind)
 	e.size = size
 	e.born = _tick
 	e.group = group
@@ -172,6 +177,8 @@ func lifetime(kind: int) -> int:
 			return tuning.vfx_smear_frames
 		RING:
 			return tuning.radiance_ring_frames
+		PROC_MARK:
+			return ProcLook.MAX_FRAMES
 	return MARK_FRAMES
 
 
@@ -249,6 +256,60 @@ func _draw() -> void:
 				draw_rect(Rect2(e.at - Vector2(4, 4), Vector2(8, 8)), c)
 			RING:
 				draw_arc(e.at, tuning.radiance_ring_radius_u * t, 0.0, TAU, 64, c, 6.0)
+			PROC_MARK:
+				_draw_proc(e, t, c)
+
+
+## A proc's mark ([ProcLook.Shape] in [member Effect.variant]), [member Effect.size] units across
+## at full size: it springs out over its first third and fades as it holds.
+func _draw_proc(e: Effect, t: float, c: Color) -> void:
+	var r: float = e.size * minf(1.0, 0.4 + 1.8 * t)
+	var w: float = 3.0
+	match e.variant:
+		ProcLook.Shape.RING:
+			draw_arc(e.at, r, 0.0, TAU, 48, c, w)
+		ProcLook.Shape.CROSS:
+			draw_line(e.at - Vector2(r, 0), e.at + Vector2(r, 0), c, w)
+			draw_line(e.at - Vector2(0, r), e.at + Vector2(0, r), c, w)
+		ProcLook.Shape.DIAMOND:
+			_draw_polygon_line(e.at, r, 4, 0.0, c, w)
+		ProcLook.Shape.SPOKES:
+			for k: int in range(6):
+				var d := Vector2.from_angle(TAU * k / 6.0)
+				draw_line(e.at + d * r * 0.4, e.at + d * r, c, w)
+		ProcLook.Shape.SQUARE:
+			_draw_polygon_line(e.at, r, 4, PI / 4.0, c, w)
+		ProcLook.Shape.TRIANGLE:
+			_draw_polygon_line(e.at, r, 3, -PI / 2.0, c, w)
+		ProcLook.Shape.CHEVRON:
+			var up := Vector2(0, -r * 0.5)
+			for k: int in range(2):
+				var o := Vector2(0, r * 0.5 * k)
+				draw_polyline(
+					PackedVector2Array(
+						[
+							e.at + o + Vector2(-r, r * 0.5),
+							e.at + o + up,
+							e.at + o + Vector2(r, r * 0.5)
+						]
+					),
+					c,
+					w
+				)
+		_:
+			_draw_polygon_line(e.at, r, 10, -PI / 2.0, c, w, 0.45)
+
+
+## A closed outline of [param n] points round [param at], [param r] out, turned [param turn]; with
+## [param inner] below 1 every other point is pulled in to that share of [param r] (a star).
+func _draw_polygon_line(
+	at: Vector2, r: float, n: int, turn: float, c: Color, w: float, inner: float = 1.0
+) -> void:
+	var pts := PackedVector2Array()
+	for k: int in range(n + 1):
+		var reach: float = r if k % 2 == 0 else r * inner
+		pts.append(at + Vector2.from_angle(turn + TAU * k / float(n)) * reach)
+	draw_polyline(pts, c, w)
 
 
 ## Three stroke patterns, fanned around the hit direction.

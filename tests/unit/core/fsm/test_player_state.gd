@@ -5,8 +5,10 @@ extends GdUnitTestSuite
 
 ## Fields that are not state: the compiled tuning and the strikes looked up in it, the shared
 ## world and event list, and the components hashed on their own (the body, the ember toss and the
-## vitals: the vitals' own audit is tests/unit/core/combat/test_combat_hash.gd).
+## vitals: the vitals' own audit is tests/unit/core/combat/test_combat_hash.gd; the run's Votives,
+## tests/unit/core/items/test_proc_bus.gd).
 const NOT_STATE: Array[String] = [
+	"procs",
 	"p",
 	"kit",
 	"combat",

@@ -1,0 +1,13 @@
+fixture tallow_knuckle_on_the_pogo
+doc BUILD.md s8, Tallow Knuckle's "hits": the blade's, the Taper's strikes and the pogo (the down-strike's bounce off an enemy is a hit with it; docs/adr/0015). Ash drops onto the dummy with the down-strike: 10 + 3, and the pogo's 8 Flame.
+room test/dummy_pogo
+spawn 300 460
+option votive_tallow_knuckle 1
+frames 20
+input
+  0 D attack
+end
+expect
+  mark bounce 0..12 event.pogo=1
+  at bounce event.hit=1 enemy.hp=187 flame=8
+end

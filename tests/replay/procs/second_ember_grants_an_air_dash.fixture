@@ -1,0 +1,17 @@
+fixture second_ember_grants_an_air_dash
+doc BUILD.md s8 Tiers, Second Ember: "pogo bounces grant 1 extra air dash per stack" (content/votives/second_ember.tres; docs/adr/0015). Ash drops onto the dummy with the down-strike: the bounce leaves two air dashes, its proc shows, and both are dashed. Control: second_ember_control.
+room test/dummy_pogo
+spawn 300 460
+option votive_second_ember 1
+frames 60
+input
+  0 D attack
+  20 R dash
+  33 R dash
+end
+expect
+  mark bounce 0..12 event.pogo=1
+  at bounce air_dashes=2 event.proc=1 proc.second_ember=1
+  at 20 event.dash=1 air_dashes=1
+  at 33 event.dash=1 air_dashes=0
+end

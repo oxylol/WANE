@@ -1,0 +1,15 @@
+fixture pilgrims_wick_in_the_air
+doc docs/adr/0015, what run speed covers: the most Ash runs at in the air too (air control's "0 to max in 8 f", BUILD.md s5 Jump). A jump from a full run keeps 2488 sub-pixels a tick through the air and on landing.
+room test/flat
+option votive_pilgrims_wick 1
+frames 60
+input
+  0..9 R
+  10 R jump
+  11..59 R
+end
+expect
+  at 10 event.jump=1
+  during 10..59 vx=2488
+  mark land 11..59 event.land=1
+end

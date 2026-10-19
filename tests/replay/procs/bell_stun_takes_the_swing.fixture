@@ -1,0 +1,15 @@
+fixture bell_stun_takes_the_swing
+doc BUILD.md s8, Bell of the Vigil's stun (docs/adr/0015: a stun is a stagger poise did not cause; the Bell's is 30 frames, content). The dummy's swing telegraphs from frame 29 to land on 53 (dummy_swing). A strike on frame 40 lands on 42 and rings: the dummy is stunned, its swing is gone, and nothing hits Ash. Procs resolve with the player's hits, before the enemies'. The stun is 30 frames counted after the enemy's own 2 f of hitstop: it holds from 42 to 73 and the dummy is idle on 74. Control: bell_stun_takes_the_swing_control.
+room test/dummy_swing
+option votive_bell_of_the_vigil 10
+frames 90
+input
+  40 attack
+end
+expect
+  at 29 event.telegraph=1
+  at 42 event.hit=1 event.proc=1 event.stun=1 enemy.state=stun
+  during 42..73 enemy.state=stun
+  at 74 enemy.state=idle
+  never 42..89 event.player_hit=1
+end
