@@ -16,16 +16,16 @@ air_dash_rides_ramp_onto_crest_lip in:0b614694 content:64198084 48:6ee8cc1b
 air_dash_up_1to2_ramp_rows in:9dbf04ff content:eb4c4a26 30:736d193c
 air_dash_up_45_ramp_rows in:83f183f4 content:aa6ebd24 24:c8945ed5
 air_reverse_keeps_momentum in:86adfe4f content:faf53041 40:1b20d54c
-bell_fifteen_stacks_rings_once in:0d33d74a content:97ed6005 10:815f6ee5
-bell_fifteen_stacks_rolls_a_second in:2dc57d59 content:97ed6005 10:361b2f8a
-bell_flame_tier_adds_a_tenth in:6a9e53a8 content:97ed6005 10:bdf16e4b
-bell_flame_tier_control in:708de3f5 content:97ed6005 10:4be62343
-bell_on_kindle_ticks_at_half_chance in:93bf1896 content:47dfc868 22:4514f022
-bell_on_radiance_reach in:e757d15d content:f3194627 12:5502cfc3
-bell_rings_on_every_hit_at_ten_stacks in:223d8ae4 content:97ed6005 30:ae0c21e6
-bell_seed_1 in:d46d98bc content:e0e89389 120:2adc9f16 60:0f9eccf9 120:2adc9f16
-bell_seed_2 in:6321ff12 content:e0e89389 120:752d8ac6 60:fcde75d6 120:752d8ac6
-bell_stun_takes_the_swing in:f434361f content:6834c127 90:e806e48f 60:3bd8ffac
+bell_fifteen_stacks_rings_once in:0d33d74a content:de314f43 10:815f6ee5
+bell_fifteen_stacks_rolls_a_second in:2dc57d59 content:de314f43 10:361b2f8a
+bell_flame_tier_adds_a_tenth in:6a9e53a8 content:de314f43 10:bdf16e4b
+bell_flame_tier_control in:708de3f5 content:de314f43 10:4be62343
+bell_on_kindle_ticks_at_half_chance in:93bf1896 content:9d5ebdda 22:4514f022
+bell_on_radiance_reach in:e757d15d content:563d6e94 12:5502cfc3
+bell_rings_on_every_hit_at_ten_stacks in:223d8ae4 content:de314f43 30:ae0c21e6
+bell_seed_1 in:d46d98bc content:783ae51d 120:2adc9f16 60:0f9eccf9 120:2adc9f16
+bell_seed_2 in:6321ff12 content:783ae51d 120:752d8ac6 60:fcde75d6 120:752d8ac6
+bell_stun_takes_the_swing in:f434361f content:e7691549 90:e806e48f 60:3bd8ffac
 bell_stun_takes_the_swing_control in:44c46c23 content:a613922a 60:fcda9fe7 60:fcda9fe7
 blaze_chain_trails_burn_once in:1db38b13 content:bdcc5c46 30:771002ab
 blaze_strike_keeps_knockback in:8d2e5a25 content:1db4e163 30:3b765d77

@@ -24,6 +24,6 @@ params = Dictionary[String, int]({
 "stun_frames": 30
 })
 hit_coefficient_permille = 0
-mechanical_line = "Hits have a {total} chance to ring, stunning every enemy within {radius_u} u for {stun_frames} frames. +{per_stack} chance per stack."
+mechanical_line = "Hits have a {total} chance to ring. Past 100%, each whole 100% is a sure ring and the rest a chance of one more; a Kindle tick rolls at half, and Flame and above add a tenth. A ring stuns every enemy within {radius_u} u for {stun_frames} frames. +{per_stack} chance per stack."
 in_world_line = "We rang it at every vespers, so the dark would know the hour still belonged to us. I keep ringing it. I no longer know who the hour belongs to."
 author = "Serah Candlewright, Knight-Abbess of the Vigil"

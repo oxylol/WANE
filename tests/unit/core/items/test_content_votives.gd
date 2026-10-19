@@ -10,7 +10,9 @@ const ONE: Dictionary[String, String] = {
 	"pilgrims_wick": "Run speed +8%. +8% per stack.",
 	"bell_of_the_vigil":
 	(
-		"Hits have a 10% chance to ring, stunning every enemy within 120 u for 30 frames."
+		"Hits have a 10% chance to ring. Past 100%, each whole 100% is a sure ring"
+		+ " and the rest a chance of one more; a Kindle tick rolls at half, and Flame and"
+		+ " above add a tenth. A ring stuns every enemy within 120 u for 30 frames."
 		+ " +10% chance per stack."
 	),
 	"second_ember": "Air dashes after a pogo bounce: +1 until you land. +1 per stack.",
@@ -21,7 +23,9 @@ const THREE: Dictionary[String, String] = {
 	"pilgrims_wick": "Run speed +24%. +8% per stack.",
 	"bell_of_the_vigil":
 	(
-		"Hits have a 30% chance to ring, stunning every enemy within 120 u for 30 frames."
+		"Hits have a 30% chance to ring. Past 100%, each whole 100% is a sure ring"
+		+ " and the rest a chance of one more; a Kindle tick rolls at half, and Flame and"
+		+ " above add a tenth. A ring stuns every enemy within 120 u for 30 frames."
 		+ " +10% chance per stack."
 	),
 	"second_ember": "Air dashes after a pogo bounce: +3 until you land. +1 per stack.",

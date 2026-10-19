@@ -67,15 +67,16 @@ const LISTENER_CLASSES: Array[String] = [
 const LISTENER_PATTERNS: Array[String] = [
 	"^(static\\s+)?var\\b",
 	"^(class_name|class|signal|@\\w+)\\b",
-	"\\._",
+	"\\.[\\s\\\\]*_",
 	(
-		"\\b(get|set|call|callv|call_deferred|get_meta|set_meta|has_meta|get_script|set_script"
+		"\\b(get|set|call|callv|call_deferred|set_deferred|get_meta|set_meta|has_meta"
+		+ "|get_script|set_script"
 		+ "|connect|emit_signal|get_indexed|set_indexed|get_property_list|has_method|free"
 		+ "|notification|load|preload|instance_from_id|get_node|str_to_var|bytes_to_var"
-		+ "|Callable|Expression|ClassDB)\\s*\\("
+		+ "|Callable|Expression|ClassDB)[\\s\\\\]*\\("
 	),
 	"\\bself\\b",
-	"(?<![\\w.])([2-9]|[1-9]\\d+|0[xXbB][0-9a-fA-F_]+)(?![\\w.])",
+	"(?<![\\w.])([2-9][\\d_]*|1[\\d_]+|0[\\d_]*[1-9][\\d_]*|0[xXbB][0-9a-fA-F_]+)(?![\\w.])",
 ]
 const LISTENER_LABELS: Array[String] = [
 	"listener state (a member or static variable; the counter is the API's)",
@@ -99,7 +100,7 @@ func _init() -> void:
 		_compiled.append(re)
 		_labels.append(LABELS[i])
 	for pattern: String in LISTENER_PATTERNS:
-		_listener_rules.append(RegEx.create_from_string(pattern))
+		_listener_rules.append(RegEx.create_from_string("(?m)" + pattern))
 
 
 ## Violations in [param source] as "line N: <label>: <code>" strings.
@@ -153,11 +154,6 @@ func check_listener(source: String) -> PackedStringArray:
 		if code.strip_edges().begins_with("extends"):
 			problems.append("line %d: a listener extends VotiveListener: %s" % [line_number, line])
 			continue
-		for i: int in range(_listener_rules.size()):
-			if _listener_rules[i].search(code) != null:
-				problems.append(
-					"line %d: %s: %s" % [line_number, LISTENER_LABELS[i], line.strip_edges()]
-				)
 		for m: RegExMatch in _class_word.search_all(code):
 			if not LISTENER_CLASSES.has(m.get_string()):
 				problems.append(
@@ -166,8 +162,31 @@ func check_listener(source: String) -> PackedStringArray:
 						% [line_number, m.get_string(), line.strip_edges()]
 					)
 				)
+	problems.append_array(_check_listener_rules(source))
 	if not extends_base:
 		problems.append("line 1: a listener extends VotiveListener")
+	return problems
+
+
+## The listener rules over the whole of [param source], so that a member written across a space or
+## a line continuation ("api. _bus", or "api.\\" then "_bus") is seen as the one token it is.
+func _check_listener_rules(source: String) -> PackedStringArray:
+	var problems: PackedStringArray = []
+	var lines: PackedStringArray = source.split("\n")
+	var code_lines: PackedStringArray = []
+	for line: String in lines:
+		code_lines.append(strip_line(line))
+	var text: String = "\n".join(code_lines)
+	var reported: Dictionary[String, bool] = {}
+	for i: int in range(_listener_rules.size()):
+		for m: RegExMatch in _listener_rules[i].search_all(text):
+			var line_number: int = text.substr(0, m.get_start()).count("\n") + 1
+			var key: String = "%d:%d" % [i, line_number]
+			if reported.has(key):
+				continue
+			reported[key] = true
+			var shown: String = lines[line_number - 1].strip_edges()
+			problems.append("line %d: %s: %s" % [line_number, LISTENER_LABELS[i], shown])
 	return problems
 
 

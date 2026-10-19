@@ -110,7 +110,7 @@ Order, so a run is a seed and its inputs: events resolve in the order they were 
 
 **Votives change what a hit does, never how it feels.** A `blade_hit` Votive's damage (Tallow Knuckle) is dealt, but the hit's hitstop is weighed by its damage without it (`tallow_knuckle_never_adds_weight`: ten Knuckles make side 1 deal 40, and it keeps a light hit's 2 f where 40 damage alone weighs 3). The Votive's damage joins the hit before Kindling's bonus multiplies it (`tallow_knuckle_before_kindling`: (10 + 3) x 1.1 = 14).
 
-**A stun** (`Enemy.stun`, the state `stun`): a stagger poise did not cause. The attack under way is lost, a telegraph past its cue too (a poise break loses it the same way, ADR-0013), and the enemy does nothing but carry its momentum; poise is untouched; a stun never shortens a stagger or stun already running (the longer holds); the dead are not stunned. The Bell's stun is 30 frames, the same as a poise break's stagger (content: `stun_frames`, not in BUILD.md).
+**A stun** (`Enemy.stun`, the state `stun`): a stagger poise did not cause. The attack under way is lost, a telegraph past its cue too (a poise break loses it the same way, ADR-0013), and the enemy does nothing but carry its momentum; poise is untouched; a stun never shortens a stagger or stun already running (the longer holds); the dead are not stunned. The Bell's stun is 30 frames, the same as a poise break's stagger (content: `stun_frames`, not in BUILD.md). The 30 frames count after the enemy's own hitstop (a hit freezes the enemy for 2 f first), so a stun from a hit on tick T shows as `stun` for 32 ticks; `bell_stun_takes_the_swing` pins the last stunned and first idle tick.
 
 ### 7. The run's Votives and the state
 
