@@ -1,0 +1,16 @@
+fixture chain_rising_weight
+doc BUILD.md s6 Taper chain: side 2 from side 1 f 6, side 3 from side 2 f 6; damage 10, 10, 16; hitstop 2, 2 and 4 f (finisher); s6 Enemy-side rules: poise 30 breaks on the third hit; s15 Combat, "3-hit chain reads as three impacts with rising weight". Frames count the 2 f of hitstop after each light hit.
+room test/dummy
+frames 40
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=190 freeze=2
+  at 7 action=side2
+  at 9 event.hit=1 enemy.hp=180 freeze=2
+  at 14 action=side3
+  at 17 event.hit=1 enemy.hp=164 freeze=4 event.stagger=1 kindling=3 flame=33 enemy.state=stagger
+end

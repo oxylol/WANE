@@ -1,0 +1,13 @@
+fixture telegraph_cue_waits_for_hitstop_before_it
+doc docs/adr/0013, the telegraph cue (task 6 review, M4): struck on frame 31, before its cue, the dummy's telegraph is held 2 f by the hitstop, so the cue comes on 35 and the swing lands on 55, still 20 ticks after it.
+room test/dummy_swing
+frames 60
+input
+  29 attack
+end
+expect
+  at 31 event.hit=1
+  at 35 event.telegraph_cue=1
+  never 0..34 event.telegraph_cue=1
+  at 55 event.player_hit=1
+end

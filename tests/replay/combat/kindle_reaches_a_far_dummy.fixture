@@ -1,0 +1,15 @@
+fixture kindle_reaches_a_far_dummy
+doc BUILD.md s6 Spells, Kindle: 33 Flame; a cone 180 u long in the stick direction; 30 damage; ignites; 4 f startup, 6 f active (docs/adr/0013: the burn deals 2 every 15 f). The dummy stands 170 u from Ash, out of the Taper's reach.
+room test/dummy_far
+option flame 33
+frames 30
+input
+  0 spell
+end
+expect
+  at 0 spell=kindle flame=0
+  at 3 enemy.hp=200
+  at 4 event.hit=1 enemy.hp=170
+  at 18 enemy.hp=170
+  at 19 enemy.hp=168
+end

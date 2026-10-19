@@ -1,0 +1,12 @@
+fixture a_kill_by_burn_stops_time
+doc BUILD.md section 6, Kill: "3 f" of hitstop (task 6 review, presentation M1): Kindle leaves the 32 health dummy on 2, and the burn tick that kills it stops both for the kill's 3 frames, as a strike's kill does.
+room test/burn_frail
+option flame 33
+frames 40
+input
+  0 spell
+end
+expect
+  mark die 0..39 event.kill=1
+  at die freeze=3 enemy.freeze=3
+end

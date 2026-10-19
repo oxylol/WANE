@@ -1,0 +1,11 @@
+fixture corpse_carries_momentum
+doc BUILD.md section 6, Kill: "Corpse carries momentum" (task 6 review, H5): side 1 kills the 10 health dummy and the corpse slides on with the hit's 120 u/s.
+room test/dummy_frail
+frames 30
+input
+  0 attack
+end
+expect
+  at 2 event.kill=1 enemy.state=dead
+  at 29 enemy.x>260u enemy.state=dead
+end

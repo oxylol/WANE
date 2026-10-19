@@ -260,7 +260,7 @@ Combat is melee-first and directional. The player's blade (the Taper) strikes in
 | Side 3 (finisher) | 3 f | 5 f | 12 f | 16 | 260 u/s, launches light enemies | Dash from f 5 |
 | Up | 2 f | 5 f | 9 f | 10 | 200 u/s up (juggle) | Dash from f 4, air attack any frame |
 | Down (air only) | 2 f | 7 f (pogo hitbox f 3 to 9) | 4 f | 10 | Bounces player (section 5) | Anything on bounce; dash from f 4 (section 5: dash cancels any attack; docs/adr/0010) |
-| Charged (hold 24 f) | 24 f charge, 3 f startup | 6 f | 14 f | 36 | 400 u/s, breaks guards | Dash from f 8 |
+| Charged (hold 24 f, then let go) | 24 f charge, 3 f startup | 6 f | 14 f | 36 | 400 u/s, breaks guards | Dash from f 8 |
 
 - The chain resets if no attack input within 20 f of recovery ending.
 - Attacking turns the player instantly; there is no turn-lock.
@@ -269,7 +269,7 @@ Combat is melee-first and directional. The player's blade (the Taper) strikes in
 
 ### Flame (the resource)
 
-- A bar of 100. Each Taper hit grants 11 Flame; each pogo 8; each parry 33. Spells cost 33. Mend costs 33 and heals 1 of the player's 5 base hearts over 50 frames of channeling (interruptible, the Flame is lost if interrupted).
+- A bar of 100. Each Taper hit grants 11 Flame; each pogo 8; each parry 33; a kill's ember 11 when it reaches the player, 16 f after the kill. Spells cost 33. Mend costs 33 and heals 1 of the player's 5 base hearts over 50 frames of channeling (interruptible, the Flame is lost if interrupted).
 - Flame drains at 1 per second when the player stands outside their Beacon's radius during a Vigil, and does not drain otherwise.
 - Votives can raise the cap to 200, add passive regen, or make hits grant more.
 - The design intent: aggression heals. The way to recover is to fight well, then spend the result.
@@ -290,7 +290,7 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 
 ### Parry
 
-- Press attack in the 8 f before an enemy's hit lands (any direction) to parry. The parry window is defined on the enemy's attack, not the player's input, so it is never a guess.
+- Press attack in the 8 f before an enemy's hit lands (any direction) to parry: the 8 frames that end on the frame it lands. The parry window is defined on the enemy's attack, not the player's input, so it is never a guess.
 - A parry: 0 damage, 12 f of hitstop on both, enemy knocked back 200 u/s and staggered for 40 f, player grants 33 Flame and +5 Kindling.
 - Parry is not a block. A failed parry is just an attack with a bad start. There is no block button.
 - Bosses have attacks marked **unparryable** (a red flash instead of white) that must be dodged or pogoed.
@@ -302,7 +302,7 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 | Kindle | 33 Flame | A cone of fire 180 u long in the stick direction; 30 damage; ignites | 4 f startup, 6 f active, 10 f recovery, cancelable from f 8 |
 | Mend | 33 Flame | Heal 1 heart; channeled | 50 f, interruptible |
 | Ember Toss | 0 Flame, 12 s cd | Throw the ember as a 600 u/s projectile that stops on walls; press again to teleport to it with 6 f of invulnerability | 3 f startup |
-| Radiance (unlocked at Blaze+) | 66 Flame | A burst that pushes all enemies 400 u/s away and lights the room fully for 5 s | 6 f startup |
+| Radiance (unlocked at Blaze+; spell with the stick down, on the ground) | 66 Flame | A burst that pushes all enemies 400 u/s away and lights the room fully for 5 s | 6 f startup |
 
 ### Hit feedback (the physics of satisfaction)
 
@@ -312,12 +312,13 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 | Finisher | 4 f both | 1.5 u, 4 f | Launch | Slash arc smear, spark burst, bass thump |
 | Charged | 6 f both | 3 u, 6 f | Big | Brief chromatic split 1 f, slow-motion 0.8× for 8 f on kill |
 | Parry | 12 f both | 2 u, 6 f | Enemy only | Full-screen white flash 1 f, high chime, time to 0.5× for 6 f |
-| Player hit | 8 f player only | 4 u, 8 f | 300 u/s away, 20 f of invulnerability | Red vignette pulse, heart cracks, controller rumble 0.6 for 100 ms |
+| Player hit | 8 f player only | 4 u, 8 f | 300 u/s away for 12 f (any action ends it), 20 f of invulnerability after the hitstop (docs/adr/0013) | Red vignette pulse, heart cracks, controller rumble 0.6 for 100 ms |
 | Kill | 3 f | 1 u, 3 f | Corpse carries momentum | Enemy ember released as a particle that flies to the player (+Flame), chalk-ink dissolve |
 | Boss phase | 20 f all | 6 u, 12 f |  | Music stinger, ambient light flips |
 
 - Screen shake has a global scaler in settings and is capped at 6 u. Shake is directional (along the hit) not random.
 - Hitstop is never applied to the player's own input reading: the player can buffer through it.
+- A hazard (spikes) costs a heart as a hit does, and sends the player back to safe ground (docs/adr/0013).
 - Every hit has a *weight*: damage above 30 adds 1 f of hitstop per 10 damage, capped at 8.
 
 ### Item procs

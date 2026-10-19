@@ -3,9 +3,22 @@ extends GdUnitTestSuite
 ## a desync is a P0 bug), and the tuning added for the task-3 review compiles and validates
 ## (docs/adr/0010).
 
-## Fields that are not state: the compiled tuning, the shared world and event list, and the
-## components hashed on their own (the body and the ember toss).
-const NOT_STATE: Array[String] = ["p", "kit", "attacks", "world", "events", "body", "toss"]
+## Fields that are not state: the compiled tuning and the strikes looked up in it, the shared
+## world and event list, and the components hashed on their own (the body, the ember toss and the
+## vitals: the vitals' own audit is tests/unit/core/combat/test_combat_hash.gd).
+const NOT_STATE: Array[String] = [
+	"p",
+	"kit",
+	"combat",
+	"attacks",
+	"charged_attack",
+	"down_attack",
+	"world",
+	"events",
+	"body",
+	"toss",
+	"vitals",
+]
 const MOVEMENT_PATH: String = "res://content/wicks/ash/movement.tres"
 
 

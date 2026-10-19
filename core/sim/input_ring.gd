@@ -26,10 +26,15 @@ const HOLD_CAP: int = 1000000
 var _held: PackedInt32Array = PackedInt32Array()
 var _pressed: PackedInt32Array = PackedInt32Array()
 var _consumed: PackedInt32Array = PackedInt32Array()
+## Presses spent by a parry ([method spend_presses]): a press parries once, used or not.
+var _spent: PackedInt32Array = PackedInt32Array()
 var _stick_x: PackedInt32Array = PackedInt32Array()
 var _stick_y: PackedInt32Array = PackedInt32Array()
 ## Consecutive held frames per button, in InputFrame.BUTTONS order.
 var _hold: PackedInt32Array = PackedInt32Array()
+## Every button pressed in any slot (used or not): a query for a button with no press in the ring
+## at all, the usual case, answers at once (the ring is read several times a tick).
+var _any_pressed: int = 0
 ## Index of the newest slot.
 var _head: int = 0
 ## How many slots hold real frames (grows to SIZE).
@@ -40,6 +45,7 @@ func _init() -> void:
 	_held.resize(SIZE)
 	_pressed.resize(SIZE)
 	_consumed.resize(SIZE)
+	_spent.resize(SIZE)
 	_stick_x.resize(SIZE)
 	_stick_y.resize(SIZE)
 	_hold.resize(InputFrame.BUTTONS.size())
@@ -51,9 +57,11 @@ func clear() -> void:
 		_held[i] = 0
 		_pressed[i] = 0
 		_consumed[i] = 0
+		_spent[i] = 0
 		_stick_x[i] = 0
 		_stick_y[i] = 0
 	_hold.fill(0)
+	_any_pressed = 0
 	_head = 0
 	_count = 0
 
@@ -65,10 +73,23 @@ func push(frame: InputFrame) -> void:
 	_held[_head] = frame.held
 	_pressed[_head] = frame.pressed
 	_consumed[_head] = 0
+	_spent[_head] = 0
 	_stick_x[_head] = frame.stick_x
 	_stick_y[_head] = frame.stick_y
+	_any_pressed = 0
+	for p: int in _pressed:
+		_any_pressed |= p
+	# A press starts a new hold even if the button never showed released between two frames (a
+	# release and re-press inside one tick): a charged strike needs one unbroken hold (task 6
+	# review, L1).
 	for i: int in range(InputFrame.BUTTONS.size()):
-		_hold[i] = mini(_hold[i] + 1, HOLD_CAP) if (frame.held & InputFrame.BUTTONS[i]) != 0 else 0
+		var bit: int = InputFrame.BUTTONS[i]
+		if (frame.held & bit) == 0:
+			_hold[i] = 0
+		elif (frame.pressed & bit) != 0:
+			_hold[i] = 1
+		else:
+			_hold[i] = mini(_hold[i] + 1, HOLD_CAP)
 
 
 ## The player is frozen this tick: fold [param frame] into the newest slot. Held state and stick
@@ -81,7 +102,9 @@ func merge(frame: InputFrame) -> void:
 	# A new press during hitstop is a fresh press even if the same button's earlier press in this
 	# slot was already used: un-consume it.
 	_consumed[_head] &= ~frame.pressed
+	_spent[_head] &= ~frame.pressed
 	_pressed[_head] |= frame.pressed
+	_any_pressed |= frame.pressed
 	# A button let go during hitstop starts its hold count again; re-pressing it does not
 	# continue the old hold (a charged strike needs one unbroken hold).
 	for i: int in range(InputFrame.BUTTONS.size()):
@@ -98,13 +121,42 @@ func merge(frame: InputFrame) -> void:
 ## no older than [param max_age], or -1 if there is none. [param max_age] is clamped to
 ## [constant HISTORY].
 func press_age(bit: int, max_age: int = HISTORY) -> int:
-	assert(max_age <= HISTORY, "input window %d exceeds the ring's %d frames" % [max_age, HISTORY])
+	if max_age > HISTORY:
+		assert(false, "input window %d exceeds the ring's %d frames" % [max_age, HISTORY])
+	if (_any_pressed & bit) == 0:
+		return -1
 	var span: int = mini(mini(max_age, HISTORY) + 1, _count)
+	var i: int = _head
 	for age: int in range(span):
-		var i: int = _slot(age)
 		if (_pressed[i] & ~_consumed[i] & bit) != 0:
 			return age
+		i = i - 1 if i > 0 else SIZE - 1
 	return -1
+
+
+## Age in player frames of the latest press of [param bit] no older than [param max_age], used or
+## not, but not spent by a parry ([method spend_presses]), or -1 if there is none. A parry counts
+## any attack press in its window, including one that also started a strike (docs/adr/0013).
+func any_press_age(bit: int, max_age: int = HISTORY) -> int:
+	if max_age > HISTORY:
+		assert(false, "input window %d exceeds the ring's %d frames" % [max_age, HISTORY])
+	if (_any_pressed & bit) == 0:
+		return -1
+	var span: int = mini(mini(max_age, HISTORY) + 1, _count)
+	var i: int = _head
+	for age: int in range(span):
+		if (_pressed[i] & ~_spent[i] & bit) != 0:
+			return age
+		i = i - 1 if i > 0 else SIZE - 1
+	return -1
+
+
+## A parry spends every press of [param bit] in the ring: one press parries once, however long the
+## parry's hitstop holds its age still (task 6 review, H4: one press parried every swing that
+## landed in the 12 f). A press made during that hitstop is a fresh one ([method merge]).
+func spend_presses(bit: int) -> void:
+	for age: int in range(_count):
+		_spent[_slot(age)] |= bit
 
 
 ## True if [param bit] has an unconsumed press no older than [param max_age] frames.
@@ -165,6 +217,7 @@ func hash_into(h: StateHasher) -> void:
 		h.add_int(_held[i])
 		h.add_int(_pressed[i])
 		h.add_int(_consumed[i])
+		h.add_int(_spent[i])
 		h.add_int(_stick_x[i])
 		h.add_int(_stick_y[i])
 	for hold: int in _hold:
@@ -175,6 +228,7 @@ func copy_from(other: InputRing) -> void:
 	_held = other._held.duplicate()
 	_pressed = other._pressed.duplicate()
 	_consumed = other._consumed.duplicate()
+	_spent = other._spent.duplicate()
 	_stick_x = other._stick_x.duplicate()
 	_stick_y = other._stick_y.duplicate()
 	_hold = other._hold.duplicate()

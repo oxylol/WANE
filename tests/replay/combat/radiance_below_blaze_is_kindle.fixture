@@ -1,0 +1,14 @@
+fixture radiance_below_blaze_is_kindle
+doc docs/adr/0013, Radiance: below Blaze the same press is a Kindle, forward (down on the ground is the floor). Kindling 19 is the Flame tier, so the Kindle's 30 damage is 33 (BUILD.md s6 Kindling, +10%).
+room test/dummy
+option flame 66
+option kindling 19
+frames 20
+input
+  0 D spell
+end
+expect
+  at 0 spell=kindle flame=33
+  at 4 event.hit=1 enemy.hp=167
+  never 0..19 event.radiance=1
+end

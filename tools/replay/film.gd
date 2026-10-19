@@ -1,10 +1,11 @@
 extends SceneTree
-## Films replay fixtures through the game's own views (the grey-box room, the player and the
-## camera) and writes a filmstrip: a row of frames per fixture, one every few ticks, each the
-## full 1920 x 1080 view scaled down, with the camera drawn over it: the 80 u margin (red), the
-## dead zone around the point the follow holds to (green) and the focus it aims at, that point
-## plus the looks (yellow); a white ring marks the player, who is small at sheet scale. This is
-## what the player sees, so it is how camera changes are judged
+## Films replay fixtures through the game's own views (the grey-box room, the enemies, combat's
+## objects and hit feedback, the player, the HUD and the camera) and writes a filmstrip: a row of
+## frames per fixture, one every few ticks, each the full 1920 x 1080 view scaled down, with the
+## camera drawn over it: the 80 u margin (red), the dead zone around the point the follow holds
+## to (green) and the focus it aims at, that point plus the looks (yellow); a white ring marks
+## the player, who is small at sheet scale. This is what the player sees, so it is how camera and
+## combat changes are judged
 ## (CLAUDE.md working method: "play the fixture and capture a contact sheet").
 ##
 ## It renders, so it needs a display; headless machines run it under a virtual one:
@@ -133,7 +134,13 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		return null
 	var stage := Node2D.new()
 	var room_view := RoomView.new()
+	var enemy_view := EnemyView.new()
+	var combat_view := CombatView.new()
 	var player_view := PlayerView.new()
+	var vfx := VfxBudget.new()
+	var feedback := HitFeedback.new()
+	var hud := Hud.new()
+	var screen := FeedbackOverlay.new()
 	var camera := GameCamera.new()
 	var overlay := Overlay.new()
 	overlay.rig = camera.rig
@@ -144,11 +151,18 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	if not f3:
 		drawer = overlay
 		spare = debug
-	for n: Node in [room_view, player_view, drawer, camera]:
+	for n: Node in [room_view, enemy_view, combat_view, player_view, vfx, drawer, camera]:
+		stage.add_child(n)
+	for n: Node in [feedback, hud, screen]:
 		stage.add_child(n)
 	root.add_child(stage)
 	camera.make_current()
 	room_view.show_world(sim.world)
+	combat_view.player_view = player_view
+	feedback.attach(vfx, null)
+	hud.vitals = sim.player.vitals
+	screen.feedback = feedback
+	enemy_view.capture(sim)
 	player_view.begin(sim)
 	camera.begin(sim)
 	debug.attach_sim(sim, camera)
@@ -159,6 +173,10 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	for f: int in range(fx.frame_total):
 		sim.step(fx.input_frame(f))
 		player_view.capture(sim)
+		enemy_view.capture(sim)
+		combat_view.capture(sim)
+		feedback.on_tick(sim)
+		hud.on_tick()
 		camera.step(sim)
 		debug.capture()
 		var view: Rect2 = camera.rig.view_rect()
@@ -173,7 +191,10 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		)
 		room_view.refresh()
 		player_view.show_at(1.0)
+		enemy_view.show_at(1.0)
+		combat_view.show_at(1.0)
 		camera.show_at(1.0)
+		camera.offset = feedback.shake_offset()
 		if opts.y > 1.0:
 			camera.zoom *= opts.y
 			camera.position = overlay.player.get_center()

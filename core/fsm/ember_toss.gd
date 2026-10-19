@@ -34,6 +34,9 @@ var linger: int = 0
 func try_start(pl: Player, ring: InputRing) -> void:
 	if not ring.has_press(InputFrame.TOSS, pl.kit.toss_buffer):
 		return
+	if PlayerSpells.holds(pl):
+		# A spell that has not reached its cancel frame holds the press in the buffer.
+		return
 	if startup > 0:
 		ring.consume(InputFrame.TOSS)
 		return

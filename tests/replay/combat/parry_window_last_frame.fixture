@@ -1,0 +1,11 @@
+fixture parry_window_last_frame
+doc BUILD.md s6 Parry (see parry_window_first_frame): a press on the frame the hit lands still parries.
+room test/dummy_swing
+frames 70
+input
+  53 L attack
+end
+expect
+  at 53 event.parry=1 hearts=5 flame=33
+  never 0..69 event.player_hit=1
+end

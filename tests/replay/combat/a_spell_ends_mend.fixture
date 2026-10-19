@@ -1,0 +1,16 @@
+fixture a_spell_ends_mend
+doc docs/adr/0013, Mend: "a jump, dash, strike, spell or toss ... ends the channel and the Flame is lost" (task 6 review, M2): a spell pressed during Mend ends it and casts; it used to wait and drop.
+room test/flat
+option flame 66
+option hearts 4
+frames 70
+input
+  0..9 mend
+  10 mend spell
+  11..60 mend
+end
+expect
+  at 9 spell=mend flame=33
+  at 10 spell=kindle event.cast=1 flame=0
+  never 0..69 event.fizzle=1
+end

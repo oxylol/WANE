@@ -1,0 +1,13 @@
+fixture parry_window_first_frame
+doc BUILD.md s6 Parry: "Press attack in the 8 f before an enemy's hit lands (any direction)"; a parry: 0 damage, 12 f hitstop on both, +33 Flame, +5 Kindling, the enemy staggered (docs/adr/0013: presses no older than 7 frames on the landing tick). The dummy's swing telegraphs from frame 29 and lands on frame 53; the press on frame 46 is the window's first frame. The press turns Ash away, so its strike misses the dummy.
+room test/dummy_swing
+frames 80
+input
+  46 L attack
+end
+expect
+  at 29 event.telegraph=1
+  at 52 event.parry=0 hearts=5
+  at 53 event.parry=1 event.player_hit=0 hearts=5 flame=33 kindling=5 freeze=12 enemy.freeze=12 enemy.state=stagger
+  never 0..79 event.player_hit=1
+end

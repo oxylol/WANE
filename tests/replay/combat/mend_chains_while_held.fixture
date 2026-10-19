@@ -1,0 +1,14 @@
+fixture mend_chains_while_held
+doc docs/adr/0013, Mend: still held at the end of a channel, with the Flame and a heart to heal, the next Mend starts at once.
+room test/flat
+option flame 66
+option hearts 3
+frames 110
+input
+  0..105 mend
+end
+expect
+  at 49 hearts=4 flame=33
+  at 50 spell=mend flame=0
+  at 99 hearts=5
+end

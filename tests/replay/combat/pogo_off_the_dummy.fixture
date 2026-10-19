@@ -1,0 +1,13 @@
+fixture pogo_off_the_dummy
+doc BUILD.md s5 Pogo, "on hitting an enemy ... bounces the player"; s6 Flame, "each pogo 8". Ash drops onto the dummy with the down-strike.
+room test/dummy_pogo
+spawn 300 460
+frames 20
+input
+  0 D attack
+end
+expect
+  mark bounce 0..12 event.pogo=1
+  at bounce event.hit=1 enemy.hp=190 flame=8 vy<0
+  never bounce+1..19 event.hit=1
+end

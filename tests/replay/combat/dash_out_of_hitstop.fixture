@@ -1,0 +1,13 @@
+fixture dash_out_of_hitstop
+doc BUILD.md s6 Hit feedback, "Hitstop is never applied to the player's own input reading: the player can buffer through it"; s15 Combat, "Hitstop never causes a dropped input; buffered inputs fire on the first free frame". A dash pressed during side 1's hitstop fires on the first free frame, side 1's frame 4 (its dash cancel).
+room test/dummy
+frames 20
+input
+  0 attack
+  3 dash
+end
+expect
+  at 2 event.hit=1 freeze=2
+  at 4 state=ground action=side1
+  at 5 state=dash action=none
+end

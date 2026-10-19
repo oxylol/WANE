@@ -1,0 +1,15 @@
+fixture kindle_never_hits_a_corpse
+doc docs/adr/0013 (task 6 review, M7): a dead enemy has no hurtbox, and every hit skips the dead. Kindle cast straight up against a hall's left wall reaches the room's origin, where an empty box used to count as a hit on every corpse: another kill, ember and Flame each time.
+room test/low_hall
+option flame 33
+frames 60
+input
+  0 attack
+  30 U spell
+end
+expect
+  at 2 event.kill=1
+  at 30 spell=kindle
+  never 3..59 event.kill=1
+  never 3..59 event.hit=1
+end

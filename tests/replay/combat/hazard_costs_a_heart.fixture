@@ -1,0 +1,11 @@
+fixture hazard_costs_a_heart
+doc docs/adr/0013, Hazards cost a heart: walking into floor spikes sends Ash back and takes a heart.
+room test/spikes
+frames 60
+input
+  0..30 R
+end
+expect
+  mark die 0..59 event.hazard=1
+  at die hearts=4
+end

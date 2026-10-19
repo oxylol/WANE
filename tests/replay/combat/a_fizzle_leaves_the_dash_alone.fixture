@@ -1,0 +1,15 @@
+fixture a_fizzle_leaves_the_dash_alone
+doc BUILD.md section 5, Dash: "180 u in 9 f" (task 6 review, M6): a spell pressed during a dash with no Flame fizzles on dash frame 6 and the dash runs on its full 180 u; it used to end the dash there.
+room test/flat
+frames 20
+input
+  0 R dash
+  1 R
+  2 R spell
+  3..19 R
+end
+expect
+  # Spawned at 200 u: the 180 u dash ends on dash frame 9 (frame 8) at 380 u.
+  at 5 event.fizzle=1 dash_frame=6 state=dash
+  at 8 state=dash dash_frame=9 x=380u
+end

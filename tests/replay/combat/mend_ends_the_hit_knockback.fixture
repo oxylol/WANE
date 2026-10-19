@@ -1,0 +1,13 @@
+fixture mend_ends_the_hit_knockback
+doc docs/adr/0013, Mend is channelled standing still (task 6 review, M1): Mend started out of a hit's hitstop ends the knockback and stands Ash still at once; it used to channel while the knockback slid Ash 64 u.
+room test/dummy_swing
+option flame 33
+frames 80
+input
+  58..79 mend
+end
+expect
+  at 53 event.player_hit=1
+  at 62 spell=mend knock=0
+  at 70 spell=mend x=x@62
+end

@@ -1,0 +1,12 @@
+fixture death_returns_to_the_spawn
+doc docs/adr/0013, Death (Phase 1): at 0 hearts Ash goes back to the room's spawn with full hearts, no Flame and Kindling reset.
+room test/dummy_red
+option hearts 1
+option flame 50
+option kindling 10
+frames 70
+input
+end
+expect
+  at 53 event.player_hit=1 event.death=1 hearts=5 flame=0 kindling=0 x=200u
+end

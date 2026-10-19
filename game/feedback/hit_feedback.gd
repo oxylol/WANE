@@ -1,0 +1,211 @@
+class_name HitFeedback
+extends Node
+## The presentation half of BUILD.md section 6's hit-feedback table, driven by the simulation's
+## events each tick: directional screen shake, the parry's full-screen flash, the charged hit's
+## chromatic split, the red vignette when the player is hit, slow motion, sparks through the VFX
+## budget manager and sounds through the voice priority system (CLAUDE.md rule 7). Hitstop and
+## knockback are the simulation's; this only shows them. Randomness here (spark variants, the
+## +-3% pitch) never reaches the simulation.
+
+## Asks the driver to run at [param scale] of real time for [param ticks] ticks.
+signal slow_motion(scale: float, ticks: int)
+## Asks the controller to rumble.
+signal rumble(strength: float, msec: int)
+
+## Hit sparks per Kindling tier (Ember, Flame, Blaze, White), by the tier the hit's damage used.
+const SPARK_TINTS: Array[Color] = [
+	Color(1.0, 0.95, 0.8), Color(1.0, 0.6, 0.2), Color(1.0, 0.75, 0.25), Color(1.0, 1.0, 0.95)
+]
+
+var tuning: FeedbackTuning
+var shake: ScreenShake
+var vfx: VfxBudget
+var voices: Voices
+## Ticks left of each full-screen effect.
+var flash_ticks: int = 0
+var chroma_ticks: int = 0
+var vignette_ticks: int = 0
+## The player's flash setting, 0..1 (section 15: "with flashes set to 0").
+var flash_scale: float = 1.0
+
+var _rng := RandomNumberGenerator.new()
+## One hit's feedback is one bright thing for the VFX budget: its spark, smear and burst (and a
+## stagger it causes) share a group, which is how a finisher's arc and burst survive the spark
+## that claims the cell first. Groups are numbered across ticks, 0 meaning none.
+var _next_group: int = 1
+var _group: int = 0
+## The priority the latest group's effects carry: a Taper or spell hit is the player's own
+## feedback; a burn ranks below it (a burn tick, a Blaze trail or the AoE never displaces a
+## Taper spark).
+var _group_priority: int = VfxBudget.PLAYER
+
+
+func _init(p_tuning: FeedbackTuning = null) -> void:
+	tuning = p_tuning if p_tuning != null else load(FeedbackTuning.PATH) as FeedbackTuning
+	shake = ScreenShake.new(tuning)
+	flash_scale = tuning.flash_default_scale
+
+
+## Wires the effect outputs (any may be null in tests).
+func attach(p_vfx: VfxBudget, p_voices: Voices) -> void:
+	vfx = p_vfx
+	voices = p_voices
+
+
+## One tick: ages running effects (the budget's too, so an effect born this tick is drawn from
+## its age 0 and lives its whole tuned lifetime: task 6 review, L1), then starts the ones this
+## tick's events call for.
+func on_tick(sim: Simulation) -> void:
+	if vfx != null:
+		vfx.step()
+	shake.step()
+	flash_ticks = maxi(flash_ticks - 1, 0)
+	chroma_ticks = maxi(chroma_ticks - 1, 0)
+	vignette_ticks = maxi(vignette_ticks - 1, 0)
+	_rng.seed = sim.tick
+	_group = 0
+	var e: SimEvents = sim.events
+	for i: int in range(e.count()):
+		var at := Vector2(float(e.xs[i]) / Fx.SUB, float(e.ys[i]) / Fx.SUB)
+		match e.kinds[i]:
+			SimEvents.HIT:
+				_on_hit(at, e.values[i])
+			SimEvents.KILL:
+				_on_kill(at, e.values[i])
+			SimEvents.PARRY:
+				_on_parry(at, e.values[i])
+			SimEvents.PLAYER_HIT:
+				_on_player_hit(at, e.values[i])
+			SimEvents.TELEGRAPH_CUE:
+				# 20 ticks before the swing lands, hitstop or not (the core's cue): BUILD.md
+				# section 11, "every telegraph has a sound 20 f before the hit".
+				_play("telegraph" if e.values[i] == 0 else "telegraph_red", at, Voices.TELEGRAPH)
+			SimEvents.EMBER_HOME:
+				_play("ember", at, Voices.PLAYER)
+			SimEvents.HAZARD:
+				# A hazard costs a heart as a hit does (docs/adr/0013), and reads as one.
+				_on_player_hit(at, HitKind.encode(HitKind.PLAYER, 0, -1))
+			SimEvents.DEATH:
+				_vignette()
+				_flash()
+			SimEvents.RADIANCE:
+				_new_group(VfxBudget.SPELL)
+				_flash()
+				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 3.0, 0, _group_priority)
+				_spark(VfxBudget.RING, at, Vector2.UP, 0, 1.0, 0, _group_priority)
+				_play("chime", at, Voices.PLAYER)
+			SimEvents.HEAL:
+				_new_group(VfxBudget.PLAYER)
+				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 0.8)
+				_play("chime", at, Voices.PLAYER)
+			SimEvents.STAGGER:
+				# Always comes with the hit that broke the poise: one group with its spark.
+				if _group == 0:
+					_new_group(VfxBudget.PLAYER)
+				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 1.2, 0, _group_priority)
+
+
+## The view offset this tick (added to the drawn camera, never to the camera rig).
+func shake_offset() -> Vector2:
+	return shake.offset()
+
+
+func _on_hit(at: Vector2, value: int) -> void:
+	var kind: int = HitKind.kind_of(value)
+	var dir := Vector2(HitKind.dir_of(value))
+	var tier: int = HitKind.tier_of(value)
+	var variant: int = _rng.randi_range(0, tuning.spark_variants - 1)
+	_new_group(VfxBudget.BURN if kind == HitKind.BURN else VfxBudget.PLAYER)
+	_spark(VfxBudget.SPARK, at, dir, variant, 1.0, tier, _group_priority)
+	match kind:
+		HitKind.FINISHER:
+			_spark(VfxBudget.SMEAR, at, dir, 0)
+			_spark(VfxBudget.BURST, at, dir, 0)
+			shake.add(dir, tuning.finisher_shake_u, tuning.finisher_shake_frames)
+			_play("thump", at, Voices.HIT)
+		HitKind.CHARGED:
+			_spark(VfxBudget.BURST, at, dir, 0, 1.5)
+			shake.add(dir, tuning.charged_shake_u, tuning.charged_shake_frames)
+			_split()
+			_play("thump", at, Voices.HIT)
+	_play("hit%d" % variant, at, Voices.HIT, tuning.hit_pitch_spread)
+
+
+func _on_kill(at: Vector2, value: int) -> void:
+	var dir := Vector2(HitKind.dir_of(value))
+	shake.add(dir, tuning.kill_shake_u, tuning.kill_shake_frames)
+	_play("kill", at, Voices.HIT)
+	if HitKind.kind_of(value) == HitKind.CHARGED:
+		slow_motion.emit(tuning.charged_kill_time_scale, tuning.charged_kill_slow_frames)
+
+
+func _on_parry(at: Vector2, value: int) -> void:
+	var dir := Vector2(HitKind.dir_of(value))
+	_new_group(VfxBudget.PLAYER)
+	_flash()
+	shake.add(dir, tuning.parry_shake_u, tuning.parry_shake_frames)
+	_spark(VfxBudget.BURST, at, dir, 0, 1.2)
+	_play("chime", at, Voices.PLAYER)
+	slow_motion.emit(tuning.parry_time_scale, tuning.parry_slow_frames)
+
+
+func _on_player_hit(at: Vector2, value: int) -> void:
+	var dir := Vector2(HitKind.dir_of(value))
+	_vignette()
+	shake.add(dir, tuning.player_hit_shake_u, tuning.player_hit_shake_frames)
+	_play("player_hit", at, Voices.PLAYER)
+	rumble.emit(tuning.player_hit_rumble, tuning.player_hit_rumble_ms)
+
+
+## Starts a new group: the effects of one hit, at [param priority].
+func _new_group(priority: int) -> void:
+	_group = _next_group
+	_next_group += 1
+	_group_priority = priority
+
+
+## The full-screen flash: one tick whatever the flash setting, at that setting's opacity (the
+## overlay scales it), and none at all at 0%. The VFX budget admits it (one bright screen
+## effect per few ticks).
+func _flash() -> void:
+	if flash_scale > 0.0 and _admit(VfxBudget.SCREEN_FLASH):
+		flash_ticks = tuning.parry_flash_frames
+
+
+func _split() -> void:
+	if flash_scale > 0.0 and _admit(VfxBudget.SCREEN_SPLIT):
+		chroma_ticks = tuning.chromatic_frames
+
+
+func _vignette() -> void:
+	if _admit(VfxBudget.SCREEN_VIGNETTE):
+		vignette_ticks = tuning.vignette_frames
+
+
+func _admit(screen_kind: int) -> bool:
+	return vfx == null or vfx.claim_screen(screen_kind, VfxBudget.PLAYER)
+
+
+## A spark, burst, smear or ring of the current group; sparks are tinted by the Kindling
+## [param tier] the hit's damage used.
+func _spark(
+	kind: int,
+	at: Vector2,
+	dir: Vector2,
+	variant: int,
+	size: float = 1.0,
+	tier: int = 0,
+	priority: int = VfxBudget.PLAYER
+) -> void:
+	if vfx != null:
+		var tint: Color = Color(0, 0, 0, 0)
+		if kind == VfxBudget.SPARK:
+			tint = SPARK_TINTS[clampi(tier, 0, SPARK_TINTS.size() - 1)]
+		vfx.spawn(kind, priority, at, dir, variant, size, tint, _group)
+
+
+func _play(id: String, at: Vector2, priority: int, pitch_spread: float = 0.0) -> void:
+	if voices == null:
+		return
+	var pitch: float = 1.0 + _rng.randf_range(-pitch_spread, pitch_spread)
+	voices.play(Synth.sound(id), at, priority, 0.0, pitch)

@@ -1,0 +1,15 @@
+fixture side1_hits_dummy_once
+doc BUILD.md s6 Taper, Side 1: 2 f startup, 4 f active, 10 damage, 120 u/s knockback; Flame +11 a hit; Hit feedback, light hit 2 f of hitstop on both; s15 Combat line 1 (the box on frame 3). The box stays on the dummy for all four active frames and hits once.
+room test/dummy
+frames 30
+input
+  0 attack
+end
+expect
+  at 1 enemy.hp=200 event.hit=0
+  at 2 event.hit=1 enemy.hp=190 flame=11 kindling=1 freeze=2 enemy.freeze=2 action_frame=3
+  at 4 freeze=0 action_frame=3
+  at 5 action_frame=4
+  never 3..29 event.hit=1
+  at 29 enemy.hp=190 enemy.x>260u
+end

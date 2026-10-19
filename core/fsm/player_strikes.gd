@@ -15,6 +15,10 @@ extends RefCounted
 ## tick whose step walked on off the far edge (see [code]Player._land_in_stride[/code]).
 static func try_attack(pl: Player, ring: InputRing, landed: bool = false) -> void:
 	var p: MovementParams = pl.p
+	if PlayerSpells.holds(pl):
+		return
+	if pl.charge_request > 0 and _try_charged(pl):
+		return
 	var fresh: bool = ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames)
 	if fresh:
 		# The latest press wins (BUILD.md s5: the buffer "always stores the latest input"; movement
@@ -75,8 +79,28 @@ static func try_attack(pl: Player, ring: InputRing, landed: bool = false) -> voi
 	start(pl, want)
 
 
+## The Charged strike a release asked for ([member Player.charge_request]; docs/adr/0013): as soon
+## as no strike runs, and out of a dash from the frame a strike may cancel it. It goes the way the
+## stick leans, else the way the player faces. True if it started.
+static func _try_charged(pl: Player) -> bool:
+	if pl.current_attack() != null:
+		return false
+	if pl.loco == Player.DASH:
+		if pl.dash_frame < pl.p.dash_attack_cancel_from:
+			return false
+		pl.end_dash(true)
+	# The way the stick held when the hold was let go, however long the request waited.
+	var dx: int = PlayerInput.axis(pl.charge_stick.x, pl.p.stick_threshold)
+	if dx != 0 and pl.loco != Player.WALL:
+		pl.facing = dx
+	pl.charge_request = 0
+	start(pl, "charged")
+	return true
+
+
 ## Starts the strike [param attack_id] on this frame.
 static func start(pl: Player, attack_id: String) -> void:
+	pl.strike_serial += 1
 	pl.action = pl.attacks.index_of(attack_id)
 	pl.action_frame = 1
 	pl.action_dir = pl.facing

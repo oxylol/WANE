@@ -12,12 +12,12 @@ var box: Rect2 = Rect2()
 var stand_height: float = 0.0
 var facing: int = 1
 ## The player is asking to look down: standing crouched on the ground, the stick held straight
-## down, not dashing and not striking (a crouch-dash, a crawl under a low ceiling or a crouched
-## strike in a fight is not a request to look; CLAUDE.md rule 9).
+## down, not dashing, striking or casting (a crouch-dash, a crawl under a low ceiling, or a
+## crouched strike or spell in a fight is not a request to look; CLAUDE.md rule 9).
 var looking_down: bool = false
-## Striking crouched with the stick still held down: a look already showing holds where it is (it
-## neither grows nor eases out during the strike), and a look not yet showing has to wait its whole
-## delay again after it (BUILD.md section 5: "never during a strike").
+## Striking or casting crouched with the stick still held down: a look already showing holds where
+## it is (it neither grows nor eases out during the strike or spell), and a look not yet showing
+## has to wait its whole delay again after it (BUILD.md section 5: "never during a strike").
 var look_held: bool = false
 ## Dashing upward (straight or diagonally): the camera looks ahead of it, as it does of a fall.
 var dashing_up: bool = false
@@ -56,8 +56,10 @@ static func of(sim: Simulation, ahead_frames: int = 0) -> CameraSubject:
 	var t: int = pl.p.stick_threshold
 	var stick_down: bool = sim.input.stick_y() >= t and absi(sim.input.stick_x()) < t
 	var crouched: bool = pl.crouching and stick_down and b.on_ground and pl.loco == Player.GROUND
-	s.looking_down = crouched and pl.action == Player.NO_ACTION
-	s.look_held = crouched and pl.action != Player.NO_ACTION
+	# A spell cast crouched (Radiance is cast with the stick held down) is fighting, as a strike is.
+	var fighting: bool = pl.action != Player.NO_ACTION or pl.spell != PlayerSpells.NONE
+	s.looking_down = crouched and not fighting
+	s.look_held = crouched and fighting
 	s.dashing_up = pl.loco == Player.DASH and pl.dash_vy < 0
 	s.on_ground = b.on_ground
 	s.walled = (

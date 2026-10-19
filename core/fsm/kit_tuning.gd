@@ -1,8 +1,8 @@
 class_name KitTuning
 extends Resource
 ## A Wick's ability numbers that are not movement: hurtbox, hazard recovery and spells (BUILD.md
-## section 6). Task 6 adds Flame, Kindling, Kindle, Mend and Radiance here. Units as BUILD.md
-## gives them; [method compile] converts to sub-pixels.
+## section 6). The rules every Wick shares (Flame, Kindling, parry, hitstop) are in
+## [CombatTuning]. Units as BUILD.md gives them; [method compile] converts to sub-pixels.
 
 ## [method fit_offsets] for each reach asked for so far: sorting the 2401 offsets of a 24 u reach
 ## took 7 ms, every time a simulation was built. The arrays are only ever read.
@@ -37,6 +37,45 @@ static var _fit_cache: Dictionary[int, PackedInt32Array] = {}
 ## stopped on a wall needs half the body's width (10 u), one on a floor half its height (22 u).
 @export var toss_fit_reach_u: int = 24
 
+@export_group("Kindle")
+## BUILD.md s6 Spells: "Kindle | 33 Flame | A cone of fire 180 u long in the stick direction; 30
+## damage; ignites | 4 f startup, 6 f active, 10 f recovery, cancelable from f 8".
+@export var kindle_cost: int = 33
+@export var kindle_length_u: int = 180
+@export var kindle_damage: int = 30
+@export var kindle_startup_frames: int = 4
+@export var kindle_active_frames: int = 6
+@export var kindle_recovery_frames: int = 10
+@export var kindle_cancel_from: int = 8
+## Not in BUILD.md: the cone's rectangles (CLAUDE.md rule 8). The 180 u is cut into this many
+## equal sections, each wider than the last, from the first section's width to the last's.
+@export var kindle_sections: int = 3
+@export var kindle_width_near_u: int = 40
+@export var kindle_width_far_u: int = 96
+
+@export_group("Burn")
+## Not in BUILD.md ("ignites"; section 6 Item procs, "Kindle 0.5 per tick"): a burning enemy takes
+## [member burn_damage] every [member burn_period_frames] for [member burn_frames].
+@export var burn_frames: int = 90
+@export var burn_period_frames: int = 15
+@export var burn_damage: int = 2
+
+@export_group("Mend")
+## "Mend costs 33 and heals 1 of the player's 5 base hearts over 50 frames of channeling
+## (interruptible, the Flame is lost if interrupted)".
+@export var mend_cost: int = 33
+@export var mend_frames: int = 50
+@export var mend_hearts: int = 1
+
+@export_group("Radiance")
+## "Radiance (unlocked at Blaze+) | 66 Flame | A burst that pushes all enemies 400 u/s away and
+## lights the room fully for 5 s | 6 f startup". The recovery is not in BUILD.md.
+@export var radiance_cost: int = 66
+@export var radiance_push_ups: int = 400
+@export var radiance_light_frames: int = 300
+@export var radiance_startup_frames: int = 6
+@export var radiance_recovery_frames: int = 12
+
 
 func compile() -> KitParams:
 	var k := KitParams.new()
@@ -54,6 +93,27 @@ func compile() -> KitParams:
 	k.toss_buffer = toss_buffer_frames
 	k.toss_fit_reach_u = toss_fit_reach_u
 	k.toss_fit_offsets = fit_offsets(toss_fit_reach_u)
+	k.kindle_cost = kindle_cost
+	k.kindle_length = Fx.units(kindle_length_u)
+	k.kindle_damage = kindle_damage
+	k.kindle_startup = kindle_startup_frames
+	k.kindle_active = kindle_active_frames
+	k.kindle_recovery = kindle_recovery_frames
+	k.kindle_cancel_from = kindle_cancel_from
+	k.kindle_sections = kindle_sections
+	k.kindle_width_near = Fx.units(kindle_width_near_u)
+	k.kindle_width_far = Fx.units(kindle_width_far_u)
+	k.burn_frames = burn_frames
+	k.burn_period = burn_period_frames
+	k.burn_damage = burn_damage
+	k.mend_cost = mend_cost
+	k.mend_frames = mend_frames
+	k.mend_hearts = mend_hearts
+	k.radiance_cost = radiance_cost
+	k.radiance_push = Fx.speed(radiance_push_ups)
+	k.radiance_light = radiance_light_frames
+	k.radiance_startup = radiance_startup_frames
+	k.radiance_recovery = radiance_recovery_frames
 	return k
 
 
@@ -108,4 +168,26 @@ func validate() -> PackedStringArray:
 	if toss_fit_reach_u < 0 or toss_fit_reach_u > 31:
 		# The fit search keeps one bit per unit of offset in a 64-bit mask (2 * reach + 1 bits).
 		e.append("toss_fit_reach_u must be 0 to 31")
+	if kindle_startup_frames < 1 or kindle_active_frames < 1 or kindle_recovery_frames < 0:
+		e.append("Kindle needs a startup and active frames")
+	elif kindle_cancel_from < 1 or kindle_cancel_from > _kindle_total():
+		e.append("kindle_cancel_from must lie inside the spell")
+	if kindle_sections < 1 or kindle_length_u < kindle_sections:
+		e.append("Kindle needs at least one section a unit long")
+	if kindle_width_near_u <= 0 or kindle_width_far_u < kindle_width_near_u:
+		e.append("Kindle's cone must widen: 0 < near width <= far width")
+	if burn_frames < 0 or burn_period_frames < 1 or burn_damage < 0:
+		e.append("burn needs a period of at least one frame")
+	if mend_frames < 1 or mend_hearts < 1:
+		e.append("Mend needs a channel and a heal")
+	if radiance_startup_frames < 1 or radiance_recovery_frames < 0 or radiance_light_frames < 0:
+		e.append("Radiance needs a startup")
+	for cost: int in [kindle_cost, mend_cost, radiance_cost, kindle_damage, radiance_push_ups]:
+		if cost < 0:
+			e.append("spell costs, damage and push must not be negative")
+			break
 	return e
+
+
+func _kindle_total() -> int:
+	return kindle_startup_frames + kindle_active_frames + kindle_recovery_frames

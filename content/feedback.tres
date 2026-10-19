@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="FeedbackTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/feedback/feedback_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+shake_cap_u = 6.0
+shake_default_scale = 0.5
+finisher_shake_u = 1.5
+finisher_shake_frames = 4
+charged_shake_u = 3.0
+charged_shake_frames = 6
+parry_shake_u = 2.0
+parry_shake_frames = 6
+player_hit_shake_u = 4.0
+player_hit_shake_frames = 8
+kill_shake_u = 1.0
+kill_shake_frames = 3
+shake_period_frames = 4
+enemy_flash_frames = 2
+parry_flash_frames = 1
+chromatic_frames = 1
+flash_default_scale = 1.0
+flash_alpha = 0.55
+vignette_frames = 20
+charged_kill_time_scale = 0.8
+charged_kill_slow_frames = 8
+parry_time_scale = 0.5
+parry_slow_frames = 6
+player_hit_rumble = 0.6
+player_hit_rumble_ms = 100
+vfx_cell_u = 100
+vfx_cell_frames = 3
+vfx_capacity = 256
+vfx_screen_frames = 3
+radiance_ring_frames = 18
+radiance_ring_radius_u = 640.0
+spark_variants = 3
+hit_pitch_spread = 0.03
+voice_cap = 24

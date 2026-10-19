@@ -400,12 +400,12 @@ func _update_looks(s: CameraSubject, anchor_drop: float) -> void:
 		_look_ticks = 0
 		# Standing up, letting the stick go or a dash ends the look, and asking again waits the
 		# whole delay, so nothing done in a fight pumps the view (camera review 6, H1); a crouched
-		# strike with the stick held down keeps it. In the air a look still showing carries on if
+		# strike or spell with the stick held down keeps it. In the air a look still showing carries on if
 		# Ash lands asking for it (down held through a drop and the landing, whose first tick is
 		# not yet a crouch; camera review 5, H3).
 		if (s.on_ground and not landed and not s.look_held) or _look <= 0.0:
 			_look_on = false
-	# During a crouched strike the look stays where it is: a strike never starts, grows or ends one
+	# During a crouched strike or spell the look stays where it is: neither starts, grows or ends one
 	# (BUILD.md section 5: "never during a strike"). So does a carried look on the landing tick.
 	if not s.look_held and not (landed and _look_on):
 		var look_target: float = float(tuning.look_down_u) if _look_on and s.looking_down else 0.0

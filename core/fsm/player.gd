@@ -4,7 +4,9 @@ extends RefCounted
 ## docs/adr/0010 for the rules BUILD.md leaves open). Stepped once per tick by the simulation
 ## with the player's input ring.
 ##
-## Two layers run side by side: locomotion (ground, air, dash, wall) and an action (a strike).
+## Three layers run side by side: locomotion (ground, air, dash, wall), an action (a strike) and a
+## spell (Kindle, Radiance or Mend: [PlayerSpells]). What combat does to the player is
+## [PlayerCombat]'s (docs/adr/0013).
 ## Strikes never stop movement; a dash cancels a strike from the strike's dash frame, and a strike
 ## cancels a dash from dash frame 6 into the dash's carry-over. Every timer counts frames, and a
 ## state's frame 1 is the tick it began, so "frame 3" is the third tick of that state.
@@ -25,7 +27,11 @@ const LONG_AGO: int = 1000
 
 var p: MovementParams
 var kit: KitParams
+var combat: CombatParams
 var attacks: AttackSet
+## The weapon's charged strike and down-strike, looked up once (they are read every tick).
+var charged_attack: AttackDef
+var down_attack: AttackDef
 var world: CollisionWorld
 var body: Body
 var events: SimEvents
@@ -111,6 +117,33 @@ var turn_left: int = 0
 ## Hitstop: frames the player is frozen for (the ring merges input meanwhile).
 var freeze: int = 0
 
+## Hearts, Flame and Kindling (BUILD.md section 6).
+var vitals: Vitals
+## Counts every strike, spell cast and pogo; an enemy keeps the count of the last one that hit it,
+## so one strike hits it once.
+var strike_serial: int = 0
+## Hits landed at Kindling White, toward its automatic Charged strike.
+var white_hits: int = 0
+## The spell under way ([PlayerSpells] NONE, KINDLE, RADIANCE, MEND), its frame (1-based), and
+## Kindle's direction.
+var spell: int = 0
+var spell_frame: int = 0
+var spell_dir: Vector2i = Vector2i.ZERO
+## Radiance reached its burst frame this tick: combat bursts it even if an action ends the spell on
+## that same frame (task 6 review, H3), and clears it.
+var radiance_burst: bool = false
+## After a hit, the frames the knockback still holds the stick's sideways push off, and its speed.
+var knock_left: int = 0
+var knock_vx: int = 0
+## Attack held frames as of last tick, the frames a Charged strike's request still waits, and the
+## stick on the frame the hold was let go: the strike goes that way (task 6 review, M4).
+var charge_held: int = 0
+var charge_request: int = 0
+var charge_stick: Vector2i = Vector2i.ZERO
+## The room's spawn point, where a death sends the player.
+var home_x: int = 0
+var home_y: int = 0
+
 ## Kit: the Kindle Votive lets the dash ignite wax and Snuffed (tech 12).
 var kindle_dash: bool = false
 
@@ -126,12 +159,17 @@ func _init(
 	params: MovementParams,
 	kit_params: KitParams,
 	strikes: AttackSet,
+	combat_params: CombatParams,
 	p_world: CollisionWorld,
 	p_events: SimEvents
 ) -> void:
 	p = params
 	kit = kit_params
+	combat = combat_params
+	vitals = Vitals.new(combat_params)
 	attacks = strikes
+	charged_attack = strikes.find("charged")
+	down_attack = strikes.find("down")
 	world = p_world
 	events = p_events
 	body = Body.make(0, 0, p.half_w, p.height)
@@ -154,6 +192,8 @@ func spawn(x: int, y: int) -> void:
 	# Until the player first stands on safe ground, a hazard returns them to the spawn point.
 	safe_x = x
 	safe_y = y
+	home_x = x
+	home_y = y
 
 
 func is_dashing() -> bool:
@@ -185,17 +225,42 @@ func step(ring: InputRing) -> void:
 			stick_hold_x = 0
 	_tick_timers()
 	_advance_action()
-	_turn(dx)
-	_crouch(dx, dy)
+	PlayerSpells.advance(self, ring)
+	PlayerCombat.before_actions(self, ring)
+	# Mend is channelled standing still: while it runs the stick neither turns nor moves the
+	# player. Its end is decided first, so on the frame it ends (let go, or an action) the stick
+	# acts at once (task 6 review, H6: the release frame was a dead frame).
+	var channel: bool = spell == PlayerSpells.MEND
+	_turn(0 if channel else dx)
+	_crouch(0 if channel else dx, 0 if channel else dy)
 	# The toss goes first: a teleport pressed with a jump or a dash moves the player, and the
 	# jump or dash goes from where it lands rather than being cut off by it.
 	toss.try_start(self, ring)
 	_try_dash(ring)
 	_try_jump(ring, dx, dy)
 	PlayerStrikes.try_attack(self, ring)
-	_move(ring, dx, dy)
-	_after_move(ring, dx, dy)
+	PlayerCombat.after_actions(self)
+	PlayerSpells.try_start(self, ring)
+	if channel and spell != PlayerSpells.MEND:
+		_turn(dx)
+	var still: bool = spell == PlayerSpells.MEND
+	_move(ring, 0 if still else dx, 0 if still else dy)
+	if knock_left > 0:
+		knock_left -= 1
+	_after_move(ring, 0 if still else dx, 0 if still else dy)
 	toss.step(self)
+
+
+## A hit: the strike, spell and dash under way end, with the dash's carry-over and an attack it
+## held for later.
+func interrupt() -> void:
+	if action != NO_ACTION:
+		_end_action()
+	PlayerSpells.stop(self)
+	if loco == DASH:
+		end_dash(false)
+	carry_frames = 0
+	queued_attack_left = 0
 
 
 # --- timers ----------------------------------------------------------------------------------
@@ -276,6 +341,8 @@ func _crouch(dx: int, dy: int) -> void:
 
 func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 	if not ring.has_press(InputFrame.DASH, p.dash_buffer_frames) or loco == DASH:
+		return
+	if PlayerSpells.holds(self):
 		return
 	var pressed: Vector2i = press_dir(ring, InputFrame.DASH, p.dash_buffer_frames)
 	var dx: int = pressed.x
@@ -398,6 +465,8 @@ func _try_jump(ring: InputRing, dx: int, dy: int) -> void:
 	if not ring.has_press(InputFrame.JUMP, p.jump_buffer_frames):
 		return
 	if not strike_allows_jump() or not _room_to_rise(dy, dx):
+		return
+	if PlayerSpells.holds(self):
 		return
 	var keep_vx: int = 0
 	var from_dash: bool = loco == DASH
@@ -545,11 +614,21 @@ func _move_ground(_ring: InputRing, dx: int, _dy: int) -> void:
 
 
 func _ground_speed(vx: int, input_x: int) -> int:
+	if knock_left > 0:
+		return _knocked()
 	return _horizontal(vx, input_x, p.run_accel, p.run_decel, true)
 
 
 func _air_speed(vx: int, input_x: int) -> int:
+	if knock_left > 0:
+		return _knocked()
 	return _horizontal(vx, input_x, p.air_accel, p.air_decel, false)
+
+
+## A hit's knockback holds its speed, whatever the stick says (docs/adr/0013).
+func _knocked() -> int:
+	turn_left = 0
+	return knock_vx
 
 
 ## Horizontal speed for one tick. On the ground a reversal flips to 60% of the speed in the new
@@ -900,56 +979,4 @@ func press_dir(ring: InputRing, bit: int, max_age: int) -> Vector2i:
 
 
 func hash_into(h: StateHasher) -> void:
-	body.hash_into(h)
-	for v: int in [
-		facing,
-		loco,
-		air_frames,
-		air_jumps_left,
-		air_dashes_left,
-		dash_frame,
-		dash_vx,
-		dash_vy,
-		ground_dash_cooldown,
-		carry_frames,
-		jump_frame,
-		wall_side,
-		wall_frames,
-		wall_lock,
-		action,
-		action_frame,
-		action_dir,
-		chain_timer,
-		since_bounce,
-		invuln,
-		freeze,
-		safe_x,
-		safe_y,
-		turn_left,
-		apex_hang_left,
-		wall_coyote,
-		wall_coyote_side,
-		stick_hold_x,
-		queued_attack_stick.x,
-		queued_attack_stick.y,
-		queued_attack_left,
-	]:
-		h.add_int(v)
-	for b: bool in [
-		crouching,
-		left_by_jump,
-		dash_grounded,
-		dash_crouched,
-		jump_released,
-		jump_cut,
-		jump_fresh,
-		wall_spent,
-		action_pogoed,
-		kindle_dash,
-		apex_hang_used,
-		dash_landed,
-		wall_fresh,
-	]:
-		h.add_bool(b)
-	h.add_string(chain_next)
-	toss.hash_into(h)
+	PlayerState.hash_into(self, h)

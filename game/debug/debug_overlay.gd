@@ -19,10 +19,24 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 	DebugBoxes.SOLID: Color(0.6, 0.75, 1.0, 0.9),
 	DebugBoxes.HAZARD: Color(1.0, 0.2, 0.2, 0.9),
 	DebugBoxes.CONTACT: Color(1.0, 1.0, 1.0, 1.0),
+	DebugBoxes.ENEMY: Color(0.85, 0.6, 1.0, 0.9),
+	DebugBoxes.ATTACK_WHITE: Color(1.0, 1.0, 1.0, 1.0),
+	DebugBoxes.ATTACK_RED: Color(1.0, 0.1, 0.1, 1.0),
+	DebugBoxes.SPELL: Color(1.0, 0.6, 0.1, 0.9),
+	DebugBoxes.TRAIL: Color(1.0, 0.35, 0.05, 0.7),
+	DebugBoxes.KILL_EMBER: Color(1.0, 0.75, 0.3, 1.0),
+	DebugBoxes.ENEMY_DEAD: Color(0.55, 0.5, 0.6, 0.55),
 }
 ## Boxes that are filled as well as outlined (the ones that hit something).
 const FILLED: Array[int] = [
-	DebugBoxes.STRIKE, DebugBoxes.POGO, DebugBoxes.HAZARD, DebugBoxes.CONTACT
+	DebugBoxes.STRIKE,
+	DebugBoxes.POGO,
+	DebugBoxes.HAZARD,
+	DebugBoxes.CONTACT,
+	DebugBoxes.ATTACK_WHITE,
+	DebugBoxes.ATTACK_RED,
+	DebugBoxes.SPELL,
+	DebugBoxes.TRAIL,
 ]
 const MARGIN := Color(1.0, 0.3, 0.3, 0.6)
 ## Violet, so the dead zone never reads as the hurtbox's green (task 5 review, L14).
@@ -35,6 +49,9 @@ const FONT_SIZE: int = 18
 ## A line of 18 px text: the embedded font's own height, so descenders never touch the next line.
 const LINE_PX: int = 26
 const PAD_PX: int = 12
+## Where the text starts down the screen: below the HUD's hearts, Flame bar and Kindling
+## (game/ui/hud.gd), which sit at the top left.
+const TOP_PX: int = 168
 ## Width of the screen column the input history uses, from the right edge: room for a run with
 ## every button held (task 5 review, L17).
 const HISTORY_COLUMN_PX: int = 400
@@ -133,7 +150,7 @@ func _draw() -> void:
 		if box.label != "" and not _label_repeats(box):
 			draw_string(
 				font,
-				box.rect.position + Vector2(0, -4),
+				box.rect.position + Vector2(0, -4 - box.label_lift),
 				box.label,
 				HORIZONTAL_ALIGNMENT_LEFT,
 				-1,
@@ -266,7 +283,29 @@ func _player_lines(sim: Simulation, pl: Player) -> PackedStringArray:
 			)
 		)
 	)
+	lines.append(_combat_line(sim, pl))
 	return lines
+
+
+## Hearts, Flame, Kindling and its tier, the spell under way, hitstop and the knockback after a hit.
+func _combat_line(sim: Simulation, pl: Player) -> String:
+	var v: Vitals = pl.vitals
+	var spell: String = "none"
+	if pl.spell != PlayerSpells.NONE:
+		spell = "%s frame %d" % [PlayerSpells.NAMES[pl.spell], pl.spell_frame]
+	return (
+		"hearts %d/%d   flame %d   kindling %d %s   spell %s   hitstop %d   knockback %d"
+		% [
+			v.hearts.current,
+			v.hearts.max_hearts,
+			v.flame.value,
+			v.kindling.hits,
+			str(sim.probe("tier")),
+			spell,
+			pl.freeze,
+			pl.knock_left
+		]
+	)
 
 
 func _draw_hud() -> void:
@@ -274,9 +313,9 @@ func _draw_hud() -> void:
 	var lines: PackedStringArray = hud_lines()
 	var screen: Vector2 = get_viewport_rect().size
 	var block_h: int = PAD_PX * 2 + LINE_PX * lines.size()
-	_hud.draw_rect(Rect2(0, 0, screen.x - HISTORY_COLUMN_PX, block_h), SHADE)
+	_hud.draw_rect(Rect2(0, TOP_PX, screen.x - HISTORY_COLUMN_PX, block_h), SHADE)
 	for i: int in range(lines.size()):
-		var at := Vector2(PAD_PX, PAD_PX + LINE_PX * (i + 1) - 6)
+		var at := Vector2(PAD_PX, TOP_PX + PAD_PX + LINE_PX * (i + 1) - 6)
 		_hud.draw_string(font, at, lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, TEXT)
 	var x0: float = screen.x - HISTORY_COLUMN_PX
 	var rows: int = history.runs.size()

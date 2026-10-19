@@ -1,0 +1,12 @@
+fixture red_swing_is_never_parried
+doc BUILD.md s6 Parry, "Bosses have attacks marked unparryable (a red flash instead of white) that must be dodged or pogoed": a press inside the window does not parry the red swing.
+room test/dummy_red
+frames 70
+input
+  50 L attack
+end
+expect
+  at 29 event.telegraph=1
+  at 53 event.player_hit=1 event.parry=0 hearts=4
+  never 0..69 event.parry=1
+end

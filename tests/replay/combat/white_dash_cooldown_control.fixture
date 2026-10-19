@@ -1,0 +1,11 @@
+fixture white_dash_cooldown_control
+doc Control for white_dash_has_no_cooldown: below White the ground dash's 24 f cooldown blocks the second dash.
+room test/flat
+frames 30
+input
+  0 dash
+  10 dash
+end
+expect
+  never 10..17 state=dash
+end

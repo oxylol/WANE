@@ -1,0 +1,13 @@
+fixture kindle_cancels_from_frame_8
+doc BUILD.md s6 Spells, Kindle "cancelable from f 8": a dash pressed on the spell's frame 6 waits in the buffer and fires on its frame 8.
+room test/flat
+option flame 33
+frames 20
+input
+  0 spell
+  5 dash
+end
+expect
+  at 6 spell=kindle state=ground
+  at 7 state=dash spell=none
+end

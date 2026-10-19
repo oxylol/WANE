@@ -1,0 +1,14 @@
+fixture mend_let_go_turns_and_runs_at_once
+doc BUILD.md section 15, Movement: "Turning around never produces a dead frame" (task 6 review, H6): Mend let go on frame 10 with the stick left turns Ash and starts the run on frame 10. Mend used to throw that frame's stick away.
+room test/flat
+option flame 33
+option hearts 4
+frames 20
+input
+  0..9 mend
+  10..19 L
+end
+expect
+  at 9 spell=mend facing=1
+  at 10 spell=none facing=-1 vx<0
+end

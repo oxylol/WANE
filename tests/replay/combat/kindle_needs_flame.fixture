@@ -1,0 +1,11 @@
+fixture kindle_needs_flame
+doc BUILD.md s6 Spells, Kindle costs 33 Flame: with none, a spell press casts nothing.
+room test/dummy_far
+frames 20
+input
+  0 spell
+end
+expect
+  never 0..19 spell=kindle
+  never 0..19 event.hit=1
+end

@@ -34,3 +34,18 @@ After an intended simulation change: `godot --headless --path . --script tools/r
 Watch one:
 - `tools/replay/play.gd` draws a fixture's whole path in one panel, headless.
 - `tools/replay/film.gd --overlay on --zoom 3` films it tick by tick through the game's own views with the F3 overlay on: the frame-stepped contact sheet (docs/adr/0012). It needs a display, or `xvfb-run`.
+
+## Probe keys
+
+What a fixture's expectations, `trace.gd` and the F3 overlay can read (`Simulation.probe`). Positions and speeds are sub-pixels (compare with `u` values) unless the key ends in `u`; words are listed.
+
+- Input: `tick`, `stick_x`, `stick_y`, `held.<BUTTON>` (1 or 0), `press_age.<BUTTON>` (the age of the latest unused press, or -1); buttons are JUMP, ATTACK, DASH, SPELL, MEND, VESSEL, TOSS.
+- Events this tick: `event.<name>` (1 or 0), names from `core/sim/sim_events.gd` (jump, land, dash, pogo, attack, hazard, hit, kill, parry, player_hit, ember_home, death, cast, radiance, heal, charge_ready, charge_release, ...).
+- The player's body: `x`, `y`, `xu`, `yu`, `vx`, `vy`, `height` (units), `ground`, `slope`, `hit_wall`, `hit_ceiling`, `nudge_x`, `nudge_y`.
+- Movement: `state` (ground, air, dash, wall), `facing`, `crouch`, `air_frames`, `air_jumps`, `air_dashes`, `dash_frame`, `dash_cooldown`, `carry`, `jump_frame`, `jump_cut`, `wall`, `wall_frames`, `wall_lock`, `invuln` (1 or 0), `invuln_frames`.
+- Strikes: `action` (none or a strike id), `chain` (the next side strike), `action_frame`, `action_dir`, `strike` and `pogo_live` (a live box, 1 or 0), `since_bounce`, `charge_held`, `charge_request`.
+- The Ember Toss: `ember` (1 while out), `ember_x`, `ember_y`, `toss_cooldown`.
+- Combat (docs/adr/0013): `hearts`, `flame`, `kindling` (hits), `tier` (ember, flame, blaze, white), `spell` (none, kindle, radiance, mend), `spell_frame`, `freeze` (hitstop frames left), `knock` (knockback frames left), `embers` (kill embers in flight), `light` (Radiance's ticks left).
+- Enemies: `enemy.<key>` reads the room's first enemy, `enemy<n>.<key>` its n-th from 0: `hp`, `poise`, `state` (idle, telegraph, strike, recover, stagger, dead), `x`, `y`, `vx` (its knockback), `vy`, `facing`, `freeze`, `burn`.
+
+Scenario options a fixture may set (`option <name> <value>`): `kindle` (the Kindle Votive's dash, tech 12), and starting vitals `hearts`, `flame` and `kindling`.

@@ -1,0 +1,13 @@
+fixture charged_strike_after_a_24_frame_hold
+doc BUILD.md s6 Taper, Charged (hold 24 f): 3 f startup, 6 f active, 36 damage, 400 u/s; Hit feedback, Charged 6 f of hitstop (docs/adr/0013: the press is side 1; letting go after 24 held frames asks for the Charged strike). Held frames count the player's frames, not its hitstop.
+room test/dummy
+frames 50
+input
+  0..30 attack
+end
+expect
+  at 2 event.hit=1 enemy.hp=190
+  at 31 action=charged
+  at 33 enemy.hp=190
+  at 34 event.hit=1 enemy.hp=154 freeze=6
+end

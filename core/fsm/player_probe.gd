@@ -3,7 +3,7 @@ extends RefCounted
 ## Named read-only views of the player for replay fixtures and the F3 overlay (the key list is in
 ## tests/replay/README.md). Positions and velocities are sub-pixels unless the key ends in "u".
 
-const WORD_KEYS: Array[String] = ["state", "action", "chain"]
+const WORD_KEYS: Array[String] = ["state", "action", "chain", "spell", "tier"]
 
 
 ## The value of [param key], or null if the key is unknown.
@@ -24,6 +24,10 @@ static func words(pl: Player, key: String) -> PackedStringArray:
 			for a: AttackDef in pl.attacks.attacks:
 				out.append(a.id)
 			return out
+		"spell":
+			return PackedStringArray(PlayerSpells.NAMES)
+		"tier":
+			return PackedStringArray(Kindling.TIER_NAMES)
 	return PackedStringArray()
 
 
@@ -33,49 +37,106 @@ static func _word(pl: Player, key: String) -> String:
 			return Player.LOCO_NAMES[pl.loco]
 		"action":
 			return pl.current_attack().id if pl.action != Player.NO_ACTION else "none"
+		"spell":
+			return PlayerSpells.NAMES[pl.spell]
+		"tier":
+			return Kindling.TIER_NAMES[pl.vitals.kindling.tier()]
 	return pl.chain_next
 
 
 static func _number(pl: Player, key: String) -> Variant:
+	# One branch per key: a fixture probes every key it checks on every tick, so a probe computes
+	# only the value asked for.
 	var b: Body = pl.body
-	var table: Dictionary[String, int] = {
-		"x": b.x,
-		"y": b.y,
-		"xu": Fx.div_floor(b.x, Fx.SUB),
-		"yu": Fx.div_floor(b.y, Fx.SUB),
-		"vx": b.vx,
-		"vy": b.vy,
-		"height": Fx.div_floor(b.height, Fx.SUB),
-		"ground": 1 if b.on_ground else 0,
-		"slope": 1 if b.on_slope else 0,
-		"hit_wall": b.hit_wall,
-		"hit_ceiling": 1 if b.hit_ceiling else 0,
-		"nudge_x": b.nudge_x,
-		"nudge_y": b.nudge_y,
-		"facing": pl.facing,
-		"crouch": 1 if pl.crouching else 0,
-		"air_frames": pl.air_frames,
-		"air_jumps": pl.air_jumps_left,
-		"air_dashes": pl.air_dashes_left,
-		"dash_frame": pl.dash_frame,
-		"dash_cooldown": pl.ground_dash_cooldown,
-		"carry": pl.carry_frames,
-		"jump_frame": pl.jump_frame,
-		"jump_cut": 1 if pl.jump_cut else 0,
-		"wall": pl.wall_side,
-		"wall_frames": pl.wall_frames,
-		"wall_lock": pl.wall_lock,
-		"action_frame": pl.action_frame,
-		"action_dir": pl.action_dir,
-		"strike": 1 if pl.strike_box().size != Vector2i.ZERO else 0,
-		"pogo_live": 1 if pl.pogo_box().size != Vector2i.ZERO else 0,
-		"since_bounce": pl.since_bounce,
-		"invuln": 1 if pl.is_invulnerable() else 0,
-		"ember": 1 if pl.toss.active else 0,
-		"ember_x": pl.toss.x,
-		"ember_y": pl.toss.y,
-		"toss_cooldown": pl.toss.cooldown,
-	}
-	if table.has(key):
-		return table[key]
+	match key:
+		"x":
+			return b.x
+		"y":
+			return b.y
+		"xu":
+			return Fx.div_floor(b.x, Fx.SUB)
+		"yu":
+			return Fx.div_floor(b.y, Fx.SUB)
+		"vx":
+			return b.vx
+		"vy":
+			return b.vy
+		"height":
+			return Fx.div_floor(b.height, Fx.SUB)
+		"ground":
+			return 1 if b.on_ground else 0
+		"slope":
+			return 1 if b.on_slope else 0
+		"hit_wall":
+			return b.hit_wall
+		"hit_ceiling":
+			return 1 if b.hit_ceiling else 0
+		"nudge_x":
+			return b.nudge_x
+		"nudge_y":
+			return b.nudge_y
+		"facing":
+			return pl.facing
+		"crouch":
+			return 1 if pl.crouching else 0
+		"air_frames":
+			return pl.air_frames
+		"air_jumps":
+			return pl.air_jumps_left
+		"air_dashes":
+			return pl.air_dashes_left
+		"dash_frame":
+			return pl.dash_frame
+		"dash_cooldown":
+			return pl.ground_dash_cooldown
+		"carry":
+			return pl.carry_frames
+		"jump_frame":
+			return pl.jump_frame
+		"jump_cut":
+			return 1 if pl.jump_cut else 0
+		"wall":
+			return pl.wall_side
+		"wall_frames":
+			return pl.wall_frames
+		"wall_lock":
+			return pl.wall_lock
+		"action_frame":
+			return pl.action_frame
+		"action_dir":
+			return pl.action_dir
+		"strike":
+			return 1 if pl.strike_box().size != Vector2i.ZERO else 0
+		"pogo_live":
+			return 1 if pl.pogo_box().size != Vector2i.ZERO else 0
+		"since_bounce":
+			return pl.since_bounce
+		"invuln":
+			return 1 if pl.is_invulnerable() else 0
+		"ember":
+			return 1 if pl.toss.active else 0
+		"ember_x":
+			return pl.toss.x
+		"ember_y":
+			return pl.toss.y
+		"toss_cooldown":
+			return pl.toss.cooldown
+		"freeze":
+			return pl.freeze
+		"invuln_frames":
+			return pl.invuln
+		"hearts":
+			return pl.vitals.hearts.current
+		"flame":
+			return pl.vitals.flame.value
+		"kindling":
+			return pl.vitals.kindling.hits
+		"spell_frame":
+			return pl.spell_frame
+		"knock":
+			return pl.knock_left
+		"charge_held":
+			return pl.charge_held
+		"charge_request":
+			return pl.charge_request
 	return null

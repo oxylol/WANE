@@ -1,0 +1,18 @@
+fixture corpse_falls_and_respawns_at_its_marker
+doc BUILD.md section 6, Kill (task 6 review, H5): the finisher kills a light dummy as it launches it; the corpse flies up and away, falls back to the floor and rests there; 60 of its own ticks after its death (the kill's 4 f of hitstop hold the corpse too) the dummy comes back whole at its marker, at rest. A corpse used to hang where it died, and come back there with the launch still on it.
+room test/light_frail
+frames 120
+input
+  0 attack
+  6 attack
+  12 attack
+end
+expect
+  mark die 12..30 event.kill=1
+  at die+6 enemy.y<544u enemy.state=dead
+  at die+50 enemy.y=544u enemy.x>270u enemy.state=dead
+  mark back die..119 enemy.state=idle
+  at back-1 enemy.state=dead
+  at back enemy.x=260u enemy.y=544u enemy.vy=0 enemy.vx=0 enemy.hp=30
+  at die+64 enemy.state=idle
+end

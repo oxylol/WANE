@@ -14,14 +14,14 @@
 | 3 | Ash: ground, jump, dash, wall, pogo; one fixture per table row and per tech interaction | in review: every row and all 12 tech interactions have fixtures, with control runs; fixed through five review rounds (ADR-0010); the fifth round's fixes are committed and their re-review runs next |
 | 4 | Camera | in review: fixed through six review rounds (ADR-0011); the sixth round's fixes are committed and their re-review runs next |
 | 5 | F3 debug overlay and frame-stepper | in review: the overlay (boxes, state, frame counter, input history) and the stepper (F3 to F6) are in the game and film every contact sheet (`film.gd --overlay on`); the view eases corner-correction nudges; fixed through two review rounds (ADR-0012); the second round's fixes are committed and their re-review runs next |
-| 6 | Taper, Flame, Kindling, parry, spells, hit feedback, training dummy with poise | in progress: the Taper's strikes and the pogo are committed with task 3; Flame, hearts, Kindling, the dummy, hit feedback and slow motion are built and unit-tested but not yet integrated or committed |
+| 6 | Taper, Flame, Kindling, parry, spells, hit feedback, training dummy with poise | in review: combat resolves once a tick after everything moves (ADR-0013): the Taper's hits, Flame, hearts, Kindling and its tiers, the parry, Kindle, Mend, Radiance, the Charged strike, poise and stagger, kill embers, hazards costing a heart, and the training dummy (standing, swinging white or red); hit feedback, the HUD, enemy and combat views and the F3 overlay's combat boxes; 44 combat fixtures and the rules' unit tests; the sandbox has three dummies. Its first review's core and presentation findings are fixed (ADR-0013, the feel log's review tables); its re-review runs next |
 | 7 | Room editor plugin and grey-box zone 1 (12 rooms, 12 tech interactions in order) | in progress: the room format (ADR-0009) is committed; the editor's document, history and panel are built but not committed; zone 1 is not built |
 | 8 | Stress room (200 enemies, 40 procs, Pitch lighting) and perf benchmark in CI | not started (the physics bench exists: ADR-0008) |
 | 9 | Immaculate Checklist pass, Phase 1 report | not started |
 
 ## Next
 
-Commit task 6 (the Taper's combat side, Flame, Kindling, parry, spells and hit feedback against the training dummy, with its first review's fixes); re-review physics (round 8), movement (round 6), the camera (round 7), task 5 (round 3) and task 6 (round 2), and fix what they find; then task 7.
+Re-review physics (round 8), movement (round 6), the camera (round 7), task 5 (round 3) and task 6 (round 2), and fix what they find; then task 7: the room editor and the grey-box zone 1.
 
 ## Immaculate Checklist (BUILD.md section 15)
 
@@ -44,16 +44,16 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Camera never shows the player within 80 units of the screen edge | yes | green over all 332 movement, tech, physics and camera fixtures at 16:9, 16:10, 4:3 and 21:9, held by the follow alone with no backstop correction, and over the fourth review's sweeps (falls beside walls and down shafts 96 to 288 u wide, wall-jumps up every shaft width, look-drops of 64 to 256 u, borderless room edges, long ramps) the fifth review's fixtures (`cam5_*`) and the sixth review's sweep of teleports followed by a dash on toward one-tile ceilings and borderless tops and bottoms 12 to 24 rows away (`test_camera_rig.gd`, `test_camera_review*.gd`); the re-review of the sixth round's fixes runs next; the zone 1 loop is task 7 |
 | 60-second movement-only loop through zone 1 playable with eyes on the character | yes (the director plays it) | not started: needs zone 1 (task 7) |
 | *Combat* | | |
-| Attack comes out on frame 3 from a neutral press, every time, including during hitstop | yes | partial: the strike box is live on frame 3 from a neutral press (`dash_cancels_attack`); hitstop is task 6 |
+| Attack comes out on frame 3 from a neutral press, every time, including during hitstop | yes | green: the box is live on the strike's frame 3 from a neutral press (`side1_hits_dummy_once`, `dash_cancels_attack`); a press made during hitstop fires on the first free frame and its box counts frame 3 from there (`dash_out_of_hitstop`, `chain_rising_weight`) |
 | Dash cancels an attack on frame 4 and never eats the next attack input | yes | green: `dash_cancels_attack`, `dash_cancel_window`, `dash_cancels_down_strike`; an attack pressed before the dash that cancels a strike is kept for its frame 6 (`dash_cancel_keeps_earlier_attack`, with its control), handed back with the attack buffer when the dash ends sooner (a landing, a cling, a dash-jump: `dash_cancel_attack_survives_*`), and replaced by a later press (`dash_cancel_latest_attack_press_wins`) |
-| 3-hit chain against a Tallowman reads as three impacts with rising weight | partial: a grey-box heavy dummy stands in for the Tallowman | not started (task 6) |
-| Parry succeeds on the 8-frame window against the Snuffed Knight 10 times in a row | partial: a grey-box knight dummy; its timings are new content values with a feel-log entry | not started (task 6) |
-| Unparryable red distinguishable from parryable white at Pitch with flashes at 0 | partial: shape and outline cues on grey boxes; re-checked with Phase 2 lighting and art | not started (task 6) |
-| Taking a hit is never confusing | yes | not started (task 6) |
-| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | in progress: the ring merges hitstop frames and keeps every press (task 1, unit-tested); hitstop itself comes with task 6 |
+| 3-hit chain against a Tallowman reads as three impacts with rising weight | partial: the grey-box training dummy stands in for the Tallowman | partial: 2, 2 and 4 frames of hitstop, the finisher's shake and knockback, the third hit breaking the dummy's poise (`chain_rising_weight`); whether it reads as rising weight with grey boxes and placeholder sounds is the director's to play |
+| Parry succeeds on the 8-frame window against the Snuffed Knight 10 times in a row | partial: the grey-box dummy's white swing (24 f telegraph) stands in for the Snuffed Knight | green on the dummy: the window is the 8 frames ending on the landing frame (`parry_window_first_frame`, `_last_frame`, `_too_early`), frame by frame (`test_the_parry_window_is_the_eight_frames_ending_on_the_landing`), ten in a row (`test_a_parry_succeeds_ten_times_in_a_row`); the Knight is zone 3 content |
+| Unparryable red distinguishable from parryable white at Pitch with flashes at 0 | partial: shape and outline cues on grey boxes; re-checked with Phase 2 lighting and art | partial: a telegraph raises a bar and outlines the enemy with no flash involved, and they differ in shape as well as colour (the red bar saw-toothed and its outline jagged, white plain), through the landing frame; the telegraph's sound comes exactly 20 frames before the hit, hitstop or not (`telegraph_cue_*`); the F3 overlay labels the red swing; `red_swing_is_never_parried`; Pitch is Phase 2 |
+| Taking a hit is never confusing | yes | partial: 8 f of hitstop on Ash only, a 60 u knockback over 12 f that any action ends, 20 f of invulnerability, the red vignette, a shake along the hit and a heart lost on the HUD (`player_hit_knockback_and_invulnerability`); the director plays it |
+| Hitstop never causes a dropped input; buffered inputs fire on the first free frame | yes | green: the ring merges hitstop frames and keeps every press (task 1); a dash pressed in hitstop fires on the first free frame (`dash_out_of_hitstop`); held frames for the Charged strike count only the player's own frames (`charged_strike_after_a_24_frame_hold`) |
 | With 30 Votives active the screen stays readable | partial: the stress room's grey-box procs | not started |
 | Kindling White reached by a skilled tester in zone 2, feels earned | no: zone 2 does not exist in Phase 1 | carried |
-| A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | not started (task 6) |
+| A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | green: the ember arrives 16 frames after the kill and grants 11 Flame (`kill_ember_reaches_the_player`); the HUD's bar eases up and flashes on a gain (`test_the_flame_bar_eases_to_a_gain_and_flashes_for_twelve_ticks`) |
 | *Graphics and feel* | | |
 | 60 fps in the stress room on the Deck profile with lighting on | partial: Phase 1 lights the stress room with Godot's 2D lights; the real lighting pass is Phase 2 task 1, and the gate needs Deck-class hardware (see Blocked) | not started |
 | No frame-time spike above 20 ms in a 5-minute zone 1 run | partial: the 12-room grey-box zone, not the final 60-room zone | not started |
@@ -62,7 +62,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Every attack has a smear frame | no: animation is Phase 2 | carried |
 | Landing squash and jump stretch visible and never block input | partial: grey-box squash and stretch driven by the core's timings | not started |
 | Ember flicker visible on nearby normal-mapped surfaces | no: normal maps are Phase 2 | carried |
-| Screen shake at default 50% never moves the frame more than 3 units | yes | not started (task 6) |
+| Screen shake at default 50% never moves the frame more than 3 units | yes | green: the largest shake (a player hit, 4 u) is 2 u at 50%, and the total is capped (`test_shake_at_the_default_fifty_percent_never_exceeds_three_units`; content validation refuses a default that would pass 3 u) |
 | Any boss-fight frame could be the store page | no: art is Phase 2 | carried |
 | *Audio* (all five lines) | no: audio is Phase 2 task 4 | carried |
 | *Run tension* | | |
@@ -72,8 +72,8 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Run beatable with the starting kit on Wane | no: needs a full run | carried |
 | Seeded replay reproduces bit-for-bit on Windows, Linux and Deck | partial: every fixture replays bit-for-bit against its golden hashes on Linux, Windows and macOS CI; a full run and the Deck come later | in progress: green for all fixtures |
 | *Process* | | |
-| Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 5 (`docs/feel_log/`) |
-| Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement), 0011 (camera), 0012 (debug overlay and frame-stepper) |
+| Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 6 (`docs/feel_log/`) |
+| Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement), 0011 (camera), 0012 (debug overlay and frame-stepper), 0013 (combat) |
 | F3 overlay shows hitboxes, state, frame counter and input history | yes | green: F3 in any build, and with it shown F4 pause, F5 one tick, F6 ten; a hazard hit is marked where the hurtbox touched (ADR-0012; `test_debug_overlay.gd`, `test_debug_boxes.gd`, `test_input_history.gd`); every tech and physics fixture plays to the same hash with the overlay reading every tick; the task 5 sheet is filmed through it |
 | CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | green for unit, replay, coverage and lint; the perf gate is task 8 |
 
@@ -82,7 +82,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Gate | Status |
 | --- | --- |
 | Core coverage of at least 85% | green: `tools/ci/gd_coverage.py` instruments a scratch copy of the project (GDScript has no coverage tooling); core is at 93.6% and CI gates at 85% |
-| Replay fixtures run headless in under 10 seconds | green: the fixture stage takes about 7.5 s for all 309 fixtures here (building a simulation costs 1.4 ms: ADR-0006) |
+| Replay fixtures run headless in under 10 seconds | green, to watch: the fixture stage takes 7.9 to 8.3 s for all 378 fixtures here. Combat made every tick 35% slower and took it to 10.7 s; the input ring's queries, the probes and the content digest were made cheaper (task 6 feel log) with every state hash unchanged. Task 7's fixtures and task 8's perf work have to keep it under: the movement step (about 30 us of a tick's 68) is next |
 | Export for Windows, Linux, macOS and Deck on every merge, booting to the Hearth | carried: no export presets yet and the Hearth is not in Phase 1; the export job lands with the first presets |
 | Credits and legal screen listing Godot's third-party licenses (docs/LICENSES.md) | carried to the Phase 2 UI work |
 
@@ -101,3 +101,4 @@ None.
 - **Camera**: the questions in `docs/feel_log/2026-10-17-task4-camera.md` (the climb's head room, look-down distance, teleport cuts, the turn on an up-dash out of a fall, the look pausing past a ledge in steering reach).
 - **Movement**: the questions in `docs/feel_log/2026-10-17-task3-ash-movement.md` and ADR-0010 (wall-kick climb, pogo-dash cadence, ember values, low gaps, wall coyote time, tech 2's 1664 u gap, the reverse pogo needing dash speed, a spent wall still kicking, a press lost behind a strike with no cancel, the safe-ground margin, strikes read 4 ways, the jump A/B).
 - **Physics**: the ledge-grab's 10 u is measured from the feet (ADR-0008).
+- **Combat**: strike, parry and Mend on the sandbox's three dummies (to the right of the spawn: one standing, one swinging white every second, one red); the questions in `docs/feel_log/2026-10-19-task6-combat.md` (the chain's weight in grey boxes, the 12-frame knockback, hazards costing a heart, the Charged strike's release, Mend standing still, the kill ember's Flame).

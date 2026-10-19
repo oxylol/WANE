@@ -1,0 +1,10 @@
+fixture charged_strike_needs_the_whole_hold
+doc BUILD.md s6 Taper, Charged (hold 24 f): 21 held frames, 19 of them the player's own, are not enough.
+room test/dummy
+frames 50
+input
+  0..20 attack
+end
+expect
+  never 0..49 action=charged
+end

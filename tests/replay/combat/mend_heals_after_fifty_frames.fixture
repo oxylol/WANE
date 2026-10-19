@@ -1,0 +1,15 @@
+fixture mend_heals_after_fifty_frames
+doc BUILD.md s6 Flame: "Mend costs 33 and heals 1 of the player's 5 base hearts over 50 frames of channeling" (docs/adr/0013: the Flame is spent when the channel starts; the heart comes on its frame 50).
+room test/flat
+option flame 33
+option hearts 4
+frames 70
+input
+  0..60 mend
+end
+expect
+  at 0 spell=mend flame=0 hearts=4
+  at 48 hearts=4 spell=mend
+  at 49 hearts=5
+  at 50 spell=none
+end

@@ -1,0 +1,19 @@
+fixture mend_ended_by_a_jump_keeps_the_stick
+doc docs/adr/0013, Mend (task 6 review, H6): let go of Mend with the stick right, the run starts on that frame; a jump out of a channel with the stick right carries Ash right from its first frame.
+room test/flat
+option flame 66
+option hearts 3
+frames 40
+input
+  0..9 mend
+  10..19 R
+  20..29 mend
+  30 R mend jump
+  31..39 R
+end
+expect
+  at 9 spell=mend
+  at 10 spell=none vx>0
+  at 29 spell=mend
+  at 30 event.jump=1 vx>0
+end

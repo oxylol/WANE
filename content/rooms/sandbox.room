@@ -117,3 +117,8 @@ tiles
 end
 # A bell to pogo off, over the main floor.
 solid 2600 3000 2632 3032 tag=pogo
+# Task 6: training dummies on the main floor (docs/adr/0013): one to strike, one that swings a
+# white, parryable attack every second, and one that swings a red, unparryable one.
+entity dummy 700 1920
+entity dummy 900 1920 attack=1 period=60
+entity dummy 1150 1920 attack=1 period=60 red=1

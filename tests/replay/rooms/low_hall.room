@@ -1,0 +1,18 @@
+room test/low_hall
+# Task 6 review (M7): an ordinary walled hall, five tiles high, Ash against its left wall and a
+# one-hit dummy 60 u to the right.
+size 20 10
+spawn 42 192
+tiles
+####################
+#...................
+#...................
+#...................
+#...................
+#...................
+####################
+####################
+####################
+####################
+end
+entity dummy 102 192 hp=10

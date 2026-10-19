@@ -1,0 +1,11 @@
+fixture one_press_parries_once
+doc docs/adr/0013, Parry (task 6 review, H4): one attack press on frame 46 parries the left dummy's swing on 53 (7 frames old). The parry spends it: the right dummy's swing on 60, 14 ticks after the press, hits. The parry's 12 f of hitstop used to hold the press's age still, so it parried every swing in them.
+room test/two_swings
+frames 80
+input
+  46 U attack
+end
+expect
+  at 53 event.parry=1
+  at 60 event.parry=0 event.player_hit=1
+end

@@ -21,6 +21,14 @@ static func check_pogo(pl: Player, ring: InputRing) -> bool:
 		return false
 	if not _pogo_target(pl.world, box):
 		return false
+	bounce(pl, ring, box)
+	return true
+
+
+## The pogo's bounce off whatever [param box] (the live pogo box) touched: spikes, a pogo-able
+## solid or an enemy ([Combat]). The bounce answers any jump pressed while the down-strike
+## blocked the jump, and hands control straight back ("anything on bounce").
+static func bounce(pl: Player, ring: InputRing, box: Rect2i) -> void:
 	var b: Body = pl.body
 	pl.action_pogoed = true
 	PlayerWall.refresh(pl)
@@ -41,7 +49,6 @@ static func check_pogo(pl: Player, ring: InputRing) -> bool:
 	# "Anything on bounce": the down-strike hands control straight back.
 	pl.action = Player.NO_ACTION
 	pl.action_frame = 0
-	return true
 
 
 static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:
@@ -57,22 +64,30 @@ static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:
 	return false
 
 
-## A hazard (spikes, or a pit) touching the hurtbox sends the player back to the last safe
-## ground, with the hazard invulnerability; standing there again counts as a landing for the
-## airtime's resources. An ember thrown before the hazard goes out with it (the throw's cooldown
-## runs on): left out, a teleport to it would undo the send-back. Every press still buffered is
-## used up, so nothing pressed over the hazard fires at the safe ground, and a stick held through
-## the send-back is ignored until it is let go or turned (movement review 4, M1 and M2).
+## A hazard (spikes, or a pit) touching the hurtbox costs a heart (docs/adr/0013) and sends the
+## player back to the last safe ground ([method send_back]), or to the spawn if the heart was the
+## last.
 static func check_hazards(pl: Player, ring: InputRing) -> void:
 	if pl.is_invulnerable():
 		return
 	var hurt: Rect2i = hurtbox(pl)
 	if not pl.world.touches_hazard(hurt.position.x, hurt.end.x, hurt.position.y, hurt.end.y):
 		return
+	pl.events.add(SimEvents.HAZARD, pl.body.x, pl.body.y)
+	if not PlayerCombat.hazard(pl, ring):
+		send_back(pl, ring, pl.safe_x, pl.safe_y)
+
+
+## Puts the player at ([param x], [param y]) at rest with the hazard invulnerability; standing
+## there again counts as a landing for the airtime's resources. Whatever was under way ends. An
+## ember thrown before goes out (the throw's cooldown runs on): left out, a teleport to it would
+## undo the send-back. Every press still buffered is used up, so nothing pressed over the hazard
+## fires at the safe ground, and a stick held through the send-back is ignored until it is let go
+## or turned (movement review 4, M1 and M2).
+static func send_back(pl: Player, ring: InputRing, x: int, y: int) -> void:
 	var b: Body = pl.body
-	pl.events.add(SimEvents.HAZARD, b.x, b.y)
-	b.x = pl.safe_x
-	b.y = pl.safe_y
+	b.x = x
+	b.y = y
 	b.vx = 0
 	b.vy = 0
 	pl.action = Player.NO_ACTION
@@ -80,6 +95,9 @@ static func check_hazards(pl: Player, ring: InputRing) -> void:
 	pl.dash_frame = 0
 	pl.carry_frames = 0
 	pl.jump_frame = 0
+	PlayerSpells.stop(pl)
+	pl.radiance_burst = false
+	pl.knock_left = 0
 	pl.world.refresh_ground(b)
 	pl.loco = Player.GROUND if b.on_ground else Player.AIR
 	pl.wall_side = 0

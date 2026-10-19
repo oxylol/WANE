@@ -5,6 +5,9 @@ extends RefCounted
 ## content" instead of a desync, and golden fixture hashes can tell a content change from a code
 ## change (ADR-0006). Script variables are hashed in declaration order, which is stable.
 
+## Each script's variable names, listed once (see [method _script_variables]).
+static var _names: Dictionary[Script, PackedStringArray] = {}
+
 
 static func add_resource(h: StateHasher, res: Resource) -> void:
 	if res == null:
@@ -46,15 +49,29 @@ static func _digest(res: Resource) -> PackedByteArray:
 	ctx.start(HashingContext.HASH_SHA256)
 	var script: Script = res.get_script()
 	ctx.update(var_to_bytes(script.resource_path if script != null else res.get_class()))
-	var props: Array[Dictionary] = res.get_property_list()
-	for i: int in range(props.size()):
-		var usage: int = props[i]["usage"]
-		if (usage & PROPERTY_USAGE_SCRIPT_VARIABLE) == 0:
-			continue
-		var prop_name: String = props[i]["name"]
+	for prop_name: String in _script_variables(res):
 		ctx.update(var_to_bytes(prop_name))
 		_update_value(ctx, res.get(prop_name))
 	return ctx.finish()
+
+
+## The names of [param res]'s script variables in declaration order. A script's variables never
+## change while the game runs, so they are listed once per script: asking the resource for its
+## whole property list was 40% of the digest's time. The values are read afresh every time.
+static func _script_variables(res: Resource) -> PackedStringArray:
+	var script: Script = res.get_script()
+	if script != null and _names.has(script):
+		return _names[script]
+	var names: PackedStringArray = []
+	var props: Array[Dictionary] = res.get_property_list()
+	for i: int in range(props.size()):
+		var usage: int = props[i]["usage"]
+		if (usage & PROPERTY_USAGE_SCRIPT_VARIABLE) != 0:
+			var prop_name: String = props[i]["name"]
+			names.append(prop_name)
+	if script != null:
+		_names[script] = names
+	return names
 
 
 static func _update_value(ctx: HashingContext, v: Variant) -> void:

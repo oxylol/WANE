@@ -1,0 +1,12 @@
+fixture telegraph_cue_twenty_before_the_hit
+doc BUILD.md section 11: "every telegraph has a sound 20 f before the hit" (task 6 review, M4): the dummy's white swing telegraphs from frame 29, its cue comes on frame 33 and it lands on 53, 20 ticks later.
+room test/dummy_swing
+frames 60
+input
+end
+expect
+  at 29 event.telegraph=1
+  at 33 event.telegraph_cue=1
+  never 0..32 event.telegraph_cue=1
+  at 53 event.player_hit=1
+end

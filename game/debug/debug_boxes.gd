@@ -5,21 +5,44 @@ extends RefCounted
 ## of every hazard tile in view, a mark where a pogo bounced this tick (the strike hands control
 ## back on that tick, so its box is already gone: task 5 review, M10), and the hurtbox that touched
 ## a hazard this tick (the send-back has already moved the player to safe ground: task 5 review 2,
-## M1). BUILD.md section 5: "shows
+## M1); and combat's (task 6, docs/adr/0013): each enemy's hurtbox with its state, health and
+## poise (a dead enemy has no hurtbox: it is drawn as a dimmer outline, kind ENEMY_DEAD), its live
+## attack box (white for a parryable attack, red for an unparryable one), Kindle's cone, Blaze's
+## fire trails and the kill embers flying home. BUILD.md section 5: "shows
 ## hitboxes"; CLAUDE.md rule 8. Boxes are the latest tick's, exactly as the simulation resolves
 ## them, never interpolated.
 
-enum { COLLIDER, HURTBOX, STRIKE, POGO, EMBER, SOLID, HAZARD, CONTACT }
+enum {
+	COLLIDER,
+	HURTBOX,
+	STRIKE,
+	POGO,
+	EMBER,
+	SOLID,
+	HAZARD,
+	CONTACT,
+	ENEMY,
+	ATTACK_WHITE,
+	ATTACK_RED,
+	SPELL,
+	TRAIL,
+	KILL_EMBER,
+	ENEMY_DEAD,
+}
 
 ## Half the size of the marker drawn at the ember, and at a bounce.
 const EMBER_HALF_U: float = 4.0
 const CONTACT_HALF_U: float = 6.0
+## How far above the telegraph cue's highest point an enemy's label is drawn.
+const LABEL_CLEAR_U: float = 4.0
 
 
 class Box:
 	var kind: int = COLLIDER
 	var rect: Rect2 = Rect2()
 	var label: String = ""
+	## How far above the box's top the label is drawn, in units (clear of the telegraph's bar).
+	var label_lift: float = 0.0
 
 
 ## Every box to draw for [param sim], hazards only inside [param view].
@@ -56,6 +79,10 @@ static func collect(sim: Simulation, view: Rect2) -> Array[Box]:
 		var at := Vector2(float(pl.toss.x) / Fx.SUB, float(pl.toss.y) / Fx.SUB)
 		var half := Vector2(EMBER_HALF_U, EMBER_HALF_U)
 		out.append(_box(EMBER, Rect2(at - half, half * 2.0), "ember"))
+	var cone: Array[Rect2i] = PlayerSpells.kindle_boxes(pl)
+	for i: int in range(cone.size()):
+		out.append(_box(SPELL, units(cone[i]), "kindle" if i == 0 else ""))
+	_add_combat(sim.combat, out)
 	var events: SimEvents = sim.events
 	for i: int in range(events.count()):
 		if events.kinds[i] == SimEvents.POGO:
@@ -74,6 +101,35 @@ static func _hurtbox_at(pl: Player, x: int, y: int) -> Rect2i:
 	var now: Rect2i = pl.hurtbox()
 	var b: Body = pl.body
 	return Rect2i(now.position + Vector2i(x - b.x, y - b.y), now.size)
+
+
+## Each enemy, its live attack, the fire trails and the kill embers.
+static func _add_combat(combat: Combat, out: Array[Box]) -> void:
+	for e: Enemy in combat.enemies:
+		var b: Body = e.body
+		var r: Rect2i = Rect2i(b.left(), b.top(), b.right() - b.left(), b.height)
+		var label: String = (
+			"%s %s  hp %d/%d  poise %d" % [e.def.kind, e.state_name(), e.hp, e.max_hp, e.poise]
+		)
+		if e.state == Enemy.TELEGRAPH and e.attack != null:
+			# Counts the hitstop that holds the swing back (the core's own countdown).
+			label += "  %s lands in %d" % [e.attack.id, e.ticks_to_landing()]
+		var box: Box = _box(ENEMY if e.is_alive() else ENEMY_DEAD, units(r), label)
+		if EnemyView.cue_progress(e) >= 0.0:
+			box.label_lift = EnemyView.cue_extent_px() + LABEL_CLEAR_U
+		out.append(box)
+		var hit: Rect2i = e.attack_box()
+		if hit.size != Vector2i.ZERO:
+			var red: bool = not e.attack.parryable
+			out.append(
+				_box(ATTACK_RED if red else ATTACK_WHITE, units(hit), "unparryable" if red else "")
+			)
+	for t: FireTrail in combat.trails:
+		out.append(_box(TRAIL, units(t.box)))
+	for ember: KillEmber in combat.embers:
+		var at := Vector2(ember.at) / Fx.SUB
+		var half := Vector2(EMBER_HALF_U, EMBER_HALF_U)
+		out.append(_box(KILL_EMBER, Rect2(at - half, half * 2.0)))
 
 
 ## A sub-pixel rectangle in units.

@@ -39,6 +39,9 @@ const UNLOCK_WINDOW: int = 60
 const UNLOCK_MISSES: int = 6
 ## Catch-up limit after a hitch: beyond this the simulation slows down rather than spiralling.
 const MAX_STEPS_PER_FRAME: int = 4
+## Owed time within this of a tick boundary counts as on it when a slow motion ends (the frames
+## of a slow sum to whole ticks only up to rounding).
+const SLOW_END_SECONDS: float = 0.0000001
 
 @export var input_layer: InputLayer
 
@@ -49,12 +52,22 @@ var recorder: ReplayRecorder
 var alpha: float = 1.0
 ## Frame-stepper: while paused, ticks only advance through [method step_once].
 var paused: bool = false
+## Slow motion (BUILD.md section 6, hit feedback): below 1 while [method slow] is running, the
+## share of real time each tick gets. The simulation and its replay are unchanged; only how fast
+## the ticks come is.
+var time_scale: float = 1.0
 
 ## Real time owed to the simulation, in seconds; at most zero after stepping (a tick runs at the
 ## start of its period).
 var _accumulator: float = 0.0
 ## Real time rounded away while locked, to be paid back in whole ticks.
 var _drift: float = 0.0
+## Slow ticks still to be stepped (see [method slow]).
+var _slow_left: int = 0
+## A slow asked for during the player's hitstop, waiting for the hitstop to end (see
+## [method slow]).
+var _held_scale: float = 1.0
+var _held_ticks: int = 0
 ## Locked to a fixed-refresh display (see [constant LOCK_FRAMES]). This describes the display,
 ## so it survives [method start].
 var _locked: bool = false
@@ -80,8 +93,41 @@ func start(scenario: Scenario) -> void:
 	_accumulator = 0.0
 	_drift = 0.0
 	alpha = 1.0
+	time_scale = 1.0
+	_slow_left = 0
+	_held_ticks = 0
 	if input_layer != null:
 		input_layer.reset()
+
+
+## Runs the next [param ticks] ticks at [param scale] of real speed ("slow-motion 0.8x for 8 f on
+## kill", "time to 0.5x for 6 f" on a parry). A slow that starts while another runs keeps the
+## slower scale and the longer remainder. The slow ends when the last slow tick's period does,
+## so on a 60 Hz display a whole number of slowed frames (8 / 0.8 = 10, 6 / 0.5 = 12) ends
+## exactly on a tick and the frames after it draw the newest state again.
+##
+## Slow motion starts after the hitstop: a slow asked for while the player is frozen is held
+## until the freeze ends and then runs its ticks, so the 0.5x of a parry and the 0.8x of a Charged
+## kill are seen as slow motion and not spent inside the freeze, where nothing moves (task 6
+## review, M2; docs/adr/0013).
+func slow(scale: float, ticks: int) -> void:
+	if ticks <= 0 or scale <= 0.0 or scale >= 1.0:
+		return
+	if sim != null and sim.player != null and sim.player.freeze > 0:
+		_held_scale = minf(_held_scale, scale) if _held_ticks > 0 else scale
+		_held_ticks = maxi(_held_ticks, ticks)
+		return
+	_start_slow(scale, ticks)
+
+
+func _start_slow(scale: float, ticks: int) -> void:
+	time_scale = minf(time_scale, scale) if slowing() else scale
+	_slow_left = maxi(_slow_left, ticks)
+
+
+## True from [method slow] until the last slow tick's period has ended.
+func slowing() -> bool:
+	return time_scale < 1.0
 
 
 func _process(delta: float) -> void:
@@ -89,6 +135,9 @@ func _process(delta: float) -> void:
 		return
 	var ticks: int = _whole_ticks(delta)
 	_update_lock(ticks > 0)
+	if slowing():
+		_run_slow(delta, ticks)
+		return
 	if not _locked:
 		_accumulator += delta
 		_run_owed_ticks()
@@ -111,6 +160,31 @@ func _process(delta: float) -> void:
 	_run_owed_ticks()
 	_accumulator = 0.0
 	alpha = 1.0
+
+
+## One frame of slow motion: owed time grows by the frame's time times [member time_scale] and
+## views draw interpolated, so a slowed tick is drawn over several frames. Locked, the frame counts
+## as its whole number of ticks, as in [method _process], and what that rounds away is drift.
+func _run_slow(delta: float, ticks: int) -> void:
+	var frame_time: float = delta
+	if _locked:
+		if ticks == 0:
+			ticks = roundi(delta / TICK_SECONDS)
+		_drift += delta - ticks * TICK_SECONDS
+		frame_time = ticks * TICK_SECONDS
+	_accumulator += frame_time * time_scale
+	_run_owed_ticks()
+	if _slow_left == 0 and _accumulator > -SLOW_END_SECONDS:
+		# The last slow tick's period has ended: real speed again.
+		time_scale = 1.0
+	if not slowing() and _locked:
+		# A slow whose frames were not a whole number of ticks leaves a phase; it is repaid as
+		# drift, in whole ticks.
+		_drift += _accumulator
+		_accumulator = 0.0
+		alpha = 1.0
+		return
+	alpha = clampf(1.0 + _accumulator / TICK_SECONDS, 0.0, 1.0)
 
 
 func _update_lock(vsync_like: bool) -> void:
@@ -185,9 +259,17 @@ func set_paused(on: bool) -> void:
 
 ## Polls input and advances the simulation by exactly one tick.
 func step_once() -> void:
+	if _slow_left > 0:
+		_slow_left -= 1
+	elif slowing():
+		# A tick after the last slow one: its period runs at real speed.
+		time_scale = 1.0
 	var frame: InputFrame = input_layer.poll() if input_layer != null else InputFrame.new()
 	sim.step(frame)
 	recorder.record(frame)
+	if _held_ticks > 0 and (sim.player == null or sim.player.freeze == 0):
+		_start_slow(_held_scale, _held_ticks)
+		_held_ticks = 0
 	if paused:
 		alpha = 1.0
 	ticked.emit()

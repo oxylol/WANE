@@ -1,0 +1,16 @@
+fixture charged_strike_goes_the_way_it_was_let_go
+doc docs/adr/0013, the Charged strike: "in the direction the stick held on the release" (task 6 review, M4). The hold is let go on frame 31 with the stick right, during a dash; the request waits for dash frame 6 while the stick turns left, and the strike still goes right.
+room test/flat
+frames 50
+input
+  0..28 attack
+  29 R attack dash
+  30 R attack
+  31 R
+  32..40 L
+end
+expect
+  at 31 event.charge_release=1
+  mark go 0..49 action=charged
+  at go action_dir=1
+end

@@ -1,0 +1,16 @@
+fixture burn_tick_keeps_knockback
+doc docs/adr/0013, Kindle's burn (task 6 review, H1): a burn tick landing while the finisher's knockback runs leaves it to bleed off at its own rate; it used to stop it dead.
+room test/tough_dummy
+option flame 33
+frames 50
+input
+  0 spell
+  7 attack
+  14 attack
+  21 attack
+end
+expect
+  at 26 action=side3 event.hit=1
+  at 33 enemy.vx>500
+  at 34 event.hit=1 enemy.vx>400
+end

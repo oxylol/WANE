@@ -19,19 +19,36 @@ const TELEPORT: String = "teleport"
 const IGNITE: String = "ignite"
 const HAZARD: String = "hazard"
 const DROP_THROUGH: String = "drop_through"
-## Combat (Phase 1 task 6). The value is the enemy's index in [member Simulation.enemies] unless
-## noted.
+## Combat (Phase 1 task 6; docs/adr/0013). A hit's value carries its kind and direction
+## ([method HitKind.encode]); other values are noted.
 ## An enemy attack's telegraph starts (value 1 if it is red, unparryable).
 const TELEGRAPH: String = "telegraph"
-## A player strike, pogo or spell lands on an enemy.
+## The swing lands in exactly [member CombatParams.telegraph_cue_frames] ticks: its sound's cue
+## (value 1 if it is red). From this tick the attack is committed.
+const TELEGRAPH_CUE: String = "telegraph_cue"
+## A player strike, pogo or spell lands on an enemy; a kill carries the killing hit's value.
 const HIT: String = "hit"
 const KILL: String = "kill"
+## An enemy's poise breaks (the value is the enemy's index in [member Combat.enemies]).
 const STAGGER: String = "stagger"
 const PARRY: String = "parry"
-## An enemy hits the player (the value is the enemy's index).
+## An enemy hits the player ([constant HitKind.PLAYER], along the knockback).
 const PLAYER_HIT: String = "player_hit"
 ## A kill's ember reaches the player and its Flame is granted.
 const EMBER_HOME: String = "ember_home"
+## The player's hearts ran out (Phase 1: back to the room's spawn).
+const DEATH: String = "death"
+## A spell or Mend starts (the value is [PlayerSpells] KINDLE, RADIANCE or MEND).
+const CAST: String = "cast"
+## A spell press with too little Flame.
+const FIZZLE: String = "fizzle"
+## Radiance bursts.
+const RADIANCE: String = "radiance"
+## Mend heals (the value is the hearts after it).
+const HEAL: String = "heal"
+## The attack has been held long enough for the Charged strike, and the hold let go to ask for it.
+const CHARGE_READY: String = "charge_ready"
+const CHARGE_RELEASE: String = "charge_release"
 
 var kinds: Array[String] = []
 var xs: Array[int] = []

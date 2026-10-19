@@ -1,0 +1,12 @@
+fixture blaze_strike_keeps_knockback
+doc BUILD.md section 6, the Taper's Knockback column and Kindling Blaze's fire trail (task 6 review, H1): at Blaze a strike's own trail burns the dummy on the tick the strike lands, and a burn is damage, not a hit: it no longer takes the strike's 120 u/s away. The dummy slides as it does at Kindling 0.
+room test/dummy
+option kindling 20
+frames 30
+input
+  0 attack
+end
+expect
+  at 2 event.hit=1 enemy.vx>0
+  at 29 enemy.x>260u
+end

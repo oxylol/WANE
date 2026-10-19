@@ -1,0 +1,14 @@
+fixture radiance_bursts_with_a_dash_on_its_burst_frame
+doc docs/adr/0013, Radiance (task 6 review, H3): a dash pressed during the startup comes out on the burst frame, and the burst comes too. An action on that frame used to end the spell before it burst: 66 Flame for nothing.
+room test/dummy
+option flame 66
+option kindling 20
+frames 20
+input
+  0 D spell
+  3 dash
+end
+expect
+  at 0 spell=radiance flame=0
+  at 6 event.dash=1 event.radiance=1
+end

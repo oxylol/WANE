@@ -1,0 +1,12 @@
+fixture white_dash_has_no_cooldown
+doc BUILD.md s6 Kindling, White: "dash has no cooldown". The second ground dash starts the frame after the first one's carry-over.
+room test/flat
+option kindling 40
+frames 30
+input
+  0 dash
+  10 dash
+end
+expect
+  at 10 state=dash
+end

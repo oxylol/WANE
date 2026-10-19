@@ -1,0 +1,11 @@
+fixture parry_window_too_early
+doc BUILD.md s6 Parry (see parry_window_first_frame): a press 8 frames before the hit lands is outside the window; the swing hits.
+room test/dummy_swing
+frames 70
+input
+  45 L attack
+end
+expect
+  at 53 event.parry=0 event.player_hit=1 hearts=4 freeze=8
+  never 0..69 event.parry=1
+end

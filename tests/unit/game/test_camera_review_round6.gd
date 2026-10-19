@@ -133,6 +133,55 @@ func test_a_look_down_interrupted_on_the_ground_waits_its_whole_delay_again() ->
 					)
 
 
+func test_a_spell_cast_crouched_never_starts_or_moves_a_look_down() -> void:
+	# Task 6: Radiance is cast with the stick held down, so a crouched cast is fighting, as a
+	# crouched strike is (CLAUDE.md rule 9): its 19 ticks never count toward the look's delay,
+	# and a look already showing holds through them.
+	var delay: int = (load(CameraRig.TUNING_PATH) as CameraTuning).look_down_delay_frames
+	var lines: PackedStringArray = [
+		"fixture crouch_spell",
+		"doc BUILD.md s5 look-down, s6 Radiance (a spell with the stick held down)",
+		"room test/camera",
+		"spawn 1800 1600",
+		"option flame 66",
+		"option kindling 20",
+		"frames 120",
+		"input",
+		"  0..9 D",
+		"  10 D spell",
+		"  11..119 D",
+		"end",
+		"expect",
+		"  at 10 spell=radiance",
+		"  at 29 spell=none",
+		"end",
+	]
+	for view: Vector2 in VIEWS:
+		var run: CameraRun = _play("\n".join(lines), view)
+		for f: int in range(29 + delay - 1):
+			(
+				assert_float(run.looks[f])
+				. override_failure_message("%s: frame %d" % [view, f])
+				. is_equal(0.0)
+			)
+		assert_float(run.looks[run.looks.size() - 1]).is_equal(200.0)
+	lines[8] = "  0..59 D"
+	lines[9] = "  60 D spell"
+	lines[10] = "  61..119 D"
+	lines[13] = "  at 60 spell=radiance"
+	lines[14] = "  at 79 spell=none"
+	for view: Vector2 in VIEWS:
+		var held: CameraRun = _play("\n".join(lines), view)
+		assert_float(held.looks[59]).is_equal(200.0)
+		for f: int in range(60, held.centers.size()):
+			(
+				assert_float(held.looks[f])
+				. override_failure_message("%s: frame %d" % [view, f])
+				. is_equal(200.0)
+			)
+			assert_float(held.velocity(f).y).is_greater_equal(-EPS)
+
+
 ## The teleports of the sweep: a toss straight at a one-tile ceiling or a borderless top, or down
 ## off a shelf toward a borderless bottom, held [param wait] ticks, the teleport, then
 ## [param onward] (a dash on at once, or a jump and then the dash).

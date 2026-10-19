@@ -1,0 +1,12 @@
+fixture a_spell_ends_the_hit_knockback
+doc BUILD.md section 6, Player hit: "any action ends it" (task 6 review, M1): a spell pressed during the hit's hitstop casts on the first free frame and ends the knockback there.
+room test/dummy_swing
+option flame 33
+frames 80
+input
+  58 spell
+end
+expect
+  at 53 event.player_hit=1
+  at 62 event.cast=1 spell=kindle knock=0
+end

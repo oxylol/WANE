@@ -1,0 +1,14 @@
+fixture radiance_at_blaze
+doc BUILD.md s6 Spells, Radiance: unlocked at Blaze+, 66 Flame, "a burst that pushes all enemies 400 u/s away and lights the room fully for 5 s", 6 f startup (docs/adr/0013: spell with the stick down, on the ground).
+room test/dummy
+option flame 66
+option kindling 20
+frames 20
+input
+  0 D spell
+end
+expect
+  at 0 spell=radiance flame=0
+  at 5 event.radiance=0
+  at 6 event.radiance=1 light=300 enemy.vx>0
+end

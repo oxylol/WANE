@@ -1,0 +1,14 @@
+fixture a_repress_breaks_the_charge_hold
+doc docs/adr/0013, the Charged strike: "Holding attack on, unbroken, for 24 frames" (task 6 review, L1): attack let go and pressed again inside one tick (frame 20) starts a new hold, so the release on 31 asks for nothing.
+room test/flat
+frames 60
+input
+  0..19 attack
+  20 attack !attack
+  21..30 attack
+end
+expect
+  at 20 event.attack=1
+  never 0..59 event.charge_release=1
+  never 0..59 action=charged
+end

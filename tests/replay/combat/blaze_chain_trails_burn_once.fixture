@@ -1,0 +1,13 @@
+fixture blaze_chain_trails_burn_once
+doc docs/adr/0013, Blaze: each strike's trails burn an enemy once (task 6 review, H2). Side 1 and side 2 at Blaze overlap their trails; each burns the dummy once (12 + 5 for each strike: at least 965 left of 999), where the two used to take turns and burn every tick.
+room test/tough_dummy
+option kindling 20
+frames 30
+input
+  0 attack
+  6 attack
+end
+expect
+  at 2 event.hit=1
+  never 0..29 enemy.hp<965
+end

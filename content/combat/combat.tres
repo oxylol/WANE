@@ -1,0 +1,45 @@
+[gd_resource type="Resource" script_class="CombatTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/combat/combat_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+flame_cap = 100
+flame_per_hit = 11
+flame_per_pogo = 8
+flame_per_parry = 33
+flame_per_kill = 11
+kill_ember_frames = 16
+hearts = 5
+kindling_flame_at = 8
+kindling_blaze_at = 20
+kindling_white_at = 40
+kindling_flame_bonus_permille = 100
+kindling_blaze_bonus_permille = 200
+kindling_white_bonus_permille = 300
+kindling_per_parry = 5
+white_charged_every = 10
+blaze_trail_frames = 10
+blaze_trail_damage = 4
+blaze_aoe_radius_u = 96
+blaze_aoe_damage = 8
+hitstop_light = 2
+hitstop_finisher = 4
+hitstop_charged = 6
+hitstop_parry = 12
+hitstop_player_hit = 8
+hitstop_kill = 3
+weight_from_damage = 30
+weight_damage_per_frame = 10
+hitstop_cap = 8
+player_hit_knockback_ups = 300
+player_hit_invuln_frames = 20
+player_hit_knock_frames = 12
+hazard_damage = 1
+parry_window_frames = 8
+parry_knockback_ups = 200
+parry_stagger_frames = 40
+poise_stagger_frames = 30
+telegraph_cue_frames = 20
+finisher_launch_ups = 600
+knockback_decel_ups2 = 2400
