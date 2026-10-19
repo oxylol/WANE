@@ -8,9 +8,9 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 
 - `core/sim/` Simulation, Scenario, InputFrame, InputRing, Fx (fixed-point), StateHasher, ContentHash, Replay, ReplayRecorder, ReplayPlayer, SimEvents.
 - `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning.
-- `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
+- `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind.
-- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/`, `core/clock/` empty.
+- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015). `core/clock/` empty.
 - `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `game/lighting/`, `shaders/`, `assets/`.
 - `content/` see Tunable numbers. `tools/ci/` test gate; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics bench; `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty; no room editor yet.
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, rooms, tech), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/`, `tests/screenshot/` empty.
@@ -81,4 +81,5 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0012-debug-overlay-and-frame-stepper` F3 overlay from the latest tick; F4 to F6 step.
 - `0013-combat` Combat resolves once per tick, after all movement.
 - `0014-doors-and-zones` Paired `door` lines, crossed inside the strip.
+- `0015-procs-and-votives` The proc bus after the player's hits; a Votive is content behind a narrow listener API.
 - `0000-template` The ADR template.

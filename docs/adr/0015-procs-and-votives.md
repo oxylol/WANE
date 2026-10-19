@@ -13,6 +13,13 @@
 - CLAUDE.md: Content ("A Votive is a resource with a proc listener and a stacking curve; adding one never touches `core/`"), Writing, rule 6 (no tunable literals), rule 7 (the VFX budget), kickoff 8 ("the stress room (200 enemies, 40 procs, Pitch lighting)").
 - Checklist lines (BUILD.md section 15): Combat, "With 30 Votives active, the screen stays readable: the player and every enemy telegraph are visible"; Run tension, "A seeded replay of a full run reproduces bit-for-bit"; Process, "Every new system has an ADR".
 
+## Summary
+
+- Combat raises a proc event for each hit (Taper 1000, pogo 800, Kindle tick 500, Dust 300, Radiance 200 per-mille, a Votive's own for its hits); procs resolve on `ProcBus` after the player's hits and before the enemies', chained to depth 3 (see Decisions 1 and 5).
+- A Votive is a resource under `content/votives/` with a `StackingCurve` and a `VotiveListener` script that acts only through `ProcApi`; adding one never touches `core/` (see Decision 2).
+- Stacking maths is integer (linear, chance, hyperbolic, diminishing); the boundary is checked in CI by `tools/ci/core_purity.gd` (see Decisions 2 and 3).
+- Every draw is from the PROCS stream (ADR-0005), so how often items fire never changes what a run finds; the proc VFX is under ten frames at `VfxBudget.PROC` priority (see Decision 5 and Consequences).
+
 ## Context
 
 Task 8 needs "40 procs" in its stress room, and nothing could proc: there was no event bus, no Votive and no stacking. BUILD.md gives the coefficients, the stacking curves with three quoted points, the chain depth and eight example Votives, and leaves open how the coefficient, the Flame tier's bonus and the extra rolls compose, where procs resolve in the tick, what a proc's own hit is, what "run speed" covers, what a stun is, and how a Votive's script is kept from reaching around the simulation.

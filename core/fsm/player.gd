@@ -444,7 +444,7 @@ func air_velocity_ahead(ring: InputRing, dx: int) -> Vector2i:
 	var v := Vector2i(body.vx, body.vy)
 	var carry: bool = carry_frames > 0 and (dx == 0 or body.vx == 0 or dx == signi(body.vx))
 	if not carry and wall_lock == 0:
-		v.x = _air_speed(body.vx, 0 if crouching else dx)
+		v.x = PlayerSpeed.air_speed(self, body.vx, 0 if crouching else dx)
 	_update_jump_release(ring)
 	if not jump_fresh:
 		v.y = mini(body.vy + _gravity(ring), p.terminal)
@@ -615,7 +615,7 @@ func _move(ring: InputRing, dx: int, dy: int) -> void:
 func _move_ground(_ring: InputRing, dx: int, _dy: int) -> void:
 	var input_x: int = 0 if crouching else dx
 	if carry_frames <= 0:
-		body.vx = _ground_speed(body.vx, input_x)
+		body.vx = PlayerSpeed.ground_speed(self, body.vx, input_x)
 	body.vy = 0
 	world.walk(body, body.vx, p.corner_lift)
 	if not body.on_ground:
@@ -626,63 +626,13 @@ func _move_ground(_ring: InputRing, dx: int, _dy: int) -> void:
 		PlayerContacts.note_safe_ground(self)
 
 
-func _ground_speed(vx: int, input_x: int) -> int:
-	if knock_left > 0:
-		return _knocked()
-	return _horizontal(vx, input_x, p.run_accel, p.run_decel, true)
-
-
-func _air_speed(vx: int, input_x: int) -> int:
-	if knock_left > 0:
-		return _knocked()
-	return _horizontal(vx, input_x, p.air_accel, p.air_decel, false)
-
-
-## A hit's knockback holds its speed, whatever the stick says (docs/adr/0013).
-func _knocked() -> int:
-	turn_left = 0
-	return knock_vx
-
-
-## Horizontal speed for one tick. On the ground a reversal flips to 60% of the speed in the new
-## direction on the input frame (never a dead frame) and recovers the rest over the next
-## turn_frames frames (BUILD.md Ground: "Turnaround"). In the air a reversal is ordinary air
-## control (BUILD.md Jump: "0 to max in 8 f"). Above run speed the ground slows back to it; the air
-## keeps the extra speed (dash-jump and pogo momentum) while the stick holds that way.
-func _horizontal(vx: int, input_x: int, accel: int, decel: int, on_ground: bool) -> int:
-	if input_x == 0 or not on_ground:
-		turn_left = 0
-	if input_x == 0:
-		return Fx.approach(vx, 0, decel)
-	if vx != 0 and signi(vx) != input_x:
-		if not on_ground:
-			return Fx.approach(vx, input_x * p.run_speed, accel)
-		turn_left = p.turn_frames
-		return input_x * Fx.percent(mini(absi(vx), p.run_speed), p.turn_keep_percent)
-	if absi(vx) < p.run_speed:
-		var a: int = accel
-		if turn_left > 0:
-			turn_left -= 1
-			a = maxi(
-				accel,
-				Fx.per_tick(
-					p.run_speed - Fx.percent(p.run_speed, p.turn_keep_percent), p.turn_frames
-				)
-			)
-		return Fx.approach(vx, input_x * p.run_speed, a)
-	turn_left = 0
-	if on_ground:
-		return Fx.approach(vx, input_x * p.run_speed, decel)
-	return vx
-
-
 func _move_air(ring: InputRing, dx: int, dy: int) -> void:
 	# The crouched box cannot move, in the air as on the ground ("Crouch: cannot move"): a body
 	# stays crouched in the air only under a ceiling too low to stand (it stands up wherever there
 	# is headroom), so hopping there never crawls (docs/adr/0010).
 	var input_x: int = 0 if crouching else dx
 	if carry_frames <= 0 and wall_lock == 0:
-		body.vx = _air_speed(body.vx, input_x)
+		body.vx = PlayerSpeed.air_speed(self, body.vx, input_x)
 	_update_jump_release(ring)
 	if jump_fresh:
 		jump_fresh = false

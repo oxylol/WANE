@@ -1,9 +1,10 @@
 fixture bell_stun_takes_the_swing_control
-doc Control for bell_stun_takes_the_swing: with no Bell the hit on frame 42 comes after the swing's cue, so the swing lands on frame 53 as it promised (docs/adr/0013) and costs a heart.
+doc Control for bell_stun_takes_the_swing: with no Bell the hit on frame 42 comes after the swing's cue, so the swing lands on frame 53 as it promised (docs/adr/0013) and costs a heart. Ash holds right from frame 43: the side 1 recoil (docs/adr/0013, 8 u from the first free tick after the hitstop) would otherwise carry Ash out of the swing's reach.
 room test/dummy_swing
 frames 60
 input
   40 attack
+  43..59 R
 end
 expect
   at 42 event.hit=1 event.proc=0 enemy.state=telegraph
