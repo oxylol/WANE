@@ -1,0 +1,19 @@
+fixture dash_down_ramp45_onto_foot_lip
+doc Physics review 8, H1 (BUILD.md s5 Dash, 180 u in 9 f; Ground, corner correction). A ground dash left down the 45-degree ramp of test/ramp45_foot_lip meets the top corner of the door 5 u proud of the floor exactly with its leading foot corner (centre x 165, y 219): it runs on along the door's top and off its far end at 20 u every tick; before the fix it parked at x 165 from dash frame 3 to the end of the dash.
+room test/ramp45_foot_lip
+spawn 230 192
+frames 16
+input
+  0 L dash
+  1..15 L
+end
+expect
+  at 2 state=dash xu=170 yu=214
+  at 3 state=dash xu=150 yu=219
+  at 4 state=dash xu=130 yu=219
+  at 5 state=dash xu=110 yu=219
+  at 6 state=dash xu=90 yu=224
+  at 8 state=dash xu=50 yu=224
+  never 0..15 state=air
+  never 0..11 hit_wall=-1
+end

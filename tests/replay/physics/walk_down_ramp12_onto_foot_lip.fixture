@@ -1,0 +1,16 @@
+fixture walk_down_ramp12_onto_foot_lip
+doc Physics review 8, H1 (BUILD.md s5 Ground, corner correction; ADR-0008 decision 5). Walk left from the plateau down the 1:2 ramp of test/ramp12_foot_lip onto the box 7 u proud of the floor at the ramp's foot, its top 5 u above the ramp at its face: the leading foot corner meets the box's top corner exactly (centre x 174, y 217). The walk carries on along the top, steps down its 7 u to the floor and runs on; before the fix it stood at x 174 from frame 16 for good.
+room test/ramp12_foot_lip
+spawn 300 192
+frames 40
+input
+  0..39 L
+end
+expect
+  at 15 xu=178 yu=214
+  at 16 xu=169 yu=217
+  at 20 xu=133 yu=217
+  at 21 xu=124 yu=224
+  never 0..39 state=air
+  never 0..32 hit_wall=-1
+end

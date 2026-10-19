@@ -1,0 +1,19 @@
+room test/ramp12_mid_lip
+# Physics review 8, H1: a 1:2 ramp two rows tall rising right from x 224 (y 224) to x 352 (y 160),
+# and a lip laid across its foot, x 210..230, top y 216: 5 u proud of the ramp at its uphill face
+# (x 230, the ramp at y 221) and 8 u proud of the floor at its other end. Walking down the ramp,
+# the leading edge reaches the lip's face with the centre at x 240, where the ramp is at y 216:
+# corner to corner.
+size 16 8
+spawn 450 160
+tiles
+................
+................
+................
+................
+................
+.........ab#####
+.......ab#######
+################
+end
+solid 210 216 230 296

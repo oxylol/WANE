@@ -1,0 +1,17 @@
+fixture dash_down_ramp45_onto_crest_lip
+doc Physics review 8 (BUILD.md s5 Dash, 180 u in 9 f; Ground, corner correction). A ground dash left down the 45-degree ramp of test/ramp45_crest_lip into the face of the door laid 4 u below the plateau, met with the centre at x 183 and the door's top 5 u above the feet: the dash steps up onto the door and runs on along it at 20 u every tick. Before the fix the lift was measured to the plateau the trailing foot zone still rested in, 9 u above the feet, and the dash parked at the door's face.
+room test/ramp45_crest_lip
+spawn 230 192
+frames 16
+input
+  0 L dash
+  1..15 L
+end
+expect
+  at 1 state=dash xu=190 yu=194
+  at 2 state=dash xu=170 yu=196
+  at 8 state=dash xu=50 yu=196
+  at 12 xu=11 yu=196
+  never 0..15 state=air
+  never 0..12 hit_wall=-1
+end

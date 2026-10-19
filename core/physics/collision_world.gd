@@ -294,7 +294,9 @@ func _wall_top(c: int, j: int) -> int:
 ## Corner correction over a ledge: having stopped [param allowed] short against a wall or solid
 ## whose top is at most [param max_lift] above the box's bottom, the box rises onto it and carries
 ## on, if the space is free and it makes progress. It never lifts onto a crest: the crest a slope
-## leads to does not stop the foot zone ([method _column_blocks]).
+## leads to does not stop the foot zone ([method _column_blocks]). As on the ground
+## ([method _step_up]), the lift is to the top of what stands just ahead of the box, not of a crest
+## wall its foot zone already rests in behind it.
 func _try_lift(body: Body, dir: int, dist: int, allowed: int, max_lift: int) -> bool:
 	var x0: int = body.x
 	var y0: int = body.y
@@ -302,7 +304,7 @@ func _try_lift(body: Body, dir: int, dist: int, allowed: int, max_lift: int) -> 
 	var l: int = xs - body.half_w
 	var r: int = xs + body.half_w
 	var top: int = y0 - body.height
-	var obstacle_top: int = _highest_wall_top(l + dir, r + dir, top, y0)
+	var obstacle_top: int = _wall_top_ahead(l, r, top, y0, dir)
 	var lift: int = y0 - obstacle_top
 	if lift <= 0 or lift > max_lift:
 		return false
@@ -630,13 +632,17 @@ func _walk(body: Body, dx: int, lift_sp: int) -> int:
 ## below the tiles beside it would otherwise stop the player dead). The lift counts from the floor
 ## under the leading edge, not the feet: on a slope that floor is higher than the feet at the
 ## centre by up to the box's half-width, and a lip at a ramp's crest is no taller for being met
-## from the slope. Returns false, and leaves the body, if not.
+## from the slope. The lift is to the top of what stands just ahead of the leading edge
+## ([method _wall_top_ahead]), not of everything under the box: walking downhill, the box's
+## trailing foot zone rests in the crest wall uphill of it, up to its half-width above the feet,
+## and counting that wall made a lip 6 u proud of the feet a 9 u step, refused, and the walk stood
+## at the lip's face for good (physics review 8). Returns false, and leaves the body, if not.
 func _step_up(body: Body, dir: int, max_lift: int) -> bool:
 	var l: int = body.left()
 	var r: int = body.right()
 	var top: int = body.top()
 	var y: int = body.y
-	var lift: int = y - _highest_wall_top(l + dir, r + dir, top, y)
+	var lift: int = y - _wall_top_ahead(l, r, top, y, dir)
 	var lead: int = r - 1 if dir > 0 else l
 	var under: int = _floor_at(TileGrid.cell(lead), lead, lead, y - body.half_w, y, y)
 	var rise: int = y - under if under != NONE and under != INSIDE else 0
@@ -813,7 +819,10 @@ func _sweep_walk(body: Body, dir: int, seg: int, dy: int) -> int:
 ## has not yet entered the obstacle [param ol, o_r) x [param ot, ob); seg if it never does. Only a
 ## contact at a >= 0 counts: an obstacle the box is already in, or is moving away from, never
 ## blocks it. [member _swept_by_y] says whether the box would enter through the obstacle's top or
-## bottom edge rather than its side.
+## bottom edge rather than its side. Corner to corner, where both are reached at the same advance,
+## it is the top or bottom edge: a box walking downhill whose leading foot corner meets a box's top
+## corner exactly stands level with that top and walks on along it (physics review 8, H1: read as
+## the side, the walk asked the corner lift to step up 0 u, which is no step, and stopped dead).
 func _swept_advance(b: int, ol: int, ot: int, o_r: int, ob: int) -> int:
 	var l: int = _sw_l
 	var r: int = _sw_r
@@ -831,7 +840,7 @@ func _swept_advance(b: int, ol: int, ot: int, o_r: int, ob: int) -> int:
 	# Bounds from the vertical extent, as fractions of seg.
 	var y_lo: int = ((t - ob) if dy < 0 else (ot - b)) * seg
 	var y_hi: int = ((b - ot) if dy < 0 else (ob - t)) * seg
-	if y_lo * lo_d > lo_n * dn:
+	if y_lo * lo_d >= lo_n * dn:
 		lo_n = y_lo
 		lo_d = dn
 		_swept_by_y = true
