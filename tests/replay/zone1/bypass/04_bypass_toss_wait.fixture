@@ -1,0 +1,322 @@
+fixture zone1_04_bypass_toss_wait
+doc Known bypass, recorded and costed (docs/adr/0015, docs/feel_log/2026-10-19-zone1-b.md, review finding F1): the Ember Toss's 12 s cooldown can be waited out by bouncing on a spike post, so zone 1 room 4's alcove is reachable with no air dash after the hidden route's first three ground dashes. Four tosses in 2516 ticks (42 s), against the teaching route's 450 ticks (7.5 s)
+room zone1/04_pogo_dash_reset
+spawn 74 2336
+frames 2526
+input
+  # The hidden route's own ground dashes to the tower (ticks 0 to 150), then no dash ever again. Per
+  # post k to post k+1 (448 u up): a bounce, the air jump at its top, a drift away from the post to a
+  # point 283 u short of the next post's column, the ember thrown up and across at the air jump's top
+  # (it ends about 92 u over the next post), a fall back onto post k and bounces on it, the teleport
+  # once the ember has flown (46 ticks after the throw), a bounce on post k+1, and bounces until the
+  # toss is back (720 ticks after the throw); the last throw puts the ember in the alcove. Written by
+  # a reactive scratch bot and compressed; the rhythm is not meant to be read tick by tick.
+  0 R !dash
+  1..24 R
+  25 R !dash
+  26..49 R
+  50 R !dash
+  51..98 R
+  99..102
+  103..123 jump
+  124
+  125..139 jump
+  140..143 R jump
+  144 R
+  145 R D !attack
+  146 L D
+  147 R D
+  148..150 L D
+  151..161 L
+  162
+  163 L
+  164
+  165 L
+  166
+  167 L
+  168
+  169 L jump
+  170..179 R jump
+  180 L jump
+  181 jump
+  182 R jump
+  183..187 jump
+  188 R U jump !toss
+  189..195 R
+  196
+  197 R
+  198
+  199 R
+  200
+  201 R
+  202..203
+  204..206 L
+  207 L D !attack
+  208 L D
+  209..211 D
+  212..233
+  234 !toss
+  235..236 L
+  237..238
+  239 L
+  240
+  241 L
+  242
+  243 L D !attack
+  244..247 D
+  248..279
+  280 D !attack
+  281..283 D
+  284..315
+  316 D !attack
+  317..320 D
+  321..352
+  353 D !attack
+  354..357 D
+  358..389
+  390 D !attack
+  391..393 D
+  394..425
+  426 D !attack
+  427..430 D
+  431..462
+  463 D !attack
+  464..467 D
+  468..499
+  500 D !attack
+  501..503 D
+  504..535
+  536 D !attack
+  537..540 D
+  541..572
+  573 D !attack
+  574..577 D
+  578..609
+  610 D !attack
+  611..613 D
+  614..645
+  646 D !attack
+  647..650 D
+  651..682
+  683 D !attack
+  684..687 D
+  688..718
+  719 D !attack
+  720..723 D
+  724..755
+  756 D !attack
+  757..760 D
+  761..792
+  793 D !attack
+  794..796 D
+  797..828
+  829 D !attack
+  830..833 D
+  834..865
+  866 D !attack
+  867..870 D
+  871..902
+  903 D !attack
+  904..906 D
+  907
+  908..915 R
+  916
+  917 R
+  918
+  919 R
+  920
+  921 R
+  922
+  923..924 L
+  925..929 L jump
+  930..943 jump
+  944 L U jump !toss
+  945..951 L
+  952
+  953 L
+  954
+  955 L
+  956
+  957 L
+  958..959
+  960..962 R
+  963 R D !attack
+  964 R D
+  965..966 D
+  967..989
+  990 !toss
+  991..992 R
+  993..994
+  995 R
+  996
+  997 R
+  998
+  999 R D !attack
+  1000..1002 D
+  1003..1034
+  1035 D !attack
+  1036..1039 D
+  1040..1071
+  1072 D !attack
+  1073..1076 D
+  1077..1108
+  1109 D !attack
+  1110..1112 D
+  1113..1144
+  1145 D !attack
+  1146..1149 D
+  1150..1181
+  1182 D !attack
+  1183..1186 D
+  1187..1218
+  1219 D !attack
+  1220..1222 D
+  1223..1254
+  1255 D !attack
+  1256..1259 D
+  1260..1291
+  1292 D !attack
+  1293..1296 D
+  1297..1328
+  1329 D !attack
+  1330..1332 D
+  1333..1364
+  1365 D !attack
+  1366..1369 D
+  1370..1401
+  1402 D !attack
+  1403..1406 D
+  1407..1438
+  1439 D !attack
+  1440..1442 D
+  1443..1474
+  1475 D !attack
+  1476..1479 D
+  1480..1511
+  1512 D !attack
+  1513..1516 D
+  1517..1548
+  1549 D !attack
+  1550..1552 D
+  1553..1584
+  1585 D !attack
+  1586..1589 D
+  1590..1621
+  1622 D !attack
+  1623..1626 D
+  1627..1657
+  1658 D !attack
+  1659..1662 D
+  1663
+  1664..1671 L
+  1672
+  1673 L
+  1674
+  1675 L
+  1676
+  1677 L
+  1678
+  1679..1680 R
+  1681..1685 R jump
+  1686..1699 jump
+  1700 R U jump !toss
+  1701..1707 R
+  1708
+  1709 R
+  1710
+  1711 R
+  1712
+  1713 R
+  1714..1715
+  1716..1718 L
+  1719 L D !attack
+  1720 L D
+  1721..1722 D
+  1723..1745
+  1746 !toss
+  1747..1748 L
+  1749..1750
+  1751 L
+  1752
+  1753 L
+  1754
+  1755 L D !attack
+  1756..1758 D
+  1759..1790
+  1791 D !attack
+  1792..1795 D
+  1796..1827
+  1828 D !attack
+  1829..1832 D
+  1833..1863
+  1864 D !attack
+  1865..1868 D
+  1869..1900
+  1901 D !attack
+  1902..1905 D
+  1906..1937
+  1938 D !attack
+  1939..1941 D
+  1942..1973
+  1974 D !attack
+  1975..1978 D
+  1979..2010
+  2011 D !attack
+  2012..2015 D
+  2016..2047
+  2048 D !attack
+  2049..2051 D
+  2052..2083
+  2084 D !attack
+  2085..2088 D
+  2089..2120
+  2121 D !attack
+  2122..2125 D
+  2126..2157
+  2158 D !attack
+  2159..2161 D
+  2162..2193
+  2194 D !attack
+  2195..2198 D
+  2199..2230
+  2231 D !attack
+  2232..2235 D
+  2236..2267
+  2268 D !attack
+  2269..2271 D
+  2272..2303
+  2304 D !attack
+  2305..2308 D
+  2309..2340
+  2341 D !attack
+  2342..2345 D
+  2346..2377
+  2378 D !attack
+  2379..2381 D
+  2382..2413
+  2414 D !attack
+  2415..2418 D
+  2419
+  2420..2426 L
+  2427..2434 R
+  2435..2436
+  2437..2455 jump
+  2456 R U jump !toss
+  2457..2462 R
+  2463..2470 L
+  2471..2473
+  2474 D !attack
+  2475..2478 D
+  2479..2501
+  2502 !toss
+  2503..2515
+end
+expect
+  # In the alcove (2048 u up, the floor at y=288) on the last tick that matters.
+  at 2524 y=288u x>1664u ground=1
+  # No dash after the three ground dashes of the hidden route's approach: the tech is not needed.
+  never 151..2525 event.dash=1
+  never 0..2525 event.hazard=1
+  # The cost: the cooldown is waited out three times; the alcove is not reached before tick 2400.
+  never 0..2400 y=288u x>1664u ground=1
+end

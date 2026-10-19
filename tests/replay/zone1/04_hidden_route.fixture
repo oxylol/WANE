@@ -1,0 +1,91 @@
+fixture zone1_04_hidden_route
+doc BUILD.md s5 tech 4 "Pogo-dash reset: pogo resets the air dash, so pogo, dash, pogo again crosses anything. Taught by a hidden room"; s5 Pogo "Resets: Double jump, air dash"; s15 "Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap"; s3 "hidden rooms reachable only with movement tech"; zone 1 room 4's teaching route, west door to the hidden alcove to the east door
+room zone1/04_pogo_dash_reset
+spawn 74 2336
+frames 550
+input
+  # Dashing along the floor to the tower; a jump and the air jump beside post 1 and a down-strike
+  # onto it; then on each bounce the same rhythm: the air jump at the bounce's top, the up-dash at
+  # the air jump's top (beside the next post, clear of its spikes), over the next post and the
+  # down-strike as the feet come to it. From post 4 the same rhythm carries into the alcove; its
+  # floor's hole drops down the chute and through the east door.
+  0 R !dash
+  1..24 R
+  25 R !dash
+  26..49 R
+  50 R !dash
+  51..98 R
+  103..123 jump
+  125..139 jump
+  140..143 R jump
+  144 R
+  145 R D !attack
+  146 L D
+  147 R D
+  148..151 L D
+  152..163 R
+  164..170 L
+  171 L jump
+  172..189 jump
+  191 U !dash
+  211..215 R
+  216..218 L
+  219 L D !attack
+  220 L D
+  221..226 D
+  227..240 L
+  241..243 R
+  244 L
+  245 R
+  246..253 R jump
+  254..256 L jump
+  257..264 jump
+  266 U !dash
+  286..290 L
+  291 R
+  292 L
+  293 R D !attack
+  294..300 R D
+  301 L D
+  302..314 R
+  315..320 L
+  321..323 L jump
+  324 R jump
+  325..339 jump
+  341 U !dash
+  361..365 R
+  366..367 L
+  368 L D !attack
+  369..370 L D
+  371..375 D
+  376..394 R
+  395..413 R jump
+  414 R
+  415 U !dash
+  416..549 R
+end
+expect
+  at 103 event.jump=1
+  at 125 event.air_jump=1
+  # Post 1 (its spikes' top 256 u up): the first bounce, a free one over the floor.
+  at 150 event.pogo=1 air_jumps=1 air_dashes=1 x>1320u x<1340u
+  # Post 1 to post 2, 448 u higher: the air jump and the up-dash (20 u a tick).
+  at 171 event.air_jump=1
+  at 191 event.dash=1 vy=-20u air_dashes=0
+  # Post 2: the bounce gives the spent air dash back (the reset) ...
+  at 224 air_dashes=0
+  at 225 event.pogo=1 air_dashes=1 x>1480u x<1500u
+  # ... and post 3, 448 u higher again, needs it.
+  at 266 event.dash=1 air_dashes=0
+  at 299 air_dashes=0
+  at 300 event.pogo=1 air_dashes=1 x>1320u x<1340u
+  at 341 event.dash=1 air_dashes=0
+  at 373 air_dashes=0
+  at 374 event.pogo=1 air_dashes=1 x>1480u x<1500u
+  at 415 event.dash=1 air_dashes=0
+  # The alcove: its floor 2048 u above the room's, inside the east wall (its face at 1664 u).
+  at 450 event.land=1 y=288u x>1664u
+  never 0..549 event.hazard=1
+  # The drop through the floor's hole takes the player through the east door in the fall.
+  at 548 event.room=1 room=zone1_05_wall_kick_climb vy=25u
+end

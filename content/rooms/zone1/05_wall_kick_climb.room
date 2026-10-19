@@ -1,28 +1,116 @@
-# Zone 1, room 5 (stub, Phase 1 task 7): replaced by the room that teaches tech 5, Wall-kick climb (BUILD.md s5).
+# Zone 1, room 5: Wall-kick climb. Phase 1 grey box.
+# BUILD.md s5 tech 5: "climb a single wall with neutral kicks. Taught by a well"; s5 Wall-kick
+# "900 u/s up, 240 u/s away ... Lets the player climb a single wall"; s15 Movement: "Wall-kick
+# climbs a single wall without the player ever feeling stuck to it".
+#
+# Layout. The corridor from the west door opens into a well 384 u (12 tiles) wide whose one
+# clingable surface is its east wall (its face at x 704); every other wall is smooth. The wall's top
+# is the exit floor, 2176 u (68 tiles) above the well's floor, and the corridor beyond leads to the
+# east door. The room is 36 tiles wide: a well is tall, not wide, and the camera centres a room
+# narrower than the view.
+#
+# Stand-ins: none needed (a wall is a wall).
+#
+# How it teaches. The jump at the wall clings at its top; from there a kick on each cling climbs
+# 175.6 u every 24 ticks, never stuck to the wall (each cling is left the tick after it starts). The
+# first kicks are over the well's floor, where a fall is safe; the whole height is twelve kicks.
+#
+# Why up the wall (every number measured: docs/feel_log/2026-10-19-zone1-b.md). Away from the wall
+# the strongest climb is the floor's jump, air jump and up-dash (554 u), the Ember Toss thrown from
+# their top, a fall to the floor that gives everything back and the teleport 400 u up, then the air
+# jump and up-dash again: 1313 u. Using the wall without a kick or a wall-jump (the first
+# cling since the floor gives back the air jump and dash, an up-dash straight from the cling, the
+# toss's landing trick, and a second fresh cling) tops out 2048 u up, 128 u short of the exit floor
+# (tests/replay/zone1/05_control_no_kick, one toss). Kicks are not the only way up the wall, and
+# the room does not try to make them so (docs/adr/0015): a wall-jump gives back the air dash
+# (BUILD.md's wall-jump row: "Resets double jump and air dash"), so a wall-jump and an up-dash on
+# the next tick, from every cling, climbs the same wall at 10.5 u a tick against the kicks' 7.3
+# (tests/replay/zone1/05_wall_jump_dash_cycle: over the top 85 ticks sooner). That is tech 6's
+# rhythm, taught in the next room, and it needs a player who has put wall-jump and dash together
+# already. Kicks are the plain way: one button on a steady rhythm, nothing spent, the stick held
+# toward the wall the whole climb, which is what the room's first twelve clings teach.
 room zone1/05_wall_kick_climb
-size 60 20
-spawn 200 544
+size 36 78
+spawn 74 2400
 tiles
-############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-............................................................
-............................................................
-............................................................
-............................................................
-############################################################
-############################################################
-############################################################
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSS..........................
+SSSSSSSSSS..........................
+SSSSSSSSSS..........................
+SSSSSSSSSS..........................
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+SSSSSSSSSS............#SSSSSSSSSSSSS
+......................#SSSSSSSSSSSSS
+......................#SSSSSSSSSSSSS
+......................#SSSSSSSSSSSSS
+......................#SSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 end
-door west left 416 544 zone1/04_pogo_dash_reset east
-door east right 416 544 zone1/06_wall_jump_dash west
+door west left 2272 2400 zone1/04_pogo_dash_reset east
+door east right 96 224 zone1/06_wall_jump_dash west

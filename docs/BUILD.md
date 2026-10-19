@@ -236,6 +236,8 @@ All of these must work for every Wick (with their overrides) and be taught by th
 11. **Ember-toss cancel** (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm.
 12. **Kindle-dash** (universal with the Kindle Votive): dash through a wax wall or a Snuffed to ignite it. Taught by a wax door.
 
+"Taught by" means the room makes the tech the cheapest route and a control proves what the single-use alternatives cannot do; it does not mean the only route. A cooldown waited out on a perch, or another row of the tables, may reach the same place at a higher cost (docs/adr/0015).
+
 ### Feel rules (non-negotiable)
 
 - **Input is read every frame, before physics, and acted on the same frame.** No input ever waits for an animation.

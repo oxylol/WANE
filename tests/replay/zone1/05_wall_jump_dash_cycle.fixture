@@ -1,0 +1,54 @@
+fixture zone1_05_wall_jump_dash_cycle
+doc Director question (docs/feel_log/2026-10-19-zone1-b.md): BUILD.md s5 Wall-jump "Resets double jump and air dash" with docs/adr/0010's fresh cling lets a wall-jump and an up-dash, from every cling, climb zone 1 room 5's single wall faster than tech 5's neutral kicks (zone1_05_kick_climb): the top at tick 301 against 386
+room zone1/05_wall_kick_climb
+spawn 74 2400
+frames 334
+input
+  # The same run and jump to the wall as the kick climb; then from every cling a wall-jump away from
+  # the wall, an up-dash on the next tick, the stick back toward the wall, and the cling at the top.
+  0..70 R
+  71..92 R jump
+  93..94 R
+  95 L jump
+  96 U !dash
+  108..119 R
+  120 L jump
+  121 U !dash
+  133..144 R
+  145 L jump
+  146 U !dash
+  158..169 R
+  170 L jump
+  171 U !dash
+  183..194 R
+  195 L jump
+  196 U !dash
+  208..219 R
+  220 L jump
+  221 U !dash
+  233..244 R
+  245 L jump
+  246 U !dash
+  258..269 R
+  270 L jump
+  271 U !dash
+  283..333 R
+end
+expect
+  at 93 event.wall_cling=1
+  # A cycle: the wall-jump gives the air dash back, the up-dash spends it, the cling at the top is
+  # the first since the wall-jump and gives it back again: 263 u every 25 ticks (10.5 u a tick,
+  # against the kicks' 175.6 u every 24, 7.3 u a tick).
+  at 95 event.wall_jump=1 air_dashes=1
+  at 96 event.dash=1 vy=-20u air_dashes=0
+  at 119 event.wall_cling=1 air_dashes=1 y<-260u+y@93
+  at 120 event.wall_jump=1
+  at 121 event.dash=1
+  at 144 event.wall_cling=1 y<-262u+y@119
+  at 270 event.wall_jump=1
+  at 271 event.dash=1
+  never 0..333 event.wall_kick=1
+  # Over the top 85 ticks before the kick climb.
+  at 301 event.land=1 y=224u
+  at 332 event.room=1 room=zone1_06_wall_jump_dash
+end

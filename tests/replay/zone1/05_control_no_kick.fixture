@@ -1,0 +1,58 @@
+fixture zone1_05_control_no_kick
+doc BUILD.md s5 tech 5 "Taught by a well"; zone 1 room 5's control: the strongest climb with ONE Ember Toss and without a neutral kick or a wall-jump falls short of the exit (it shows those two moves are not enough without a kick or a wall-jump, not that kicks are required: 05_wall_jump_dash_cycle climbs faster, docs/adr/0015); docs/adr/0010 (the fresh cling, the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+room zone1/05_wall_kick_climb
+spawn 74 2400
+frames 330
+input
+  # Never a kick, never a wall-jump; everything else, twice over. A jump, the air jump and an
+  # up-dash, then the first cling since the floor (it gives back the air jump and the air dash); an
+  # up-dash straight from the cling and the air jump pressed while still rising (so it is no kick),
+  # drifting off the wall (out of the kick's 3 u reach); the ember thrown straight up at the top;
+  # the fall to the floor (the landing gives everything back again and makes the next cling fresh);
+  # the teleport; the air jump, the up-dash, the fresh cling, the up-dash from it and the air jump.
+  0..65 R
+  66..86 jump
+  88..106 jump
+  108 U !dash
+  129..135 R
+  136 U !dash
+  159 jump
+  160..162 L jump
+  163..177 jump
+  179 U !toss
+  228 !toss
+  229..247 jump
+  249 U !dash
+  270..274 R
+  275 U !dash
+  298..316 jump
+  319..329 R
+end
+expect
+  at 66 event.jump=1
+  at 88 event.air_jump=1
+  at 108 event.dash=1 vy=-20u
+  # The first cling since the floor gives the air jump and the air dash back.
+  at 134 event.wall_cling=1 air_jumps=1 air_dashes=1
+  at 136 event.dash=1 vy=-20u
+  at 159 event.air_jump=1
+  # The ember thrown straight up from the top of all that, 914 u above the floor ...
+  at 179 event.toss=1 y>1486u y<1487u
+  # ... the landing (the air jump and dash back), and the teleport up to the ember, 1298 u up.
+  at 227 event.land=1 air_jumps=1 air_dashes=1
+  at 228 event.teleport=1 y>1101u y<1102u
+  at 229 event.air_jump=1
+  at 249 event.dash=1
+  # The cling is fresh again (the first since that landing) ...
+  at 273 event.wall_cling=1 air_jumps=1 air_dashes=1
+  at 275 event.dash=1
+  at 298 event.air_jump=1
+  # ... and spent: the top is 2048 u above the floor, 128 u under the exit floor (2176 u up; the
+  # ledge-grab lifts 10 u), and a later cling gives nothing back.
+  never 0..329 y<352u
+  at 319 event.wall_cling=1 air_jumps=0 air_dashes=0
+  at 329 state=wall air_jumps=0 air_dashes=0
+  never 0..329 event.wall_kick=1
+  never 0..329 event.wall_jump=1
+  never 0..329 room=zone1_06_wall_jump_dash
+end

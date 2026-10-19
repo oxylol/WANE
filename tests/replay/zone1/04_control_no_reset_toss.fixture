@@ -1,0 +1,72 @@
+fixture zone1_04_control_no_reset_toss
+doc BUILD.md s5 tech 4 "pogo resets the air dash"; s6 Ember Toss; zone 1 room 4's control: the strongest climb with ONE Ember Toss that never uses a dash a bounce gave back, the toss's landing trick included, reaches post 4 and falls short of the alcove (it does not wait the toss's 12 s cooldown out on a post: that bypass is bypass/04_bypass_toss_wait, docs/adr/0015); docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+room zone1/04_pogo_dash_reset
+spawn 74 2336
+frames 430
+input
+  # The hidden route's inputs to post 2 (the one dash between posts 1 and 2), and never the dash a
+  # bounce gives back. The air jump at post 2's bounce top; the ember thrown straight up from there
+  # beside post 4's column; the fall to the floor (the landing, not a bounce, gives the air jump and
+  # the dash back); the teleport once the ember has flown its whole way; the air jump and the
+  # up-dash, over post 4 and onto it; the air jump at that bounce's top, toward the alcove.
+  0 R !dash
+  1..24 R
+  25 R !dash
+  26..49 R
+  50 R !dash
+  51..98 R
+  103..123 jump
+  125..139 jump
+  140..143 R jump
+  144 R
+  145 R D !attack
+  146 L D
+  147 R D
+  148..151 L D
+  152..163 R
+  164..170 L
+  171 L jump
+  172..189 jump
+  191 U !dash
+  211..215 R
+  216..218 L
+  219 L D !attack
+  220 L D
+  221..226 D
+  227..231 L
+  232..236 R
+  246..264 jump
+  266 U !toss
+  317 !toss
+  318..336 jump
+  338 U !dash
+  358..362 R
+  363..367 L
+  370 D !attack
+  371..378 D
+  379..397 R
+  398..416 R jump
+  417..429 R
+end
+expect
+  at 191 event.dash=1 air_dashes=0
+  at 225 event.pogo=1 air_dashes=1
+  at 246 event.air_jump=1
+  # The ember thrown straight up from 960 u above the floor ...
+  at 266 event.toss=1 y>1376u y<1377u
+  # ... the landing gives the dash back ...
+  at 316 event.land=1 y=2336u air_jumps=1 air_dashes=1
+  # ... and the teleport puts the player 1345 u up, under post 4 (top 1600 u up).
+  at 317 event.teleport=1 y>991u y<992u
+  at 318 event.air_jump=1
+  at 338 event.dash=1 air_dashes=0
+  at 377 event.pogo=1 air_dashes=1 x>1480u x<1500u
+  at 398 event.air_jump=1
+  # The top, against the alcove's wall: 1859 u up; the alcove's floor is 2048 u up (the ledge-grab
+  # lifts 10 u): 179 u short. The dash post 4 gave back is the only way on.
+  at 416 y>476u y<477u x=1654u
+  never 0..429 y<476u
+  never 226..315 event.dash=1
+  never 378..429 event.dash=1
+  never 0..429 state=ground y<2336u
+end

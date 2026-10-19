@@ -1,0 +1,67 @@
+fixture zone1_05_kick_climb
+doc BUILD.md s5 tech 5 "Wall-kick climb: climb a single wall with neutral kicks. Taught by a well"; s5 Wall-kick "900 u/s up, 240 u/s away"; s15 "Wall-kick climbs a single wall without the player ever feeling stuck to it"; zone 1 room 5's teaching route, west door to east door
+room zone1/05_wall_kick_climb
+spawn 74 2400
+frames 413
+input
+  # Through the entry corridor into the well, holding toward its one clingable wall (its face at
+  # 704 u) the whole way up: a jump at the wall, then a kick pressed on each cling, held while it
+  # rises and let go near the top so the next cling is a fresh press.
+  0..70 R
+  71..92 R jump
+  93 R
+  94..115 R jump
+  116..117 R
+  118..139 R jump
+  140..141 R
+  142..163 R jump
+  164..165 R
+  166..187 R jump
+  188..189 R
+  190..211 R jump
+  212..213 R
+  214..235 R jump
+  236..237 R
+  238..259 R jump
+  260..261 R
+  262..283 R jump
+  284..285 R
+  286..307 R jump
+  308..309 R
+  310..331 R jump
+  332..333 R
+  334..355 R jump
+  356..357 R
+  358..372 R jump
+  373..412 R
+end
+expect
+  at 71 event.jump=1
+  # The jump's apex clings (the first cling since the floor).
+  at 93 event.wall_cling=1 wall=1
+  # Each kick: 900 u/s up (15 u a tick) and 240 u/s away (4 u), one every 24 ticks, each rising
+  # the same 175.6 u from cling to cling (a fixed kick: no early-release cut, no apex hang).
+  at 94 event.wall_kick=1 vy=-15u vx=-4u
+  at 118 event.wall_kick=1 y<-175u+y@94
+  at 142 event.wall_kick=1 y<-175u+y@118
+  at 166 event.wall_kick=1
+  at 190 event.wall_kick=1
+  at 214 event.wall_kick=1
+  at 238 event.wall_kick=1
+  at 262 event.wall_kick=1
+  at 286 event.wall_kick=1
+  at 310 event.wall_kick=1
+  at 334 event.wall_kick=1
+  at 358 event.wall_kick=1 y<-1930u+y@94
+  # Never stuck: every cling is left on the tick after it starts.
+  never 0..412 wall_frames>1
+  # Kicks only: the air jump, a wall-jump and the dash are never used.
+  never 0..412 event.air_jump=1
+  never 0..412 event.wall_jump=1
+  never 0..412 event.dash=1
+  # The twelfth kick carries the feet over the wall's top onto the exit floor, 2176 u above the
+  # well's floor.
+  mark top 359..412 event.land=1
+  at top y=224u x>704u
+  at 411 event.room=1 room=zone1_06_wall_jump_dash
+end

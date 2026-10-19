@@ -1,0 +1,52 @@
+fixture zone1_04_control_no_second_dash
+doc BUILD.md s5 tech 4 "pogo resets the air dash, so pogo, dash, pogo again crosses anything"; zone 1 room 4's control: the tower without the reset; the bounce off post 2 without the dash it gives back leaves post 3 out of reach; docs/feel_log/2026-10-19-zone1-b.md
+room zone1/04_pogo_dash_reset
+spawn 74 2336
+frames 318
+input
+  # The hidden route's inputs to post 2 (pogo post 1, the up-dash, pogo post 2); then the air jump
+  # at the bounce's top beside post 3 and no dash.
+  0 R !dash
+  1..24 R
+  25 R !dash
+  26..49 R
+  50 R !dash
+  51..98 R
+  103..123 jump
+  125..139 jump
+  140..143 R jump
+  144 R
+  145 R D !attack
+  146 L D
+  147 R D
+  148..151 L D
+  152..163 R
+  164..170 L
+  171 L jump
+  172..189 jump
+  191 U !dash
+  211..215 R
+  216..218 L
+  219 L D !attack
+  220 L D
+  221..226 D
+  227..240 L
+  241..243 R
+  244 L
+  245 R
+  246..253 R jump
+  254..256 L jump
+  257..264 jump
+end
+expect
+  at 191 event.dash=1 air_dashes=0
+  at 225 event.pogo=1 air_dashes=1
+  at 246 event.air_jump=1
+  # The top: 965 u above the floor. Post 3's spikes (top 1152 u up) take a down-strike only with
+  # the feet above 1120 u up (y 1216 u): 155 u short.
+  at 264 y>1370u y<1371u
+  never 0..317 y<1370u
+  never 226..317 event.pogo=1
+  never 226..317 event.dash=1
+  at 316 event.land=1 y=2336u air_dashes=1
+end

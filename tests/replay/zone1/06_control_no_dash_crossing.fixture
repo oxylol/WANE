@@ -1,0 +1,35 @@
+fixture zone1_06_control_no_dash_crossing
+doc BUILD.md s5 tech 6 "Taught by a shaft"; zone 1 room 6's control: the walls are too far apart for a crossing without the dash and without the Ember Toss; the farthest crossing without one (a kick from the top of band 0 and the air jump on the tick that carries furthest) meets the left wall below band 1; docs/feel_log/2026-10-19-zone1-b.md
+room zone1/06_wall_jump_dash
+spawn 74 1888
+frames 282
+input
+  # Band 0 from the floor; a kick up it to cling at its top (the highest place to leave it from);
+  # then the kick across with the stick toward band 1 and the air jump 36 ticks later, the tick that
+  # carries furthest (a wall-jump carries 40 u less), and no dash.
+  0..127 R
+  128..148 R jump
+  149 R
+  150..171 R jump
+  172..188 R
+  189 jump
+  190..223 L jump
+  224 L
+  225..280 L jump
+end
+expect
+  at 149 event.wall_cling=1 wall=1
+  at 150 event.wall_kick=1
+  # The highest cling on band 0 (its top is 256 u up).
+  at 188 event.wall_cling=1 wall=1 y<1645u
+  at 189 event.wall_kick=1
+  at 225 event.air_jump=1
+  # The top of the crossing is 140 u short of the left wall ...
+  at 244 y>1409u y<1410u x>779u
+  # ... which it meets 399 u above the floor: a cling on band 1 needs the body's upper part
+  # against the band, the feet above 1420 u (468 u up); 69 u short.
+  at 259 x=650u y>1489u y<1490u vy>0
+  never 189..281 state=wall
+  never 0..281 event.dash=1
+  at 280 event.land=1 y=1888u
+end
