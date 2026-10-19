@@ -234,6 +234,7 @@ func copy_from(other: InputRing) -> void:
 	_hold = other._hold.duplicate()
 	_head = other._head
 	_count = other._count
+	_any_pressed = other._any_pressed
 
 
 func _slot(age: int) -> int:

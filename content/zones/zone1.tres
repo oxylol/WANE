@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ZoneDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/rooms/zone_def.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "zone1"
+display_name = "The Guttering Fields (grey box)"
+start_room = "zone1/01_dash_slash"
+rooms = Array[String](["zone1/01_dash_slash", "zone1/02_dash_jump", "zone1/03_pogo_chain", "zone1/04_pogo_dash_reset", "zone1/05_wall_kick_climb", "zone1/06_wall_jump_dash", "zone1/07_coyote_dash", "zone1/08_attack_cancel_landing", "zone1/09_reverse_pogo", "zone1/10_crouch_dash_under", "zone1/11_ember_toss_cancel", "zone1/12_kindle_dash"])

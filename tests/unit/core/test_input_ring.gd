@@ -126,5 +126,9 @@ func test_frame_at_and_copy() -> void:
 	ring.hash_into(h1)
 	other.hash_into(h2)
 	assert_int(h1.value()).is_equal(h2.value())
+	# The copy answers queries as the original does: its press mask came with it (movement
+	# review 6, L2).
+	assert_int(other.press_age(InputFrame.JUMP)).is_equal(1)
+	assert_int(other.any_press_age(InputFrame.JUMP)).is_equal(1)
 	other.push(_frame(0, 0))
 	assert_int(ring.depth()).is_equal(2)

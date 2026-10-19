@@ -8,8 +8,12 @@ extends Node
 ## overlay, F4 pause, F5 one tick, F6 ten (docs/adr/0012).
 
 const LAST_REPLAY_PATH: String = "user://replays/last_session.wrp"
-## The room the game boots into until zone 1 exists (Phase 1 task 7).
-const START_ROOM: String = "sandbox"
+## The zone the game boots into: its start room, the Kindle Votive in hand (Phase 1 has no
+## Votive pickups; the zone's twelfth room teaches the kindle-dash: docs/adr/0014). Run with
+## `-- --room=<id>` to start in any room instead (the room editor's Play does), the sandbox
+## included.
+const START_ZONE: String = "res://content/zones/zone1.tres"
+const ROOM_ARG: String = "--room="
 
 @onready var input_layer: InputLayer = $InputLayer
 @onready var driver: SimDriver = $SimDriver
@@ -30,9 +34,10 @@ const START_ROOM: String = "sandbox"
 func _ready() -> void:
 	driver.input_layer = input_layer
 	driver.ticked.connect(_on_ticked)
-	driver.start(Scenario.make(int(Time.get_unix_time_from_system()), START_ROOM))
+	var scenario: Scenario = _scenario()
+	driver.start(scenario)
 	for problem: String in driver.sim.load_errors:
-		push_error("%s: %s" % [START_ROOM, problem])
+		push_error("%s: %s" % [scenario.room, problem])
 	room_view.show_world(driver.sim.world, driver.sim.room.doors)
 	player_view.begin(driver.sim)
 	game_camera.begin(driver.sim)
@@ -47,6 +52,19 @@ func _ready() -> void:
 	feedback_overlay.feedback = hit_feedback
 	if driver.sim.player != null:
 		hud.vitals = driver.sim.player.vitals
+
+
+## The session to start: the room named on the command line, or zone 1's start room with the
+## Kindle Votive.
+func _scenario() -> Scenario:
+	var seed_value: int = int(Time.get_unix_time_from_system())
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with(ROOM_ARG):
+			return Scenario.make(seed_value, arg.trim_prefix(ROOM_ARG))
+	var zone: ZoneDef = load(START_ZONE) as ZoneDef
+	var scenario: Scenario = Scenario.make(seed_value, zone.start_room)
+	scenario.options["kindle"] = 1
+	return scenario
 
 
 func _on_ticked() -> void:
