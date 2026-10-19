@@ -25,7 +25,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PROBE_CLASS = "CoverageProbe"
 HITS_DIR = "coverage_hits"
 PASS_MARKER = "ALL STAGES PASSED"
-TIME_LIMIT_SECONDS = 900
+# The instrumented unit stage may run 2400 s (run_tests.gd), so this process allows more.
+TIME_LIMIT_SECONDS = 3000
 PROBE_SOURCE = f'''class_name {PROBE_CLASS}
 extends RefCounted
 ## Injected by tools/ci/gd_coverage.py into a scratch copy of the project. Never committed.

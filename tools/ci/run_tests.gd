@@ -23,6 +23,9 @@ const ALL_STAGES: Array[String] = ["compile", "content", "fixtures", "unit"]
 ## as errors pile up, and without these limits CI would only time out, with nothing to read.
 const UNIT_MAX_ERRORS: int = 50
 const UNIT_TIME_LIMIT_SECONDS: int = 600
+## The unit stage's limit in a run that is slow on purpose (--no-time-budget: the instrumented copy
+## runs several times slower, and the camera suites alone take over ten minutes in it).
+const SLOW_UNIT_TIME_LIMIT_SECONDS: int = 2400
 
 var _errors: ErrorCounter = ErrorCounter.new()
 var _time_budget: bool = true
@@ -235,6 +238,7 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 	var partial: Array[String] = ["", ""]
 	var watch := UnitWatch.new()
 	var started_msec: int = Time.get_ticks_msec()
+	var unit_limit: int = UNIT_TIME_LIMIT_SECONDS if _time_budget else SLOW_UNIT_TIME_LIMIT_SECONDS
 	while true:
 		var running: bool = OS.is_process_running(pid)
 		var got: int = 0
@@ -249,8 +253,8 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 		var stop: String = ""
 		if watch.errors >= UNIT_MAX_ERRORS:
 			stop = "%d engine or script errors" % watch.errors
-		elif Time.get_ticks_msec() - started_msec > UNIT_TIME_LIMIT_SECONDS * 1000:
-			stop = "the %d s time limit" % UNIT_TIME_LIMIT_SECONDS
+		elif Time.get_ticks_msec() - started_msec > unit_limit * 1000:
+			stop = "the %d s time limit" % unit_limit
 		if stop != "":
 			OS.kill(pid)
 			printerr("  unit run stopped after %s" % stop)
