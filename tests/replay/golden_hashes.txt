@@ -387,3 +387,6 @@ wall_ledge_grab_too_low in:7762c2e6 content:edbe1440 20:1c5c1866
 wall_spent_still_kicks in:5bec08c6 content:2593f714 260:88bbbbc9 60:eb43a256 120:f6c0ddb9 180:786d13f5 240:094b4b68
 white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
+zone1_12_kindle_dash_through_wax in:4136c673 content:9c2d3a18 180:dc52ac34 60:f9190493 120:67494fc7 180:dc52ac34
+zone1_12_no_kindle_door_holds in:d47900b4 content:9c2d3a18 140:68cb9862 60:2f059bf0 120:a252dfac
+zone1_12_no_kindle_screen_holds in:9221d94f content:9c2d3a18 90:56cd7f4e 60:5f81f942

@@ -1,0 +1,20 @@
+fixture zone1_12_no_kindle_door_holds
+doc Control for zone 1 room 12 (tech 12): the jump, the air dash and the air jump over the chasm without the Kindle Votive; the wax door is a wall, nothing crosses it, the spikes take the fall
+room zone1/12_kindle_dash
+spawn 1000 544
+frames 140
+input
+  0..9 R
+  10 R jump
+  11..16 R
+  17 R dash
+  18..40 R
+  41 R jump        # the air jump, against the wax
+  42..59 R
+end
+expect
+  never 0..139 event.ignite=1
+  never 0..139 x>1270u
+  never 0..139 room=zone1_01_dash_slash
+  mark hurt 60..139 event.hazard=1
+end
