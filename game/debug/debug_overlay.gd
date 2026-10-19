@@ -31,6 +31,7 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 }
 ## An enemy's box is a hairline: the enemy's telegraph cue outlines the same rectangle in white
 ## (EnemyView, 3 px), and a 2 px violet line over it read as lavender (task 6 review 2, L8).
+const OVERLAY_Z: int = 100
 const ENEMY_LINE_PX: float = 1.0
 const BOX_LINE_PX: float = 2.0
 ## Boxes that are filled as well as outlined (the ones that hit something).
@@ -83,6 +84,8 @@ var _memory: DebugBoxes.Memory = DebugBoxes.Memory.new()
 
 
 func _ready() -> void:
+	# Above every world layer, the enemy cues' included (EnemyView.CUE_Z).
+	z_index = OVERLAY_Z
 	var layer := CanvasLayer.new()
 	layer.name = "Hud"
 	layer.layer = 100

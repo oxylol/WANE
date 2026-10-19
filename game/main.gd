@@ -52,6 +52,8 @@ func _ready() -> void:
 	feedback_overlay.feedback = hit_feedback
 	if driver.sim.player != null:
 		hud.vitals = driver.sim.player.vitals
+		var kit: KitParams = driver.sim.player.kit
+		hud.spell_costs = [kit.kindle_cost, kit.mend_cost, kit.radiance_cost]
 
 
 ## The session to start: the room named on the command line, or zone 1's start room with the
@@ -79,7 +81,8 @@ func _on_ticked() -> void:
 	# its first frame.
 	hit_feedback.on_tick(sim)
 	enemy_view.flash_scale = hit_feedback.flash_scale
-	hud.on_tick()
+	hud.flash_scale = hit_feedback.flash_scale
+	hud.on_tick(sim.events)
 	if sim.player != null:
 		voices.listener = Vector2(sim.player.body.x, sim.player.body.y) / Fx.SUB
 	debug_overlay.capture()

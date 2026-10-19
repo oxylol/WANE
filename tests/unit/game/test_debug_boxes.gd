@@ -136,16 +136,23 @@ func test_the_down_strike_names_its_one_box_once() -> void:
 	assert_str(_of(boxes, DebugBoxes.STRIKE)[0].label).is_equal("down + pogo")
 
 
-func test_every_tech_and_physics_fixture_plays_the_same_with_the_overlay_reading_every_tick(
-) -> void:
-	# Task 5 review, M12: the overlay's reads (boxes, text, history) never change the simulation.
+func test_every_fixture_plays_the_same_with_the_overlay_reading_every_tick() -> void:
+	# Task 5 review, M12, and presentation review r3, L4: the overlay's reads (boxes, text,
+	# history, and task 6's live reads of the enemies, the swings, Kindle's cone and the tier) never
+	# change the simulation: tick by tick on the directories that exercise them (combat, doors;
+	# hashing both simulations every tick on all 380 fixtures took nearly four minutes), and at the
+	# end of the rest.
 	var overlay: DebugOverlay = auto_free(DebugOverlay.new())
 	var played: int = 0
-	for dir_path: String in ["res://tests/replay/tech/", "res://tests/replay/physics/"]:
-		for file: String in DirAccess.get_files_at(dir_path):
+	var root: String = "res://tests/replay/"
+	var every_tick: Array[String] = ["combat", "doors", "presentation"]
+	for dir_name: String in DirAccess.get_directories_at(root):
+		if dir_name == "rooms":
+			continue
+		for file: String in DirAccess.get_files_at(root + dir_name):
 			if not file.ends_with(".fixture"):
 				continue
-			var fx: Fixture = Fixture.parse_file(dir_path + file)
+			var fx: Fixture = Fixture.parse_file(root + dir_name + "/" + file)
 			var watched := Simulation.new(fx.scenario)
 			var plain := Simulation.new(fx.scenario)
 			overlay.attach_sim(watched, null)
@@ -153,10 +160,19 @@ func test_every_tech_and_physics_fixture_plays_the_same_with_the_overlay_reading
 				watched.step(fx.input_frame(f))
 				plain.step(fx.input_frame(f))
 				overlay.capture()
-				DebugBoxes.collect(watched, WIDE_VIEW)
+				DebugBoxes.collect(watched, WIDE_VIEW, overlay._memory)
 				overlay.hud_lines()
+				if (
+					every_tick.has(dir_name)
+					and (
+						watched.state_hash() != plain.state_hash()
+						or watched.events.count() != plain.events.count()
+					)
+				):
+					fail("%s/%s: the overlay changed the simulation on frame %d" % [dir_name, file, f])
+					return
 			assert_int(watched.state_hash()).override_failure_message(file).is_equal(
 				plain.state_hash()
 			)
 			played += 1
-	assert_int(played).is_greater(40)
+	assert_int(played).is_greater(300)

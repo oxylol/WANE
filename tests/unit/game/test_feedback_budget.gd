@@ -119,7 +119,7 @@ func test_an_effect_is_drawn_from_its_first_tick_and_lives_its_whole_lifetime() 
 		fb.on_tick(quiet)
 		if vfx.effects.has(spark):
 			drawn += 1
-	assert_int(drawn).is_equal(VfxBudget.LIFETIMES[VfxBudget.SPARK])
+	assert_int(drawn).is_equal(vfx.lifetime(VfxBudget.SPARK))
 
 
 func test_a_one_tick_effect_is_drawn_once() -> void:

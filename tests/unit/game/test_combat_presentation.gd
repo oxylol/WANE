@@ -176,9 +176,9 @@ class LogVoices:
 	func play(
 		stream: AudioStream, _at: Vector2, _prio: int, _volume_db: float = 0.0, _pitch: float = 1.0
 	) -> bool:
-		if stream == Synth.sound("telegraph"):
+		if Synth.is_variant_of(stream, "telegraph"):
 			cues.append(Vector2i(tick, 0))
-		elif stream == Synth.sound("telegraph_red"):
+		elif Synth.is_variant_of(stream, "telegraph_red"):
 			cues.append(Vector2i(tick, 1))
 		else:
 			other += 1

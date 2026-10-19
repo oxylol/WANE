@@ -96,11 +96,11 @@ func on_tick(sim: Simulation) -> void:
 				_flash()
 				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 3.0, 0, _group_priority)
 				_spark(VfxBudget.RING, at, Vector2.UP, 0, 1.0, 0, _group_priority)
-				_play("chime", at, Voices.PLAYER)
+				_play("radiance", at, Voices.PLAYER)
 			SimEvents.HEAL:
 				_new_group(VfxBudget.PLAYER)
 				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 0.8)
-				_play("chime", at, Voices.PLAYER)
+				_play("heal", at, Voices.PLAYER)
 			SimEvents.STAGGER:
 				# Always comes with the hit that broke the poise: one group with its spark.
 				if _group == 0:
@@ -131,7 +131,7 @@ func _on_hit(at: Vector2, value: int) -> void:
 			shake.add(dir, tuning.charged_shake_u, tuning.charged_shake_frames)
 			_split()
 			_play("thump", at, Voices.HIT)
-	_play("hit%d" % variant, at, Voices.HIT, tuning.hit_pitch_spread)
+	_play("hit", at, Voices.HIT, variant)
 
 
 func _on_kill(at: Vector2, value: int) -> void:
@@ -207,8 +207,13 @@ func _spark(
 		vfx.spawn(kind, priority, at, dir, variant, size, tint, _group)
 
 
-func _play(id: String, at: Vector2, priority: int, pitch_spread: float = 0.0) -> void:
+## Plays a variant of the sound [param base] ([param variant] picked at random unless given: a
+## hit plays the variant its spark drew), at the tuned +-3% pitch: no sound repeats identically
+## (section 11).
+func _play(base: String, at: Vector2, priority: int, variant: int = -1) -> void:
 	if voices == null:
 		return
-	var pitch: float = 1.0 + _rng.randf_range(-pitch_spread, pitch_spread)
-	voices.play(Synth.sound(id), at, priority, 0.0, pitch)
+	var v: int = variant if variant >= 0 else _rng.randi_range(0, Synth.variants(base) - 1)
+	var spread: float = tuning.sound_pitch_spread
+	var pitch: float = 1.0 + _rng.randf_range(-spread, spread)
+	voices.play(Synth.variant(base, v), at, priority, 0.0, pitch)

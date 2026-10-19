@@ -175,3 +175,263 @@ func test_the_overlay_collects_once_a_tick_and_draws_no_label_twice() -> void:
 					"%s frame %d: two labels on %s" % [path, f, b.rect]
 				).is_false()
 				seen[b.rect] = true
+
+
+## Records every sound the feedback plays: the stream and the pitch.
+class LogVoices:
+	extends Voices
+
+	var streams: Array[AudioStream] = []
+	var pitches: Array[float] = []
+
+	func play(
+		stream: AudioStream, _at: Vector2, _prio: int, _volume_db: float = 0.0, pitch: float = 1.0
+	) -> bool:
+		streams.append(stream)
+		pitches.append(pitch)
+		return true
+
+
+## Feeds a fixture's inputs to the driver one tick at a time.
+class FixtureInput:
+	extends InputLayer
+
+	var fx: Fixture
+	var t: int = 0
+
+	func poll() -> InputFrame:
+		var f: InputFrame = fx.input_frame(t) if t < fx.frame_total else InputFrame.new()
+		t += 1
+		return f
+
+	func reset() -> void:
+		pass
+
+
+## A driver wired as game/main.gd wires it, playing a fixture, and its feedback.
+class Wired:
+	var driver: SimDriver
+	var feedback: HitFeedback
+	var vfx: VfxBudget
+
+
+func _wired(fx: Fixture, voices: Voices = null) -> Wired:
+	var w := Wired.new()
+	var input: FixtureInput = auto_free(FixtureInput.new())
+	input.fx = fx
+	w.driver = auto_free(SimDriver.new())
+	w.driver.input_layer = input
+	w.driver.start(fx.scenario)
+	w.vfx = auto_free(VfxBudget.new())
+	w.feedback = auto_free(HitFeedback.new())
+	w.feedback.attach(w.vfx, voices)
+	var driver: SimDriver = w.driver
+	var feedback: HitFeedback = w.feedback
+	driver.ticked.connect(func() -> void: feedback.on_tick(driver.sim))
+	feedback.slow_motion.connect(driver.slow)
+	return w
+
+
+func test_no_second_of_play_holds_more_than_three_full_screen_flashes() -> void:
+	# Presentation review r2, H1: five parries 4 ticks apart drew five 0.55 white flashes in 17
+	# ticks (BUILD.md section 12: the Harding test fails more than 3 in a second).
+	var w: Wired = _wired(_fixture("combat/five_parries_in_a_second"))
+	var flash_ticks: Array[int] = []
+	for _f: int in range(240):
+		var tick_before: int = w.driver.sim.tick
+		w.driver._process(1.0 / 60.0)
+		if w.driver.sim.tick != tick_before and w.feedback.flash_ticks > 0:
+			flash_ticks.append(w.driver.sim.tick - 1)
+	assert_int(flash_ticks.size()).is_greater(0)
+	var window: int = w.feedback.tuning.screen_flash_window_frames
+	for t: int in flash_ticks:
+		var in_window: int = 0
+		for u: int in flash_ticks:
+			if u >= t and u < t + window:
+				in_window += 1
+		assert_int(in_window).is_less_equal(w.feedback.tuning.screen_flash_max)
+	# Five parries, three flashes: the other two show the burst and the enemy's own cues.
+	assert_int(flash_ticks.size()).is_equal(w.feedback.tuning.screen_flash_max)
+
+
+func test_a_flash_is_refused_past_the_window_whatever_its_priority_and_admitted_after() -> void:
+	var t: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	var vfx: VfxBudget = auto_free(VfxBudget.new(t))
+	var admitted: int = 0
+	for _i: int in range(t.screen_flash_window_frames):
+		if vfx.claim_screen(VfxBudget.SCREEN_FLASH, VfxBudget.SPELL):
+			admitted += 1
+		vfx.step()
+	assert_int(admitted).is_equal(t.screen_flash_max)
+	# A whole window with no flash, and one is admitted again.
+	for _i: int in range(t.screen_flash_window_frames):
+		vfx.step()
+	assert_bool(vfx.claim_screen(VfxBudget.SCREEN_FLASH, VfxBudget.PLAYER)).is_true()
+
+
+func test_a_running_slow_waits_out_a_second_hitstop() -> void:
+	# Presentation review r2, M1: a second parry inside the first one's six slow ticks spent half
+	# the slow in its own hitstop, stretching it, and drew its one-tick flash for two frames.
+	var w: Wired = _wired(_fixture("combat/two_parries_in_a_slow"))
+	var parries: Array[int] = []
+	var frozen_slowed: int = 0
+	var flash_frames: int = 0
+	var slowed: int = 0
+	for _f: int in range(200):
+		var tick_before: int = w.driver.sim.tick
+		var scale: float = w.driver.time_scale
+		var frozen_before: bool = w.driver.sim.player.freeze > 0
+		w.driver._process(1.0 / 60.0)
+		if w.driver.sim.events.has(SimEvents.PARRY) and w.driver.sim.tick != tick_before:
+			parries.append(w.driver.sim.tick - 1)
+		if w.feedback.flash_ticks > 0:
+			flash_frames += 1
+		if scale < 1.0 and w.driver.sim.tick != tick_before:
+			slowed += 1
+			if frozen_before:
+				frozen_slowed += 1
+	assert_array(parries).is_equal([53, 68])
+	assert_int(frozen_slowed).is_zero()
+	assert_int(slowed).is_greater(0)
+	# One tick, one frame, for each of the two flashes.
+	assert_int(flash_frames).is_equal(2)
+
+
+func test_resuming_the_frame_stepper_never_draws_the_player_backward() -> void:
+	# Presentation review r3, L2: resuming left the phase of the tick it paused in, and the first
+	# frame drew the player back toward the previous tick (-1.5 u at 144 Hz).
+	var w: Wired = _wired(_fixture("physics/walk_up_lip_stairs"))
+	var view: PlayerView = auto_free(PlayerView.new())
+	view.begin(w.driver.sim)
+	var driver: SimDriver = w.driver
+	driver.ticked.connect(func() -> void: view.capture(driver.sim))
+	var dt: float = 1.0 / 144.0
+	for _f: int in range(40):
+		driver._process(dt)
+	driver.set_paused(true)
+	var paused_x: float = view.box_at(driver.alpha).position.x
+	for _f: int in range(3):
+		driver._process(dt)
+	driver.set_paused(false)
+	var last_x: float = paused_x
+	for _f: int in range(12):
+		driver._process(dt)
+		var x: float = view.box_at(driver.alpha).position.x
+		assert_float(x).is_greater_equal(last_x - 0.0001)
+		last_x = x
+	assert_float(last_x).is_greater(paused_x)
+
+
+func test_displacing_a_hit_removes_its_whole_group() -> void:
+	# Presentation review r2, L3: only the holder was erased; the displaced hit's smear and burst
+	# kept drawing beside the newcomer.
+	var vfx: VfxBudget = auto_free(VfxBudget.new())
+	var at := Vector2(150, 150)
+	var none := Color(0, 0, 0, 0)
+	for kind: int in [VfxBudget.SPARK, VfxBudget.SMEAR, VfxBudget.BURST]:
+		assert_bool(vfx.spawn(kind, VfxBudget.PLAYER, at, Vector2.RIGHT, 0, 1.0, none, 7)).is_true()
+	vfx.step()
+	assert_bool(vfx.spawn(VfxBudget.BURST, VfxBudget.SPELL, at, Vector2.UP, 0, 3.0, none, 8)).is_true()
+	assert_int(vfx.effects.size()).is_equal(1)
+	assert_int(vfx.effects[0].group).is_equal(8)
+	assert_int(vfx.displaced).is_equal(3)
+
+
+func test_every_spark_variant_the_tuning_allows_has_a_hit_sound() -> void:
+	# Presentation review r2, L4: spark_variants 4 or 5 (inside the spec's 3 to 5) asked the synth
+	# for hit3 and hit4, which did not exist.
+	var t: FeedbackTuning = (load(FeedbackTuning.PATH) as FeedbackTuning).duplicate()
+	for n: int in [3, 4, 5]:
+		t.spark_variants = n
+		assert_array(t.validate()).is_empty()
+		for v: int in range(n):
+			assert_int(Synth.sound("hit%d" % v).data.size()).is_greater(1000)
+	t.spark_variants = Synth.HIT_VARIANTS + 1
+	assert_array(t.validate()).is_not_empty()
+
+
+func test_every_sound_varies_and_a_heal_is_not_a_parry() -> void:
+	# Presentation review r2, L5: only the hit's pitch varied; the parry chime, the telegraph cue,
+	# the kill, the ember, the thump and the player-hit played identically every time, and Mend's
+	# heal and Radiance used the parry's chime.
+	var voices: LogVoices = auto_free(LogVoices.new())
+	var w: Wired = _wired(_fixture("combat/five_parries_in_a_second"), voices)
+	for _f: int in range(100):
+		w.driver._process(1.0 / 60.0)
+	var pitches: Dictionary[String, Array] = {}
+	for i: int in range(voices.streams.size()):
+		for base: String in Synth.BASES:
+			if Synth.is_variant_of(voices.streams[i], base):
+				var list: Array = pitches.get(base, [])
+				list.append(voices.pitches[i])
+				pitches[base] = list
+	assert_bool(pitches.has("chime")).is_true()
+	assert_bool(pitches.has("telegraph")).is_true()
+	var spread: float = w.feedback.tuning.sound_pitch_spread
+	for base: String in pitches:
+		var distinct: Dictionary[float, bool] = {}
+		for p: float in pitches[base]:
+			assert_float(absf(p - 1.0)).is_less_equal(spread + 0.0001)
+			distinct[p] = true
+		if pitches[base].size() >= 3:
+			assert_int(distinct.size()).override_failure_message(base).is_greater(1)
+	for other: String in ["heal", "radiance"]:
+		for v: int in range(Synth.variants(other)):
+			assert_bool(Synth.is_variant_of(Synth.variant(other, v), "chime")).is_false()
+			var same: bool = Synth.sound("%s%d" % [other, v]).data == Synth.sound("chime0").data
+			assert_bool(same).is_false()
+
+
+func test_the_budget_lifetimes_and_the_feel_numbers_are_content() -> void:
+	# Presentation review r2, L6: lifetimes, the Flame bar's ease and flash, the split's offset and
+	# opacity and the vignette's depth and opacity were literals in code.
+	var t: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	var vfx: VfxBudget = auto_free(VfxBudget.new(t))
+	assert_int(vfx.lifetime(VfxBudget.SPARK)).is_equal(t.vfx_spark_frames)
+	assert_int(vfx.lifetime(VfxBudget.BURST)).is_equal(t.vfx_burst_frames)
+	assert_int(vfx.lifetime(VfxBudget.SMEAR)).is_equal(t.vfx_smear_frames)
+	for path: String in [
+		"res://game/vfx/vfx_budget.gd", "res://game/ui/hud.gd", "res://game/feedback/feedback_overlay.gd"
+	]:
+		var src: String = FileAccess.get_file_as_string(path)
+		for literal: String in [
+			"LIFETIMES", "GAIN_FLASH_TICKS", "VIGNETTE_DEPTH", "move_toward(shown_flame"
+		]:
+			assert_bool(src.contains(literal)).override_failure_message(
+				"%s has %s" % [path, literal]
+			).is_false()
+
+
+func test_the_hud_flash_follows_the_flash_setting() -> void:
+	# Presentation review r2, L2: the Flame bar flashed for 12 ticks at a flash setting of 0.
+	var hud: Hud = auto_free(Hud.new())
+	add_child(hud)
+	hud.vitals = Vitals.new((load(CombatTuning.PATH) as CombatTuning).compile())
+	hud.flash_scale = 0.0
+	hud.on_tick()
+	hud.vitals.flame.gain(33)
+	hud.on_tick()
+	assert_int(hud.gain_flash).is_greater(0)
+	# At 0 the bar is outlined, not lit: the lit colour is the plain one scaled by the setting.
+	assert_bool(Hud.FLAME.lerp(Hud.FLAME_GAIN, 0.0) == Hud.FLAME).is_true()
+	assert_bool(hud.flash_scale > 0.0).is_false()
+
+
+func test_the_telegraph_cue_is_above_the_effects_and_the_trails_are_below_the_enemies() -> void:
+	# Presentation review r2, L10 and M3: the budget's header claimed telegraphs outrank every
+	# effect, but the cue was drawn under the VFX; and the Blaze trails were drawn over the enemy,
+	# covering its cue.
+	var main: Node = auto_free((load("res://game/main.tscn") as PackedScene).instantiate())
+	add_child(main)
+	await get_tree().process_frame
+	var world: Node = main.get_node("World")
+	assert_int(world.get_node("CombatView").get_index()).is_less(
+		world.get_node("EnemyView").get_index()
+	)
+	var cues: Node2D = null
+	for child: Node in world.get_node("EnemyView").get_children():
+		if child is Node2D and (child as Node2D).z_index == EnemyView.CUE_Z:
+			cues = child as Node2D
+	assert_object(cues).is_not_null()
+	assert_int(cues.z_index).is_greater((world.get_node("Vfx") as Node2D).z_index)
+	assert_int((world.get_node("DebugOverlay") as Node2D).z_index).is_greater(cues.z_index)

@@ -151,7 +151,8 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	if not f3:
 		drawer = overlay
 		spare = debug
-	for n: Node in [room_view, enemy_view, combat_view, player_view, vfx, drawer, camera]:
+	# The main scene's order: the fire trails are under the enemies, not over them.
+	for n: Node in [room_view, combat_view, enemy_view, player_view, vfx, drawer, camera]:
 		stage.add_child(n)
 	for n: Node in [feedback, hud, screen]:
 		stage.add_child(n)
@@ -161,6 +162,7 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 	combat_view.player_view = player_view
 	feedback.attach(vfx, null)
 	hud.vitals = sim.player.vitals
+	hud.spell_costs = [sim.player.kit.kindle_cost, sim.player.kit.mend_cost, sim.player.kit.radiance_cost]
 	screen.feedback = feedback
 	enemy_view.capture(sim)
 	player_view.begin(sim)
@@ -178,7 +180,7 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		enemy_view.capture(sim)
 		combat_view.capture(sim)
 		feedback.on_tick(sim)
-		hud.on_tick()
+		hud.on_tick(sim.events)
 		camera.step(sim)
 		debug.capture()
 		var view: Rect2 = camera.rig.view_rect()
