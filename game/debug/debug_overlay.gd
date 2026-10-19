@@ -27,7 +27,12 @@ const BOX_COLOURS: Dictionary[int, Color] = {
 	DebugBoxes.KILL_EMBER: Color(1.0, 0.75, 0.3, 1.0),
 	DebugBoxes.ENEMY_DEAD: Color(0.55, 0.5, 0.6, 0.55),
 	DebugBoxes.DOOR: Color(0.4, 1.0, 0.9, 0.7),
+	DebugBoxes.BURST: Color(1.0, 0.7, 0.2, 0.8),
 }
+## An enemy's box is a hairline: the enemy's telegraph cue outlines the same rectangle in white
+## (EnemyView, 3 px), and a 2 px violet line over it read as lavender (task 6 review 2, L8).
+const ENEMY_LINE_PX: float = 1.0
+const BOX_LINE_PX: float = 2.0
 ## Boxes that are filled as well as outlined (the ones that hit something).
 const FILLED: Array[int] = [
 	DebugBoxes.STRIKE,
@@ -68,6 +73,13 @@ var boxes: Array[DebugBoxes.Box] = []
 
 var _hud: Node2D
 var _sim: Simulation
+## What the boxes were collected from: the simulation, its tick and the view, so a redraw within
+## the same tick reuses them (the boxes change only per tick, and collecting 200 enemies' costs
+## 2 ms: task 5 review 3, L3).
+var _collected_sim: Simulation
+var _collected_tick: int = -1
+var _collected_view: Rect2 = Rect2()
+var _memory: DebugBoxes.Memory = DebugBoxes.Memory.new()
 
 
 func _ready() -> void:
@@ -99,6 +111,8 @@ func _watch(sim: Simulation, p_camera: GameCamera) -> void:
 	_sim = sim
 	camera = p_camera
 	history.clear()
+	_memory.note(sim)
+	_collected_sim = null
 	if sim != null and sim.player != null:
 		history.threshold = sim.player.p.stick_threshold
 
@@ -126,6 +140,7 @@ func capture() -> void:
 	var sim: Simulation = shown_sim()
 	if sim != null:
 		history.push(sim.last_input, sim.tick - 1)
+		_memory.note(sim)
 
 
 func refresh() -> void:
@@ -141,14 +156,20 @@ func _draw() -> void:
 	if sim == null:
 		return
 	var view: Rect2 = camera.rig.view_rect() if camera != null else Rect2()
-	boxes = DebugBoxes.collect(sim, view)
+	if sim != _collected_sim or sim.tick != _collected_tick or view != _collected_view:
+		boxes = DebugBoxes.collect(sim, view, _memory)
+		_collected_sim = sim
+		_collected_tick = sim.tick
+		_collected_view = view
 	var font: Font = ThemeDB.fallback_font
 	for box: DebugBoxes.Box in boxes:
 		var colour: Color = BOX_COLOURS[box.kind]
 		if FILLED.has(box.kind):
 			draw_rect(box.rect, Color(colour, 0.25))
-		draw_rect(box.rect, colour, false, 2.0)
-		if box.label != "" and not _label_repeats(box):
+		draw_rect(
+			box.rect, colour, false, ENEMY_LINE_PX if box.kind == DebugBoxes.ENEMY else BOX_LINE_PX
+		)
+		if box.label != "":
 			draw_string(
 				font,
 				box.rect.position + Vector2(0, -4 - box.label_lift),
@@ -164,17 +185,6 @@ func _draw() -> void:
 		var dead := Vector2(t.dead_zone_w_u, t.dead_zone_h_u)
 		draw_rect(Rect2(camera.rig.anchor() - dead * 0.5, dead), DEAD_ZONE, false, 2.0)
 		draw_circle(camera.rig.focus, 6.0, FOCUS)
-
-
-## True if an earlier box this redraw has the same rectangle (the down-strike's box is its pogo
-## box): its label is drawn once, with both names ([method DebugBoxes.collect] joins them).
-func _label_repeats(box: DebugBoxes.Box) -> bool:
-	for other: DebugBoxes.Box in boxes:
-		if other == box:
-			return false
-		if other.rect == box.rect and other.label != "":
-			return true
-	return false
 
 
 ## The overlay's text, top to bottom. Frames are numbered as fixtures, trace.gd and film.gd number

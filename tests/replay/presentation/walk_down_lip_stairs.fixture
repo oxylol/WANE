@@ -1,0 +1,11 @@
+fixture walk_down_lip_stairs
+doc walk left down the 45-degree stair of test/lip_stairs from its landing: a lip of 8 u every tick (presentation review r3, H1: the drawn player's speed changed by 4 u where a quarter of the nudge is 2 u, and it rode 16 u off the treads).
+room test/lip_stairs
+spawn 1300 464
+frames 60
+input
+  0..59 L
+end
+expect
+  during 0..59 ground=1
+end

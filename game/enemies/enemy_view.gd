@@ -29,6 +29,10 @@ const CUE_RISE_PX: float = 24.0
 const CUE_BAR_PX: float = 6.0
 const JAG_TOOTH_PX: float = 8.0
 const JAG_DEPTH_PX: float = 5.0
+## The cue's outline around the body.
+const CUE_OUTLINE_PX: float = 3.0
+## The health bar's gap above the body; the poise bar sits 4 px under it, both 3 px thick.
+const BARS_GAP_PX: float = 16.0
 ## Health is tan, never red: red is the unparryable cue (BUILD.md section 15), and the bar sits
 ## where a telegraph raises its cue bar.
 const HP := Color(0.85, 0.75, 0.6)
@@ -215,7 +219,7 @@ func _draw_enemy(s: Shown, at: Rect2) -> void:
 	if s.telegraph >= 0.0:
 		var cue: Color = WHITE_CUE if s.parryable else RED_CUE
 		draw_colored_polygon(cue_bar(box, s.telegraph, s.parryable), cue)
-		draw_polyline(cue_outline(box, s.parryable), cue, 3.0)
+		draw_polyline(cue_outline(box, s.parryable), cue, CUE_OUTLINE_PX)
 	if s.attack.size != Vector2.ZERO:
 		# The live swing keeps the cue's colour and shape through its active frames.
 		draw_rect(s.attack, WHITE_SWING if s.parryable else RED_SWING)
@@ -225,6 +229,6 @@ func _draw_enemy(s: Shown, at: Rect2) -> void:
 	if shows_hit_outline(s):
 		draw_rect(box, HIT_OUTLINE, false, 3.0)
 	var w: float = box.size.x
-	var top: float = box.position.y - 16.0
+	var top: float = box.position.y - BARS_GAP_PX
 	draw_rect(Rect2(box.position.x, top, w * s.hp, 3), HP)
 	draw_rect(Rect2(box.position.x, top + 4, w * s.poise, 3), POISE)

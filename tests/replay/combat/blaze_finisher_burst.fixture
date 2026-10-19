@@ -1,0 +1,15 @@
+fixture blaze_finisher_burst
+doc Presentation review r3, M3: at Blaze the 3-hit chain's finisher on the near dummy of test/dummy_pair also burns the far one (70 u away) with the 96 u burst on frame 17; the F3 overlay draws the burst and marks the burn (test_presentation_review3).
+room test/dummy_pair
+option kindling 20
+frames 30
+input
+  0 attack
+  7 attack
+  14 attack
+end
+expect
+  at 17 event.hit=1 action=side3
+  at 16 enemy1.hp=200
+  at 17 enemy1.hp<200
+end

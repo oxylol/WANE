@@ -5,4 +5,4 @@
 [resource]
 script = ExtResource("1")
 nudge_ease_frames = 3
-nudge_lag_percent = 200
+nudge_lag_percent = 250
