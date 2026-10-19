@@ -1,0 +1,65 @@
+fixture zone1_01_dash_slash_route
+doc BUILD.md s5 tech 1 "Dash-slash: dash into attack, frame-perfect cancel. Taught by a tight corridor of weak enemies"; s5 Dash "cancelable into attack from frame 6"; s6 Taper side 1 (10 damage)
+room zone1/01_dash_slash
+spawn 74 832
+frames 243
+input
+  # The hall's dummy (the safe first encounter), then the corridor: a dash, a slash on the dash's frame 6
+  # (input frame +5), a dash again as soon as the ground cooldown allows, all the way to the east door.
+  0..17 R
+  18 R dash
+  19..22 R
+  23 R attack
+  24..41 R
+  42 R dash
+  43..46 R
+  47 R attack
+  48..65 R
+  66 R dash
+  67..70 R
+  71 R attack
+  72..89 R
+  90 R dash
+  91..94 R
+  95 R attack
+  96..113 R
+  114 R dash
+  115..118 R
+  119 R attack
+  120..137 R
+  138 R dash
+  139..142 R
+  143 R attack
+  144..161 R
+  162 R dash
+  163..166 R
+  167 R attack
+  168..185 R
+  186 R dash
+  187..190 R
+  191 R attack
+  192..209 R
+  210 R dash
+  211..214 R
+  215 R attack
+  216..233 R
+  234 R dash
+  235..238 R
+  239 R attack
+  240..242 R
+end
+expect
+  at 18 event.dash=1
+  at 23 event.attack=1 action=side1 carry>0
+  at 28 event.kill=1
+  at 77 event.kill=1
+  at 104 event.kill=1
+  at 109 event.kill=1
+  at 123 event.kill=1
+  at 146 event.kill=1
+  at 173 event.kill=1
+  at 193 event.kill=1
+  never 0..242 event.player_hit=1
+  at 241 hearts=5
+  at 242 event.room=1 room=zone1_02_dash_jump x=74u
+end

@@ -1,0 +1,15 @@
+fixture zone1_01_control_run
+doc Control for room 01 (BUILD.md s5 tech 1): the corridor run straight through with no attack and no dash: 87 ticks slower than the dash-slash route (329 against 242) and two hits taken (3 of 5 hearts). The corridor cannot force the tech (a dummy has no body); this is what the tech beats.
+room zone1/01_dash_slash
+spawn 74 832
+frames 335
+input
+  0..334 R
+end
+expect
+  never 0..328 event.room=1
+  at 329 event.room=1 room=zone1_02_dash_jump
+  mark first_hit 0..328 event.player_hit=1
+  at first_hit hearts=4
+  at 334 hearts=3
+end

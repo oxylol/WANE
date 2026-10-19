@@ -1,0 +1,73 @@
+fixture zone1_03_pogo_chain_route
+doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards. Taught by a spike pit"; s15 "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; docs/adr/0010 (Pogo)
+room zone1/03_pogo_chain
+spawn 74 608
+frames 250
+input
+  0..5 R
+  6..8 R jump
+  9..39 R
+  40 R dash
+  41..44 R
+  45..47 R jump
+  48..54 R
+  55 R D attack
+  56..67 R
+  68 R D attack
+  69..80 R
+  81 R D attack
+  82..93 R
+  94 R D attack
+  95..106 R
+  107 R D attack
+  108..119 R
+  120 R D attack
+  121..132 R
+  133 R D attack
+  134..145 R
+  146 R D attack
+  147..158 R
+  159 R D attack
+  160..171 R
+  172 R D attack
+  173..184 R
+  185 R D attack
+  186..197 R
+  198..249 R
+end
+expect
+  # The route: a hop over the 3-spike patch (frame 6), a ground dash-jump into the tunnel (dash
+  # on 40, jump on dash frame 6), then a down-strike on every fall.
+  at 40 event.dash=1
+  at 45 event.jump=1 vx=5120
+  never 0..56 event.pogo=1
+  # Eleven bounces, one every 13 frames (4.6 a second, 'at 4 bounces per second' or faster), each at the
+  # dash-jump's full 20 u/f: the pogo keeps the horizontal speed (BUILD.md s5 Pogo, Momentum).
+  at 57 event.pogo=1 vx=5120 vy=-3388
+  never 58..69 event.pogo=1
+  at 70 event.pogo=1 vx=5120 vy=-3388
+  never 71..82 event.pogo=1
+  at 83 event.pogo=1 vx=5120 vy=-3388
+  never 84..95 event.pogo=1
+  at 96 event.pogo=1 vx=5120 vy=-3388
+  never 97..108 event.pogo=1
+  at 109 event.pogo=1 vx=5120 vy=-3388
+  never 110..121 event.pogo=1
+  at 122 event.pogo=1 vx=5120 vy=-3388
+  never 123..134 event.pogo=1
+  at 135 event.pogo=1 vx=5120 vy=-3388
+  never 136..147 event.pogo=1
+  at 148 event.pogo=1 vx=5120 vy=-3388
+  never 149..160 event.pogo=1
+  at 161 event.pogo=1 vx=5120 vy=-3388
+  never 162..173 event.pogo=1
+  at 174 event.pogo=1 vx=5120 vy=-3388
+  never 175..186 event.pogo=1
+  at 187 event.pogo=1 vx=5120 vy=-3388
+  never 188..243 event.pogo=1
+  never 0..249 event.hazard=1
+  # Out of the tunnel (3584 u) and onto the east hall's floor, then through the east door.
+  mark land 188..243 event.land=1
+  at land x>3584u
+  at 244 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+end
