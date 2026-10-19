@@ -387,13 +387,16 @@ wall_ledge_grab_too_low in:7762c2e6 content:edbe1440 20:1c5c1866
 wall_spent_still_kicks in:5bec08c6 content:2593f714 260:88bbbbc9 60:eb43a256 120:f6c0ddb9 180:786d13f5 240:094b4b68
 white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
-zone1_01_control_run in:c13d4244 content:263dec24 335:1f7ca5dc 60:ac7193ce 120:0deb466c 180:5c68569d 240:10003268 300:53bfe72f
-zone1_01_control_run_slashes in:bbf90678 content:263dec24 316:6bc1ab1f 60:1565cc66 120:ab1974d3 180:630e119d 240:3adc801e 300:d0309e15
-zone1_01_dash_slash_route in:9d281f8d content:263dec24 243:cb4af906 60:a41c586f 120:8415730a 180:a2bf9313 240:b4991527
-zone1_02_control_all_resources in:0ffa681a content:7c4eac89 160:09137a75 60:d675cd84 120:aff8f523
-zone1_02_control_carry_jump in:19f46952 content:7c4eac89 170:04c9b086 60:b932bed9 120:a65682ad
-zone1_02_control_carry_toss in:ea355de9 content:7c4eac89 260:daec6264 60:fc79b17d 120:4cd9fe60 180:e037c5a0 240:dfb432ca
-zone1_02_dash_jump_route in:b8340315 content:7c4eac89 246:b9a08ab6 60:23b849f9 120:5161c072 180:5a946919 240:1cef196e
-zone1_03_control_no_pogo in:b481ba8d content:2ffd68bf 200:64f68103 60:f3b5d748 120:da9034f1 180:c3ff5fe7
-zone1_03_control_short_chain in:85325890 content:2ffd68bf 200:7e01eb89 60:618bb696 120:b76d144b 180:128c7820
-zone1_03_pogo_chain_route in:cb5de31b content:2ffd68bf 250:907ea597 60:618bb696 120:b76d144b 180:7dbdfef2 240:cda46717
+zone1_01_control_dash_only in:00064e44 content:06b92e7d 300:2cd228eb 60:415f21ae 120:a041d3b2 180:0c0cb104 240:4be1546c 300:2cd228eb
+zone1_01_control_run in:b8b21df6 content:06b92e7d 300:2acb46d0 60:99e23a2e 120:c2efc592 180:7f3758cf 240:6564fc97 300:2acb46d0
+zone1_01_control_run_slashes in:2aaec57e content:06b92e7d 430:ed86f2f6 60:99e23a2e 120:c4516fef 180:43f994a5 240:08ab725a 300:f64214cb 360:baf64746 420:1594a40b
+zone1_01_dash_slash_route in:3bd3a244 content:06b92e7d 358:cc132bc1 60:e3b367c4 120:2e84fc74 180:1d32b83f 240:9d120660 300:c814c12c
+zone1_02_control_all_resources in:0ffa681a content:e380492c 160:09137a75 60:d675cd84 120:aff8f523
+zone1_02_control_carry_jump in:19f46952 content:e380492c 170:04c9b086 60:b932bed9 120:a65682ad
+zone1_02_control_carry_toss in:ea355de9 content:e380492c 260:daec6264 60:fc79b17d 120:4cd9fe60 180:e037c5a0 240:dfb432ca
+zone1_02_dash_jump_route in:b8340315 content:e380492c 246:b9a08ab6 60:23b849f9 120:5161c072 180:5a946919 240:1cef196e
+zone1_03_control_nine_bounces in:0e4fd0e5 content:29f8d330 300:0b93e126 60:618bb696 120:e202b12b 180:de45ff6c 240:cb354d9a 300:0b93e126
+zone1_03_control_no_pogo in:b481ba8d content:29f8d330 200:64f68103 60:f3b5d748 120:da9034f1 180:c3ff5fe7
+zone1_03_control_short_chain in:85325890 content:29f8d330 200:7e01eb89 60:618bb696 120:b76d144b 180:128c7820
+zone1_03_pogo_chain_route in:1a5ba5fd content:29f8d330 344:91e7fcc6 60:618bb696 120:b76d144b 180:7dbdfef2 240:7fab3044 300:52bf4a9f
+zone1_03_route_fewest_bounces in:73c40fb7 content:29f8d330 331:8eaf0147 60:618bb696 120:e202b12b 180:de45ff6c 240:cb354d9a 300:788dafa7

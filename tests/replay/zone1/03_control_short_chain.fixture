@@ -1,5 +1,5 @@
 fixture zone1_03_control_short_chain
-doc Control for room 03 (BUILD.md s5 tech 3, s15 "a 10-bounce chain"): the route's first six bounces and then no more down-strikes: the chain has to go on all the way, the spikes are 3008 u wide
+doc Control for room 03 (BUILD.md s5 tech 3, s15 "a 10-bounce chain"): the route's first six bounces and then no more down-strikes: the chain has to go on all the way, the spikes are 5184 u wide
 room zone1/03_pogo_chain
 spawn 74 608
 frames 200
@@ -27,7 +27,7 @@ end
 expect
   at 122 event.pogo=1 vx=5120
   never 123..199 event.pogo=1
-  # Falls into the spikes 9 frames after the last bounce, well short of the tunnel's end (3584 u).
+  # Falls into the spikes 9 frames after the last bounce, well short of the tunnel's end (5760 u).
   mark hazard 123..199 event.hazard=1
   at hazard x<3000u
 end
