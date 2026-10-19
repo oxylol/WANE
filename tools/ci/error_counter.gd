@@ -6,6 +6,9 @@ extends Logger
 
 var errors: int = 0
 var first: String = ""
+## Each error that names a project file, by that file: "line 5: Parse Error: ..." (how a script
+## that does not compile says why).
+var by_file: Dictionary[String, PackedStringArray] = {}
 var _lock: Mutex = Mutex.new()
 
 
@@ -25,6 +28,10 @@ func _log_error(
 	errors += 1
 	if first == "":
 		first = "%s:%d in %s(): %s %s" % [file, line, function, code, rationale]
+	if file.begins_with("res://"):
+		var lines: PackedStringArray = by_file.get(file, PackedStringArray())
+		lines.append("line %d: %s" % [line, rationale if rationale != "" else code])
+		by_file[file] = lines
 	_lock.unlock()
 
 

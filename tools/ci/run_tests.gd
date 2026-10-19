@@ -12,6 +12,12 @@ extends SceneTree
 ## --no-time-budget lifts the fixture suite's 10 s budget, for runs that are slow on purpose (the
 ## instrumented copy tools/ci/gd_coverage.py runs). The process exits 1 if any stage fails and 2
 ## on a bad command line.
+##
+## --quiet prints one line per stage ("compile PASS 152 scripts 4.1 s") and, for a stage that
+## fails, only what failed (tools/ci/quiet_report.gd), all on stdout; the closing marker is the
+## same. --fail-fast stops after the first failing stage. --unit <res:// path> (repeatable) runs
+## only those gdUnit4 suites or folders in the unit stage, and --unit-time-limit <seconds>
+## replaces its default limit; ci/unit.sh uses both.
 
 const SKIP_DIRS: Array[String] = ["res://.godot", "res://addons/gdUnit4", "res://reports"]
 const CONTENT_ROOT: String = "res://content"
@@ -23,9 +29,19 @@ const ALL_STAGES: Array[String] = ["compile", "content", "fixtures", "unit"]
 ## as errors pile up, and without these limits CI would only time out, with nothing to read.
 const UNIT_MAX_ERRORS: int = 50
 const UNIT_TIME_LIMIT_SECONDS: int = 600
+## A quiet run shows at most this many failures per stage and says how many it left out.
+const MAX_FAILURES_SHOWN: int = 12
 
 var _errors: ErrorCounter = ErrorCounter.new()
 var _time_budget: bool = true
+var _quiet: bool = false
+var _fail_fast: bool = false
+var _unit_paths: Array[String] = []
+var _unit_time_limit: int = UNIT_TIME_LIMIT_SECONDS
+## A quiet run's report on the stage that is running: the summary after PASS or FAIL, and each
+## failure as a block of lines.
+var _summary: String = ""
+var _failures: Array[PackedStringArray] = []
 
 
 # The stages run from _initialize(), not _init(): only then is this script the engine's main
@@ -39,28 +55,65 @@ func _initialize() -> void:
 	var started_usec: int = Time.get_ticks_usec()
 	OS.add_logger(_errors)
 	for stage: String in stages:
-		print("== stage: %s" % stage)
+		if not _quiet:
+			print("== stage: %s" % stage)
 		var errors_before: int = _errors.errors
+		var stage_usec: int = Time.get_ticks_usec()
+		_summary = ""
+		_failures.clear()
 		var ok: bool = _run_stage(stage)
 		if _errors.errors > errors_before and stage != "compile":
-			printerr(
+			_complain(
 				(
 					"  %d engine or script error(s) during the stage; first: %s"
 					% [_errors.errors - errors_before, _errors.first]
 				)
 			)
 			ok = false
-		print("== stage %s: %s" % [stage, "PASS" if ok else "FAIL"])
+		_report_stage(stage, ok, float(Time.get_ticks_usec() - stage_usec) / 1000000.0)
 		if not ok:
 			failed.append(stage)
+			if _fail_fast:
+				break
 	var seconds: float = float(Time.get_ticks_usec() - started_usec) / 1000000.0
 	OS.remove_logger(_errors)
 	if failed.is_empty():
 		print("ALL STAGES PASSED (%.1f s)" % seconds)
 		quit(0)
 	else:
-		printerr("FAILED STAGES: %s (%.1f s)" % [", ".join(failed), seconds])
+		var marker: String = "FAILED STAGES: %s (%.1f s)" % [", ".join(failed), seconds]
+		if _quiet:
+			print(marker)
+		else:
+			printerr(marker)
 		quit(1)
+
+
+## Progress a quiet run leaves out.
+func _say(text: String) -> void:
+	if not _quiet:
+		print(text)
+
+
+## One line of a stage's failure: on stderr at once, or, quiet, under the stage's line.
+func _complain(text: String) -> void:
+	if _quiet:
+		_failures.append(PackedStringArray([text]))
+	else:
+		printerr(text)
+
+
+## A stage's closing report: the PASS or FAIL line and, quiet, the failures under it.
+func _report_stage(stage: String, ok: bool, seconds: float) -> void:
+	if not _quiet:
+		print("== stage %s: %s" % [stage, "PASS" if ok else "FAIL"])
+		return
+	print(QuietReport.stage_line(stage, ok, _summary, seconds))
+	for i: int in range(mini(_failures.size(), MAX_FAILURES_SHOWN)):
+		for line: String in _failures[i]:
+			print(line)
+	if _failures.size() > MAX_FAILURES_SHOWN:
+		print("  ... %d more failures not shown" % (_failures.size() - MAX_FAILURES_SHOWN))
 
 
 func _run_stage(stage: String) -> bool:
@@ -86,9 +139,32 @@ func _requested_stages() -> Array[String]:
 			_time_budget = false
 			i += 1
 			continue
+		if args[i] == "--quiet":
+			_quiet = true
+			i += 1
+			continue
+		if args[i] == "--fail-fast":
+			_fail_fast = true
+			i += 1
+			continue
+		if args[i] == "--unit" and i + 1 < args.size() and args[i + 1].begins_with("res://"):
+			_unit_paths.append(args[i + 1])
+			i += 2
+			continue
+		if args[i] == "--unit-time-limit" and i + 1 < args.size() and args[i + 1].is_valid_int():
+			_unit_time_limit = args[i + 1].to_int()
+			i += 2
+			continue
 		if args[i] != "--stage" or i + 1 >= args.size():
 			printerr(
-				"usage: run_tests.gd [-- [--no-time-budget] --stage <%s>...]" % "|".join(ALL_STAGES)
+				(
+					(
+						"usage: run_tests.gd [-- [--quiet] [--fail-fast] [--no-time-budget]"
+						+ " [--unit <res:// path>]... [--unit-time-limit <seconds>]"
+						+ " --stage <%s>...]"
+					)
+					% "|".join(ALL_STAGES)
+				)
 			)
 			return []
 		var stage: String = args[i + 1]
@@ -128,13 +204,24 @@ func _stage_compile() -> bool:
 		var script: GDScript = load(path) as GDScript
 		if script == null or not script.can_instantiate():
 			bad.append(path)
-	print("compiled %d scripts, %d failed" % [paths.size(), bad.size()])
+	_say("compiled %d scripts, %d failed" % [paths.size(), bad.size()])
 	for path: String in bad:
-		printerr("  does not compile: %s" % path)
+		if _quiet:
+			var why: PackedStringArray = PackedStringArray(["(no engine error seen)"])
+			if _errors.by_file.has(path):
+				why = _errors.by_file[path]
+			_failures.append(QuietReport.compile_failure(path, why))
+		else:
+			printerr("  does not compile: %s" % path)
 	var impure: PackedStringArray = CorePurity.new().check_core()
 	for problem: String in impure:
-		printerr("  core rule broken: %s" % problem)
-	print("core purity: %d problems" % impure.size())
+		_complain("  core rule broken: %s" % problem)
+	_say("core purity: %d problems" % impure.size())
+	_summary = "%d scripts" % paths.size()
+	if not bad.is_empty():
+		_summary += ", %d failed" % bad.size()
+	if not impure.is_empty():
+		_summary += ", %d core rule problems" % impure.size()
 	return bad.is_empty() and impure.is_empty()
 
 
@@ -144,16 +231,16 @@ func _stage_content() -> bool:
 	for path: String in paths:
 		var res: Resource = load(path)
 		if res == null:
-			printerr("  cannot load: %s" % path)
+			_complain("  cannot load: %s" % path)
 			problems += 1
 			continue
 		if not res.has_method("validate"):
-			printerr("  %s: no schema (its script has no validate())" % path)
+			_complain("  %s: no schema (its script has no validate())" % path)
 			problems += 1
 			continue
 		var errors: PackedStringArray = res.call("validate")
 		for message: String in errors:
-			printerr("  %s: %s" % [path, message])
+			_complain("  %s: %s" % [path, message])
 		problems += errors.size()
 	# Rooms are text, not resources: their schema is the room parser and the geometry rules
 	# (docs/adr/0009).
@@ -162,21 +249,25 @@ func _stage_content() -> bool:
 		var room_id: String = path.trim_prefix(RoomData.CONTENT_ROOT).trim_suffix(".room")
 		var room: RoomData = RoomData.load_id(room_id)
 		for message: String in room.errors:
-			printerr("  %s: %s" % [path, message])
+			_complain("  %s: %s" % [path, message])
 		problems += room.errors.size()
-	print(
+	_say(
 		(
 			"validated %d content resources and %d rooms, %d problems"
 			% [paths.size(), rooms.size(), problems]
 		)
 	)
+	_summary = "%d resources, %d rooms" % [paths.size(), rooms.size()]
+	if problems > 0:
+		_summary += ", %d problems" % problems
 	return problems == 0
 
 
 func _stage_fixtures() -> bool:
 	var runner_path: String = "res://tools/replay/fixture_runner.gd"
 	if not ResourceLoader.exists(runner_path):
-		print("no fixture runner yet (Phase 1 task 1 adds it)")
+		_say("no fixture runner yet (Phase 1 task 1 adds it)")
+		_summary = "no fixture runner"
 		return true
 	var runner_script: GDScript = load(runner_path) as GDScript
 	var runner: Object = runner_script.new()
@@ -184,13 +275,29 @@ func _stage_fixtures() -> bool:
 		# An instrumented coverage run: one process, so the instrumentation sees every fixture.
 		runner.set("budget_msec", 0)
 		runner.set("shards", 1)
+	runner.set("quiet", _quiet)
 	var ok: bool = runner.call("run_all")
+	var count: int = runner.call("result_count")
+	var failures: Array[PackedStringArray] = runner.get("failure_blocks")
+	_failures.append_array(failures)
+	_summary = "%d fixtures" % count
+	if not ok:
+		_summary += ", %d failed" % maxi(failures.size(), 1)
 	return ok
 
 
 func _stage_unit() -> bool:
-	if FileWalk.find(UNIT_ROOT, [".gd"]).is_empty():
-		print("no unit suites")
+	var targets: Array[String] = [UNIT_ROOT]
+	if not _unit_paths.is_empty():
+		targets = _unit_paths
+	for target: String in targets:
+		if not FileAccess.file_exists(target) and not DirAccess.dir_exists_absolute(target):
+			_complain("  no such unit suite or folder: %s" % target)
+			_summary = "no such path"
+			return false
+	if _unit_paths.is_empty() and FileWalk.find(UNIT_ROOT, [".gd"]).is_empty():
+		_say("no unit suites")
+		_summary = "no suites"
 		return true
 	# Reports live in the project folder for CI artifacts (one run's worth: reports/report_1);
 	# .gdignore keeps Godot from importing the report's images as project assets.
@@ -214,13 +321,14 @@ func _stage_unit() -> bool:
 		"-c",
 		"-rd",
 		REPORT_DIR,
-		"-a",
-		UNIT_ROOT,
 	]
+	for target: String in targets:
+		args.append_array(["-a", target])
 	var info: Dictionary[String, Variant] = {}
 	info.assign(OS.execute_with_pipe(OS.get_executable_path(), args, false))
 	if info.is_empty():
-		printerr("  cannot start the gdUnit4 run")
+		_complain("  cannot start the gdUnit4 run")
+		_summary = "did not start"
 		return false
 	var pid: int = info["pid"]
 	var stdout: FileAccess = info["stdio"]
@@ -228,12 +336,13 @@ func _stage_unit() -> bool:
 	return _watch_unit_run(pid, stdout, stderr)
 
 
-## Streams the unit run's output as it arrives and stops it at the error or time limit. Returns
-## true if the run exited 0 within the limits.
+## Streams the unit run's output as it arrives (not at all, quiet) and stops it at the error or
+## time limit. Returns true if the run exited 0 within the limits.
 func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 	var streams: Array[FileAccess] = [stdout, stderr]
 	var partial: Array[String] = ["", ""]
 	var watch := UnitWatch.new()
+	watch.quiet = _quiet
 	var started_msec: int = Time.get_ticks_msec()
 	while true:
 		var running: bool = OS.is_process_running(pid)
@@ -249,13 +358,14 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 		var stop: String = ""
 		if watch.errors >= UNIT_MAX_ERRORS:
 			stop = "%d engine or script errors" % watch.errors
-		elif Time.get_ticks_msec() - started_msec > UNIT_TIME_LIMIT_SECONDS * 1000:
-			stop = "the %d s time limit" % UNIT_TIME_LIMIT_SECONDS
+		elif Time.get_ticks_msec() - started_msec > _unit_time_limit * 1000:
+			stop = "the %d s time limit" % _unit_time_limit
 		if stop != "":
 			OS.kill(pid)
-			printerr("  unit run stopped after %s" % stop)
-			printerr("  first error: %s" % watch.first_error)
-			printerr("  last test reported: %s" % watch.last_test)
+			_complain("  unit run stopped after %s" % stop)
+			_complain("  first error: %s" % watch.first_error)
+			_complain("  last test reported: %s" % watch.last_test)
+			_summary = "run stopped"
 			return false
 		if not running and got == 0:
 			break
@@ -264,18 +374,36 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 	for i: int in range(2):
 		if partial[i] != "":
 			watch.line(partial[i], i == 1)
-	return OS.get_process_exit_code(pid) == 0
+	var exit_code: int = OS.get_process_exit_code(pid)
+	var result: QuietReport.UnitResult = QuietReport.parse_unit(watch.out)
+	_summary = "%d cases" % result.cases if result.has_summary else "no result"
+	if exit_code != 0 and result.failed() > 0:
+		_summary += ", %d failed" % result.failed()
+	if exit_code != 0 and _quiet:
+		_failures.append_array(result.failure_blocks(exit_code))
+	if exit_code == 0 and not _unit_paths.is_empty() and result.cases == 0:
+		_complain("  no test cases found under %s" % ", ".join(_unit_paths))
+		return false
+	return exit_code == 0
 
 
 ## Prints the child's lines and keeps what a diagnosis needs.
 class UnitWatch:
+	## Print nothing; the lines are kept for tools/ci/quiet_report.gd.
+	var quiet: bool = false
+	## The child's stdout, one entry per line (its stderr is engine noise, kept out of it).
+	var out: PackedStringArray = PackedStringArray()
 	var errors: int = 0
 	var first_error: String = "(none)"
 	var last_test: String = "(none yet)"
 	var _ansi: RegEx = RegEx.create_from_string("\\x1b\\[[0-9;]*m")
 
 	func line(text: String, is_stderr: bool) -> void:
-		if is_stderr:
+		if not is_stderr:
+			out.append(text)
+		if quiet:
+			pass
+		elif is_stderr:
 			printerr(text)
 		else:
 			print(text)

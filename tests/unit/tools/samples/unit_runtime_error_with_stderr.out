@@ -1,0 +1,56 @@
+ERROR: The remote port number must be between 1 and 65535 (inclusive).
+   at: connect_to_host (core/io/stream_peer_tcp.cpp:69)
+ERROR: Remote Debugger: Unable to connect to host '127.0.0.1:0'.
+   at: create_tcp (core/debugger/remote_debugger_peer.cpp:247)
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[2J[H[38;2;233;150;122m
+--------------------------------------------------------------------------------------------------
+GdUnit4 Comandline Tool
+--------------------------------------------------------------------------------------------------[0m
+[38;2;0;191;255mDisabled fail fast![0m
+[38;2;0;191;255mSet write reports to /work/reports[0m
+[38;2;218;165;32m
+Headless mode is ignored by option '--ignoreHeadlessMode'"
+
+Please note that tests that use UI interaction do not work correctly in headless mode.
+Godot 'InputEvents' are not transported by the Godot engine in headless mode and therefore
+have no effect in the test!
+[0m
+[38;2;100;149;237mInstalling GdUnit4 session system hooks.[0m
+[38;2;100;149;237mSession hook 'GdUnitHtmlTestReporter' installed.[0m
+[38;2;100;149;237mSession hook 'GdUnitXMLTestReporter' installed.[0m
+[38;2;0;206;209mRun Test Suite: [0m[38;2;250;235;215mres://tests/unit/scratch/test_scratch_error.gd[0m
+  [38;2;250;235;215mres://tests/unit/scratch/test_scratch_error.gd[0m[38;2;128;128;128m > [0m[38;2;250;235;215mtest_runtime_error[0m[38;2;34;139;34m STARTED[0m[38;2;128;128;128m[0m
+SCRIPT ERROR: Cannot call method 'queue_free' on a null value.
+          at: test_runtime_error (res://tests/unit/scratch/test_scratch_error.gd:6)
+          GDScript backtrace (most recent call first):
+              [0] test_runtime_error (res://tests/unit/scratch/test_scratch_error.gd:6)
+              [1] _execute_test_case (res://addons/gdUnit4/src/core/_TestCase.gd:79)
+              [2] execute (res://addons/gdUnit4/src/core/_TestCase.gd:40)
+              [3] _execute (res://addons/gdUnit4/src/core/execution/stages/single/GdUnitTestCaseSingleTestStage.gd:10)
+              [4] execute (res://addons/gdUnit4/src/core/execution/stages/IGdUnitExecutionStage.gd:19)
+              [5] _execute (res://addons/gdUnit4/src/core/execution/stages/single/GdUnitTestCaseSingleExecutionStage.gd:17)
+              [6] execute (res://addons/gdUnit4/src/core/execution/stages/IGdUnitExecutionStage.gd:19)
+              [7] _execute (res://addons/gdUnit4/src/core/execution/stages/GdUnitTestCaseExecutionStage.gd:26)
+              [8] execute (res://addons/gdUnit4/src/core/execution/stages/IGdUnitExecutionStage.gd:19)
+              [9] _execute (res://addons/gdUnit4/src/core/execution/stages/GdUnitTestSuiteExecutionStage.gd:36)
+  [38;2;250;235;215mres://tests/unit/scratch/test_scratch_error.gd[0m[38;2;128;128;128m > [0m[38;2;250;235;215mtest_runtime_error[0m[38;2;178;34;34m[1m FAILED[0m[38;2;100;149;237m 13ms[0m
+  [38;2;0;206;209m[1m[4mReport:[0m
+  [38;2;128;128;128m[38;2;255;69;0mGodot Runtime Error ![0m
+  '[38;2;30;144;255mCannot call method 'queue_free' on a null value.[0m'[0m[38;2;173;216;230m	at 'test_runtime_error' in res://tests/unit/scratch/test_scratch_error.gd:6[0m[38;2;128;128;128m[0m
+[38;2;128;128;128m[0m
+  [38;2;250;235;215mres://tests/unit/scratch/test_scratch_error.gd[0m[38;2;128;128;128m > [0m[38;2;250;235;215mtest_after[0m[38;2;34;139;34m STARTED[0m[38;2;128;128;128m[0m
+  [38;2;250;235;215mres://tests/unit/scratch/test_scratch_error.gd[0m[38;2;128;128;128m > [0m[38;2;250;235;215mtest_after[0m[38;2;34;139;34m PASSED[0m[38;2;100;149;237m 14ms[0m
+[38;2;128;128;128m[0m
+[38;2;30;144;255mStatistics:[0m[38;2;128;128;128m 2 test cases | 1 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m[38;2;178;34;34m[1m FAILED[0m[38;2;100;149;237m 50ms[0m
+[38;2;128;128;128m[0m
+[38;2;128;128;128m[0m
+[38;2;30;144;255mOverall Summary:[0m[38;2;255;255;255m 2 test cases | 1 errors | 0 failures | 0 flaky | 0 skipped | 0 orphans |[0m
+[38;2;233;150;122mExecuted test suites: (1/1)[0m
+[38;2;233;150;122mExecuted test cases : (2/2)[0m
+[38;2;233;150;122mTotal execution time: 50ms[0m
+[38;2;255;255;255m [0m[38;2;100;149;237mOpen XML Report at: file:///work/reports/report_2/results.xml[0m
+[38;2;100;149;237mOpen HTML Report at: file:///work/reports/report_2/index.html[0m
+[38;2;178;34;34mExit code: 100[0m
+Run dispose test resources

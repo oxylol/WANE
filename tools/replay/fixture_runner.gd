@@ -45,6 +45,10 @@ var budget_msec: int = SUITE_BUDGET_MSEC
 var shards: int = 0
 ## The script each shard runs (a test points it elsewhere to see a shard die).
 var shard_script: String = SHARD_SCRIPT
+## Quiet (tools/ci/run_tests.gd --quiet): [method run_all] prints nothing and leaves each failure
+## in [member failure_blocks] instead, as lines for tools/ci/quiet_report.gd.
+var quiet: bool = false
+var failure_blocks: Array[PackedStringArray] = []
 
 
 ## Outcome of one fixture.
@@ -93,10 +97,24 @@ class Result:
 		return r
 
 
+## How many fixtures the last [method run_all] ran.
+func result_count() -> int:
+	return results.size()
+
+
+## One failure that is not one fixture's: on stderr, or, quiet, a block of its own.
+func _fail_line(text: String) -> void:
+	if quiet:
+		failure_blocks.append(PackedStringArray([text]))
+	else:
+		printerr(text)
+
+
 ## Runs every fixture under [constant FIXTURE_ROOT]. With [param bless] the golden file is
 ## rewritten from this run instead of checked. Returns true if everything passed.
 func run_all(bless: bool = false) -> bool:
 	results.clear()
+	failure_blocks.clear()
 	var started: int = Time.get_ticks_msec()
 	var golden: Dictionary[String, String] = load_golden()
 	var golden_version: int = load_golden_version()
@@ -117,28 +135,32 @@ func run_all(bless: bool = false) -> bool:
 	for r: Result in results:
 		if not r.passed:
 			failed += 1
+			if quiet:
+				failure_blocks.append(QuietReport.fixture_failure(r.name, r.path, r.messages))
+				continue
 			printerr("FAIL %s (%s)" % [r.name, r.path])
 			for m: String in r.messages:
 				printerr("    %s" % m)
-		else:
+		elif not quiet:
 			print("pass %-44s %5d frames %7.1f ms" % [r.name, r.frames, r.msec])
 	if not bless:
 		for stale: String in golden.keys():
 			if not names.has(stale):
-				printerr("FAIL golden entry '%s' has no fixture; re-bless" % stale)
+				_fail_line("FAIL golden entry '%s' has no fixture; re-bless" % stale)
 				failed += 1
 	var elapsed: int = Time.get_ticks_msec() - started
 	var busy: float = 0.0
 	for r: Result in results:
 		busy += r.msec
-	print(
-		(
-			"%d fixtures, %d failed, %d ms (%d ms of fixture time in %d processes)"
-			% [results.size(), failed, elapsed, roundi(busy), count]
+	if not quiet:
+		print(
+			(
+				"%d fixtures, %d failed, %d ms (%d ms of fixture time in %d processes)"
+				% [results.size(), failed, elapsed, roundi(busy), count]
+			)
 		)
-	)
 	if budget_msec > 0 and elapsed > budget_msec:
-		printerr("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
+		_fail_line("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
 		failed += 1
 	if bless and failed == 0:
 		return _bless(golden, golden_version)
