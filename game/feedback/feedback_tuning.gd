@@ -126,18 +126,17 @@ func validate() -> PackedStringArray:
 		e.append("the enemy's hit flash must not be negative")
 	if voice_cap < 1:
 		e.append("there must be at least one voice")
-	if shake_period_frames < 2 or spark_variants < 1 or spark_variants > Synth.HIT_VARIANTS:
-		(
-			e
-			. append(
-				(
-					"shake_period_frames must be at least 2 and spark_variants 1 to %d (the synth's hit sounds)"
-					% Synth.HIT_VARIANTS
-				)
-			)
-		)
-	if screen_flash_window_frames < 1 or screen_flash_max < 1:
-		e.append("the flash window needs a length and at least one flash")
+	if shake_period_frames < 2:
+		e.append("shake_period_frames must be at least 2")
+	# BUILD.md s6 (3 spark variants) and s11 (3 to 5 variants; the synth makes HIT_VARIANTS).
+	if spark_variants < 3 or spark_variants > Synth.HIT_VARIANTS:
+		e.append("spark_variants must be 3 to %d (BUILD.md s6, s11)" % Synth.HIT_VARIANTS)
+	# BUILD.md s12, the Harding limit: at most 3 full-screen flashes in 60 ticks.
+	if screen_flash_window_frames < 60 or screen_flash_max < 1 or screen_flash_max > 3:
+		e.append("the flash window must be at least 60 ticks and 1 to 3 flashes (BUILD.md s12)")
+	# BUILD.md s6, s11: hit sound pitch randomized within +-3%.
+	if sound_pitch_spread < 0.0 or sound_pitch_spread > 0.03:
+		e.append("sound_pitch_spread must be 0 to 0.03 (BUILD.md s6, s11)")
 	if vfx_spark_frames < 1 or vfx_burst_frames < 1 or vfx_smear_frames < 1:
 		e.append("every effect kind lives at least one tick")
 	for s: float in [charged_kill_time_scale, parry_time_scale]:

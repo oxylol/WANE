@@ -360,6 +360,25 @@ func test_every_spark_variant_the_tuning_allows_has_a_hit_sound() -> void:
 	assert_array(t.validate()).is_not_empty()
 
 
+func test_content_cannot_leave_the_specs_bounds_on_variants_flashes_or_pitch() -> void:
+	# Round 4, L1: spark_variants 1 or 2, screen_flash_max 10 (voiding the Harding limit of s12)
+	# and a pitch spread past +-3% all passed validation.
+	assert_array((load(FeedbackTuning.PATH) as FeedbackTuning).validate()).is_empty()
+	for v: int in [1, 2]:
+		assert_array(_validated_with("spark_variants", v)).is_not_empty()
+	for v: int in [4, 10]:
+		assert_array(_validated_with("screen_flash_max", v)).is_not_empty()
+	assert_array(_validated_with("screen_flash_window_frames", 59)).is_not_empty()
+	for v: float in [0.031, -0.01]:
+		assert_array(_validated_with("sound_pitch_spread", v)).is_not_empty()
+
+
+func _validated_with(field: String, value: Variant) -> PackedStringArray:
+	var t: FeedbackTuning = (load(FeedbackTuning.PATH) as FeedbackTuning).duplicate()
+	t.set(field, value)
+	return t.validate()
+
+
 func test_every_sound_varies_and_a_heal_is_not_a_parry() -> void:
 	# Presentation review r2, L5: only the hit's pitch varied; the parry chime, the telegraph cue,
 	# the kill, the ember, the thump and the player-hit played identically every time, and Mend's
