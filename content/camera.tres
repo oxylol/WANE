@@ -26,6 +26,7 @@ up_dash_look_u = 120
 glide_frames = 24
 glide_peak_u = 32
 glide_cut_u = 160
+glide_accel_milli_u = 5000
 edge_ease_u = 160
 edge_slack_u = 48
 edge_margin_u = 80

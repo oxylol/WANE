@@ -1,0 +1,15 @@
+fixture cam6_tp_down_dash_obottom
+doc camera review 6: toss down-right off a shelf 14 rows above a borderless bottom, teleport, down-dash at once
+room test/cam6_obot_f14
+spawn 620 1472
+frames 124
+input
+  0 D R toss
+  44 toss
+  45 D dash
+end
+expect
+  at 44 event.teleport=1
+  at 45 event.dash=1
+  at 53 event.land=1
+end

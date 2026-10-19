@@ -1,0 +1,44 @@
+fixture cam6_climb_after_slide
+doc camera review 6, L1: the shaft climb with its presses 23 ticks apart against the climb's 24, so one of them, on a tick with no wall in reach, spends the air jump and Ash slides down the wall a tick or two before the next kick: the view takes the climb up again without pumping
+room test/camera
+spawn 4440 3200
+frames 420
+input
+  # Holding toward the wall throughout; jump from the floor, then a kick at each apex.
+  0..21 R jump
+  22 R
+  23..44 R jump
+  45 R
+  46..67 R jump
+  68 R
+  69..90 R jump
+  91 R
+  92..113 R jump
+  114 R
+  115..136 R jump
+  137 R
+  138..159 R jump
+  160 R
+  161..182 R jump
+  183 R
+  184..205 R jump
+  206 R
+  207..228 R jump
+  229 R
+  230..251 R jump
+  252 R
+  253..274 R jump
+  275 R
+  276..297 R jump
+  298 R
+  299..320 R jump
+  321 R
+  322..343 R jump
+  344 R
+end
+expect
+  at 0 event.jump=1
+  at 23 event.wall_kick=1
+  mark top 100..419 event.land=1
+  at top y=960u state=ground
+end

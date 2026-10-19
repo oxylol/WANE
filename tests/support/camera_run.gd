@@ -50,7 +50,9 @@ func first(kind: String, from: int = 0, to: int = -1) -> int:
 
 ## The longest stretch, in units of view travel, over which the view moves against the player's
 ## vertical motion while the player is in the air (not standing, clinging or bouncing: a wall
-## slide lags the climb's view on purpose), outside glides.
+## slide lags the climb's view on purpose), outside glides. The way down of a hop above the last
+## support is not counted: there the view carries on easing up to that support, as BUILD.md
+## section 5 has it ("pausing while the player falls away from it"; camera review 6, M2).
 func longest_run_against() -> float:
 	var longest: float = 0.0
 	var stretch: float = 0.0
@@ -61,7 +63,8 @@ func longest_run_against() -> float:
 			continue
 		var moved: float = s.box.end.y - subjects[f - 1].box.end.y
 		var v: float = velocity(f).y
-		if not s.supported and moved * v < 0.0:
+		var hop_down: bool = moved > 0.0 and v < 0.0 and s.box.end.y < supports[f] - 0.5
+		if not s.supported and moved * v < 0.0 and not hop_down:
 			stretch += absf(v)
 			longest = maxf(longest, stretch)
 		else:

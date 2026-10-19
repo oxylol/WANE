@@ -5,7 +5,7 @@
   - section 5 feel rules: "The camera never fights the player. 60 u horizontal lead in the facing direction, dead zone of 40×30 u, vertical catches up at 0.08 lerp; look-down on crouch hold";
   - section 12: "look-down (hold stick down)";
   - section 15: "The camera never shows the player within 80 units of the screen edge during normal play".
-- Fixture(s): `tests/replay/camera/` (104 fixtures: the first review's 20, the second's 48, the third's 9 and the fourth's 14 among them, many with rooms of their own). `tests/unit/game/test_camera_rig.gd`, `test_camera_review.gd`, `test_camera_review_round3.gd` and `test_camera_review_round4.gd` play every movement, tech, physics and camera fixture (275) through the camera at 16:9, 16:10, 4:3 and 21:9; the round-4 suite sweeps wall distances, shaft widths and drop depths.
+- Fixture(s): `tests/replay/camera/` (the first review's 20, the second's 48, the third's 9, the fourth's 14, the fifth's 12 and the sixth's 6 among them, many with rooms of their own). `tests/unit/game/test_camera_rig.gd`, `test_camera_review.gd`, `test_camera_review_round3.gd` to `test_camera_review_round6.gd` play every movement, tech, physics and camera fixture (332) through the camera at 16:9, 16:10, 4:3 and 21:9; the round-4 suite sweeps wall distances, shaft widths and drop depths.
 - Contact sheet: `docs/feel_log/2026-10-17-task4-camera.png`, filmed by `tools/replay/film.gd` through the game's own views.
   - Each row is one fixture, a frame every few ticks.
   - Drawn over each frame: red is the 80 u margin, green the dead zone around the point the follow holds to, the yellow dot the focus (that point plus the looks), and a white ring round Ash, who is small at sheet scale. Frames are a quarter of the 1920 x 1080 view (the third review found a sixth too small to read).
@@ -55,6 +55,7 @@ BUILD.md's four numbers are kept: the 60 u lead, the 40×30 u dead zone, the 0.0
 | ... unless that far from the last wall touched (`lead_wall_release_u`) | none | 400 | u |
 | Up-dash look | none | 120 | u |
 | Teleport glide length, and its peak speed | none | 24, 32 | ticks, u per tick |
+| A glide's acceleration, finishing early when Ash presses on vertically (`glide_accel_milli_u`) | none | 5 (sixth review) | u per tick per tick |
 | A teleport cuts an axis on which the old view leaves Ash nearer its edge than | none | 160 | u |
 | Room-edge ease | none | 160 | u |
 | Vertical bounds grown past the margin (`edge_slack_u`) | none | 32, then 48 (fifth review) | u |
@@ -106,9 +107,22 @@ ADR-0011 has the full reasoning. Every "before" below was measured on the fixtur
   - A view that was moving stops with the teleport. The second review asked for the glide to start from the view's own speed; any smooth stop from a fall's 25 u a tick carries the view another 60 to 100 u away from where Ash went (ADR-0011).
 - **A hazard respawn cuts** (row 12). Task 6's fade will cover it.
 
+## Sixth review (2026-10-19)
+
+Contact sheet: `docs/feel_log/2026-10-19-camera-review-6.png`, drawn as the main sheet. Rows: (1) a held look-down, then crouched strikes every 30 ticks with the stick still down; (2) a toss up toward a one-tile ceiling 18 rows above, the teleport, and an up-dash at once; (3) hops in place on the 320 u ledge while the view still eases up to it; (4) the shaft climb broken by a slide, then taken up again. I looked at each row: in (1) the look holds at 200 u through every strike and the view only settles on down; in (2) the view rises into the ceiling with Ash inside the red margin on every frame; in (3) the ledge sinks steadily through the hops; in (4) Ash's track down the view scallops with the kicks and never reaches the shaded margin.
+
+| Finding | Before | After |
+| --- | --- | --- |
+| H1: crouched strikes with the stick held down pumped a held look | The look shrank 8 u a tick through each 14-tick strike and came back on the first crouched tick after it: the view swung 32 u down and 35 u up every strike, Ash standing still | A crouched strike holds the look where it is; standing up, letting the stick go or a dash ends it and asking again waits the whole 20 ticks. The view never turns in strikes 15 to 40 ticks apart, and strikes fewer than 20 free ticks apart never start a look |
+| M1: a teleport up under a ceiling or a borderless top, then an up-dash | The glide's offset held the view behind a follow the edge held still: the backstop for 4 to 7 ticks, the view's speed jumping 10 to 19 u a tick (2 ticks for the bottom twin) | Once Ash comes within 160 u of the edge the view glides toward, the glide finishes as fast as 5 u a tick a tick allows and meets the follow at rest: no backstop in a sweep of 10 rooms, 9 toss waits and two onward moves at every screen shape; Ash stays 115 u or more from the edge in the reviewer's cases |
+| M2: hops stopped the view's ease up to a higher support | The view froze 10 ticks on each hop's way down onto the ledge it was easing up to; up review 5's staircase the rise fell to 0.2 u a tick at every hop; out of the look-down the view froze while Ash fell back, then drifted 55 u up while Ash stood | The ease pauses only while Ash falls away from the support, the feet at or below it. Hops on the ledge leave the view exactly as it is without them; the staircase's rise only gathers pace; 10 u is left after the drift fixture's landing |
+| L1: the climb's steady window was moved to fit a slide | `cam_shaft_climb` pressed every 23 ticks against the climb's 24, so one press spent the air jump and Ash slid; the test skipped the three kicks after | `cam_shaft_climb` presses every 24 ticks and climbs steadily (6.5 to 7.8 u a tick) from the fourth kick, as before. The old timing is `cam6_climb_after_slide`, tested for what a slide does: from the next kick the view rises at 3 to 8.5 u a tick, never stopping, and settles in three kicks |
+
+Why the glide does not simply yield to the margin vertically, as it does across: the vertical follow eases, so the margin would push the view at the up-dash's 20 u a tick from 4, the same jolt the backstop gave, only uncounted.
+
 ## How it plays now
 
-The tests play all 275 movement, tech, physics and camera fixtures through the camera at 16:9, 16:10, 4:3 and 21:9. On every tick of every one:
+The tests play all 332 movement, tech, physics and camera fixtures through the camera at 16:9, 16:10, 4:3 and 21:9. On every tick of every one:
 - the player is at least 80 u from the edge without the margin ever having to move the view;
 - the view never moves against the player across, and never outruns them by more than the lead's swing;
 - its vertical speed never changes by more than 3 u per tick in a tick (5 inside a teleport's glide), except to slow to the player's own speed when it outran them;
@@ -118,7 +132,7 @@ The tests play all 275 movement, tech, physics and camera fixtures through the c
 
 - **The wall-kick climb (row 6).** Ash rides in the upper part of the view while climbing: 214 u on average (never under 153 u), or 29 ticks of climbing, shows above the head. Is that enough to read the wall's end?
 - **Look-down (row 4).** 200 u, the view getting there about a second into the hold. Far enough? Hold crouch at the edge of a long drop in the sandbox.
-- **Teleport glides (rows 7 and 17).** A teleport cuts an axis on which the old view would leave Ash within 160 u of its edge and glides the other. Would you rather it cut outright?
+- **Teleport glides (rows 7 and 17).** A teleport cuts an axis on which the old view would leave Ash within 160 u of its edge and glides the other. Would you rather it cut outright? Pressing on vertically toward the edge the view glides toward now makes the glide finish early (sixth review sheet, row 2): watch a toss up under a ceiling and an up-dash at once in the sandbox, and say whether the view's catch-up reads as smooth.
 - **Ledges within steering reach (row 18).** Falling past one shortens the fall's look until it is passed. Is that pause in the look-ahead noticeable?
 - **A fall that stops (row 13).** The view now turns with Ash at once. The world turning that sharply (up to 40 u per tick in a tick at an up-dash out of a fast fall) is the price of never carrying on against Ash. Does it read as the camera keeping up, or as a jolt? The same goes for walking off the top of a climb the view lagged (row 25): the view stops rising, from up to 5 u a tick, the tick Ash starts to fall.
 - **Room tops and bottoms (row 23).** The view may show a tile more beyond a room's top and bottom than beyond its sides, drawn solid. Is that noticeable at a room's floor?

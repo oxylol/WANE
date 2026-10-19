@@ -62,6 +62,11 @@ const WICKS_ROOT: String = "res://content/wicks/"
 ## and its acceleration's lag, so a player who runs, dashes or up-dashes on at once would
 ## otherwise reach the margin before the glide got going.
 @export var glide_cut_u: int = 160
+## Inside a glide the view's vertical speed changes by at most this much a tick, in thousandths of
+## a unit per tick per tick (not in BUILD.md): the smootherstep of a 400 u glide peaks at 4 u. A
+## player who dashes on toward the edge the view glides toward makes the glide finish early, as
+## fast as this allows on top of the follow's own acceleration (camera review 6, M1).
+@export var glide_accel_milli_u: int = 5000
 ## The view eases into the room's bounds (grown by the edge margin) over this many units.
 @export var edge_ease_u: int = 160
 ## Vertically the bounds are grown this much further (not in BUILD.md: a tile and a half). The
@@ -91,6 +96,8 @@ func validate() -> PackedStringArray:
 		errors.append("glide_frames and glide_peak_u must be positive")
 	if glide_cut_u < edge_margin_u:
 		errors.append("glide_cut_u must be at least the edge margin")
+	if glide_accel_milli_u <= vertical_accel_milli_u:
+		errors.append("glide_accel_milli_u must be more than vertical_accel_milli_u")
 	if vertical_accel_milli_u <= 0 or edge_ease_u < 0 or up_dash_look_u < 0:
 		errors.append(
 			"the acceleration must be positive, the edge ease and up-dash look not negative"

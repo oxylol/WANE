@@ -1,0 +1,14 @@
+fixture cam6_tp_up_dash_otop
+doc camera review 6: toss up from the platform 16 rows under the borderless top, teleport, then rise on at once
+room test/cam5_otop_f16
+spawn 960 512
+frames 134
+input
+  0 U toss
+  34 toss
+  35 U dash
+end
+expect
+  at 34 event.teleport=1
+  at 35 event.dash=1
+end

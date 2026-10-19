@@ -22,6 +22,12 @@ cam5_staircase_hops in:0554f035 content:8c631968 420:dc8a6b0c 60:cde880e2 120:a4
 cam5_tall_room_precision in:c966b6cf content:1f454a7c 260:687f7cfb 60:d1961470 120:30ee0d38 180:0dd27bbb 240:0e272b52
 cam5_teleport_borderless_side in:487624ac content:9bef1445 211:93d4535e 60:d0c8a999 120:50207bfb 180:9cad003a
 cam5_wall_jump_long_drift in:4d6f677e content:9ff50fec 300:588d5f5f 60:4520d795 120:16730c76 180:a448f430 240:ec4dadbc 300:588d5f5f
+cam6_climb_after_slide in:4ebb21d2 content:50f57042 420:2836767d 60:afef0668 120:85842f7c 180:874cb47a 240:35c814b0 300:6cb24e52 360:513d2fe4 420:2836767d
+cam6_look_strikes_30 in:0b2b48f8 content:50f57042 260:1631587f 60:3560f678 120:dc06ef9c 180:afcce9e0 240:c426d757
+cam6_step_up_hops in:1e6be99f content:50f57042 200:afe5a1f4 60:40f603ca 120:1dd60475 180:a684749b
+cam6_tp_down_dash_obottom in:d8f03330 content:5809210f 124:cece2685 60:e47ac7fe 120:a5d1e837
+cam6_tp_up_dash_ceiling in:5076e686 content:aad4485c 138:98b08bad 60:53736cec 120:b47be70c
+cam6_tp_up_dash_otop in:e6c94280 content:a54ba12a 134:16e5e3c9 60:123205f7 120:c46c510f
 cam_air_spikes_pogo in:655c3514 content:1465bbc8 260:44edd349 60:91d1db9d 120:75ba2ec2 180:3a0f6dea 240:aeea96e7
 cam_box_100x33_roam in:e8666d64 content:fc360fa0 520:a5092c16 60:c2a1593b 120:9a8c84e1 180:eff7cbae 240:62b9bdd5 300:9fde138a 360:6d06e2af 420:50980536 480:42671f1c
 cam_box_100x34_roam in:a8142b44 content:0f422cb3 520:e709299f 60:46308724 120:9592342c 180:a2b638aa 240:b839e749 300:31dc67d0 360:a24f30b6 420:f32090ab 480:65b2b889
@@ -89,7 +95,7 @@ cam_ramp_up in:e7ef8f38 content:9e5da3d1 600:5871e02e 60:b3fc4b50 120:63bce957 1
 cam_rev_traj in:47a88955 content:baef4ede 160:3647a35d 60:0bfdace3 120:3f57943a
 cam_reverse_onto_ledge in:f9859f7b content:0692b7ae 160:2f405ff4 60:bee82bf0 120:be6c0882
 cam_run_turn in:41c523c1 content:50f57042 260:547f09f5 60:2e120c23 120:f4b04660 180:b4a31a03 240:cf326f09
-cam_shaft_climb in:4ebb21d2 content:50f57042 420:2836767d 60:afef0668 120:85842f7c 180:874cb47a 240:35c814b0 300:6cb24e52 360:513d2fe4 420:2836767d
+cam_shaft_climb in:572f9508 content:50f57042 420:e39fbe22 60:dccea82a 120:135d5d9c 180:f714b606 240:89f7e8b7 300:4caae86c 360:49ddb92a 420:e39fbe22
 cam_shaft_climb_out in:03ae84ff content:5d773bcd 330:aabac8b9 60:37d9ef11 120:4e662864 180:76ec531c 240:7d5d1185 300:edaa4f51
 cam_shaft_wall_jumps in:2e9097fc content:a913d334 700:83d8e339 60:9afa2f6a 120:e5fc634f 180:a3f81dfb 240:7804b638 300:11043ec7 360:e6d627a3 420:f455f22e 480:33112ba4 540:57e64b6d 600:f7b99a75 660:aad39d83
 cam_shaft_wide_jumps in:3eed20b8 content:fb1535f6 330:906b0436 60:e06c6f67 120:90e48a13 180:5ba71a9a 240:6e0806e6 300:9e327d88

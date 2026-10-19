@@ -1,0 +1,14 @@
+fixture cam6_tp_up_dash_ceiling
+doc camera review 6: toss up toward a one-tile ceiling 18 rows above the platform, teleport, up-dash at once
+room test/cam6_ceiling_f18
+spawn 960 576
+frames 138
+input
+  0 U toss
+  38 toss
+  39 U dash
+end
+expect
+  at 38 event.teleport=1
+  at 39 event.dash=1
+end

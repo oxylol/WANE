@@ -58,6 +58,12 @@ var _look: float = 0.0
 var _fall_lead: float = 0.0
 var _up_look: float = 0.0
 var _look_ticks: int = 0
+## The look-down has been asked for its whole delay and is still wanted: it carries on through a
+## crouched strike (held) and a drop with the stick held down (camera review 5, H3), and ends when
+## Ash stands up, lets the stick go or does anything else on the ground (camera review 6, H1).
+var _look_on: bool = false
+## Ash stood on the ground on the look's last tick (the landing tick itself is not yet a crouch).
+var _look_grounded: bool = false
 ## The rest window has raised the view above the support; on the next support the dead zone
 ## re-centres instead of holding the view where the window left it.
 var _raised: bool = false
@@ -76,6 +82,11 @@ var _last_x: float = 0.0
 var _glide_from: Vector2 = Vector2.ZERO
 var _glide_frames: int = 0
 var _glide_tick: int = 0
+## The glide's vertical offset from the follow last tick and its change that tick, and whether the
+## player has made it finish early (see [method _glide_offset_y]).
+var _glide_y: float = 0.0
+var _glide_rate_y: float = 0.0
+var _catching: bool = false
 
 
 func _init(p_tuning: CameraTuning = null) -> void:
@@ -100,7 +111,7 @@ func anchor() -> Vector2:
 
 ## True while a teleport's glide is still moving the view.
 func gliding() -> bool:
-	return _glide_tick < _glide_frames
+	return _glide_tick < _glide_frames or (_catching and _glide_y != 0.0)
 
 
 ## Places the view on [param s] at once (a new room, a respawn).
@@ -109,6 +120,8 @@ func reset(s: CameraSubject, room: Rect2) -> void:
 	_base = _keep_player_clear(_base, s.box, float(tuning.edge_margin_u))
 	_glide_frames = 0
 	_glide_tick = 0
+	_glide_y = 0.0
+	_catching = false
 	center = _base
 	previous = center
 
@@ -119,23 +132,67 @@ func step(s: CameraSubject, room: Rect2) -> void:
 		reset(s, room)
 		return
 	previous = center
+	var follow_vy: float = _vy
 	if s.teleported:
 		_start_glide(s, room)
 	else:
 		_track(s, room)
 	var c: Vector2 = _base
 	if gliding():
-		_glide_tick += 1
-		var t: float = float(_glide_tick) / float(_glide_frames)
-		# Smootherstep: the glide starts and ends with no speed and no acceleration.
-		var eased: float = t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
-		c += _glide_from * (1.0 - eased)
+		var eased: float = 1.0
+		if _glide_tick < _glide_frames:
+			_glide_tick += 1
+			var t: float = float(_glide_tick) / float(_glide_frames)
+			# Smootherstep: the glide starts and ends with no speed and no acceleration.
+			eased = t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+		c.x += _glide_from.x * (1.0 - eased)
 		# Across, a glide yields to the margin: a player who outruns it toward the view's edge
 		# (a dash toward an edge with no border tile, where the follow itself holds the player on
 		# the margin) takes the view along, as the rigid follow across would (camera review 5, M3).
 		var margin: float = float(tuning.edge_margin_u)
 		c.x = _keep_player_clear(c, s.box, margin).x
+		var budget: float = float(tuning.glide_accel_milli_u) / 1000.0 - absf(_vy - follow_vy)
+		c.y += _glide_offset_y(s, _glide_from.y * (1.0 - eased), budget)
 	center = _clear_player(c, s.box)
+
+
+## The glide's vertical offset from the follow this tick, [param nominal] (the smootherstep's)
+## until the player comes nearer than [member CameraTuning.glide_cut_u] to the edge the view is
+## gliding toward (a dash, an up-dash or a fall on, the way the view has yet to go: a borderless
+## top or a ceiling holds the follow, and the glide's offset held the view behind it, needing the
+## backstop; camera review 6, M1). From then on the rest of the offset is closed as fast as
+## [param budget] allows (what the glide's acceleration leaves after the follow's own change this
+## tick, up to the glide's peak speed) and met at rest: the view gains on the player smoothly, and
+## the glide ends early.
+func _glide_offset_y(s: CameraSubject, nominal: float, budget: float) -> float:
+	if not _catching:
+		var view_y: float = _base.y + nominal
+		var gap: float = (
+			s.box.position.y - (view_y - half_view().y)
+			if nominal > 0.0
+			else view_y + half_view().y - s.box.end.y
+		)
+		if nominal == 0.0 or gap >= float(tuning.glide_cut_u):
+			_glide_rate_y = nominal - _glide_y
+			_glide_y = nominal
+			return nominal
+		_catching = true
+	var left: float = absf(_glide_y)
+	var dir: float = -signf(_glide_y)
+	var speed: float = maxf(_glide_rate_y * dir, 0.0)
+	# The plan brakes with what the glide's acceleration leaves after the follow's most, so it
+	# can always be kept.
+	var brake: float = float(tuning.glide_accel_milli_u - tuning.vertical_accel_milli_u) / 1000.0
+	var change: float = maxf(budget, 0.0)
+	var slowest: float = maxf(speed - change, 0.0)
+	var fastest: float = maxf(minf(speed + change, float(tuning.glide_peak_u)), slowest)
+	var move: float = clampf(EaseMath.braking_speed(left, brake), slowest, fastest)
+	move = minf(move, left)
+	_glide_rate_y = move * dir
+	_glide_y += _glide_rate_y
+	if absf(_glide_y) < 0.001:
+		_glide_y = 0.0
+	return _glide_y
 
 
 ## The follow restarts where the player now is; the view glides there from where it was, over
@@ -161,6 +218,9 @@ func _start_glide(s: CameraSubject, room: Rect2) -> void:
 	if start != old:
 		previous = start
 	_glide_from = start - _base
+	_glide_y = _glide_from.y
+	_glide_rate_y = 0.0
+	_catching = false
 	var peak_frames: int = ceili(
 		SMOOTHERSTEP_PEAK * _glide_from.length() / float(tuning.glide_peak_u)
 	)
@@ -177,6 +237,8 @@ func _place(s: CameraSubject, room: Rect2) -> void:
 	_fall_lead = 0.0
 	_up_look = 0.0
 	_look_ticks = 0
+	_look_on = false
+	_look_grounded = s.on_ground
 	_raised = false
 	_off_wall = false
 	_grounded = s.on_ground
@@ -213,17 +275,12 @@ func _track(s: CameraSubject, room: Rect2) -> void:
 	var accel: float = float(tuning.vertical_accel_milli_u) / 1000.0
 	var bounds: Vector2 = _speed_bounds(s.vy, accel)
 	var vy: float = clampf((target.y - _base.y) * lerp_w, bounds.x, bounds.y)
-	if not s.supported and s.vy > 0.0:
-		if s.box.end.y >= _support_y - 0.5 or _vy >= 0.0:
-			# Ash is falling at or below the last support: the view never rises against the fall,
-			# even while it is still catching up from below (a climb it lagged, then a walk off
-			# the top).
-			vy = maxf(vy, 0.0)
-		else:
-			# The way down of a hop that lands higher (a staircase, a ramp's crest): the view's
-			# rise only shrinks, by at least the acceleration limit a tick, rather than stopping
-			# dead at every apex (camera review 5, M1).
-			vy = maxf(vy, minf(_vy + accel, 0.0))
+	if not s.supported and s.vy > 0.0 and s.box.end.y >= _support_y - 0.5:
+		# Ash is falling at or below the last support: the view never rises against the fall,
+		# even while it is still catching up from below (a climb it lagged, then a walk off the
+		# top). On the way down of a hop above it (in place, or up a staircase) the view carries on
+		# as it was, easing up to the support: the hop does not move it (camera review 6, M2).
+		vy = maxf(vy, 0.0)
 	elif not s.supported and s.vy < 0.0:
 		# Ash is rising: the view never sinks against the rise, even while it is still catching up
 		# with a fall it lagged (an air jump just above the floor; camera review 5, H2).
@@ -312,9 +369,11 @@ func _update_rest(s: CameraSubject) -> void:
 		_support_y = feet
 	if _support_y > _eased_y:
 		_eased_y = _support_y
-	elif s.supported or s.vy <= 0.0:
-		# Easing up to a higher support pauses while Ash falls away from it (walking off the top of
-		# a climb), so the view never rises while Ash drops.
+	elif s.supported or s.vy <= 0.0 or feet < _support_y - 0.5:
+		# Easing up to a higher support pauses only while Ash falls away from it (walking off the
+		# top of a climb, the feet at or below the last support), so the view never rises while
+		# Ash drops below where they stood; a hop's way down toward it does not pause it (camera
+		# review 6, M2).
 		_eased_y = maxf(_support_y, _eased_y - maxf(climbed, 0.0) - float(tuning.rest_rise_u))
 	if _rest_y(s) < _eased_y:
 		_raised = true
@@ -332,20 +391,31 @@ func _rest_y(s: CameraSubject) -> float:
 func _update_looks(s: CameraSubject, anchor_drop: float) -> void:
 	var look_before: float = _look
 	var total_before: float = _look + _fall_lead
-	_look_ticks = _look_ticks + 1 if s.looking_down else 0
-	var look_target: float = (
-		float(tuning.look_down_u) if _look_ticks >= tuning.look_down_delay_frames else 0.0
-	)
-	if s.looking_down and _look > 0.0:
-		# A look still showing when Ash asks again (down held through a drop and the landing)
-		# carries on without the delay, rather than easing out and back in (camera review 5, H3).
-		look_target = float(tuning.look_down_u)
-	_look = move_toward(_look, look_target, float(tuning.look_speed_u))
+	var landed: bool = s.on_ground and not _look_grounded
+	_look_grounded = s.on_ground
+	if s.looking_down:
+		_look_ticks += 1
+		_look_on = _look_on or _look_ticks >= tuning.look_down_delay_frames
+	else:
+		_look_ticks = 0
+		# Standing up, letting the stick go or a dash ends the look, and asking again waits the
+		# whole delay, so nothing done in a fight pumps the view (camera review 6, H1); a crouched
+		# strike with the stick held down keeps it. In the air a look still showing carries on if
+		# Ash lands asking for it (down held through a drop and the landing, whose first tick is
+		# not yet a crouch; camera review 5, H3).
+		if (s.on_ground and not landed and not s.look_held) or _look <= 0.0:
+			_look_on = false
+	# During a crouched strike the look stays where it is: a strike never starts, grows or ends one
+	# (BUILD.md section 5: "never during a strike"). So does a carried look on the landing tick.
+	if not s.look_held and not (landed and _look_on):
+		var look_target: float = float(tuning.look_down_u) if _look_on and s.looking_down else 0.0
+		_look = move_toward(_look, look_target, float(tuning.look_speed_u))
 	if not s.on_ground and s.vy < 0.0:
 		# Leaving the ground upward (a jump) ends a look at once, like the end of a fall's: the
 		# view, which eases, turns back to the player now rather than finishing the look while
 		# they rise.
 		_look = 0.0
+		_look_on = false
 	# The look starts once the feet fall below the last support (camera review 5, M4: from the
 	# eased rest, which lags a climb, a drop over the top of a wall went 250 u with no look).
 	var falling: bool = (

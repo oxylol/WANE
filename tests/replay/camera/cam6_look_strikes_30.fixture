@@ -1,0 +1,25 @@
+fixture cam6_look_strikes_30
+doc camera review 6: a held look-down, then crouched strikes every 30 ticks with the stick still down
+room test/camera
+spawn 1800 1600
+frames 260
+input
+  0..59 D
+  60 D !attack
+  61..89 D
+  90 D !attack
+  91..119 D
+  120 D !attack
+  121..149 D
+  150 D !attack
+  151..179 D
+  180 D !attack
+  181..209 D
+  210 D !attack
+  211..239 D
+end
+expect
+  at 60 action=side1
+  at 90 action=side2
+  at 74 action=none crouch=1
+end

@@ -1,0 +1,21 @@
+fixture cam6_step_up_hops
+doc camera review 6, M2: cam_step_up, then short hops in place on the 320 u ledge while the view is still easing up to it
+room test/camera
+spawn 1000 1920
+frames 200
+input
+  0..9 R
+  10..29 R jump
+  30..51 R
+  52..70 R jump
+  71..75 R
+  76..90 R jump
+  110..113 jump
+  135..138 jump
+  160..163 jump
+end
+expect
+  at 110 event.jump=1
+  at 129 event.land=1
+  at 135 event.jump=1
+end

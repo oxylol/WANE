@@ -106,7 +106,7 @@ func _ease_nudge(nudge: Vector2) -> void:
 			speed = 0.0
 			_run[axis] = 0.0
 		var accel: float = _run[axis] * share
-		var want: float = signf(gap) * _braking_speed(absf(gap), accel)
+		var want: float = signf(gap) * EaseMath.braking_speed(absf(gap), accel)
 		speed = clampf(want, speed - accel, speed + accel)
 		if speed * gap > 0.0 and absf(speed) > absf(gap):
 			speed = gap
@@ -130,18 +130,6 @@ static func _accel_share(frames: int) -> float:
 	if frames % 2 == 1:
 		return 1.0 / float((half + 1) * (half + 1))
 	return 1.0 / float(half * (half + 1))
-
-
-## The fastest speed a gap of [param gap] can be closed at this tick and still be met at rest,
-## slowing by at most [param accel] a tick: after a step of v the speeds can fall no faster than
-## v - accel, v - 2 accel, ... to a last step of at most accel, so the gap must hold all of them.
-## With m such steps after this one the gap holds at most (m + 1) v - accel m (m + 1) / 2, which
-## sets v for the m that fits.
-static func _braking_speed(gap: float, accel: float) -> float:
-	if gap <= 0.0 or accel <= 0.0:
-		return 0.0
-	var m: int = ceili((sqrt(1.0 + 8.0 * gap / accel) - 1.0) * 0.5) - 1
-	return (gap + accel * m * (m + 1) * 0.5) / (m + 1)
 
 
 ## Draws at [param alpha] (0..1) between the last two ticks.

@@ -1,44 +1,42 @@
 fixture cam_shaft_climb
-doc BUILD.md s5 tech 5 "Wall-kick climb"; docs/adr/0011: a wall-cling is a rest height, so a climb moves the camera up in steady steps
+doc BUILD.md s5 tech 5 "Wall-kick climb"; docs/adr/0011: a wall-cling is a rest height, so a climb moves the camera up in steady steps. The presses come every 24 ticks, the kick climb's period (ADR-0010), so every one finds the wall
 room test/camera
 spawn 4440 3200
 frames 420
 input
   # Holding toward the wall throughout; jump from the floor, then a kick at each apex.
-  0..21 R jump
-  22 R
-  23..44 R jump
-  45 R
-  46..67 R jump
-  68 R
-  69..90 R jump
-  91 R
-  92..113 R jump
-  114 R
-  115..136 R jump
-  137 R
-  138..159 R jump
-  160 R
-  161..182 R jump
-  183 R
-  184..205 R jump
-  206 R
-  207..228 R jump
-  229 R
-  230..251 R jump
-  252 R
-  253..274 R jump
-  275 R
-  276..297 R jump
-  298 R
-  299..320 R jump
-  321 R
-  322..343 R jump
-  344 R
+  0..22 R jump
+  23 R
+  24..46 R jump
+  47 R
+  48..70 R jump
+  71 R
+  72..94 R jump
+  95 R
+  96..118 R jump
+  119 R
+  120..142 R jump
+  143 R
+  144..166 R jump
+  167 R
+  168..190 R jump
+  191 R
+  192..214 R jump
+  215 R
+  216..238 R jump
+  239 R
+  240..262 R jump
+  263 R
+  264..286 R jump
+  287 R
+  288..310 R jump
+  311 R
+  312..419 R
 end
 expect
   at 0 event.jump=1
-  at 23 event.wall_kick=1
+  at 24 event.wall_kick=1
+  never 0..419 event.air_jump=1
   mark top 100..419 event.land=1
   at top y=960u state=ground
 end

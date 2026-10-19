@@ -207,8 +207,9 @@ func test_the_view_never_rises_while_ash_falls_after_a_climb() -> void:
 	# M2: climbing out of a shaft leaves the view behind; running off the top, the view kept
 	# easing up at 5 u a tick while Ash fell. The adopted fixture and every shaft width. Falling at
 	# or below the last support the view never rises; above it (the way down of a kick or hop
-	# that lands higher) its rise only shrinks, by at least the acceleration limit a tick (camera
-	# review 5, M1: stopping it dead there made a staircase stutter).
+	# toward the support) it carries on easing up to it, as BUILD.md section 5 has it (camera
+	# review 5, M1, and 6, M2: stopping it there, or only letting its rise shrink, froze the view
+	# on every hop's way down).
 	var fixtures: Array[Fixture] = [
 		Fixture.parse_file("res://tests/replay/camera/cam_shaft_climb_out.fixture")
 	]
@@ -218,13 +219,10 @@ func test_the_view_never_rises_while_ash_falls_after_a_climb() -> void:
 	for fx: Fixture in fixtures:
 		for view: Vector2 in VIEWS:
 			var run: CameraRun = _run(fx, view)
-			var accel: float = run.rig.tuning.vertical_accel_milli_u / 1000.0
 			for f: int in range(1, run.centers.size()):
 				var s: CameraSubject = run.subjects[f]
 				var v: float = run.velocity(f).y
-				var above: bool = s.box.end.y < run.supports[f - 1] - 0.5
-				var shrinks: bool = v >= minf(run.velocity(f - 1).y + accel, 0.0) - EPS
-				if above and run.velocity(f - 1).y < 0.0 and shrinks:
+				if s.box.end.y < run.supports[f - 1] - 0.5:
 					continue
 				if not s.supported and s.vy > 0.0 and v < -EPS:
 					problems.append(

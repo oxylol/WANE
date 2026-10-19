@@ -214,36 +214,59 @@ func test_a_long_fall_looks_ahead_and_lands_without_overshooting() -> void:
 
 func test_a_climb_moves_the_camera_steadily() -> void:
 	var run: CameraRun = _play("res://tests/replay/camera/cam_shaft_climb.fixture")
+	var kicks: Array[int] = _kicks(run)
+	var top: int = run.first(SimEvents.LAND, 1)
+	assert_int(kicks.size()).is_greater(10)
+	assert_int(top).is_greater(kicks[10])
+	assert_int(run.first(SimEvents.AIR_JUMP)).is_equal(-1)
+	# Once the climb is under way, the camera rises at 6 to 8.5 u a tick to the last kick: it keeps
+	# the climb's average pace and never pumps with the kicks. The presses come every 24 ticks,
+	# the kick climb's period, so every one finds the wall (camera review 6, L1).
+	for f: int in range(kicks[3], kicks[kicks.size() - 1]):
+		assert_float(run.velocity(f).y).override_failure_message("frame %d" % f).is_between(
+			-8.5, -6.0
+		)
+
+
+func test_a_climb_after_a_slide_takes_up_its_pace_again_without_pumping() -> void:
+	# Presses 23 ticks apart against the climb's 24: one of them, on a tick with no wall in reach,
+	# spends the air jump, and Ash slides down the wall a tick or two before the next kick. From
+	# that kick the view rises again at once and never stops or sinks; its speed swings between
+	# 3 and 8.5 u a tick for three kicks (the view lagged the slide and catches up within its
+	# acceleration), then settles into the steady climb's 6 to 8.5 (ADR-0011; camera review 6, L1).
+	for view: Vector2 in VIEWS:
+		var run: CameraRun = _play("res://tests/replay/camera/cam6_climb_after_slide.fixture", view)
+		var kicks: Array[int] = _kicks(run)
+		var top: int = run.first(SimEvents.LAND, 1)
+		var last: int = -1
+		for k: int in kicks:
+			if k < top:
+				last = k
+		var slid: int = -1
+		for f: int in range(last):
+			if run.subjects[f].walled and run.subjects[f].vy > 0.0:
+				slid = f
+		var later: Array[int] = []
+		for k: int in kicks:
+			if k > slid:
+				later.append(k)
+		assert_int(run.first(SimEvents.AIR_JUMP)).is_less(slid)
+		assert_int(later.size()).is_greater(8)
+		for f: int in range(later[0] + 1, last):
+			var band: Vector2 = Vector2(-8.5, -6.0) if f >= later[3] else Vector2(-8.6, -3.0)
+			(
+				assert_float(run.velocity(f).y)
+				. override_failure_message("%s: frame %d" % [view, f])
+				. is_between(band.x, band.y)
+			)
+
+
+func _kicks(run: CameraRun) -> Array[int]:
 	var kicks: Array[int] = []
 	for f: int in range(run.events.size()):
 		if run.events[f].has(SimEvents.WALL_KICK):
 			kicks.append(f)
-	var top: int = run.first(SimEvents.LAND, 1)
-	assert_int(kicks.size()).is_greater(10)
-	assert_int(top).is_greater(kicks[10])
-	# Once the climb is under way, the camera rises at 6 to 8.5 u a tick to the last kick: it keeps
-	# the climb's average pace and never pumps with the kicks. The fixture's presses come 23 ticks
-	# apart against the climb's 24, so one of them, on a tick with no wall in reach, spends the air
-	# jump, and Ash slides down the wall for a tick or two before the next kick. The climb restarts
-	# with that kick and is under way three kicks later.
-	var last: int = -1
-	for k: int in kicks:
-		if k < top:
-			last = k
-	var slid: int = -1
-	for f: int in range(last):
-		if run.subjects[f].walled and run.subjects[f].vy > 0.0:
-			slid = f
-	var later: Array[int] = []
-	for k: int in kicks:
-		if k > slid:
-			later.append(k)
-	assert_int(later.size()).is_greater(8)
-	assert_int(run.first(SimEvents.AIR_JUMP)).is_less(slid)
-	for f: int in range(later[3], last):
-		assert_float(run.velocity(f).y).override_failure_message("frame %d" % f).is_between(
-			-8.5, -6.0
-		)
+	return kicks
 
 
 func test_a_teleport_glides_instead_of_cutting() -> void:
