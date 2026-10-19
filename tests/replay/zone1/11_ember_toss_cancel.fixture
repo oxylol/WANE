@@ -1,0 +1,55 @@
+fixture zone1_11_ember_toss_cancel
+doc BUILD.md s5 tech 11 "Ember-toss cancel (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm"; s6 Ember Toss "600 u/s projectile", "3 f startup", "6 f of invulnerability"; docs/adr/0010 (Ember Toss, Tech 2's gap); docs/adr/0014; room zone1/11
+room zone1/11_ember_toss_cancel
+frames 250
+input
+  # The safe first encounter: a tap jump over the dip (128 u wide, 64 u deep) from the arrival
+  # point, landing on the near ledge.
+  0..5 R
+  6..11 R jump
+  12..46 R
+  # The chasm's route: a ground dash from the near ledge (it runs flat past the edge at 20 u/f),
+  # the jump on dash frame 7 (a dash-jump), the air jump 47 ticks later, and the air dash
+  # up-right 45 ticks after that, as the pit comes up.
+  47 R dash
+  48..52 R
+  53..98 R jump
+  99 R
+  100..144 R jump
+  145 R U jump dash
+  146..149 R jump
+  # The throw, up-right, on frame 6 of the air dash: the dash goes on.
+  150 R U jump toss
+  151..185 R jump
+  # The teleport to the ember, up near the ceiling over the far side, 16 u above the pit (576 u)
+  # on the last tick before the fall reaches it; the body then lands on the far ledge.
+  186 R jump toss
+  187..249 R
+end
+expect
+  # The dip: crossed in the air, never entered.
+  never 0..46 y>384u
+  mark over 12..46 event.land=1
+  at over x>256u y=384u state=ground
+  # The dash-jump: a jump on dash frame 7, the air jump, the air dash, each once.
+  at 47 event.dash=1 state=dash
+  at 53 event.jump=1 event.air_jump=0 vx=5120 air_jumps=1
+  at 100 event.air_jump=1
+  at 145 event.dash=1 state=dash
+  # The throw never cancels the dash: the ember is out on the throw's frame 4 and the dash runs
+  # its frames out.
+  at 150 event.toss=1 state=dash dash_frame=6
+  during 150..153 state=dash
+  at 153 ember=1
+  never 0..249 event.hazard=1
+  # Over the pit with the whole of the ember's flight to go: the teleport moves the body up and
+  # on, 6 f invulnerable.
+  at 185 y<576u y>528u x<2880u
+  at 186 event.teleport=1 ember=0 invuln=1 state=air y<200u x>2760u x<2880u
+  during 186..191 invuln=1
+  # It lands on the far ledge, past the far face (2880 u), and runs to the door.
+  mark across 187..249 event.land=1
+  at across x>2880u y=384u state=ground
+  mark crossed 187..249 event.room=1
+  at crossed room=zone1_12_kindle_dash
+end
