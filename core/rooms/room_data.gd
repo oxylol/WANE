@@ -28,8 +28,10 @@ var entities: Array[RoomEntity] = []
 var doors: Array[Door] = []
 var errors: PackedStringArray = PackedStringArray()
 ## The comment lines of the text, kept so the room editor can save a room without losing them:
-## those before the tiles block, those just above each solid box and entity (aligned with
-## [member solids] and [member entities]), and those after the last line.
+## those before the `room` line, those between it and the tiles block, those just above each solid
+## box, door and entity (aligned with [member solids], [member doors] and [member entities]), and
+## those after the last line.
+var preamble_notes: PackedStringArray = PackedStringArray()
 var header_notes: PackedStringArray = PackedStringArray()
 var solid_notes: Array[PackedStringArray] = []
 var entity_notes: Array[PackedStringArray] = []
@@ -80,6 +82,20 @@ class Door:
 				return Rect2i(from_u, 0, span_u(), depth)
 		return Rect2i(from_u, h_u - depth, span_u(), depth)
 
+	## The strip and as much again inward: the player arrives just beyond a door's strip, so all of
+	## it must be empty.
+	func clear_u(w_u: int, h_u: int) -> Rect2i:
+		var strip: Rect2i = strip_u(w_u, h_u)
+		var reach_u: int = DOOR_DEPTH_TILES * TileGrid.TILE
+		match side:
+			LEFT:
+				return strip.grow_individual(0, 0, reach_u, 0)
+			RIGHT:
+				return strip.grow_individual(reach_u, 0, 0, 0)
+			TOP:
+				return strip.grow_individual(0, 0, 0, reach_u)
+		return strip.grow_individual(0, reach_u, 0, 0)
+
 
 static func path_for(room_id: String) -> String:
 	if room_id.begins_with(TEST_PREFIX):
@@ -109,6 +125,7 @@ static func parse(text: String) -> RoomData:
 	var height: int = -1
 	var line_number: int = 0
 	var seen_tiles: bool = false
+	var seen_room: bool = false
 	var notes: PackedStringArray = []
 	for raw: String in text.split("\n"):
 		line_number += 1
@@ -135,8 +152,12 @@ static func parse(text: String) -> RoomData:
 				room.door_notes.append(notes)
 			notes = []
 		elif not seen_tiles:
-			room.header_notes.append_array(notes)
+			if words[0] == "room" and not seen_room:
+				room.preamble_notes.append_array(notes)
+			else:
+				room.header_notes.append_array(notes)
 			notes = []
+		seen_room = seen_room or words[0] == "room"
 		seen_tiles = seen_tiles or words[0] == "tiles"
 		match words[0]:
 			"room":
@@ -275,19 +296,8 @@ func _check_doors() -> void:
 		if d.from_u < 0 or d.to_u > edge_u:
 			errors.append("%s: the opening %d..%d leaves its side" % [label, d.from_u, d.to_u])
 			continue
-		# The strip and as much again inward: the player arrives just beyond a door's strip.
 		var strip: Rect2i = d.strip_u(w_u, h_u)
-		var reach_u: int = DOOR_DEPTH_TILES * TileGrid.TILE
-		var clear: Rect2i = strip
-		match d.side:
-			LEFT:
-				clear = strip.grow_individual(0, 0, reach_u, 0)
-			RIGHT:
-				clear = strip.grow_individual(reach_u, 0, 0, 0)
-			TOP:
-				clear = strip.grow_individual(0, 0, 0, reach_u)
-			BOTTOM:
-				clear = strip.grow_individual(0, reach_u, 0, 0)
+		var clear: Rect2i = d.clear_u(w_u, h_u)
 		var blocked: bool = false
 		var cells: Rect2i = _cells(strip)
 		var clear_cells: Rect2i = _cells(clear)
@@ -357,7 +367,8 @@ func build_world() -> CollisionWorld:
 
 ## Text form, the inverse of [method parse] (used by the room editor).
 func to_text() -> String:
-	var lines: PackedStringArray = ["room %s" % id]
+	var lines: PackedStringArray = preamble_notes.duplicate()
+	lines.append("room %s" % id)
 	lines.append_array(header_notes)
 	lines.append_array(
 		["size %d %d" % [grid.width, grid.height], "spawn %d %d" % [spawn_x_u, spawn_y_u], "tiles"]
