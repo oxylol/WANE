@@ -1,5 +1,5 @@
 fixture tech02_control_pogo_floor
-doc control for tech 2 (movement review 4, H1): a run off the edge and down-strikes all the way, the route that pogoed across the old chasm's spike floor and kicked up its far wall with no dash, jump or toss. The gap is now 1504 u deep with a smooth far face: nothing to pogo off or cling to, and the run never reaches the far ledge.
+doc control for tech 2 (movement review 4, H1; review 5, H1): a run off the edge and down-strikes all the way, the route that pogoed across the old chasm's spike floor and kicked up its far wall with no dash, jump or toss. The chasm's floor is now a pit: nothing in it to pogo off, and falling in sends Ash back; the run never reaches the far ledge.
 room test/chasm
 spawn 389 384
 frames 260

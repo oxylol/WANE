@@ -1,29 +1,32 @@
 fixture tech02_control_toss_wall_kick
-doc control for tech 2 (movement review 4, H1): tech02_control_carry_toss's inputs (no dash-jump of any kind, one Ember Toss), then jump presses at the far wall: on the old chasm they clung to its face 9 u above the spikes and kicked up over the lip. The face is now smooth below the lip: no cling, no kick, and the run never reaches the far ledge.
+doc control for tech 2 (movement review 4, H1; review 5, H1): tech02_control_carry_toss's route (no dash-jump of any kind, one Ember Toss), then jump pressed as it falls onto the far ledge's face: on the old chasm the same route clung to that face above the spikes and kicked up over the lip. The face is smooth above the pit: Ash meets it on frame 176 with no cling and no kick, and falls into the pit on the next frame.
 room test/chasm
 spawn 389 384
 frames 320
 input
   0 R dash
   1..9 R
-  10..53 R jump
-  54 R
-  55..97 R jump
-  98 R U jump dash
-  99..113 R jump
+  10..52 R jump
+  53 R
+  54..95 R jump
+  96 R U jump dash
+  97..113 R jump
   114 R U jump toss
-  115..143 R jump
-  144 R jump toss
-  145..176 R jump
-  177 R
-  178..210 R jump
-  211 R
-  212..240 R jump
-  241..319 R
+  115..142 R jump
+  143 R jump toss
+  144..172 R jump
+  173 R
+  174 R jump
+  175 R
+  176..179 R jump
+  180..319 R
 end
 expect
   never 0..319 event.jump=1 dash_frame>0
   never 0..319 event.air_jump=1 dash_frame>0
+  at 143 event.teleport=1
+  at 176 hit_wall=1 state=air
+  at 177 event.hazard=1
   never 0..319 event.wall_cling=1
   never 0..319 event.wall_kick=1
   never 0..319 x>=2144u ground=1

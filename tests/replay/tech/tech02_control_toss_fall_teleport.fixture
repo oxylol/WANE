@@ -1,0 +1,34 @@
+fixture tech02_control_toss_fall_teleport
+doc Control for tech 2 (movement review 5, H1): tech02_control_carry_toss's route with no dash-jump of any kind, the ember thrown up-right late (frame 124) so its flight ends near the ceiling, and the teleport left until frame 175. On the old 1504 u deep chasm the body fell freely in between, then teleported up to the ember and glided onto the far ledge. The chasm now has a pit 192 u below the ledges: the fall reaches it on frame 143, the ember goes out with the send-back, and the teleport goes nowhere.
+room test/chasm
+spawn 389 384
+frames 260
+input
+  0 R dash
+  1..9 R
+  10..53 R jump
+  54 R
+  55..97 R jump
+  98 R U jump dash
+  99..123 R jump
+  124 R U jump toss
+  125..174 R jump
+  175 R jump toss
+  176..259 R jump
+end
+expect
+  # No dash-jump anywhere: no jump or air jump while a dash runs.
+  never 0..259 event.jump=1 dash_frame>0
+  never 0..259 event.air_jump=1 dash_frame>0
+  never 0..259 event.jump=1 state=dash
+  never 0..259 event.air_jump=1 state=dash
+  at 10 event.jump=1 vx=2560
+  at 55 event.air_jump=1
+  at 98 event.dash=1
+  at 124 event.toss=1
+  # Into the pit on the way down, before the teleport: the ember goes out with the send-back.
+  at 142 ember=1 y<576u
+  at 143 event.hazard=1 ember=0
+  never 143..259 event.teleport=1
+  never 0..259 x>=2144u ground=1
+end

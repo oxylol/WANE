@@ -1,5 +1,5 @@
 fixture dash_cancel_keeps_earlier_attack_control
-doc (movement review 4, L1) Review 4 control: as rv_dash_cancel_eats_attack with the dash one frame earlier (side 1's frame 5): the attack is 3 frames old at the cancel and fires on dash frame 6.
+doc Control for dash_cancel_keeps_earlier_attack (movement review 4, L1): the dash one frame earlier (side 1's frame 5), the attack 3 frames old at the cancel; side 2 comes out on dash frame 6.
 room test/flat
 spawn 200 544
 frames 30

@@ -1,0 +1,16 @@
+fixture dash_on_landing_tick_beside_step
+doc docs/adr/0010, the wall (movement review 5, M4): Ash drops beside test/step's 32 u step face (x 640), 2 u from it, and would land on frame 5; an up-left dash pressed on that tick goes up-left and climbs over the step. That move lands rather than clings, so nothing turns the dash away; it used to go up-right.
+room test/step
+spawn 652 560
+frames 30
+input
+  0..4
+  5 L U dash
+  6..29 L
+end
+expect
+  at 5 event.dash=1 facing=-1
+  never 0..29 event.wall_cling=1
+  at 6 x<652u
+  at 13 x<560u
+end

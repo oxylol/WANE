@@ -55,7 +55,7 @@ func try_start(pl: Player, ring: InputRing) -> void:
 		pl.wall_side
 		if pl.loco == Player.WALL
 		else PlayerWall.met(
-			pl, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+			pl, ring, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
 		)
 	)
 	if wall != 0 and dir_x == wall:

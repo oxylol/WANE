@@ -1,0 +1,14 @@
+fixture dash_cancel_attack_survives_down_dash_control
+doc Control for dash_cancel_attack_survives_down_dash_landing: the same presses with no dash, so side 2 comes out on side 1's frame 6 (its chain frame).
+room test/flat
+spawn 200 544
+frames 40
+input
+  0 jump
+  12 attack
+  14 attack
+end
+expect
+  at 12 event.attack=1 action=side1
+  at 17 event.attack=1 action=side2
+end

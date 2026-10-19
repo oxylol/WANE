@@ -1,5 +1,5 @@
 fixture down_diagonal_toward_wall_never_clings
-doc (movement review 4, L3) falling with a d-pad's down-right held into a clingable wall. BUILD.md s5 Wall "Wall-cling cancel: Pressing down drops instantly"; with down held the cling still starts for one tick (a wall_cling event, the fresh cling's air jump and air dash restored, facing flipped away), then drops on the next.
+doc BUILD.md s5 Wall "Wall-cling cancel: Pressing down drops instantly" (movement review 4, L3): falling with a d-pad's down-right held into a clingable wall. Holding down never clings, a diagonal included: no cling event and no tick on the wall. (The cling used to start for one tick, restoring the air jump and air dash and flipping Ash, then drop.)
 room test/shaft
 spawn 760 300
 frames 20

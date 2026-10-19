@@ -9,15 +9,19 @@ extends RefCounted
 ## Starts the strike a buffered attack press asks for, if the current state lets it: up with the
 ## stick up, the down-strike with it down in the air, else the next side strike of the chain. The
 ## stick is read 4-way ([method PlayerInput.dir4]) on the frame the press was made. A press a dash
-## took over when it cancelled a strike ([member Player.queued_attack]) counts as buffered for as
-## long as the dash and its carry-over last.
-static func try_attack(pl: Player, ring: InputRing) -> void:
+## took over when it cancelled a strike ([member Player.queued_attack_left]) counts as buffered
+## while the dash and its carry-over last, and for the attack buffer after the dash ends; a press
+## made since replaces it (the buffer keeps the latest press). [param landed] is a landing this
+## tick whose step walked on off the far edge (see [code]Player._land_in_stride[/code]).
+static func try_attack(pl: Player, ring: InputRing, landed: bool = false) -> void:
 	var p: MovementParams = pl.p
-	if pl.queued_attack and pl.loco != Player.DASH and pl.carry_frames <= 0:
-		# The dash that took the press over ended without allowing it (a jump out of it).
-		pl.queued_attack = false
-	var queued: bool = pl.queued_attack
-	if not queued and not ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames):
+	var fresh: bool = ring.has_press(InputFrame.ATTACK, p.attack_buffer_frames)
+	if fresh:
+		# The latest press wins (BUILD.md s5: the buffer "always stores the latest input"; movement
+		# review 5, M3).
+		pl.queued_attack_left = 0
+	var queued: bool = pl.queued_attack_left > 0
+	if not queued and not fresh:
 		return
 	var stick: Vector2i = pl.queued_attack_stick
 	if not queued:
@@ -43,7 +47,7 @@ static func try_attack(pl: Player, ring: InputRing) -> void:
 		var air_swap: bool = atk.air_attack_any and airborne and want != atk.id
 		# A down-strike that missed and reached the ground gives way to a ground strike, as it
 		# gives way to the jump (docs/adr/0010).
-		var landed_swap: bool = atk.air_only and pl.loco == Player.GROUND
+		var landed_swap: bool = atk.air_only and (pl.loco == Player.GROUND or landed)
 		if not chained and not air_swap and not landed_swap:
 			return
 	if want == "down" and pl.since_bounce < p.pogo_chain_frame:
@@ -53,7 +57,7 @@ static func try_attack(pl: Player, ring: InputRing) -> void:
 			return
 		pl.end_dash(true)
 	if queued:
-		pl.queued_attack = false
+		pl.queued_attack_left = 0
 	else:
 		ring.consume(InputFrame.ATTACK)
 	# A side strike turns the player to the stick, except on a wall: the stick holds toward the
@@ -61,7 +65,7 @@ static func try_attack(pl: Player, ring: InputRing) -> void:
 	# tick the player reaches a wall the strike goes away from it too ([method PlayerWall.met]).
 	var thr: int = p.stick_threshold
 	var wall: int = PlayerWall.met(
-		pl, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
+		pl, ring, PlayerInput.axis(ring.stick_x(), thr), PlayerInput.axis(ring.stick_y(), thr)
 	)
 	if want.begins_with("side"):
 		if wall != 0:

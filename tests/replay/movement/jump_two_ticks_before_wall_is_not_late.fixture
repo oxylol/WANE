@@ -1,0 +1,13 @@
+fixture jump_two_ticks_before_wall_is_not_late
+doc BUILD.md s5 feel rule 1, every input "acted on the same frame" (movement review 5, L6). Falling toward the shaft wall (800 u) at run speed, jump pressed 11.5 u short with the air jump unspent: this tick's move does not cling, so the press is not held for one. The air jump fires on the press frame; it used to wait a frame and fire as a kick.
+room test/shaft
+spawn 720 300
+frames 30
+input
+  0..9 R
+  10..29 R jump
+end
+expect
+  at 10 event.air_jump=1 vy<0
+  never 0..29 event.wall_kick=1
+end

@@ -1,0 +1,16 @@
+fixture jump_on_dash_cling_frame_kicks
+doc docs/adr/0010, the wall; BUILD.md s5 tech 6 (movement review 5, M5). An air dash toward the shaft's right wall meets it on dash frame 5 and clings; jump pressed on that tick with the stick toward the wall and the air jump unspent. The press waits for the cling this tick and kicks off it, as a jump on a fall's cling frame does (jump_on_cling_frame_kicks), instead of firing an air dash-jump up the face.
+room test/shaft
+spawn 700 300
+frames 40
+input
+  0 R dash
+  1..3 R
+  4 R jump
+  5..39 R jump
+end
+expect
+  at 0 event.dash=1
+  at 4 event.wall_cling=1 event.wall_kick=1
+  never 0..39 event.air_jump=1
+end

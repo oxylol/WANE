@@ -1,5 +1,5 @@
 fixture hazard_loop_stick_held_floor_spikes
-doc (movement review 4, M1) the same loop on level ground: walking right into a strip of floor spikes, holding right throughout. Safe ground needs no spikes within a tile of the hurtbox, so the respawn is at x 441 u, 39 u short of the strip at 480 u; the held stick walks Ash back onto it within the 20 f invulnerability, and the frame that ends Ash is sent back again: a loop every 20 frames (frames 22, 42, 62, ...) for as long as the stick is held.
+doc docs/adr/0010, hazards (movement review 4, M1): the same on level ground, walking right into a strip of floor spikes and holding right throughout. The respawn is at x 441 u, 39 u short of the strip at 480 u (safe ground keeps a tile clear of any hazard), and the held stick is ignored after the send-back, so Ash is not walked back onto the spikes. (It used to loop every 20 frames for as long as the stick was held.)
 room test/spikes
 spawn 300 512
 frames 200

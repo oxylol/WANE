@@ -365,10 +365,22 @@ func wall_near(body: Body, dir: int, reach: int, include_smooth: bool = false) -
 ## True if the box [l, r) x [t, b) overlaps the hazard volume of any spike tile: the tile below
 ## [member spike_inset_sp] from its top.
 func touches_spikes(l: int, r: int, t: int, b: int) -> bool:
+	return _touches_tile(l, r, t, b, TileGrid.SPIKES, spike_inset_sp)
+
+
+## True if the box [param l], [param r], [param t], [param b] (sub-pixels) touches a hazard: a
+## spike tile's hazard part, or any part of a pit tile. What sends the player back; only spikes
+## can be pogoed off ([method touches_spikes]).
+func touches_hazard(l: int, r: int, t: int, b: int) -> bool:
+	return touches_spikes(l, r, t, b) or _touches_tile(l, r, t, b, TileGrid.PIT, 0)
+
+
+## True if the box touches a [param kind] tile below [param inset] from the tile's top.
+func _touches_tile(l: int, r: int, t: int, b: int, kind: int, inset: int) -> bool:
 	for c: int in range(TileGrid.cell(l), TileGrid.cell(r - 1) + 1):
 		for j: int in range(TileGrid.cell(t), TileGrid.cell(b - 1) + 1):
-			if grid.get_tile(c, j) == TileGrid.SPIKES:
-				if b > j * TileGrid.TILE_SP + spike_inset_sp:
+			if grid.get_tile(c, j) == kind:
+				if b > j * TileGrid.TILE_SP + inset:
 					return true
 	return false
 

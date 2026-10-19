@@ -1,0 +1,16 @@
+fixture dash_cancel_attack_survives_down_dash_landing
+doc BUILD.md s15 Combat "Dash cancels an attack on frame 4 and never eats the next attack input" (movement review 5, H2). Air side 1 on frame 12, attack pressed on its frame 3 for side 2, a straight-down air dash on its frame 4: the dash takes the press over and reaches the floor on its frame 3, before it allows a strike. The press then waits the attack buffer from the landing, as a fresh one would, and side 2 comes out on the landing frame, as any buffered press does. It used to be dropped with the dash.
+room test/flat
+spawn 200 544
+frames 40
+input
+  0 jump
+  12 attack
+  14 attack
+  15 D dash
+end
+expect
+  at 12 event.attack=1 action=side1
+  at 15 event.dash=1 state=dash
+  at 17 event.land=1 state=ground event.attack=1 action=side2
+end

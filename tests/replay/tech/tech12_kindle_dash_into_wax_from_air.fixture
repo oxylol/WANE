@@ -1,0 +1,17 @@
+fixture tech12_kindle_dash_into_wax_from_air
+doc BUILD.md s5 tech 12 "dash through a wax wall ... to ignite it", from the air (movement review 5, M4). With the Kindle Votive, falling toward the wax wall (800..832 u) at run speed, the dash pressed with the stick toward it 11.5 u short: this tick's move would not reach it, so the press is not a press on the wall. The dash goes right, ignites the wax and carries on. It used to be turned away, 180 u backwards.
+room test/wax
+spawn 720 400
+option kindle 1
+frames 30
+input
+  0..9 R
+  10 R dash
+  11..29 R
+end
+expect
+  at 10 event.dash=1
+  mark lit 10..20 event.ignite=1
+  never 0..29 event.wall_cling=1
+  at 20 x>832u
+end

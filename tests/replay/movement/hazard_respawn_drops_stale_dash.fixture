@@ -1,5 +1,5 @@
 fixture hazard_respawn_drops_stale_dash
-doc (movement review 4, M2) as rv_hazard_respawn_fires_stale_jump with the dash: the air dash spent over the pit (frame 31), a dash pressed again 3 ticks before the hazard waits in its buffer, and fires as a ground dash from the respawn point the tick after the send-back, toward the edge with the stick held.
+doc docs/adr/0010, hazards (movement review 4, M2): hazard_respawn_drops_stale_jump with the dash. The air dash is spent over the pit (frame 31) and a dash pressed again on frame 58, before the hazard, waits in its buffer; the send-back uses it up, so no dash fires from the respawn point. (It used to fire as a ground dash toward the edge the tick after the send-back.)
 room test/spike_chasm
 spawn 300 384
 frames 120

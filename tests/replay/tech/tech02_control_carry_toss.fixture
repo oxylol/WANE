@@ -1,31 +1,33 @@
 fixture tech02_control_carry_toss
-doc Control for tech 2 (task 3 review 3): the farthest route with no dash-jump of any kind and one Ember Toss (0 Flame, 12 s cooldown: BUILD.md s6), as tools/replay/gap_reach.gd's carry_toss route finds it. A ground dash flat past the edge, a coyote jump on a carry-over frame (10 u/f), the air jump, the air dash up-right, then the ember thrown up-right and the teleport to it 30 ticks later: the feet reach 1590 u past the edge at the ledge's height, 64 u short of crossing the 1664 u chasm.
+doc Control for tech 2 (task 3 review 3; movement review 5, H1): the farthest route with no dash-jump of any kind and one Ember Toss (0 Flame, 12 s cooldown: BUILD.md s6), as tools/replay/gap_reach.gd's carry_toss route finds it on the pit chasm. A ground dash flat past the edge, a coyote jump on a carry-over frame (10 u/f), the air jump, the air dash up-right, then the ember thrown up-right and the teleport to it 29 ticks later, on the tick before the fall would reach the pit 192 u below the ledges. At the ledge's height (with the ledge-grab's 10 u) the feet reach 1592 u past the edge on frame 169, 62 u short of the 1654 u a crossing of the 1664 u chasm needs.
 room test/chasm
 spawn 389 384
 frames 260
 input
   0 R dash
   1..9 R
-  10..53 R jump
-  54 R
-  55..97 R jump
-  98 R U jump dash
-  99..113 R jump
+  10..52 R jump
+  53 R
+  54..95 R jump
+  96 R U jump dash
+  97..113 R jump
   114 R U jump toss
-  115..143 R jump
-  144 R jump toss
-  145..259 R jump
+  115..142 R jump
+  143 R jump toss
+  144..259 R jump
 end
 expect
   # No dash-jump anywhere: no jump or air jump while a dash runs.
   never 0..259 event.jump=1 dash_frame>0
   never 0..259 event.air_jump=1 dash_frame>0
   at 10 event.jump=1 vx=2560
-  at 55 event.air_jump=1
-  at 98 event.dash=1
+  at 54 event.air_jump=1
+  at 96 event.dash=1
   at 114 event.toss=1
-  at 144 event.teleport=1
-  mark below 145..259 y>394u
-  at below x<2144u
+  never 115..142 event.hazard=1
+  at 143 event.teleport=1
+  at 169 y<=394u x<2073u
+  mark below 144..259 y>394u
+  at below x<2134u
   never 0..259 x>=2144u ground=1
 end

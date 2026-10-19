@@ -1,5 +1,5 @@
 fixture toss_on_cling_frame_goes_away
-doc (movement review 4, M5) the toss pressed on the tick the cling begins (stick toward the wall, as the cling needs). The press is read before the move, while Ash is still in the air, so the ember is thrown into the wall it clings to, stops at once beside Ash, and the 12 s cooldown is spent: the same throw one tick later goes away from the wall (tech11_toss_from_cling_goes_away; docs/adr/0010 Ember Toss "From a wall cling it goes away from the wall").
+doc docs/adr/0010, the wall and the Ember Toss "From a wall cling it goes away from the wall" (movement review 4, M5): the toss pressed with the stick toward the wall on the tick the fall reaches it and clings. A press on that tick is a press on the wall, so the ember goes away from it, as one thrown a tick later from the cling does (tech11_toss_from_cling_goes_away). (It used to be thrown into the wall, stop beside Ash and spend the 12 s cooldown.)
 room test/shaft
 spawn 760 300
 frames 40

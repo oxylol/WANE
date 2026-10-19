@@ -1,0 +1,17 @@
+fixture turn_after_hazard_in_wall_jump_lock
+doc BUILD.md s15 Movement "Turning around never produces a dead frame; the sprite flips on the input frame" (movement review 5, L7). A wall-jump into a spike tile 2 ticks later: the send-back clears the wall-jump's direction lock with everything else of the wall, so the stick turned left on frame 33 flips Ash on frame 33. It used to stay facing right until frame 35.
+room test/lockspikes
+spawn 200 416
+frames 50
+input
+  0..28 L jump
+  29 L
+  30 R jump
+  31..32 R
+  33..49 L
+end
+expect
+  at 30 event.wall_jump=1
+  at 32 event.hazard=1 ground=1 wall_lock=0
+  at 33 facing=-1
+end

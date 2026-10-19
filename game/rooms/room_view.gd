@@ -8,6 +8,9 @@ const SOLID := Color(0.30, 0.30, 0.34)
 const SMOOTH := Color(0.36, 0.33, 0.30)
 const ONE_WAY := Color(0.60, 0.60, 0.64)
 const SPIKES := Color(0.80, 0.30, 0.24)
+## A pit: darker than the solid beyond the room, with a red lip, so a drop reads as a hazard.
+const PIT := Color(0.06, 0.04, 0.05)
+const PIT_LIP := Color(0.55, 0.18, 0.15)
 const BOX := Color(0.44, 0.40, 0.50)
 const BEYOND := Color(0.20, 0.20, 0.23)
 ## How far past the room's edge the solid is drawn: more than the camera's margin can reveal.
@@ -78,6 +81,9 @@ static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> v
 				),
 				SPIKES
 			)
+	elif tile == TileGrid.PIT:
+		canvas.draw_rect(Rect2(at, Vector2(t, t)), PIT)
+		canvas.draw_rect(Rect2(at, Vector2(t, 2.0)), PIT_LIP)
 	elif TileGrid.is_slope(tile):
 		var edges: Vector2i = TileGrid.slope_edge_heights(tile)
 		var hl: float = float(edges.x) / Fx.SUB

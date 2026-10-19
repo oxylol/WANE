@@ -1,0 +1,18 @@
+fixture far_edge_downstrike_buffered_strike
+doc docs/adr/0008 decision 9 and docs/adr/0010 (physics review 7, M1): far_edge_downstrike_buffered_jump with a side attack pressed instead of the jump. Tick 25 is a far-edge landing whose step walks on off test/ledge448's edge: it is a landing for the strike too, so the missed down-strike gives way and side 1 starts on the landing frame. The press used to be eaten.
+room test/ledge448
+spawn 408 448
+frames 44
+input
+  0..3 R
+  4..8 R jump
+  9..20 R
+  21 R D attack
+  22 R D
+  23 R attack
+  24..43 R
+end
+expect
+  at 21 event.attack=1 action=down
+  at 25 event.land=1 event.attack=1 action=side1
+end

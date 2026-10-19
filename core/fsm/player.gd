@@ -97,10 +97,12 @@ var invuln: int = 0
 ## or turned (docs/adr/0010): a stick still held toward the hazard never walks the player straight
 ## back into it.
 var stick_hold_x: int = 0
-## An attack press that a dash cancelling a strike took over: it fires as soon as the dash allows
-## a strike (dash frame 6), in the direction it was pressed (BUILD.md s15: the cancel "never eats
-## the next attack input").
-var queued_attack: bool = false
+## An attack press that a dash cancelling a strike took over (BUILD.md s15: the cancel "never
+## eats the next attack input"): frames it stays buffered. It fires as soon as the dash allows a
+## strike (dash frame 6), in the direction it was pressed; held at the full buffer while the dash
+## and its carry-over last, it counts down from the frame the dash ends without allowing it (a
+## landing, a cling, a jump, a teleport), as a press made then would (movement review 5, H2).
+var queued_attack_left: int = 0
 ## The stick on the frame that press was made (raw, as the ring keeps it).
 var queued_attack_stick: Vector2i = Vector2i.ZERO
 ## Frames left in a ground turnaround's catch-up (speed returns from 60% to full over
@@ -220,6 +222,8 @@ func _tick_timers() -> void:
 			end_dash(true)
 	elif carry_frames > 0:
 		carry_frames -= 1
+	elif queued_attack_left > 0:
+		queued_attack_left -= 1
 	# A jump started after last tick's move (on a landing or a cling) has not risen yet: its count
 	# starts with its first airborne move, as a jump pressed on the ground does.
 	if jump_frame > 0 and not jump_fresh:
@@ -303,7 +307,7 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 		var age: int = ring.press_age(InputFrame.ATTACK, p.attack_buffer_frames)
 		if age >= 0:
 			var f: InputFrame = ring.frame_at(age)
-			queued_attack = true
+			queued_attack_left = p.attack_buffer_frames + 1
 			queued_attack_stick = Vector2i(f.stick_x, f.stick_y)
 			ring.consume(InputFrame.ATTACK)
 	var dir := Vector2i(dx if dx != 0 else facing, 0)
@@ -311,16 +315,18 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 		dir = Vector2i(dx, dy)
 		if dir == Vector2i.ZERO:
 			dir = Vector2i(facing, 0)
-		var wall: int = (
-			wall_side if loco == WALL else PlayerWall.met(self, _dir_x(ring), _dir_y(ring))
-		)
-		if wall != 0 and dir.x == wall:
-			dir.x = -wall
-	if dir.x != 0:
-		facing = dir.x
 	var speed: int = p.dash_speed
 	if dir.x != 0 and dir.y != 0:
 		speed = Fx.permille(p.dash_speed, Fx.DIAGONAL_PERMILLE)
+	if not grounded:
+		var wall: int = (
+			wall_side if loco == WALL else PlayerWall.met(self, ring, _dir_x(ring), _dir_y(ring))
+		)
+		# Toward the wall goes away from it, except a kindle-dash into wax: it burns through.
+		if wall != 0 and dir.x == wall and not PlayerContacts.burns_through(self, dir * speed):
+			dir.x = -wall
+	if dir.x != 0:
+		facing = dir.x
 	dash_vx = dir.x * speed
 	dash_vy = dir.y * speed
 	dash_grounded = grounded
@@ -347,6 +353,28 @@ func _try_dash(ring: InputRing, pre_start: bool = false) -> void:
 	body.vx = dash_vx
 	body.vy = dash_vy
 	events.add(SimEvents.DASH, body.x, body.y, dir.x + 3 * dir.y)
+
+
+## The speeds this tick's air move will give the body ([method _move_air]), worked out without
+## changing anything: the jump state its gravity reads and updates is put back. For trying the
+## move ahead ([method PlayerWall.met]).
+func air_velocity_ahead(ring: InputRing, dx: int) -> Vector2i:
+	var kept := Vector3i(jump_frame, apex_hang_left, turn_left)
+	var kept_flags: Array[bool] = [jump_released, jump_cut, apex_hang_used]
+	var v := Vector2i(body.vx, body.vy)
+	var carry: bool = carry_frames > 0 and (dx == 0 or body.vx == 0 or dx == signi(body.vx))
+	if not carry and wall_lock == 0:
+		v.x = _air_speed(body.vx, 0 if crouching else dx)
+	_update_jump_release(ring)
+	if not jump_fresh:
+		v.y = mini(body.vy + _gravity(ring), p.terminal)
+	jump_frame = kept.x
+	apex_hang_left = kept.y
+	turn_left = kept.z
+	jump_released = kept_flags[0]
+	jump_cut = kept_flags[1]
+	apex_hang_used = kept_flags[2]
+	return v
 
 
 ## Ends the dash. With [param carry] the 3-frame, 50% carry-over follows.
@@ -399,7 +427,7 @@ func _try_jump(ring: InputRing, dx: int, dy: int) -> void:
 ## kept speed when [param from_dash].
 func _jump_in_air(ring: InputRing, dx: int, dy: int, from_dash: bool, keep_vx: int) -> void:
 	var side: int = PlayerWall.side_near(self)
-	if side == 0 and PlayerWall.met(self, dx, dy) != 0:
+	if side == 0 and PlayerWall.met(self, ring, dx, dy) != 0:
 		# Reaching a wall this tick: the press stays in the buffer for the cling after this tick's
 		# move, which kicks off the wall with it (as a jump pressed just before a cling does),
 		# rather than spending the air jump a tick early (movement review 4, M5).
@@ -782,8 +810,10 @@ func _landing_actions(
 		start_jump(p.jump_speed, SimEvents.JUMP)
 		return
 	_try_dash(ring, after_move)
-	if loco == GROUND:
-		PlayerStrikes.try_attack(self, ring)
+	# A landing that walked on off the far edge is a landing for the strike too, as it is for the
+	# jump (physics review 7, M1): a missed down-strike gives way to a strike pressed before it.
+	if loco == GROUND or walked_on:
+		PlayerStrikes.try_attack(self, ring, walked_on)
 
 
 ## The airtime is over: resources, the landing event and safe ground. Also run by a diagonal air
@@ -902,6 +932,7 @@ func hash_into(h: StateHasher) -> void:
 		stick_hold_x,
 		queued_attack_stick.x,
 		queued_attack_stick.y,
+		queued_attack_left,
 	]:
 		h.add_int(v)
 	for b: bool in [
@@ -913,7 +944,6 @@ func hash_into(h: StateHasher) -> void:
 		jump_cut,
 		jump_fresh,
 		wall_spent,
-		queued_attack,
 		action_pogoed,
 		kindle_dash,
 		apex_hang_used,

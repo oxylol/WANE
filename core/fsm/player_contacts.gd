@@ -57,17 +57,17 @@ static func _pogo_target(world: CollisionWorld, box: Rect2i) -> bool:
 	return false
 
 
-## Spikes touching the hurtbox send the player back to the last safe ground, with the hazard
-## invulnerability; standing there again counts as a landing for the airtime's resources. An
-## ember thrown before the hazard goes out with it (the throw's cooldown runs on): left out, a
-## teleport to it would undo the send-back. Every press still buffered is used up, so nothing
-## pressed over the hazard fires at the safe ground, and a stick held through the send-back is
-## ignored until it is let go or turned (movement review 4, M1 and M2).
+## A hazard (spikes, or a pit) touching the hurtbox sends the player back to the last safe
+## ground, with the hazard invulnerability; standing there again counts as a landing for the
+## airtime's resources. An ember thrown before the hazard goes out with it (the throw's cooldown
+## runs on): left out, a teleport to it would undo the send-back. Every press still buffered is
+## used up, so nothing pressed over the hazard fires at the safe ground, and a stick held through
+## the send-back is ignored until it is let go or turned (movement review 4, M1 and M2).
 static func check_hazards(pl: Player, ring: InputRing) -> void:
 	if pl.is_invulnerable():
 		return
 	var hurt: Rect2i = hurtbox(pl)
-	if not pl.world.touches_spikes(hurt.position.x, hurt.end.x, hurt.position.y, hurt.end.y):
+	if not pl.world.touches_hazard(hurt.position.x, hurt.end.x, hurt.position.y, hurt.end.y):
 		return
 	var b: Body = pl.body
 	pl.events.add(SimEvents.HAZARD, b.x, b.y)
@@ -89,7 +89,13 @@ static func check_hazards(pl: Player, ring: InputRing) -> void:
 	if b.on_ground:
 		pl.restore_airtime()
 	pl.invuln = pl.kit.hazard_invuln_frames
-	pl.queued_attack = false
+	pl.queued_attack_left = 0
+	# Nothing of the wall or the turn carries over either: a wall-jump's direction lock would
+	# leave the sprite facing the old way for its frames (movement review 5, L7).
+	pl.wall_lock = 0
+	pl.wall_coyote = 0
+	pl.wall_coyote_side = 0
+	pl.turn_left = 0
 	for bit: int in InputFrame.BUTTONS:
 		ring.consume(bit)
 	pl.stick_hold_x = PlayerInput.axis(ring.stick_x(), pl.p.stick_threshold)
@@ -107,7 +113,7 @@ static func hurtbox(pl: Player) -> Rect2i:
 
 ## Remembers where the player stands if it is safe ground: flat, not a one-way, solid ground at the
 ## feet's height under the whole collider and [member KitParams.safe_ground_margin] beyond it on
-## each side (a wall rising there is fine; a drop is not), and no spikes within a tile. A respawn
+## each side (a wall rising there is fine; a drop is not), and no hazard within a tile. A respawn
 ## then never stands on a ledge's lip with the stick that walked off it still carrying the player
 ## straight back off. The ground must also last (no box the game can take away, such as wax a
 ## kindle-dash burns) and have room to stand (not a crawl gap), so a send-back always lands a
@@ -126,7 +132,7 @@ static func note_safe_ground(pl: Player) -> void:
 	if b.height != pl.p.height and not pl.world.headroom(b, pl.p.height):
 		return
 	var hurt: Rect2i = hurtbox(pl)
-	if not pl.world.touches_spikes(
+	if not pl.world.touches_hazard(
 		hurt.position.x - TileGrid.TILE_SP,
 		hurt.end.x + TileGrid.TILE_SP,
 		hurt.position.y,
@@ -169,19 +175,32 @@ static func _fragile_under(w: CollisionWorld, l: int, r: int, y: int) -> bool:
 ## With the Kindle Votive, wax solids in the dash's path this tick ignite and stop blocking
 ## (BUILD.md s5 tech 12). Passing through resets the air jump ("dash-through").
 static func kindle_ahead(pl: Player) -> void:
+	for s: SolidBox in wax_ahead(pl, Vector2i(pl.dash_vx, pl.dash_vy)):
+		s.enabled = false
+		pl.air_jumps_left = pl.p.air_jumps
+		pl.events.add(SimEvents.IGNITE, (s.left + s.right) / 2, (s.top + s.bottom) / 2)
+
+
+## The wax a kindle-dash at [param v] (sub-pixels a tick) ignites this tick: what the box it
+## sweeps touches, reaching one sub-pixel further only on the sides it moves toward, so a wall
+## touched at the start counts but one the dash leaves behind does not. None without the Kindle
+## Votive.
+static func wax_ahead(pl: Player, v: Vector2i) -> Array[SolidBox]:
+	var out: Array[SolidBox] = []
 	if not pl.kindle_dash:
-		return
+		return out
 	var b: Body = pl.body
-	var vx: int = pl.dash_vx
-	var vy: int = pl.dash_vy
-	# The box swept by this tick's dash, reaching one sub-pixel further only on the sides it moves
-	# toward, so a wall touched at the start counts but one the dash leaves behind does not.
-	var l: int = mini(b.left(), b.left() + vx) - (1 if vx < 0 else 0)
-	var r: int = maxi(b.right(), b.right() + vx) + (1 if vx > 0 else 0)
-	var t: int = mini(b.top(), b.top() + vy) - (1 if vy < 0 else 0)
-	var bottom: int = maxi(b.y, b.y + vy) + (1 if vy > 0 else 0)
+	var l: int = mini(b.left(), b.left() + v.x) - (1 if v.x < 0 else 0)
+	var r: int = maxi(b.right(), b.right() + v.x) + (1 if v.x > 0 else 0)
+	var t: int = mini(b.top(), b.top() + v.y) - (1 if v.y < 0 else 0)
+	var bottom: int = maxi(b.y, b.y + v.y) + (1 if v.y > 0 else 0)
 	for s: SolidBox in pl.world.solids:
 		if s.enabled and s.tag == "wax" and s.overlaps(l, r, t, bottom):
-			s.enabled = false
-			pl.air_jumps_left = pl.p.air_jumps
-			pl.events.add(SimEvents.IGNITE, (s.left + s.right) / 2, (s.top + s.bottom) / 2)
+			out.append(s)
+	return out
+
+
+## True if a kindle-dash at [param v] burns through wax this tick: a dash toward a wax wall goes
+## into it, even from a cling to it (tech 12; movement review 5, M4).
+static func burns_through(pl: Player, v: Vector2i) -> bool:
+	return not wax_ahead(pl, v).is_empty()

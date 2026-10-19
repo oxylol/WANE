@@ -87,5 +87,8 @@ static func _add_hazards(world: CollisionWorld, view: Rect2, out: Array[Box]) ->
 	var j1: int = mini(grid.height - 1, floori(view.end.y / t))
 	for j: int in range(j0, j1 + 1):
 		for i: int in range(i0, i1 + 1):
-			if grid.get_tile(i, j) == TileGrid.SPIKES:
+			var tile: int = grid.get_tile(i, j)
+			if tile == TileGrid.SPIKES:
 				out.append(_box(HAZARD, Rect2(i * t, j * t + inset, t, t - inset)))
+			elif tile == TileGrid.PIT:
+				out.append(_box(HAZARD, Rect2(i * t, j * t, t, t)))

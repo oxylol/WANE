@@ -92,20 +92,69 @@ static func side_near(pl: Player) -> int:
 	return 0
 
 
-## The side of a clingable wall the stick holds toward ([param dx], [param dy]) that the body
-## reaches this tick: within the wall-jump reach now, or after this tick's move across. A press on
-## the tick the player reaches a wall is a press on the wall (docs/adr/0010): a jump waits for the
+## The side of the clingable wall the stick holds toward ([param dx], [param dy]) that this tick's
+## move clings to: a fall, or an air dash, that will end the tick clinging there. A press on the
+## tick the player reaches a wall is a press on the wall (docs/adr/0010): a jump waits for the
 ## cling this tick and kicks off it, and a dash, strike or toss toward it goes away from it, as it
-## would one tick later, once clinging. 0 if there is none, or the player could not cling there
-## (still rising after this tick's gravity, sliding spent, holding down).
-static func met(pl: Player, dx: int, dy: int) -> int:
-	var b: Body = pl.body
-	if pl.loco != Player.AIR or dx == 0 or dy > 0 or pl.wall_spent:
+## would one tick later, once clinging. The move is tried on a copy of the body with this tick's
+## speeds, so the answer is the cling the move makes, never one a tick early or one that does not
+## come (movement review 5, M4, M5 and L6). 0 if there is none.
+static func met(pl: Player, ring: InputRing, dx: int, dy: int) -> int:
+	# A stick held through a hazard send-back moves nothing ([member Player.stick_hold_x]).
+	if dx == 0 or dy > 0 or pl.wall_spent or pl.stick_hold_x != 0:
 		return 0
-	if b.vy + pl.p.gravity_rise < 0:
-		return 0
-	var travel: int = maxi(b.vx * dx, 0)
-	return dx if pl.world.wall_near(b, dx, pl.p.wall_jump_reach + travel) else 0
+	if pl.loco == Player.AIR:
+		return dx if _air_move_clings(pl, ring, dx) else 0
+	if pl.loco == Player.DASH:
+		return dx if _dash_move_clings(pl, dx) else 0
+	return 0
+
+
+## True if this tick's air move ends with the body in the air, falling or level, within 1 u of a
+## clingable wall on [param dx]'s side: the cling [code]Player._after_move[/code] starts.
+static func _air_move_clings(pl: Player, ring: InputRing, dx: int) -> bool:
+	var p: MovementParams = pl.p
+	var v: Vector2i = pl.air_velocity_ahead(ring, dx)
+	if v.y < 0:
+		return false
+	var b: Body = pl.body.copy()
+	var lift: int = p.ledge_grab if dx == signi(v.x) else p.corner_lift
+	var w: CollisionWorld = pl.world
+	if w.landing_contact(b, v.x, v.y, lift, p.corner_slide) != CollisionQueries.NONE:
+		return false
+	w.move_x(b, v.x, lift, p.corner_slide)
+	w.move_y(b, v.y, p.corner_slide)
+	return not b.on_ground and w.wall_near(b, dx, 1)
+
+
+## True if this tick's air dash ends against a clingable wall on [param dx]'s side, in the air:
+## the cling [code]Player._move_dash[/code] starts ([method dash_meets]). Wax a kindle-dash
+## burns this tick is out of the way, as it will be.
+static func _dash_move_clings(pl: Player, dx: int) -> bool:
+	if pl.dash_vy < 0 or ((pl.dash_grounded or pl.dash_landed) and pl.body.on_ground):
+		return false
+	var p: MovementParams = pl.p
+	var w: CollisionWorld = pl.world
+	var b: Body = pl.body.copy()
+	var burnt: Array[SolidBox] = PlayerContacts.wax_ahead(pl, Vector2i(pl.dash_vx, pl.dash_vy))
+	for s: SolidBox in burnt:
+		s.enabled = false
+	var clings: bool = false
+	if (
+		pl.dash_vx == 0
+		or pl.dash_vy <= 0
+		or b.on_ground
+		or (
+			w.landing_contact(b, pl.dash_vx, pl.dash_vy, p.corner_lift, p.corner_slide)
+			== CollisionQueries.NONE
+		)
+	):
+		w.move_x(b, pl.dash_vx, p.corner_lift, p.corner_slide)
+		w.move_y(b, pl.dash_vy, p.corner_slide)
+		clings = not b.on_ground and b.hit_wall == dx and w.wall_near(b, dx, 1)
+	for s: SolidBox in burnt:
+		s.enabled = true
+	return clings
 
 
 ## The air dash was stopped this tick by a clingable wall on the side the stick holds, and is

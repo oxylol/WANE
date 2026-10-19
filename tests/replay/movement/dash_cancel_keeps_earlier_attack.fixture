@@ -1,5 +1,5 @@
 fixture dash_cancel_keeps_earlier_attack
-doc (movement review 4, L1) Combat checklist "Dash cancels an attack on frame 4 and the cancel never eats the next attack input"; docs/adr/0010 Dash Cancels "an attack pressed before it stays buffered and fires on the dash's frame 6". Side 1 on frame 0, the next attack pressed on side 1's frame 2 (waiting for the chain at f 6), the dash on side 1's frame 6: the dash cancels the strike, the attack waits for dash frame 6 (frame 10), by then 9 frames old, and never comes out.
+doc BUILD.md s15 Combat "Dash cancels an attack on frame 4 and the cancel never eats the next attack input"; docs/adr/0010, Dash cancels (movement review 4, L1). Side 1 on frame 0, the next attack pressed on its frame 2 (waiting for the chain on frame 6), the dash on its frame 6: the dash cancels the strike and takes the press over, and side 2 comes out on dash frame 6, however old the press is by then. (It used to be 9 frames old at dash frame 6, past the attack buffer, and never came out.)
 room test/flat
 spawn 200 544
 frames 30

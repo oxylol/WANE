@@ -1,312 +1,330 @@
 # Golden hashes per replay fixture: <name> in:<inputs> content:<content> <end tick>:<hash> <tick>:<hash> ...
 # Regenerate with: godot --headless --path . --script tools/replay/bless.gd
-# sim_version 4
-air_control in:c0ac8b85 content:bf0ce14f 40:6be46977
-air_control_after_air_reversal in:bf85ac10 content:a9e50607 40:9ae9d281
-air_control_leaving_wall in:7e5b42f2 content:a9e50607 40:818b387c
-air_dash_into_ramp_crest in:de76ab76 content:79101fbb 30:0db593c4
-air_dash_lifts_onto_two_lips in:ab84fcf5 content:5bffdcf1 21:a865645c
-air_dash_rides_ramp_onto_crest_lip in:d3295bbe content:20fc0e05 48:d90f0096
-air_dash_up_1to2_ramp_rows in:e9adc4c9 content:ac134460 30:7b71a189
-air_dash_up_45_ramp_rows in:385ad7b7 content:73074aea 24:151481b1
-air_reverse_keeps_momentum in:5d4d9b52 content:bf0ce14f 40:ae6cfa70
-cam5_air_jump_above_floor in:021d67d1 content:d84ab9d6 260:0b712a05 60:9c824569 120:c330496e 180:a2298a32 240:595258ee
-cam5_borderless_top_up_dash in:f086f8c9 content:4c3f8c76 160:0c5d41b8 60:407e1e49 120:31b9a26e
-cam5_climb_drop in:c3c941b3 content:1a2e71f9 300:53a94b18 60:e8f0d2d8 120:39c7d8fa 180:ab949b91 240:9ee0ee1b 300:53a94b18
-cam5_climb_drop_buffered_jump in:c43d03a8 content:2b9122a6 300:e75b62a0 60:3d266829 120:9ae95bd6 180:fd1b11a3 240:0abe3a4e 300:e75b62a0
-cam5_look_then_jump_drift in:4abe881f content:80363a9d 224:758d26b4 60:f7c2b54b 120:17dd2c68 180:75d15cdb
-cam5_notch_landing in:0ba380a6 content:e15f5ad0 260:ffc7061d 60:3de30039 120:25e12dd0 180:f10707d3 240:5d335100
-cam5_open_drop in:5e501cf1 content:1a2e71f9 200:1eb8bb16 60:933971d6 120:f5ade7ca 180:d38bc51c
-cam5_reverse_onto_ledge in:584c0113 content:2089ba31 120:2596a79d 60:2db7bed3 120:2596a79d
-cam5_staircase_hops in:0554f035 content:94b8130e 420:671cf195 60:5111ef92 120:5cdf83e4 180:20a0ad1f 240:a8a7a653 300:386971bb 360:4785646e 420:671cf195
-cam5_tall_room_precision in:c966b6cf content:ada00547 260:6b6e9523 60:a103c4f5 120:a2d0dc2f 180:97b28ca9 240:d598b430
-cam5_teleport_borderless_side in:487624ac content:67b05519 211:79aa2ec4 60:9cef1f93 120:416c99f9 180:571955cc
-cam5_wall_jump_long_drift in:4d6f677e content:f71d2dcb 300:06280c19 60:ffefcbb8 120:bcb14bbe 180:0a6cd4a8 240:f6e28799 300:06280c19
-cam_air_spikes_pogo in:655c3514 content:2f265c95 260:1f625e54 60:b7ae1c39 120:231836e7 180:ec0d4d43 240:61ba4c98
-cam_box_100x33_roam in:e8666d64 content:71236501 520:534941d6 60:a2e05d91 120:07172f3d 180:0dfedb04 240:f918c54f 300:e9469603 360:7b65d614 420:94b4395e 480:9d7a8d47
-cam_box_100x34_roam in:a8142b44 content:be2dfa82 520:aef2faa2 60:7277e334 120:4eb84d03 180:96d09cd0 240:88880cd6 300:5205e703 360:e292f9cf 420:3ed5bb39 480:84b9d3eb
-cam_box_100x35_roam in:e07566dc content:35bc6b8c 520:29b54e4b 60:1a5efd25 120:4aeeccd4 180:9a4e2c8d 240:abdfc75e 300:c1219c9f 360:5c9202ac 420:75b51ae4 480:2c89b96e
-cam_box_100x37_roam in:ce9e306a content:45b0dc17 520:3723cf35 60:831cab7f 120:f25b3549 180:43984a41 240:c2abf904 300:e60be225 360:25df0d49 420:2b869ada 480:10e98adf
-cam_box_100x38_roam in:66bce395 content:1fb82907 520:8e8095d7 60:21298c32 120:9df6de4b 180:e9736fa7 240:c3bc0f09 300:df113b24 360:8b1adefb 420:649b6523 480:32758e39
-cam_box_100x40_roam in:2266977c content:f404b165 520:f1bff140 60:2b9fdf0f 120:8ebcdc54 180:495a32bd 240:bcceff66 300:8c0184fe 360:53d0ca72 420:fa7a87d2 480:1e1b363e
-cam_box_20x12_roam in:6f5da197 content:bcbb4e20 520:e7311c7e 60:64b9452d 120:2df99fb4 180:e1037432 240:69b52779 300:36f50545 360:8c51fef7 420:2e62883a 480:f0ae0803
-cam_box_30x20_roam in:87638bc9 content:ea12d290 520:7f8be672 60:c20197a2 120:e4da20a7 180:6f25b4ec 240:f2ef84c5 300:553dc83b 360:b45fbe6b 420:e45c783c 480:9effe43d
-cam_box_59x33_roam in:907b24ff content:26f9fe28 520:bf286b6a 60:2749d1f1 120:11e4f987 180:5cff7efe 240:7a6b997d 300:cbd66fe3 360:7b184035 420:fdace334 480:a8cc8afd
-cam_box_59x60_roam in:c9795bf8 content:4d20d76e 520:1bcc3797 60:d8744cbd 120:3bc0779b 180:60027db2 240:530ac500 300:165c8ab6 360:1f38fb70 420:fe05f8b7 480:3443b386
-cam_box_60x60_roam in:b7f7b1cc content:8e672ca3 520:237e39db 60:52354c05 120:9800db97 180:c7eb80b0 240:b67dfb04 300:03806a84 360:2a9b73e8 420:91443754 480:ad01aa81
-cam_box_61x35_roam in:7bc996ed content:c4c569b6 520:7d891f56 60:18e5bd3a 120:232bb0db 180:b7144a5c 240:6651b4a0 300:d7bc8e9c 360:16c2a13f 420:5bfa0480 480:1de871d4
-cam_box_61x60_roam in:769345b4 content:cad2002f 520:b4ffed14 60:565c9f37 120:6ec093e7 180:44361faf 240:271733c2 300:f2eb69b6 360:2f968fec 420:06a8f6f0 480:73f7cf2e
-cam_box_64x60_roam in:9221e072 content:ce6aa4b8 520:a1e000ad 60:c14afac3 120:ad20a102 180:0c135446 240:997426bb 300:5badfa2d 360:4d870d59 420:8ead37a5 480:b6fc750f
-cam_box_65x38_roam in:870ec964 content:d429ec3a 520:55f93c8f 60:1e14d739 120:e3be00eb 180:c1a0016a 240:9d84856b 300:41c880b3 360:ec32a5e3 420:bde31f24 480:2f905453
-cam_box_65x60_roam in:d1bc9061 content:37aa66ec 520:5bcf8f3e 60:29648c2f 120:ba647509 180:f6ad2132 240:305059f9 300:6a3afb22 360:fdb129c9 420:fd392e75 480:836f0a49
-cam_box_66x60_roam in:8fda8e76 content:987f8dd3 520:0ea08a6d 60:74785565 120:22eba464 180:ca3bf650 240:f0557719 300:428591d7 360:e57d22ac 420:cc0211af 480:16dfbc09
-cam_box_70x60_roam in:0a4bb5e0 content:f03d5d4e 520:e7eecd32 60:f32c46b7 120:bbd0812d 180:6fc12bce 240:4e3779ba 300:9746bfa9 360:2327a791 420:252090f6 480:ade1efdc
-cam_box_75x60_roam in:eef1cb06 content:6eccc889 520:390a7d93 60:c1527e29 120:2c918379 180:684dbab4 240:faf877a7 300:3a73046c 360:14d712cd 420:dc15dfd9 480:8b92ac67
-cam_cling_drop in:3fd8e224 content:f71d2dcb 300:2527b5b7 60:e4ef0ccb 120:b3add42a 180:e7d8abf4 240:8378db7a 300:2527b5b7
-cam_cling_drop_mid in:92bce4cc content:ca718db4 260:1d23916a 60:be22bce8 120:7bd03067 180:e4005477 240:a0c85166
-cam_crouch_attacks in:b1d30adc content:4f344dac 120:847dcaee 60:c441c234 120:847dcaee
-cam_crouch_dash_open in:3099d354 content:4f344dac 90:82364b0a 60:0dfc32a2
-cam_dither in:7316196a content:4f344dac 200:4c672489 60:16af9c55 120:fbb5058e 180:73fe1b5c
-cam_dither10 in:bcb6ee5e content:4f344dac 200:3bdcbf5b 60:c1daa84d 120:b75676ae 180:a5372685
-cam_dither15 in:8f92c2c8 content:4f344dac 200:3bdcbf5b 60:c1daa84d 120:b75676ae 180:a5372685
-cam_dither4 in:57bbd8ca content:4f344dac 200:48d2fbbb 60:0e838e55 120:2dd2f56c 180:5948b3cb
-cam_dither8 in:5dfdea73 content:4f344dac 200:3bdcbf5b 60:6de810ee 120:4c9c4a0c 180:c9f2bf91
-cam_double_jump_in_place in:f5ddcd0d content:4f344dac 150:0a51cd08 60:98e97767 120:25bd169b
-cam_double_jump_ledge in:f56e4ae4 content:4f344dac 150:52aee621 60:44540e52 120:27a31148
-cam_down_held_in_air in:196e1c01 content:4f344dac 120:320efa8d 60:dac38093 120:320efa8d
-cam_fall_airjump in:ec824f9e content:4f344dac 220:8a1f88c8 60:c089c19e 120:3f7b815b 180:f5f12399
-cam_fall_cling in:fa488ce4 content:4f344dac 260:05d017e0 60:3d31011d 120:e3f2c3ca 180:3ef81eb5 240:308eb496
-cam_fall_past_ledge in:dffd4742 content:332086b9 130:e76f28c0 60:f9c58a2d 120:b8dd6f58
-cam_fall_sidedash in:d896c989 content:4f344dac 220:d1d7edd7 60:c089c19e 120:7c81dd4f 180:8e4ad4a7
-cam_fall_toss_teleport in:13e23e98 content:4f344dac 200:89195842 60:82223c16 120:2638eb8e 180:927e6f7a
-cam_fall_updash in:a99609ed content:4f344dac 220:72bc3f88 60:c089c19e 120:25c77f69 180:e143b8f8
-cam_fall_wall_flush in:125b7e25 content:f71d2dcb 260:c55a0336 60:b8f99364 120:4e974c47 180:e01e1457 240:8bc04091
-cam_far_spikes in:80affb67 content:24e43d5d 200:8adf30bf 60:0a096e53 120:85375577 180:6ae0ee3f
-cam_hazard in:1418805e content:4f344dac 90:d2b52085 60:13ba782a
-cam_jumps_flat in:339db70f content:4f344dac 240:762ebabe 60:9c948367 120:a0618309 180:0bafe25a 240:762ebabe
-cam_ledge_land in:91742ad8 content:26063dac 160:d4958a56 60:1db824af 120:c5816093
-cam_ledge_pass in:e65a9c86 content:9bd38392 160:fef04af2 60:c108c76d 120:161057e9
-cam_long_drop in:60f2958f content:4f344dac 220:8f4cbf10 60:c089c19e 120:588ebe92 180:672714e3
-cam_look_down in:2104bdec content:4f344dac 200:4ff531be 60:1776ef14 120:fe1a4a7c 180:1480bb69
-cam_look_drop_64 in:9a1d2525 content:0cbbc29d 220:ed830d14 60:bc1c2020 120:1d556e75 180:34fd197c
-cam_look_drop_64_hold in:92ba31dd content:0cbbc29d 220:ed830d14 60:bc1c2020 120:5828d3d6 180:0a2d23f2
-cam_look_then_jump in:3d6917fb content:4f344dac 160:3009d040 60:6f9095b6 120:31aab131
-cam_look_then_updash in:c4c1169e content:4f344dac 200:cb58e29e 60:6f9095b6 120:7b31c541 180:dfb72e4a
-cam_look_walk_off in:f7b7fcdb content:16c8a6ae 220:a2f940b7 60:54960c6e 120:1b910713 180:9947da82
-cam_mesa_hop in:f4c1460c content:387fbe16 420:8db5503b 60:4cb95992 120:2097a11a 180:e4a17a02 240:71d43d1f 300:ef353909 360:019d8826 420:8db5503b
-cam_narrow_run in:098763fa content:7ea39480 400:54726dca 60:17bf1ffd 120:b4b73d0d 180:e23f979c 240:bb0a7883 300:641e8908 360:f6d00e10
-cam_noborder in:9c4e9ee7 content:67b05519 200:aa932fa3 60:56997fdf 120:4e37aba2 180:96e7dfb8
-cam_noborder_fall in:c1de22c7 content:e74b982b 260:25dd522b 60:5f64892b 120:736057d1 180:9b28277e 240:56b420a1
-cam_noborder_fall_side in:20f5bccb content:e74b982b 260:d8391d48 60:408df4f3 120:61eea688 180:3af5e8e1 240:85d72440
-cam_noceiling_climb in:b008a784 content:264dcae2 420:5030dc9e 60:fa8971ea 120:0b2fa6c6 180:a15b75e6 240:583d0b2b 300:30fd0519 360:dc75730e 420:5030dc9e
-cam_oneway_look_drop in:42fc3b2a content:16c8a6ae 200:9c4a73cb 60:1fb3ff23 120:c82d05e3 180:54e44c4c
-cam_open_drop_mid in:113ffba3 content:ca718db4 260:614f348a 60:5045f580 120:64b3dfc8 180:ab97206c 240:c8ca92b3
-cam_open_run_off in:ee45584f content:6f180cb6 160:a0b54b24 60:3bdafd7b 120:e694b2d6
-cam_pit_fall in:8242fe58 content:d6ad98ac 330:52632085 60:9b3777e8 120:546d1d50 180:cea1410b 240:4a7ea73b 300:e6f7cf2c
-cam_pogo_shelf in:0a1ccde5 content:4f344dac 240:e5cd48d2 60:1fa40b99 120:b9d7889e 180:16f0c8d5 240:e5cd48d2
-cam_pole_land in:6e79a785 content:aa0b65c0 160:b10262f0 60:848479ad 120:66bfb9a4
-cam_ramp_up in:e7ef8f38 content:d862ed46 600:277cb65b 60:d7defb16 120:6cdd6a6d 180:6017fccd 240:4c33e916 300:3f73cb01 360:35b840d1 420:b41d9e5e 480:32a9ab8c 540:fa405ce8 600:277cb65b
-cam_rev_traj in:47a88955 content:fd319c23 160:dbd57992 60:8e71c896 120:168f51b1
-cam_reverse_onto_ledge in:f9859f7b content:d28cd60a 160:9592b764 60:ffd76ec9 120:0edd5b6f
-cam_run_turn in:41c523c1 content:4f344dac 260:97afc8a0 60:39c37b1c 120:223ca031 180:aaed0a7f 240:34996ccd
-cam_shaft_climb in:4ebb21d2 content:4f344dac 420:36961abb 60:382a4792 120:352a7f08 180:865079a5 240:6298aef7 300:01139e0b 360:5fc3b503 420:36961abb
-cam_shaft_climb_out in:03ae84ff content:2220a82f 330:d71914e9 60:b0c6cceb 120:e7082c46 180:1c584b77 240:fa37cb12 300:f9b98038
-cam_shaft_wall_jumps in:2e9097fc content:d8d60257 700:2009020b 60:bc93fec8 120:189522ee 180:7f48f21a 240:7ee59cd4 300:e6df3f54 360:6d0861a5 420:e3445755 480:e608acca 540:52bf1baa 600:a0ac1132 660:69d4e6b4
-cam_shaft_wide_jumps in:3eed20b8 content:c712a4a4 330:8a589118 60:883ab1b4 120:78a7f721 180:fe985943 240:3e74e1fe 300:aa1daf72
-cam_short_jumps in:b502e069 content:5abb5263 120:201273eb 60:e2e12a56 120:201273eb
-cam_slide_out in:83705032 content:f71d2dcb 330:5584e7e8 60:096f4f27 120:0cf0e49a 180:018a3571 240:e120a252 300:938a11da
-cam_slopes_run in:764b805c content:e0a3ca22 520:51292ba0 60:a97c58b6 120:38d6398b 180:3db4f0cd 240:4d860ba8 300:7caa0537 360:ab370532 420:20612577 480:2961e681
-cam_stairs_run in:ed2a867a content:4a1b7de7 260:5563d1ed 60:f5568c64 120:54d05658 180:711d9989 240:6bb638d8
-cam_steer_onto_ledge_late in:9622d19e content:332086b9 220:50c5a460 60:f9c58a2d 120:37df9e47 180:5ba9f087
-cam_steer_onto_ledge_later in:5c7f7de9 content:332086b9 220:92f62bb6 60:f9c58a2d 120:553c848a 180:0546bd29
-cam_step_up in:54c98664 content:4f344dac 200:2847d11d 60:07b5b153 120:866b2cd2 180:20976372
-cam_strike_turns in:1936a724 content:4f344dac 160:dbce5f52 60:0a7794cb 120:7f9c413e
-cam_tall_fall in:29bd4241 content:aed6f87d 330:0c8ca085 60:f8a299ab 120:d11e665f 180:60196300 240:7728e410 300:904e09d5
-cam_teleport in:2739ca72 content:4f344dac 120:ca2d0e7c 60:2e892643 120:ca2d0e7c
-cam_teleport_band_dash in:ac9014dc content:4f344dac 140:0a989261 60:b7cc1be8 120:b9e70b02
-cam_teleport_band_updash in:acaaa415 content:4f344dac 120:dfc503a1 60:8cf4d689 120:dfc503a1
-cam_teleport_corner in:c74ed088 content:f404b165 240:8349fcee 60:9f066038 120:642df56f 180:b3bcb51d 240:8349fcee
-cam_teleport_diag_long in:b989d496 content:4f344dac 200:7f8dc627 60:beb29ff5 120:534b3817 180:4e40fb75
-cam_teleport_down_fall in:6d144d88 content:6f180cb6 260:afc3fb78 60:c57e480d 120:3ba804c8 180:470a3dd4 240:0c1a8f94
-cam_teleport_down_long in:d5291d90 content:4f344dac 200:7335b7b2 60:f78d2d6d 120:2abd7066 180:40343808
-cam_teleport_left_long_run in:8d629e09 content:4f344dac 200:f92f7ab9 60:83e05938 120:d9b3094d 180:6c61fe16
-cam_teleport_side_long in:e518ce33 content:4f344dac 200:bb657c3f 60:4194e0c7 120:74ed5e69 180:d99727f5
-cam_teleport_side_long_dash in:99105830 content:4f344dac 200:89e3c6d2 60:4194e0c7 120:12276118 180:69c8dd11
-cam_teleport_side_long_run in:f2a163c3 content:4f344dac 200:441f2bfa 60:4194e0c7 120:aa29e8e7 180:2db55ae1
-cam_teleport_up in:3d110301 content:4f344dac 160:3b56ecd1 60:cde7be6e 120:ee8ee577
-cam_teleport_up_long in:3fcf2260 content:4f344dac 160:08ee7e04 60:1e9e44fe 120:d901346b
-cam_teleport_up_long_jump in:6f5d4238 content:4f344dac 160:812356e6 60:1e9e44fe 120:eeae92e1
-cam_teleport_up_long_updash in:6f434885 content:4f344dac 160:849efe4a 60:1e9e44fe 120:606cfea7
-cam_teleport_wall_up in:26fea02a content:4f344dac 240:42930778 60:cac9b7a9 120:23cff92f 180:bd275035 240:42930778
-cam_thin_floor_jumps in:94b640e3 content:d3563e43 120:c677e4dc 60:62cc685e 120:c677e4dc
-cam_tunnel in:59e8c9eb content:5e147875 140:a2ff0e76 60:bf9c5551 120:7d6c582c
-cam_updash in:a9a11888 content:4f344dac 150:4c51af42 60:7447250a 120:bfd99951
-cam_view_jumps in:1bcc7083 content:b0cd5e3d 120:bafd577b 60:7dfde24d 120:bafd577b
-cam_wall_dash in:0967b09b content:4f344dac 120:18097b95 60:d38b6d27 120:18097b95
-cam_wall_run in:7cea3dec content:4f344dac 220:3257f73a 60:cb7b07e7 120:100180f7 180:bae4b872
-cam_wall_slide in:bb42bea9 content:4f344dac 260:f343bfc6 60:f369c2b7 120:0a757919 180:45889a96 240:02142244
-cam_wide_shaft_jumps in:c8adc624 content:47ae44a4 400:f90dd1d3 60:55f33bee 120:7b01dc3c 180:197b7b71 240:6e2122b9 300:f2659898 360:c0ceaf3c
-chain_side2_window_edges in:43f2662b content:bf0ce14f 40:7d27e29f
-crouch_hop_low_ceiling in:7aff411d content:782120ad 80:acfc10b4 60:eae945a2
-dash_air_landing_restores in:466818b1 content:bf0ce14f 70:841b104f 60:459bf9bc
-dash_air_once in:c0a67d49 content:bf0ce14f 80:de8d7dd4 60:e8216d70
-dash_buffer_cooldown_edges in:9eca3f70 content:bf0ce14f 80:cab86342 60:1cf0cdff
-dash_buffered_keeps_press_direction in:4f3b4f4b content:bf0ce14f 30:1325a41d
-dash_buffered_on_landing in:2cf1e3db content:bf0ce14f 50:1c9f1a3c
-dash_cancel_keeps_earlier_attack in:340c7103 content:bf0ce14f 30:268945c3
-dash_cancel_keeps_earlier_attack_control in:71db9bcf content:bf0ce14f 30:71d73e7f
-dash_cancel_window in:cc6c7dac content:bf0ce14f 60:e88ad3fb 60:e88ad3fb
-dash_cancels_attack in:02dd6591 content:bf0ce14f 40:9c6a0558
-dash_cancels_down_strike in:6676c3f0 content:bf0ce14f 30:209c549a
-dash_carry_turnaround in:40df83e6 content:bf0ce14f 30:b9599759
-dash_diagonal_touchdown_buffered_jump in:bcccddc1 content:bf0ce14f 40:731fe6d6
-dash_distance in:32d2772d content:bf0ce14f 30:c8ed7ef2
-dash_down_lands_no_lag in:6d33d216 content:bf0ce14f 30:17a16923
-dash_eight_way in:9b46a6e2 content:bf0ce14f 30:a8ebb973
-dash_ground_cooldown in:4ebc7c7d content:bf0ce14f 50:880268e0
-dash_ground_horizontal in:bf94d6c2 content:bf0ce14f 60:9b4d4836 60:9b4d4836
-dash_invulnerability in:8489bb4a content:bf0ce14f 20:f9f659ba
-dash_jump_down_ramp45_control in:5471e59d content:73074aea 40:d707345a
-dash_jump_down_ramp45_off_door in:9c624346 content:09f50db6 40:7ba9ca17
-dash_jump_flat_control in:6ed4385e content:f4324216 40:94256d34
-dash_jump_from_box_a_lip in:ea763472 content:f4324216 40:10085cb2
-dash_jump_keeps_speed in:65ffbd7d content:bf0ce14f 50:656ed466
-dash_on_cling_frame_goes_away in:493258b1 content:a9e50607 60:4f96e79b 60:4f96e79b
-dash_ride_reaches_walk_stop in:c044b272 content:95b5af55 11:44aec9d9
-dash_same_distance in:ebf96d2d content:bf0ce14f 50:34fead37
-dash_slash_buffered_down_strike in:5283b133 content:bf0ce14f 30:eba9e92b
-dash_up_lip_stairs in:affd98c7 content:76506d28 120:3d3caa9b 60:01c1cc3e 120:3d3caa9b
-dash_up_ramp_onto_door_at_crest in:a76113c0 content:09f50db6 14:3e38d383
-ddash_runs_on_onto_lip in:b6f9d75a content:6be2ec27 24:2eabd2ec
-ddash_stairs_relanding_keeps_speed in:4575fcd5 content:d16ace58 12:98f25ab2
-down_dash_from_midair_lands_on_ledge_far_edge in:5c81ec43 content:ddf560ff 12:bf2dcecd
-down_dash_lands_on_ledge_far_corner in:03bae9d0 content:ddf560ff 24:74f7efb5
-down_diagonal_toward_wall_never_clings in:6c11354d content:a9e50607 20:bb0a0b4a
-down_strike_landing_jump in:f53ad359 content:bf0ce14f 30:498e7ede
-down_strike_missed_then_ground_strike in:7e8161e2 content:bf0ce14f 30:070325c7
-fall_toward_raised_step_lands_on_top in:9b000017 content:86330759 32:d2e351c7
-far_edge_downstrike_buffered_jump in:da770475 content:ddf560ff 44:f9de1483
-far_edge_downstrike_control in:5f9e5305 content:ddf560ff 34:3a0bca4b
-far_edge_landing_buffered_jump_keeps_stride in:e0a33aa0 content:ddf560ff 40:5c3cec19
-far_edge_landing_lands in:0f2e84d0 content:ddf560ff 40:bbeb727c
-far_edge_touch_then_ground_jump in:2371b9df content:ddf560ff 30:99db2419
-ground_corner_lift in:f818a4db content:05ffb1a5 60:fedb7ff3 60:fedb7ff3
-ground_crouch in:a7106b2a content:bf0ce14f 40:448c1cdf
-ground_decel in:e7110796 content:bf0ce14f 30:25fda1fb
-ground_drop_through in:820ca062 content:7f0b0370 40:0aac137a
-ground_run_speed in:90560253 content:bf0ce14f 24:2681087f
-ground_slopes in:4f18ff2e content:79101fbb 90:cf3264ad 60:747574ff
-ground_turnaround in:c217c1fa content:bf0ce14f 24:6b0396cc
-ground_turnaround_partial_speed in:f26e1c97 content:bf0ce14f 20:1ebefc7b
-hazard_loop_stick_held_floor_spikes in:d8727d2b content:1b949e1c 200:d9236c33 60:347cc5b4 120:927f721e 180:7316a0cf
-hazard_loop_stick_held_pit in:4dea3f02 content:523446c2 200:6019eab8 60:0ca35173 120:716742c6 180:1fd85048
-hazard_respawn_drops_stale_dash in:e591c281 content:523446c2 120:0e8d5e9b 60:98c43dc1 120:0e8d5e9b
-hazard_respawn_drops_stale_jump in:40aedb1e content:523446c2 120:bb39c2ed 60:bb0fb537 120:bb39c2ed
-hazard_respawn_stays_off_the_lip in:4dea3f02 content:523446c2 200:6019eab8 60:0ca35173 120:716742c6 180:1fd85048
-input_buffer_latest_press in:669e9f03 content:a4f0d94c 30:d2ac35dd
-jump_air_jump in:a77be309 content:bf0ce14f 80:1acdb0b8 60:083f24cf
-jump_buffer_8f in:643e7ea6 content:bf0ce14f 70:e2b57f3c 60:083f24cf
-jump_buffer_9f_expires in:245c9ebe content:bf0ce14f 70:e2b57f3c 60:083f24cf
-jump_buffer_control in:1be38d0c content:bf0ce14f 70:e2b57f3c 60:083f24cf
-jump_ceiling_bump in:97bb2de8 content:22983b19 40:8fb78d53
-jump_ceiling_nudge in:ccb7fcac content:22983b19 40:a728f953
-jump_coyote in:0e26b2ae content:e6673640 40:1829e63c
-jump_coyote_frame6 in:528b2629 content:e6673640 40:e57d493b
-jump_coyote_frame7 in:fbfdc866 content:e6673640 40:cd8b13d3
-jump_full in:e91ef9a8 content:bf0ce14f 60:91d74fad 60:91d74fad
-jump_on_cling_frame_kicks in:c2d042dd content:a9e50607 30:20e2695b
-jump_tap in:8e46c397 content:bf0ce14f 50:b58af15b
-jump_tap_buffered_on_landing in:7bc6ad33 content:bf0ce14f 80:1acdb0b8 60:083f24cf
-jump_terminal in:61baa7cc content:a9e50607 60:eae6d146 60:eae6d146
-jump_variable_height in:a4097a6f content:bf0ce14f 50:b58af15b
-land_across_ramp_rows_walks_back in:a7e220f2 content:ac134460 31:335763d1
-land_across_ramp_rows_walks_on in:14e4a6e9 content:ac134460 40:9fddda4b
-landing_clamps_dash_speed in:310f668b content:79eca5cc 200:01599636 60:3d691a00 120:59f71e0c 180:47b4b7f5
-landing_no_lag in:d22f5a04 content:bf0ce14f 50:2a6626bb
-notch_fall_lands_on_block_across in:971ee0e6 content:fce55393 20:9dcdbb47
-oneway_buffered_drop_through in:c92fa4e5 content:7f0b0370 60:68e85ee3 60:68e85ee3
-oneway_lip_crouch_slide_down in:18be2219 content:27f739c9 30:2a6964bf
-oneway_lip_step_down_then_drop in:8dcd8a42 content:27f739c9 50:6cf277b6
-oneway_low_stick_jumps in:aecb93e0 content:7f0b0370 30:1356422f
-pogo_beats_hazard_same_frame in:6703478f content:1b949e1c 40:dd88ae33
-pogo_bounce in:53b73147 content:1b949e1c 45:3b14659d
-pogo_bounce_control in:4c03c42c content:1b949e1c 60:4bbdb37a 60:4bbdb37a
-pogo_bounce_uses_up_jump_pressed_in_strike in:eb6baeda content:1b949e1c 60:4bbdb37a 60:4bbdb37a
-pogo_buffered_down_strike_stick_released in:fa5937a9 content:1b949e1c 70:da68d01c 60:76478666
-pogo_chain_window in:f69b32b8 content:1b949e1c 50:ab2ace78
-pogo_chain_window_early_press in:ed1e53ac content:1b949e1c 70:44cc4bcc 60:fda9b2a4
-pogo_dash_jump_speed in:ba0c8f9b content:1b949e1c 60:2fb167fe 60:2fb167fe
-pogo_down_dash_pogo in:8d389569 content:1b949e1c 60:21b77205 60:21b77205
-pogo_hitbox_frames in:4ed7a005 content:bf0ce14f 30:f2b056fc
-pogo_keeps_horizontal in:7902c5e0 content:1b949e1c 80:23a97dbf 60:e43925c4
-pogo_resets in:48b16f85 content:1b949e1c 60:834deaed 60:834deaed
-safe_ground_never_in_crawl_gap in:c06b731f content:20767266 120:abd0371e 60:422a9126 120:abd0371e
-safe_ground_never_on_wax in:59f8eaec content:14b18694 400:31d71d06 60:db9f6d67 120:44ab60b0 180:b4c772e1 240:6940787f 300:dcde38a3 360:53501b51
-side2_jump_waits in:1c12b650 content:bf0ce14f 50:b58af15b
-strike_air_down_diagonal_pogo in:279169be content:1b949e1c 40:b306d048
-strike_on_cling_frame_goes_away in:00a46503 content:a9e50607 30:927290e6
-strike_stick_a_little_up_is_side in:68b83266 content:bf0ce14f 30:1e26997f
-strike_stick_up_diagonal in:eab17135 content:bf0ce14f 40:ac4d6f54
-subframe_tap_is_kept in:81d2e1f4 content:a4f0d94c 12:6fcbd57c
-tech01_dash_slash in:662d55d0 content:bf0ce14f 60:82ef8830 60:82ef8830
-tech02_control_all_resources in:b1e601b1 content:18040521 160:4ebfe22b 60:0ef0c334 120:5b49630b
-tech02_control_carry_jump in:f0c5d0c3 content:18040521 170:97f345b4 60:c877b368 120:d367414e
-tech02_control_carry_toss in:227af3a0 content:18040521 260:9eadf567 60:021e35f7 120:dd726099 180:0148b13c 240:8cf64840
-tech02_control_pogo_floor in:fc9efbe2 content:18040521 260:77d90b3c 60:b85c3ef4 120:0b926660 180:d3d2a688 240:022a67ee
-tech02_control_toss_wall_kick in:55652f91 content:18040521 320:c8730c17 60:021e35f7 120:dd726099 180:49098331 240:c6ce50c6 300:ad01505f
-tech02_dash_jump_frame10_is_carry in:89dba438 content:bf0ce14f 30:efca013f
-tech02_dash_jump_frame5 in:567f76c3 content:18040521 120:7a26c103 60:c3569899 120:7a26c103
-tech02_dash_jump_frame5_air_dash in:6b426132 content:18040521 200:4a842169 60:9019f373 120:3f0aa23e 180:4164c544
-tech02_dash_jump_frame9 in:50025062 content:18040521 120:206e05fb 60:08700cca 120:206e05fb
-tech02_respawn_does_not_keep_the_ember in:f5ed68c0 content:523446c2 200:7cebf4ff 60:55648d99 120:45458a8b 180:8a6e07f5
-tech02_running_jump_falls in:9ad7c4ec content:18040521 120:0990ad55 60:883fd2a9 120:0990ad55
-tech03_pogo_chain in:9072a000 content:c32280fa 420:3a84780c 60:fe501dc5 120:bec55fef 180:fbf36cd6 240:8a951e61 300:22f859a1 360:8e4b1944 420:3a84780c
-tech04_pogo_dash_reset in:c49d0f7b content:c32280fa 330:0167679a 60:97618242 120:a53ac28e 180:d4442027 240:1eac6dfe 300:d669a796
-tech05_wall_kick_climb in:e114a748 content:b3a13e8e 130:c8afc381 60:0c2fff0b 120:4becc160
-tech05_wall_kick_mash in:fc99fa7d content:b3a13e8e 130:72f1e226 60:e6651b8a 120:15360295
-tech06_wall_jump_dash in:888a0fe9 content:a9e50607 80:a74d31c1 60:220d0407
-tech06_wall_jump_dash_narrow in:89b5b198 content:a9e50607 60:fb87ffa7 60:fb87ffa7
-tech07_cooldown_resets_on_landing in:7b5e1aa2 content:89ae10e4 50:bd894db3
-tech07_coyote_dash in:b85814e1 content:e6673640 60:e0c6af58 60:e0c6af58
-tech07_coyote_dash_late in:b4bc3c4f content:e6673640 40:515d20f6
-tech07_coyote_dash_on_cooldown in:5ce75f22 content:e6673640 50:781ae68c
-tech07_redash_off_ledge in:26c6562d content:e6673640 40:8c0d417c
-tech08_attack_cancel_landing in:a88c5c62 content:bf0ce14f 40:f7c2ad5a
-tech09_control_forward_pogo in:b2ffca2d content:7bf97514 80:8503fbe4 60:355b4032
-tech09_reverse_pogo in:b2163f82 content:7bf97514 80:c2d62bf4 60:30905b36
-tech10_crouch_dash_down_forward in:dc81f037 content:36bd7663 40:4975a92a
-tech10_crouch_dash_long_gap in:437535c3 content:782120ad 80:7bc7d205 60:22c71ce8
-tech10_crouch_dash_under in:0a23e177 content:36bd7663 50:717e14a9
-tech10_jump_in_low_gap in:0dbca384 content:782120ad 60:056c0af4 60:056c0af4
-tech10_standing_dash_blocked in:5a810222 content:36bd7663 30:e556cc81
-tech11_ember_far_wall in:1c35789c content:c7c54c3b 160:9073571e 60:e9c0e550 120:a7d43eb5
-tech11_ember_in_flight in:e07889c2 content:bf0ce14f 40:7a42c7fa
-tech11_ember_stops_on_ceiling in:41c298f0 content:bf0ce14f 90:26b6b9c8 60:10552792
-tech11_ember_stops_on_floor in:b35676ea content:bf0ce14f 60:ceda76a9 60:ceda76a9
-tech11_ember_stops_on_wall in:a6b754d1 content:bf0ce14f 60:eb23d6be 60:eb23d6be
-tech11_ember_toss_cancel in:873d37e1 content:c7c54c3b 140:3269de63 60:7162a673 120:28c8ea61
-tech11_teleport_crouches_into_low_gap in:90d778c3 content:36bd7663 40:75ef611b
-tech11_teleport_into_cling in:59d5a34a content:bf0ce14f 80:db6d4fc7 60:8b267c9c
-tech11_teleport_lands in:115bd4cc content:bf0ce14f 120:461e0d8b 60:070b1beb 120:461e0d8b
-tech11_toss_double_press in:d7b1d15f content:bf0ce14f 30:f6a7b77f
-tech11_toss_from_cling_goes_away in:5d42a3c5 content:a9e50607 40:041d6ac4
-tech11_toss_teleport_and_air_dash_same_frame in:0a228d0d content:bf0ce14f 70:bb586c52 60:fbc5caf9
-tech11_toss_teleport_and_ground_dash_same_frame in:ec89ce3f content:bf0ce14f 70:4a2b4efb 60:2172b9cd
-tech11_toss_teleport_and_jump_same_frame in:f9445f18 content:bf0ce14f 70:51df4294 60:c49644a1
-tech12_kindle_dash in:03c7745f content:2f20578e 40:8f5b9532
-tech12_kindle_dash_along_wax_floor in:c9ece18e content:e7a0acf8 30:1265ac61
-tech12_kindle_dash_away_does_not_ignite in:7a64fcd0 content:2f20578e 30:7621b0a2
-tech12_kindle_dash_resets_air_jump in:6a9249ef content:2f20578e 40:c3edfa35
-tech12_wax_blocks_without_kindle in:2cb68793 content:2f20578e 40:0cf82544
-toss_ember_goes_out_on_hazard_respawn in:6e9670ae content:523446c2 140:7069f5a8 60:9eddde19 120:6ecf521c
-toss_on_cling_frame_goes_away in:77fb200f content:a9e50607 40:e1cad4e0
-up_strike_dash_cancel_edges in:a6230360 content:bf0ce14f 30:c8ed7ef2
-up_strike_never_cancels_itself in:ed756278 content:bf0ce14f 24:84dc6999
-up_strike_no_jump in:1e6f8516 content:bf0ce14f 30:6f0ce7f8
-walk_down_ramp12_off_lip_stays_grounded in:b81fe041 content:d4b084b1 120:af2b4190 60:40a013a5 120:af2b4190
-walk_down_ramp45_off_door_stays_grounded in:3d1fde3d content:09f50db6 120:141c9826 60:17f6acc5 120:141c9826
-walk_steps_down_small_lips in:84760467 content:f4324216 90:7553965b 60:ebe1f449
-walk_steps_up_small_lips in:40353b12 content:f4324216 170:53c90264 60:ba47bfbc 120:e98ad3c3
-walk_up_lip_stairs in:fdf83bae content:76506d28 200:d9bfc47f 60:001cee05 120:d2455100 180:7c816e58
-walk_up_ramp12_onto_lip_at_crest in:4fb2f1e7 content:d4b084b1 60:40a013a5 60:40a013a5
-walk_up_ramp45_onto_door_at_crest in:48389e4f content:09f50db6 60:17f6acc5 60:17f6acc5
-walk_up_ramp45_onto_lip_far_past_crest in:6781536d content:fcc1b680 60:2f4860b4 60:2f4860b4
-walk_up_ramp45_onto_lip_past_crest in:a66a185a content:0998802e 60:2a941d0d 60:2a941d0d
-wall_cling_budget_carries_to_other_wall in:96d7225d content:a9e50607 200:7c2fd24f 60:5e2b2f2b 120:b7e037f4 180:6bdbe88e
-wall_cling_buffered_jump in:717dec03 content:a9e50607 40:417d7c8e
-wall_cling_down_drops in:d753848c content:a9e50607 60:1b524bfb 60:1b524bfb
-wall_cling_regrip in:e0e1e32f content:a9e50607 200:77a762ef 60:5e2b2f2b 120:74551361 180:24a37f7f
-wall_cling_resets in:83a00fda content:a9e50607 60:80ba9789 60:80ba9789
-wall_cling_slide in:cafd3e2e content:a9e50607 130:26d8cd75 60:a6e3e398 120:1d53c0b4
-wall_cling_strike_away in:d01b4a6d content:a9e50607 30:5e426cc2
-wall_coyote in:51be2a89 content:a9e50607 40:a256dc13
-wall_coyote_expires in:963ebea5 content:a9e50607 40:c2e33b22
-wall_coyote_frame6 in:dfb669de content:a9e50607 40:f96a1bb5
-wall_jump in:db97a673 content:a9e50607 40:d1bd7d47
-wall_jump_resets in:0dc4b390 content:a9e50607 80:e2cd522c 60:c3cb0356
-wall_kick in:060d1fe1 content:a9e50607 40:1a13b252
-wall_kick_into_pogo in:34368732 content:8cb0e91c 150:ddf5c176 60:f7022b5a 120:d5ab57f3
-wall_kick_neutral in:844576ea content:a9e50607 40:a56348c1
-wall_ledge_grab in:541daed8 content:b3a13e8e 20:010041c8
-wall_ledge_grab_too_low in:5d59dfcf content:b3a13e8e 20:a18c37c3
-wall_spent_still_kicks in:a13ec125 content:a9e50607 260:70881ade 60:5e2b2f2b 120:96f2fc0b 180:bbbb4ff4 240:f8872664
+# sim_version 5
+air_control in:c0ac8b85 content:19d8314c 40:647cd67c
+air_control_after_air_reversal in:bf85ac10 content:50113a02 40:0c99963a
+air_control_leaving_wall in:7e5b42f2 content:50113a02 40:5fccee7c
+air_dash_into_ramp_crest in:de76ab76 content:58d31ea4 30:b70116f9
+air_dash_lifts_onto_two_lips in:ab84fcf5 content:06eb85d1 21:4aea8aac
+air_dash_rides_ramp_onto_crest_lip in:d3295bbe content:fd290ab6 48:e7e1fbd4
+air_dash_up_1to2_ramp_rows in:e9adc4c9 content:e826ca96 30:01c4ddaa
+air_dash_up_45_ramp_rows in:385ad7b7 content:c7657b34 24:9e2ac967
+air_reverse_keeps_momentum in:5d4d9b52 content:19d8314c 40:b6710e32
+cam5_air_jump_above_floor in:021d67d1 content:ca9ba71f 260:e437ef6d 60:192b1d34 120:19a54050 180:b41974f0 240:68d9b917
+cam5_borderless_top_up_dash in:f086f8c9 content:a54ba12a 160:974a4f02 60:28250fbe 120:fbd9f0be
+cam5_climb_drop in:c3c941b3 content:be79ca3f 300:0d3b4b54 60:3ca20e5b 120:db4cea96 180:f61ad9fb 240:555c9ec1 300:0d3b4b54
+cam5_climb_drop_buffered_jump in:c43d03a8 content:6aff166c 300:ca8f1f9b 60:e446dd5e 120:ef188b5d 180:0ec6e868 240:68d4d09b 300:ca8f1f9b
+cam5_look_then_jump_drift in:4abe881f content:985a4819 224:4bf1644b 60:cf92090e 120:c378f43a 180:cb73a7b6
+cam5_notch_landing in:0ba380a6 content:5441a6f7 260:52289e03 60:c52b873e 120:41f3c08f 180:babac301 240:616a7c67
+cam5_open_drop in:5e501cf1 content:be79ca3f 200:05e095e8 60:d3123d22 120:323efffb 180:ef66a2e5
+cam5_reverse_onto_ledge in:584c0113 content:3e306548 120:9e515eb4 60:b454f435 120:9e515eb4
+cam5_staircase_hops in:0554f035 content:8c631968 420:dc8a6b0c 60:cde880e2 120:a4705e7f 180:7d3e86d1 240:3d22e191 300:78e025db 360:f69d9244 420:dc8a6b0c
+cam5_tall_room_precision in:c966b6cf content:1f454a7c 260:687f7cfb 60:d1961470 120:30ee0d38 180:0dd27bbb 240:0e272b52
+cam5_teleport_borderless_side in:487624ac content:9bef1445 211:93d4535e 60:d0c8a999 120:50207bfb 180:9cad003a
+cam5_wall_jump_long_drift in:4d6f677e content:9ff50fec 300:588d5f5f 60:4520d795 120:16730c76 180:a448f430 240:ec4dadbc 300:588d5f5f
+cam_air_spikes_pogo in:655c3514 content:1465bbc8 260:44edd349 60:91d1db9d 120:75ba2ec2 180:3a0f6dea 240:aeea96e7
+cam_box_100x33_roam in:e8666d64 content:fc360fa0 520:a5092c16 60:c2a1593b 120:9a8c84e1 180:eff7cbae 240:62b9bdd5 300:9fde138a 360:6d06e2af 420:50980536 480:42671f1c
+cam_box_100x34_roam in:a8142b44 content:0f422cb3 520:e709299f 60:46308724 120:9592342c 180:a2b638aa 240:b839e749 300:31dc67d0 360:a24f30b6 420:f32090ab 480:65b2b889
+cam_box_100x35_roam in:e07566dc content:1a783164 520:578a247f 60:a36d9ebf 120:5c6ab509 180:d76fc13b 240:78b9f577 300:78fb2923 360:4bf4bb68 420:f5977581 480:76b5f700
+cam_box_100x37_roam in:ce9e306a content:523c39dd 520:e7d1ffc6 60:ff9fa150 120:aa41d3c2 180:51e313cb 240:113c89fc 300:8670e091 360:d1ffe8f5 420:06f08656 480:c01d9545
+cam_box_100x38_roam in:66bce395 content:4ef68f7e 520:561ce487 60:e77f9b36 120:453540c5 180:8783442d 240:b52639c3 300:91ae5864 360:86252fa8 420:906ebe1d 480:1a92bf7d
+cam_box_100x40_roam in:2266977c content:26ef74ac 520:937b1337 60:96bc5f2c 120:f675092b 180:18263df6 240:10e1ab16 300:21d0a610 360:f69f0517 420:a685ff94 480:da8f5e57
+cam_box_20x12_roam in:6f5da197 content:b313a8fc 520:0823c66e 60:40f96d8b 120:8a5bced7 180:b7d8de46 240:8759a146 300:9bf95092 360:1a8ab049 420:b6f70335 480:2dcf0501
+cam_box_30x20_roam in:87638bc9 content:f4fbec37 520:645eba11 60:f8889714 120:934b3e5b 180:f81a8450 240:89f7fdaf 300:6cb27ecd 360:ce640d83 420:5c79df56 480:0d4d6a6c
+cam_box_59x33_roam in:907b24ff content:ba4e19df 520:ba091a62 60:f02428c3 120:48b6c876 180:6d822a98 240:f691fcc3 300:92b7a403 360:a38cb004 420:91dc6bee 480:6c370eae
+cam_box_59x60_roam in:c9795bf8 content:0d99a936 520:314b5fc5 60:4d36f311 120:b235c9ff 180:2c109876 240:4d17e56d 300:a5e117f2 360:9fd2eebe 420:e097a5d3 480:a89c73a0
+cam_box_60x60_roam in:b7f7b1cc content:86463910 520:e0e2ff9c 60:e4b5caf4 120:6995980b 180:42eee58c 240:89503d51 300:bbc30fb2 360:8ba3875f 420:7a96be28 480:ff252923
+cam_box_61x35_roam in:7bc996ed content:d827fbe2 520:86338153 60:1d8119c7 120:7a3022b3 180:e2e7eaf2 240:3497693f 300:2c4deac9 360:30942766 420:754db9e0 480:70b0cc0e
+cam_box_61x60_roam in:769345b4 content:854e1329 520:7670c3ac 60:d9b54d35 120:3e5a09b0 180:9f2028fd 240:5cc13966 300:bfd47069 360:1334f1a7 420:d45175b5 480:33615f4b
+cam_box_64x60_roam in:9221e072 content:a0acfddb 520:cf5b3916 60:136b2653 120:9a463a57 180:fd73a057 240:357c9e9a 300:48e81cde 360:845ba370 420:1eb292d8 480:14118e6c
+cam_box_65x38_roam in:870ec964 content:6a714652 520:8232d7fd 60:2af5cf1d 120:651a96e2 180:afbb423b 240:00b0d029 300:39b65ce4 360:b77e6fa6 420:dbc52ced 480:22d7b96c
+cam_box_65x60_roam in:d1bc9061 content:355f2d31 520:06f74a62 60:b1ef9cc6 120:285d6425 180:994b8c2f 240:fe15d45d 300:613253fa 360:07503327 420:7a410502 480:dff0194c
+cam_box_66x60_roam in:8fda8e76 content:dc86a418 520:525d221d 60:ff09087e 120:9022f34e 180:4c2a20bb 240:371bc70f 300:bd1c50db 360:820b88dc 420:42b71b08 480:b12dde79
+cam_box_70x60_roam in:0a4bb5e0 content:72ec27f7 520:d9d03dd4 60:39b7d5ff 120:f52b41a1 180:a5f443d5 240:b280c01c 300:ef71ac29 360:8b3b7eb2 420:55d85b9d 480:a93b0b71
+cam_box_75x60_roam in:eef1cb06 content:0b9bae0b 520:62f94dee 60:81844f32 120:09aa5397 180:e213cd89 240:33401db0 300:965df0b5 360:e31c8d4c 420:7ca2fa7d 480:03abb07b
+cam_cling_drop in:3fd8e224 content:9ff50fec 300:415c94a1 60:f11af3fc 120:35b78acc 180:5b87ce37 240:04477c09 300:415c94a1
+cam_cling_drop_mid in:92bce4cc content:ee80b9e3 260:e0ba9640 60:4ac8c782 120:d6992fe7 180:e1745375 240:1b145b8a
+cam_crouch_attacks in:b1d30adc content:50f57042 120:71d0b64e 60:90ae7d7d 120:71d0b64e
+cam_crouch_dash_open in:3099d354 content:50f57042 90:c1da7ed5 60:80df1c00
+cam_dither in:7316196a content:50f57042 200:8b9f0826 60:a7cbd54a 120:f8fe93f6 180:f96a695e
+cam_dither10 in:bcb6ee5e content:50f57042 200:d8aab863 60:3adadf2f 120:9492fb3c 180:8ae2601d
+cam_dither15 in:8f92c2c8 content:50f57042 200:d8aab863 60:3adadf2f 120:9492fb3c 180:8ae2601d
+cam_dither4 in:57bbd8ca content:50f57042 200:7386f27e 60:ba96ef1f 120:054682ec 180:84ef3d91
+cam_dither8 in:5dfdea73 content:50f57042 200:d8aab863 60:0f4a7238 120:1ccc1573 180:1388c1de
+cam_double_jump_in_place in:f5ddcd0d content:50f57042 150:46f03006 60:4153bb5b 120:a4c00ea2
+cam_double_jump_ledge in:f56e4ae4 content:50f57042 150:321ba463 60:659bbe28 120:4403e6ad
+cam_down_held_in_air in:196e1c01 content:50f57042 120:d95eb468 60:9808e4be 120:d95eb468
+cam_fall_airjump in:ec824f9e content:50f57042 220:fed37745 60:8e24423f 120:96362986 180:9505040b
+cam_fall_cling in:fa488ce4 content:50f57042 260:a970c379 60:130d4dde 120:74eade33 180:d7414b12 240:ece8e8b4
+cam_fall_past_ledge in:dffd4742 content:1d766fe0 130:fbea526d 60:11f80310 120:e2efcee6
+cam_fall_sidedash in:d896c989 content:50f57042 220:aca6a385 60:8e24423f 120:a46193c9 180:a589dd0d
+cam_fall_toss_teleport in:13e23e98 content:50f57042 200:86293ee2 60:7713b4d1 120:a261af12 180:08b05225
+cam_fall_updash in:a99609ed content:50f57042 220:88d0cfd8 60:8e24423f 120:d94062eb 180:199a1615
+cam_fall_wall_flush in:125b7e25 content:9ff50fec 260:537dabee 60:be538fdc 120:39a8f5b3 180:28e0db52 240:5b352c69
+cam_far_spikes in:80affb67 content:65675b90 200:abc8b502 60:c44a83da 120:c2277fd1 180:bc7a3446
+cam_hazard in:1418805e content:50f57042 90:4cc1e2d4 60:4e429a64
+cam_jumps_flat in:339db70f content:50f57042 240:2db0fee0 60:97beedce 120:c26b56b4 180:e5dbbe06 240:2db0fee0
+cam_ledge_land in:91742ad8 content:775e52de 160:9fa74454 60:8699b4a6 120:26046aa2
+cam_ledge_pass in:e65a9c86 content:b9e99827 160:f3ac2deb 60:46a60f45 120:0068b1ea
+cam_long_drop in:60f2958f content:50f57042 220:d06d0858 60:8e24423f 120:dc7b5628 180:0345657a
+cam_look_down in:2104bdec content:50f57042 200:1b2c492f 60:b6c29f05 120:ae672550 180:56ab99aa
+cam_look_drop_64 in:9a1d2525 content:03d2fb9f 220:64f85e7b 60:00d18710 120:ed69f9ef 180:84046cfe
+cam_look_drop_64_hold in:92ba31dd content:03d2fb9f 220:64f85e7b 60:00d18710 120:df4e4d3e 180:95b714f6
+cam_look_then_jump in:3d6917fb content:50f57042 160:dada2da2 60:3560f678 120:8ff820a7
+cam_look_then_updash in:c4c1169e content:50f57042 200:ef7957d7 60:3560f678 120:062e3995 180:d96765f8
+cam_look_walk_off in:f7b7fcdb content:a988211c 220:ea7047ff 60:68cac64c 120:1b6fc11a 180:ad884b4e
+cam_mesa_hop in:f4c1460c content:b6eb2a2e 420:75f5852b 60:bb8458c2 120:9f2670fd 180:b30b5be7 240:53af947f 300:fc3b4d6e 360:15ee78d5 420:75f5852b
+cam_narrow_run in:098763fa content:5ff2a994 400:a290c0a8 60:ecccd65c 120:7913e3e2 180:26394d3b 240:a6ee7c51 300:6886bbfb 360:0b119767
+cam_noborder in:9c4e9ee7 content:9bef1445 200:b8e368de 60:fdff9c4a 120:8283f359 180:12932258
+cam_noborder_fall in:c1de22c7 content:eb316a18 260:433981a6 60:8728ae60 120:8af9113a 180:477fe4b9 240:d08a2860
+cam_noborder_fall_side in:20f5bccb content:eb316a18 260:c44e7d85 60:cfc0ca03 120:fc2ade07 180:2c538785 240:35dd0790
+cam_noceiling_climb in:b008a784 content:f9c38f7f 420:c658df1f 60:ffee6f56 120:26f2de22 180:c02f8d27 240:cddf43ff 300:67cf0775 360:c7ef42c1 420:c658df1f
+cam_oneway_look_drop in:42fc3b2a content:a988211c 200:488a6be4 60:3da73370 120:205fcd75 180:edac79ee
+cam_open_drop_mid in:113ffba3 content:ee80b9e3 260:3dd71887 60:99734a76 120:e098022e 180:f17bc13e 240:b119fb06
+cam_open_run_off in:ee45584f content:0a889a24 160:37479c56 60:71a478e4 120:0669de35
+cam_pit_fall in:8242fe58 content:8e2e4ca5 330:c0bda7cf 60:756a12c6 120:04277924 180:86bd27d5 240:a4a65932 300:507af938
+cam_pogo_shelf in:0a1ccde5 content:50f57042 240:8ed72d4d 60:3449205b 120:b023f3d8 180:752b3431 240:8ed72d4d
+cam_pole_land in:6e79a785 content:722e097f 160:17b9ba44 60:e5e15f8e 120:21420128
+cam_ramp_up in:e7ef8f38 content:9e5da3d1 600:5871e02e 60:b3fc4b50 120:63bce957 180:1456ce41 240:6fc453a6 300:6021b9cb 360:001fdfc3 420:c4d699c8 480:9124a5c0 540:bff00b31 600:5871e02e
+cam_rev_traj in:47a88955 content:baef4ede 160:3647a35d 60:0bfdace3 120:3f57943a
+cam_reverse_onto_ledge in:f9859f7b content:0692b7ae 160:2f405ff4 60:bee82bf0 120:be6c0882
+cam_run_turn in:41c523c1 content:50f57042 260:547f09f5 60:2e120c23 120:f4b04660 180:b4a31a03 240:cf326f09
+cam_shaft_climb in:4ebb21d2 content:50f57042 420:2836767d 60:afef0668 120:85842f7c 180:874cb47a 240:35c814b0 300:6cb24e52 360:513d2fe4 420:2836767d
+cam_shaft_climb_out in:03ae84ff content:5d773bcd 330:aabac8b9 60:37d9ef11 120:4e662864 180:76ec531c 240:7d5d1185 300:edaa4f51
+cam_shaft_wall_jumps in:2e9097fc content:a913d334 700:83d8e339 60:9afa2f6a 120:e5fc634f 180:a3f81dfb 240:7804b638 300:11043ec7 360:e6d627a3 420:f455f22e 480:33112ba4 540:57e64b6d 600:f7b99a75 660:aad39d83
+cam_shaft_wide_jumps in:3eed20b8 content:fb1535f6 330:906b0436 60:e06c6f67 120:90e48a13 180:5ba71a9a 240:6e0806e6 300:9e327d88
+cam_short_jumps in:b502e069 content:5b5f066d 120:82d2f409 60:e00b614c 120:82d2f409
+cam_slide_out in:83705032 content:9ff50fec 330:69d53dc5 60:a5bbc430 120:38b2b769 180:a729ad10 240:97b746a4 300:0ac7fade
+cam_slopes_run in:764b805c content:bcf30817 520:5f6ab3f0 60:979c90d1 120:18c37d31 180:43c54a5d 240:3a46e190 300:b4edca32 360:34ae80cc 420:e26f6722 480:7b23cc4c
+cam_stairs_run in:ed2a867a content:a2d00299 260:cd67859a 60:05d36f7b 120:e4c0e353 180:1ff2ae12 240:31d171d0
+cam_steer_onto_ledge_late in:9622d19e content:1d766fe0 220:97691e3c 60:11f80310 120:123cdad1 180:6c324905
+cam_steer_onto_ledge_later in:5c7f7de9 content:1d766fe0 220:55720bc9 60:11f80310 120:3a99f124 180:14e6fd2b
+cam_step_up in:54c98664 content:50f57042 200:afe5a1f4 60:40f603ca 120:433348f6 180:a684749b
+cam_strike_turns in:1936a724 content:50f57042 160:a193c12d 60:ca47a636 120:0f964ebc
+cam_tall_fall in:29bd4241 content:321fe65a 330:58a8990b 60:0d37abba 120:854668bd 180:467d8d7a 240:e814237b 300:cec940cc
+cam_teleport in:2739ca72 content:50f57042 120:398320ee 60:2516ccad 120:398320ee
+cam_teleport_band_dash in:ac9014dc content:50f57042 140:9acc4fdb 60:90449f0e 120:735c1b64
+cam_teleport_band_updash in:acaaa415 content:50f57042 120:e12833d4 60:d9b49540 120:e12833d4
+cam_teleport_corner in:c74ed088 content:26ef74ac 240:5f9275ae 60:1eb70a44 120:b7db82a9 180:9575aedd 240:5f9275ae
+cam_teleport_diag_long in:b989d496 content:50f57042 200:1660c7ca 60:20c6c699 120:fe3d502e 180:47eb89cf
+cam_teleport_down_fall in:6d144d88 content:0a889a24 260:26ab9333 60:754dfd25 120:d243e9ee 180:3282744a 240:cbc65d43
+cam_teleport_down_long in:d5291d90 content:50f57042 200:94238688 60:02a8b161 120:f6d7ad27 180:df69458f
+cam_teleport_left_long_run in:8d629e09 content:50f57042 200:395df605 60:49ee36b3 120:68ec865f 180:1b2dfa79
+cam_teleport_side_long in:e518ce33 content:50f57042 200:b256c824 60:789305e7 120:0c4f3363 180:882ec184
+cam_teleport_side_long_dash in:99105830 content:50f57042 200:1386ef92 60:789305e7 120:1f9e6a45 180:a889a685
+cam_teleport_side_long_run in:f2a163c3 content:50f57042 200:c4cec4d6 60:789305e7 120:305d38fc 180:8bd171ee
+cam_teleport_up in:3d110301 content:50f57042 160:d86a7ccd 60:d552c003 120:c69f4ceb
+cam_teleport_up_long in:3fcf2260 content:50f57042 160:788b7437 60:826b391e 120:6a80ef17
+cam_teleport_up_long_jump in:6f5d4238 content:50f57042 160:165faea7 60:826b391e 120:ec1aa5cb
+cam_teleport_up_long_updash in:6f434885 content:50f57042 160:70fcafd9 60:826b391e 120:cb90ec1e
+cam_teleport_wall_up in:26fea02a content:50f57042 240:ee393001 60:8bd85381 120:f805764f 180:5ddd885b 240:ee393001
+cam_thin_floor_jumps in:94b640e3 content:34e16c31 120:e0da273e 60:63c295ba 120:e0da273e
+cam_tunnel in:59e8c9eb content:83dadc8c 140:30c4c6f2 60:7aad46d1 120:579883b7
+cam_updash in:a9a11888 content:50f57042 150:a8a62e44 60:e125f54f 120:5ec5966c
+cam_view_jumps in:1bcc7083 content:ad75cfe2 120:0d2f9b34 60:155c36f0 120:0d2f9b34
+cam_wall_dash in:0967b09b content:50f57042 120:ce60390a 60:530daf3c 120:ce60390a
+cam_wall_run in:7cea3dec content:50f57042 220:478dd354 60:4b3dc44b 120:dec1ccb0 180:323c5e2a
+cam_wall_slide in:bb42bea9 content:50f57042 260:7825b45a 60:9037744a 120:b6231fa4 180:ba603dcf 240:4de81f1c
+cam_wide_shaft_jumps in:c8adc624 content:4b0585fd 400:bf108694 60:7e975fb2 120:35c54724 180:47987902 240:11c619af 300:0e62c593 360:221b7b77
+chain_side2_window_edges in:43f2662b content:19d8314c 40:47dc127d
+crouch_hop_low_ceiling in:7aff411d content:81fae978 80:e1de88ce 60:fa2b870a
+dash_air_landing_restores in:466818b1 content:19d8314c 70:532f5470 60:dd42b8e5
+dash_air_once in:c0a67d49 content:19d8314c 80:b39a2cb1 60:d0845326
+dash_buffer_cooldown_edges in:9eca3f70 content:19d8314c 80:5368c1cc 60:95e93c1b
+dash_buffered_keeps_press_direction in:4f3b4f4b content:19d8314c 30:2fd92f9b
+dash_buffered_on_landing in:2cf1e3db content:19d8314c 50:ea12203a
+dash_cancel_attack_survives_cling in:53600187 content:50113a02 40:1eb74957
+dash_cancel_attack_survives_dash_jump in:65b78b9c content:19d8314c 40:b8b8b430
+dash_cancel_attack_survives_down_dash_control in:959092d4 content:19d8314c 40:d95d1690
+dash_cancel_attack_survives_down_dash_landing in:9ee883e1 content:19d8314c 40:232827e8
+dash_cancel_keeps_earlier_attack in:340c7103 content:19d8314c 30:39a5d84f
+dash_cancel_keeps_earlier_attack_control in:71db9bcf content:19d8314c 30:1c1f4842
+dash_cancel_latest_attack_press_wins in:ba6d2dd9 content:19d8314c 40:908a9dfb
+dash_cancel_window in:cc6c7dac content:19d8314c 60:79d42339 60:79d42339
+dash_cancels_attack in:02dd6591 content:19d8314c 40:abbe7075
+dash_cancels_down_strike in:6676c3f0 content:19d8314c 30:f0c129fb
+dash_carry_turnaround in:40df83e6 content:19d8314c 30:116ebb06
+dash_diagonal_touchdown_buffered_jump in:bcccddc1 content:19d8314c 40:b66667f1
+dash_distance in:32d2772d content:19d8314c 30:0f1ae124
+dash_down_lands_no_lag in:6d33d216 content:19d8314c 30:aae5e77b
+dash_eight_way in:9b46a6e2 content:19d8314c 30:ed594db5
+dash_ground_cooldown in:4ebc7c7d content:19d8314c 50:442d746f
+dash_ground_horizontal in:bf94d6c2 content:19d8314c 60:3eb53923 60:3eb53923
+dash_invulnerability in:8489bb4a content:19d8314c 20:b028fcd2
+dash_jump_down_ramp45_control in:5471e59d content:c7657b34 40:cbb20518
+dash_jump_down_ramp45_off_door in:9c624346 content:7ef098d4 40:912837e9
+dash_jump_flat_control in:6ed4385e content:5201204e 40:deae9747
+dash_jump_from_box_a_lip in:ea763472 content:5201204e 40:4ca3a042
+dash_jump_keeps_speed in:65ffbd7d content:19d8314c 50:f1882144
+dash_on_cling_frame_goes_away in:493258b1 content:50113a02 60:bbf8c704 60:bbf8c704
+dash_on_landing_tick_beside_step in:d723d38e content:22e7bf96 30:ec8c1e41
+dash_ride_reaches_walk_stop in:c044b272 content:180b281a 11:0311b4ad
+dash_same_distance in:ebf96d2d content:19d8314c 50:7ae9a1fa
+dash_slash_buffered_down_strike in:5283b133 content:19d8314c 30:964615b7
+dash_two_ticks_before_wall_goes_toward_it in:325ffd0b content:50113a02 30:bbb0a204
+dash_up_lip_stairs in:affd98c7 content:331559e1 120:d7e9e808 60:c998e590 120:d7e9e808
+dash_up_ramp_onto_door_at_crest in:a76113c0 content:7ef098d4 14:f62c64e8
+ddash_runs_on_onto_lip in:b6f9d75a content:661c15a4 24:eeea1a93
+ddash_stairs_relanding_keeps_speed in:4575fcd5 content:1ef32bff 12:1a18d59e
+down_dash_from_midair_lands_on_ledge_far_edge in:5c81ec43 content:fb35fadf 12:331dd36a
+down_dash_lands_on_ledge_far_corner in:03bae9d0 content:fb35fadf 24:ca3f5eda
+down_diagonal_toward_wall_never_clings in:6c11354d content:50113a02 20:ccfb1478
+down_strike_landing_jump in:f53ad359 content:19d8314c 30:3b88f248
+down_strike_missed_then_ground_strike in:7e8161e2 content:19d8314c 30:298be5c1
+fall_toward_raised_step_lands_on_top in:9b000017 content:e14cde2f 32:d52995f5
+far_edge_downstrike_buffered_jump in:da770475 content:fb35fadf 44:293d802f
+far_edge_downstrike_buffered_strike in:f37355bc content:fb35fadf 44:bd1f28e3
+far_edge_downstrike_buffered_strike_control in:e22bf5a6 content:fb35fadf 34:6b98ca05
+far_edge_downstrike_control in:5f9e5305 content:fb35fadf 34:df0a3fe6
+far_edge_landing_buffered_jump_keeps_stride in:e0a33aa0 content:fb35fadf 40:c742d88b
+far_edge_landing_lands in:0f2e84d0 content:fb35fadf 40:e845dec6
+far_edge_touch_then_ground_jump in:2371b9df content:fb35fadf 30:6cbe6c8a
+ground_corner_lift in:f818a4db content:3d8cdf87 60:ea2318e9 60:ea2318e9
+ground_crouch in:a7106b2a content:19d8314c 40:e71a0761
+ground_decel in:e7110796 content:19d8314c 30:bbf4d72b
+ground_drop_through in:820ca062 content:48062024 40:c2fd95f3
+ground_run_speed in:90560253 content:19d8314c 24:e4d26ba4
+ground_slopes in:4f18ff2e content:58d31ea4 90:c1883c36 60:d4c69b11
+ground_turnaround in:c217c1fa content:19d8314c 24:f231c718
+ground_turnaround_partial_speed in:f26e1c97 content:19d8314c 20:1dbcee32
+hazard_loop_stick_held_floor_spikes in:d8727d2b content:123157a0 200:dc8abc34 60:17166476 120:582adb58 180:792757c0
+hazard_loop_stick_held_pit in:4dea3f02 content:59c2d02e 200:08895777 60:7716b084 120:acc60a68 180:3ef1c2c0
+hazard_respawn_drops_stale_dash in:e591c281 content:59c2d02e 120:fdf85c1c 60:e9053269 120:fdf85c1c
+hazard_respawn_drops_stale_jump in:40aedb1e content:59c2d02e 120:2fa7edc5 60:fb976585 120:2fa7edc5
+hazard_respawn_stays_off_the_lip in:4dea3f02 content:59c2d02e 200:08895777 60:7716b084 120:acc60a68 180:3ef1c2c0
+input_buffer_latest_press in:669e9f03 content:d03427c6 30:d2ac35dd
+jump_air_jump in:a77be309 content:19d8314c 80:47ef8a0e 60:36eff169
+jump_buffer_8f in:643e7ea6 content:19d8314c 70:b4167861 60:36eff169
+jump_buffer_9f_expires in:245c9ebe content:19d8314c 70:b4167861 60:36eff169
+jump_buffer_control in:1be38d0c content:19d8314c 70:b4167861 60:36eff169
+jump_ceiling_bump in:97bb2de8 content:6a10cd84 40:667cf7f7
+jump_ceiling_nudge in:ccb7fcac content:6a10cd84 40:e47ee750
+jump_coyote in:0e26b2ae content:d72241b4 40:450c671a
+jump_coyote_frame6 in:528b2629 content:d72241b4 40:b443bf77
+jump_coyote_frame7 in:fbfdc866 content:d72241b4 40:acacb214
+jump_full in:e91ef9a8 content:19d8314c 60:2f387a47 60:2f387a47
+jump_on_cling_frame_kicks in:c2d042dd content:50113a02 30:952fd122
+jump_on_dash_cling_frame_kicks in:08db9427 content:50113a02 40:bcefd42b
+jump_on_dash_cling_frame_kicks_air_jump_spent in:fc96b4ac content:50113a02 40:dc5b3c4a
+jump_tap in:8e46c397 content:19d8314c 50:44ed7c39
+jump_tap_buffered_on_landing in:7bc6ad33 content:19d8314c 80:47ef8a0e 60:36eff169
+jump_terminal in:61baa7cc content:50113a02 60:8b965bfb 60:8b965bfb
+jump_two_ticks_before_wall_is_not_late in:eade1bcf content:50113a02 30:a53fbc57
+jump_variable_height in:a4097a6f content:19d8314c 50:44ed7c39
+land_across_ramp_rows_walks_back in:a7e220f2 content:e826ca96 31:257170b7
+land_across_ramp_rows_walks_on in:14e4a6e9 content:e826ca96 40:dbd7cf5c
+landing_clamps_dash_speed in:310f668b content:404267ea 200:e4e9a7c7 60:fa5be55d 120:19502848 180:26996c7f
+landing_no_lag in:d22f5a04 content:19d8314c 50:181d7134
+notch_fall_lands_on_block_across in:971ee0e6 content:0aea7f7b 20:498c3adb
+oneway_buffered_drop_through in:c92fa4e5 content:48062024 60:c84c6dfa 60:c84c6dfa
+oneway_lip_crouch_slide_down in:18be2219 content:d9a85984 30:62c4e41b
+oneway_lip_step_down_then_drop in:8dcd8a42 content:d9a85984 50:256f4367
+oneway_low_stick_jumps in:aecb93e0 content:48062024 30:41901e9a
+pogo_beats_hazard_same_frame in:6703478f content:123157a0 40:22c8508f
+pogo_bounce in:53b73147 content:123157a0 45:82b6ebbb
+pogo_bounce_control in:4c03c42c content:123157a0 60:ba3904a8 60:ba3904a8
+pogo_bounce_uses_up_jump_pressed_in_strike in:eb6baeda content:123157a0 60:ba3904a8 60:ba3904a8
+pogo_buffered_down_strike_stick_released in:fa5937a9 content:123157a0 70:b2108000 60:afa3d657
+pogo_chain_window in:f69b32b8 content:123157a0 50:7ceefa17
+pogo_chain_window_early_press in:ed1e53ac content:123157a0 70:29551601 60:a366fbb1
+pogo_dash_jump_speed in:ba0c8f9b content:123157a0 60:d56132d2 60:d56132d2
+pogo_down_dash_pogo in:8d389569 content:123157a0 60:d1d84148 60:d1d84148
+pogo_hitbox_frames in:4ed7a005 content:19d8314c 30:f432a67b
+pogo_keeps_horizontal in:7902c5e0 content:123157a0 80:00093bc9 60:f650b994
+pogo_resets in:48b16f85 content:123157a0 60:abb7c37f 60:abb7c37f
+safe_ground_never_in_crawl_gap in:c06b731f content:d3920cbf 120:ce002fba 60:99dab889 120:ce002fba
+safe_ground_never_on_wax in:59f8eaec content:1c0e38f7 400:e8383e41 60:3755d0b4 120:eafbc03c 180:bea6c8d3 240:641606ae 300:7cbb3401 360:7813e504
+side2_jump_waits in:1c12b650 content:19d8314c 50:44ed7c39
+strike_air_down_diagonal_pogo in:279169be content:123157a0 40:4a1cbe13
+strike_on_cling_frame_goes_away in:00a46503 content:50113a02 30:3487d678
+strike_on_landing_tick_beside_step in:d4ba67bc content:22e7bf96 20:818cda69
+strike_stick_a_little_up_is_side in:68b83266 content:19d8314c 30:8faca477
+strike_stick_up_diagonal in:eab17135 content:19d8314c 40:d1889493
+subframe_tap_is_kept in:81d2e1f4 content:d03427c6 12:6fcbd57c
+tech01_dash_slash in:662d55d0 content:19d8314c 60:cb79db97 60:cb79db97
+tech02_control_all_resources in:b1e601b1 content:f39f2131 160:f46b46cc 60:1c2ec11a 120:6f8c0aad
+tech02_control_carry_jump in:f0c5d0c3 content:f39f2131 170:b900214d 60:4c4ea100 120:926724ab
+tech02_control_carry_toss in:d1d23c39 content:f39f2131 260:84684729 60:11cc626f 120:5dd64ce8 180:60235745 240:69c735fc
+tech02_control_pogo_floor in:fc9efbe2 content:f39f2131 260:6537e96e 60:a79d011f 120:411a3de4 180:fe5a272a 240:4942846f
+tech02_control_toss_fall_teleport in:2a07b75d content:f39f2131 260:588edf84 60:4e739ef4 120:647b652e 180:bf332949 240:54502c7e
+tech02_control_toss_wall_kick in:4c634b2d content:f39f2131 320:0e097a4e 60:11cc626f 120:5dd64ce8 180:81657984 240:8ef720ea 300:cddfe4fc
+tech02_dash_jump_frame10_is_carry in:89dba438 content:19d8314c 30:c08348d4
+tech02_dash_jump_frame5 in:567f76c3 content:f39f2131 120:40dd88b0 60:f0177482 120:40dd88b0
+tech02_dash_jump_frame5_air_dash in:6b426132 content:f39f2131 200:927af65e 60:21eb4c2a 120:41e2fb91 180:48e6fb00
+tech02_dash_jump_frame9 in:50025062 content:f39f2131 120:2f0dd15c 60:990b2dcf 120:2f0dd15c
+tech02_respawn_does_not_keep_the_ember in:f5ed68c0 content:59c2d02e 200:dda6c213 60:9a4c8f0b 120:64fa46ae 180:8db0b678
+tech02_running_jump_falls in:9ad7c4ec content:f39f2131 120:387f9048 60:160bcf94 120:387f9048
+tech03_pogo_chain in:9072a000 content:6eea7c13 420:c0836fcf 60:6d09668a 120:6a40c99f 180:25c0a713 240:8e77e86e 300:97ade698 360:4bf8a5dd 420:c0836fcf
+tech04_pogo_dash_reset in:c49d0f7b content:6eea7c13 330:58c68f1e 60:a81f042f 120:efd91bbd 180:54edc1ad 240:bdab0e69 300:33560fca
+tech05_wall_kick_climb in:e114a748 content:6358d8a8 130:c2a965a3 60:6d2d6935 120:02c9e3f8
+tech05_wall_kick_mash in:fc99fa7d content:6358d8a8 130:9c311fe0 60:90f9b9f5 120:bf37a1d0
+tech06_wall_jump_dash in:888a0fe9 content:50113a02 80:55e23ef9 60:017e308a
+tech06_wall_jump_dash_narrow in:89b5b198 content:50113a02 60:498ca03b 60:498ca03b
+tech07_cooldown_resets_on_landing in:7b5e1aa2 content:22e7bf96 50:77fc0568
+tech07_coyote_dash in:b85814e1 content:d72241b4 60:c812deda 60:c812deda
+tech07_coyote_dash_late in:b4bc3c4f content:d72241b4 40:162aed98
+tech07_coyote_dash_on_cooldown in:5ce75f22 content:d72241b4 50:9cedf493
+tech07_redash_off_ledge in:26c6562d content:d72241b4 40:a859e0a1
+tech08_attack_cancel_landing in:a88c5c62 content:19d8314c 40:2f8c15e6
+tech09_control_forward_pogo in:b2ffca2d content:cd19ffc7 80:582b2bf3 60:30979b64
+tech09_reverse_pogo in:b2163f82 content:cd19ffc7 80:a15d1d1a 60:8b639bd2
+tech10_crouch_dash_down_forward in:dc81f037 content:f4586065 40:9bd2bda2
+tech10_crouch_dash_long_gap in:437535c3 content:81fae978 80:d5aecc47 60:ce5b80e4
+tech10_crouch_dash_under in:0a23e177 content:f4586065 50:2cfbc177
+tech10_jump_in_low_gap in:0dbca384 content:81fae978 60:0496ae9c 60:0496ae9c
+tech10_standing_dash_blocked in:5a810222 content:f4586065 30:e20a9851
+tech11_ember_far_wall in:1c35789c content:608ae4d1 160:a2ff51f4 60:97af17fc 120:ad0f350e
+tech11_ember_in_flight in:e07889c2 content:19d8314c 40:e101e00a
+tech11_ember_stops_on_ceiling in:41c298f0 content:19d8314c 90:a50c400a 60:33045f1d
+tech11_ember_stops_on_floor in:b35676ea content:19d8314c 60:bad1659d 60:bad1659d
+tech11_ember_stops_on_wall in:a6b754d1 content:19d8314c 60:c202c2b3 60:c202c2b3
+tech11_ember_toss_cancel in:873d37e1 content:608ae4d1 140:ef2f6530 60:a96722dd 120:4385e699
+tech11_teleport_crouches_into_low_gap in:90d778c3 content:f4586065 40:ca1e2b54
+tech11_teleport_into_cling in:59d5a34a content:19d8314c 80:6b2e2a03 60:f68e721c
+tech11_teleport_lands in:115bd4cc content:19d8314c 120:047b6461 60:60950c3f 120:047b6461
+tech11_toss_double_press in:d7b1d15f content:19d8314c 30:d49b4898
+tech11_toss_from_cling_goes_away in:5d42a3c5 content:50113a02 40:e287ded1
+tech11_toss_teleport_and_air_dash_same_frame in:0a228d0d content:19d8314c 70:cff55126 60:26a16a6c
+tech11_toss_teleport_and_ground_dash_same_frame in:ec89ce3f content:19d8314c 70:b9c5fdc1 60:64299bc4
+tech11_toss_teleport_and_jump_same_frame in:f9445f18 content:19d8314c 70:0d11d966 60:af92e814
+tech12_dash_from_wax_cling_without_kindle_goes_away in:49d4fa99 content:df0e9691 40:e83182e2
+tech12_kindle_dash in:03c7745f content:df0e9691 40:67baf717
+tech12_kindle_dash_along_wax_floor in:c9ece18e content:f4f18282 30:a2eb9ada
+tech12_kindle_dash_away_does_not_ignite in:7a64fcd0 content:df0e9691 30:2864c14b
+tech12_kindle_dash_from_wax_cling_burns_through in:8a4dcd1a content:df0e9691 40:f97ea804
+tech12_kindle_dash_into_wax_from_air in:91e2d201 content:df0e9691 30:ce0f0a7e
+tech12_kindle_dash_resets_air_jump in:6a9249ef content:df0e9691 40:50b17ab9
+tech12_wax_blocks_without_kindle in:2cb68793 content:df0e9691 40:8020dd11
+toss_ember_goes_out_on_hazard_respawn in:6e9670ae content:59c2d02e 140:a7713b86 60:b52c65b3 120:23ac5622
+toss_on_cling_frame_goes_away in:77fb200f content:50113a02 40:0e04dbfc
+turn_after_hazard_in_wall_jump_lock in:ffa44d11 content:b2f55d5b 50:e8fef2b0
+up_strike_dash_cancel_edges in:a6230360 content:19d8314c 30:0f1ae124
+up_strike_never_cancels_itself in:ed756278 content:19d8314c 24:e73bbe52
+up_strike_no_jump in:1e6f8516 content:19d8314c 30:5b83622d
+walk_down_ramp12_off_lip_stays_grounded in:b81fe041 content:0ee09c2d 120:09325167 60:9a950f4b 120:09325167
+walk_down_ramp45_off_door_stays_grounded in:3d1fde3d content:7ef098d4 120:35c5933c 60:388fa07f 120:35c5933c
+walk_steps_down_small_lips in:84760467 content:5201204e 90:a36586b9 60:c7c1502b
+walk_steps_up_small_lips in:40353b12 content:5201204e 170:a3b39430 60:dcc92075 120:02df1674
+walk_up_lip_stairs in:fdf83bae content:331559e1 200:2f8cca3f 60:0d19a2f8 120:260afb83 180:1a470bca
+walk_up_ramp12_onto_lip_at_crest in:4fb2f1e7 content:0ee09c2d 60:9a950f4b 60:9a950f4b
+walk_up_ramp45_onto_door_at_crest in:48389e4f content:7ef098d4 60:388fa07f 60:388fa07f
+walk_up_ramp45_onto_lip_far_past_crest in:6781536d content:f3817e74 60:1487984f 60:1487984f
+walk_up_ramp45_onto_lip_past_crest in:a66a185a content:b993bd83 60:077270d2 60:077270d2
+wall_cling_budget_carries_to_other_wall in:96d7225d content:50113a02 200:bdeb4082 60:e64c7aa4 120:baf990b3 180:f1f55891
+wall_cling_buffered_jump in:717dec03 content:50113a02 40:d84b6724
+wall_cling_down_drops in:d753848c content:50113a02 60:1c929016 60:1c929016
+wall_cling_regrip in:e0e1e32f content:50113a02 200:5a0f23b2 60:e64c7aa4 120:e307472a 180:c7a66d1e
+wall_cling_resets in:83a00fda content:50113a02 60:62d2294b 60:62d2294b
+wall_cling_slide in:cafd3e2e content:50113a02 130:9a582d2f 60:1834dbb6 120:3951b0a7
+wall_cling_strike_away in:d01b4a6d content:50113a02 30:5580b20f
+wall_coyote in:51be2a89 content:50113a02 40:0fc12bf1
+wall_coyote_expires in:963ebea5 content:50113a02 40:1425a1bf
+wall_coyote_frame6 in:dfb669de content:50113a02 40:721cc6ff
+wall_jump in:db97a673 content:50113a02 40:08e4a448
+wall_jump_resets in:0dc4b390 content:50113a02 80:29ba457a 60:af855d62
+wall_kick in:060d1fe1 content:50113a02 40:f80ed4f8
+wall_kick_into_pogo in:34368732 content:f498a0a9 150:252e6efa 60:1c135dff 120:b4f1c642
+wall_kick_neutral in:844576ea content:50113a02 40:458d30e4
+wall_ledge_grab in:541daed8 content:6358d8a8 20:0fb455de
+wall_ledge_grab_too_low in:5d59dfcf content:6358d8a8 20:084353d9
+wall_spent_still_kicks in:a13ec125 content:50113a02 260:66606639 60:e64c7aa4 120:2603ebd2 180:ead2bc14 240:efb51ca3

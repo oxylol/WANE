@@ -1,0 +1,14 @@
+fixture strike_on_landing_tick_beside_step
+doc BUILD.md s6 "Attacking turns the player instantly" (movement review 5, M4): Ash drops beside test/step's 32 u step face and lands on frame 5, 2 u from it; attack with the stick left on that tick. Side 1 goes left, toward the step (its 68 u box reaches over the step's top). A landing is not a cling; it used to come out facing the open floor.
+room test/step
+spawn 652 560
+frames 20
+input
+  0..4
+  5 L attack
+  6..19 L
+end
+expect
+  at 5 event.attack=1 action=side1 action_dir=-1
+  never 0..19 event.wall_cling=1
+end

@@ -28,8 +28,11 @@ const SLOPE_L_HI: int = 8
 const SLOPE_L_LO: int = 9
 ## Spikes: not solid; a hazard volume in the lower part of the tile; pogo-able.
 const SPIKES: int = 10
+## A bottomless pit: not solid; the whole tile is a hazard volume, and there is nothing in it to
+## pogo off (movement review 5, H1: tech 2's chasm).
+const PIT: int = 11
 ## Map characters, in tile-id order (see docs/adr/0009).
-const CHARS: String = ".#S=/\\abcd^"
+const CHARS: String = ".#S=/\\abcd^~"
 
 var width: int = 0
 var height: int = 0

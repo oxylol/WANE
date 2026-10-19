@@ -10,6 +10,8 @@ const WALL := Color(0.34, 0.34, 0.38)
 const SMOOTH := Color(0.42, 0.4, 0.5)
 const ONE_WAY := Color(0.62, 0.62, 0.66)
 const SPIKE := Color(0.8, 0.22, 0.2)
+## A pit: near-black with a red lip (a hazard you fall into, not a floor).
+const PIT := Color(0.03, 0.02, 0.03)
 const SOLID_BOX := Color(0.32, 0.42, 0.55)
 const TEXT := Color(0.9, 0.9, 0.85)
 const GRID := Color(0.12, 0.12, 0.15)
@@ -72,6 +74,9 @@ func _draw_tile(img: Image, region: Rect2i, c: int, j: int) -> void:
 		for x: int in range(t):
 			var h: int = (t - inset) * (8 - absi(x % 8 * 2 - 7)) / 8
 			fill(img, region, Rect2i(cell.position.x + x, cell.end.y - h, 1, h), SPIKE)
+	elif tile == TileGrid.PIT:
+		fill(img, region, cell, PIT)
+		fill(img, region, Rect2i(cell.position, Vector2i(t, 1)), SPIKE)
 	elif TileGrid.is_slope(tile):
 		for x: int in range(t):
 			var sx: int = Fx.units(c * t + x)

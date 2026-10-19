@@ -1,0 +1,19 @@
+fixture dash_cancel_attack_survives_cling
+doc BUILD.md s15 Combat, the dash cancel "never eats the next attack input" (movement review 5, H2). Air side 1 in tech 6's shaft, attack pressed on its frame 3, an air dash toward the wall on its frame 4: the dash meets the wall and clings before it allows a strike. The press waits the attack buffer from the cling and fires on the next frame, away from the wall. It used to be dropped with the dash.
+room test/shaft
+spawn 700 300
+frames 40
+input
+  0 R
+  1 R attack
+  2 R
+  3 R attack
+  4 R dash
+  5..39 R
+end
+expect
+  at 1 event.attack=1 action=side1
+  at 4 event.dash=1
+  mark cling 4..20 event.wall_cling=1
+  at cling+1 event.attack=1 action=side2 action_dir=-1
+end

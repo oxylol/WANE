@@ -72,6 +72,16 @@ func _panel(
 	var first := Body.make(path[0].x, path[0].y, 10 * U, 44 * U)
 	if _embedded(w, first):
 		_problems.append("panel %d: the box starts inside something solid" % label)
+	# The joins a room's loader checks (docs/adr/0008 decision 12): a panel never shows a room the
+	# game would refuse (physics review 7, L3).
+	var room := RoomData.new()
+	room.grid = w.grid
+	room.solids = w.solids
+	var tuning: WorldTuning = load(WorldTuning.PATH) as WorldTuning
+	for problem: String in RoomJoins.errors(
+		room, Fx.units(tuning.join_band_u), Fx.units(tuning.join_reach_u)
+	):
+		_problems.append("panel %d: %s" % [label, problem])
 	var cs := ContactSheet.new(w, SCALE)
 	var img: Image = cs.room_image(region)
 	for i: int in range(path.size()):
@@ -226,7 +236,9 @@ func _door_on_ramp() -> void:
 	_panel(w, Rect2i(0, 0, 320, 192), path, 2, 7)
 
 
-## 8: walking along a solid box's top onto the slope that rises out of it, and back.
+## 8: walking along a solid box's top onto the slope that rises out of it, and back: the slope
+## crosses the top mid-run, and the box runs on under the ramp deeper than the join band (a join
+## decision 12 allows: physics review 7, L2 and L3).
 func _solid_top_to_slope() -> void:
 	var w: CollisionWorld = _world(["..........", "..........", "..#\\......", "##########"])
 	w.solids.append(SolidBox.make(96 * U, 86 * U, 250 * U, 120 * U))

@@ -1,0 +1,14 @@
+fixture dash_two_ticks_before_wall_goes_toward_it
+doc docs/adr/0010, the wall: a press is a press on the wall only on the tick the move clings to it (movement review 5, M4). Falling toward tech 6's shaft wall (800 u) at run speed, the dash pressed with the stick toward it 11.5 u short: this tick's move ends 2.5 u away, so no cling comes this tick. The air dash goes right, meets the wall that same tick and clings at once (facing away from it, as every cling does). It used to be turned away, 180 u from the wall.
+room test/shaft
+spawn 720 300
+frames 30
+input
+  0..9 R
+  10 R dash
+  11..29 R
+end
+expect
+  at 10 event.dash=1 event.wall_cling=1 x=790u
+  never 10..20 x<790u
+end

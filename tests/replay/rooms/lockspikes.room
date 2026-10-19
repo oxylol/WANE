@@ -1,0 +1,23 @@
+room test/lockspikes
+# Movement review 5, L7: a clingable wall (its face at x 128) with a spike tile above the cling
+# point, and safe floor at y 416 to the right: a wall-jump into the spikes sends Ash back with the
+# wall-jump's direction lock running.
+size 20 15
+spawn 200 416
+tiles
+####################
+####...............#
+####...............#
+####...............#
+####...............#
+####^..............#
+####...............#
+####...............#
+####...............#
+####...............#
+####...............#
+####...............#
+####...............#
+####################
+####################
+end

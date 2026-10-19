@@ -1,0 +1,19 @@
+fixture dash_cancel_latest_attack_press_wins
+doc BUILD.md s5 feel rule "the buffer always stores the latest input" (movement review 5, M3). Side 1, attack (neutral) pressed on its frame 3, a dash on its frame 4 that takes that press over, then attack with the stick up on dash frame 3. On dash frame 6 the up-strike comes out: the newer press replaces the one the dash took over, which used to win with its old stick.
+room test/flat
+spawn 200 544
+frames 40
+input
+  0 attack
+  2 attack
+  3 R dash
+  4 R
+  5 U attack
+  6..7
+end
+expect
+  at 0 event.attack=1 action=side1
+  at 3 event.dash=1
+  at 8 event.attack=1 action=up
+  never 9..39 event.attack=1
+end

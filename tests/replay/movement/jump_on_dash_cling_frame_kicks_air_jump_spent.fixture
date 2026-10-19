@@ -1,0 +1,17 @@
+fixture jump_on_dash_cling_frame_kicks_air_jump_spent
+doc Control for jump_on_dash_cling_frame_kicks: the same with the air jump spent first. The press could only ever wait, and kicks off on the cling, the same outcome as with the air jump left.
+room test/shaft
+spawn 700 300
+frames 40
+input
+  0 jump
+  1 R dash
+  2..4 R
+  5 R jump
+  6..39 R jump
+end
+expect
+  at 0 event.air_jump=1
+  at 1 event.dash=1
+  at 5 event.wall_cling=1 event.wall_kick=1
+end

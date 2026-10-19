@@ -11,14 +11,25 @@ extends SceneTree
 ## (the 8 u lift and 6 u slide, and in the air the far-edge landing first, which tries the plain
 ## step on a copy of the body: physics review 6, L3).
 ##
-##   godot --headless --path . --script tools/bench/physics_bench.gd
+## The patrols take the far-edge landing a handful of times in 40,000 body-ticks, so its own cost
+## is measured apart (physics review 7, L4): 200 bodies each put just above a platform's far edge,
+## falling onto it as they move off it, every one of them landing there, timed against the plain
+## air step from the same places in open air.
+##
+##   godot --headless --path . --script tools/bench/physics_bench.gd [-- far_edge]
 
 const BODIES: int = 200
 const TICKS: int = 200
 const WIDTH: int = 118
+## Repeats of the far-edge measurement's 200 steps.
+const FAR_EDGE_REPS: int = 50
 
 
 func _initialize() -> void:
+	if OS.get_cmdline_user_args().has("far_edge"):
+		_far_edge_rows()
+		quit(0)
+		return
 	var grounds: Dictionary[String, Array] = {
 		"flat": _flat_rows(),
 		"slopes": _slope_rows(),
@@ -34,7 +45,52 @@ func _initialize() -> void:
 					var ms: float = _run(rows, speed, solids, ground == "ledges", lift)
 					var mover: String = "player" if lift > 0 else "enemy"
 					print("%-8s %6d  %2d u/f  %-6s  %5.2f" % [ground, solids, speed, mover, ms])
+	_far_edge_rows()
 	quit(0)
+
+
+func _far_edge_rows() -> void:
+	print("step                 speed  landed   us per step")
+	for speed: int in [9, 20]:
+		var far: Vector2 = _far_edge_cost(speed, 0)
+		var plain: Vector2 = _far_edge_cost(speed, 64)
+		print("far-edge landing     %2d u/f  %3d/%d  %6.1f" % [speed, far.y, BODIES, far.x])
+		print("plain air step       %2d u/f  %3d/%d  %6.1f" % [speed, plain.y, BODIES, plain.x])
+
+
+## Microseconds per player air step (a body copy included) for bodies put 2 u above the platforms
+## of the ledge ground, 8 u inside each far edge, moving off it at [param speed] u/f and falling
+## 8 u/f, raised [param raise_u] above that (64 u: open air, the plain step); and how many landed
+## on the edge.
+func _far_edge_cost(speed: int, raise_u: int) -> Vector2:
+	var w := CollisionWorld.new(TileGrid.from_rows(PackedStringArray(_ledge_rows())))
+	var starts: Array[Body] = []
+	for i: int in range(BODIES):
+		# Platform k spans x 128 k + 32 to 128 k + 128, its top at y 192.
+		var edge: int = Fx.units(128 * (i % (WIDTH / 4 - 1)) + 128)
+		starts.append(
+			Body.make(edge + Fx.units(2), Fx.units(190 - raise_u), Fx.units(10), Fx.units(44))
+		)
+	var lift: int = Fx.units(8)
+	var slide: int = Fx.units(6)
+	var dx: int = Fx.units(speed)
+	var dy: int = Fx.units(8)
+	var landed: int = 0
+	var start: int = Time.get_ticks_usec()
+	for rep: int in range(FAR_EDGE_REPS):
+		for s: Body in starts:
+			var b: Body = s.copy()
+			var contact: int = w.landing_contact(b, dx, dy, lift, slide)
+			if contact != CollisionQueries.NONE:
+				landed += 1 if rep == 0 else 0
+				w.move_x(b, contact)
+				w.move_y(b, dy)
+				w.walk(b, dx - contact, lift)
+			else:
+				w.move_x(b, dx, lift, slide)
+				w.move_y(b, dy, slide)
+	var us: float = float(Time.get_ticks_usec() - start) / float(FAR_EDGE_REPS * BODIES)
+	return Vector2(us, landed)
 
 
 func _flat_rows() -> Array[String]:

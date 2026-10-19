@@ -26,7 +26,7 @@ entity <kind> <x> <y> [key=value]...                         # a marker for late
 ```
 
 - Tile characters (`TileGrid.CHARS`):
-  - `.` empty, `#` solid, `S` smooth (solid, not clingable), `=` one-way, `^` spikes;
+  - `.` empty, `#` solid, `S` smooth (solid, not clingable), `=` one-way, `^` spikes, `~` a pit (a hazard filling the tile, nothing to pogo off: movement review 5, H1);
   - `/` and `\` 45-degree slopes rising right and left;
   - `a` `b` a 1:2 slope rising right (low half, then high half), `c` `d` one rising left (high half, then low half).
 - A `#` starts a comment anywhere outside the tile block. Outside the grid is solid.

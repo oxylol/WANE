@@ -1,0 +1,17 @@
+fixture tech12_dash_from_wax_cling_without_kindle_goes_away
+doc Control for tech12_kindle_dash_from_wax_cling_burns_through: without the Kindle Votive wax is a wall like any other, and a dash from a cling with the stick toward it goes away from it (docs/adr/0010, the wall).
+room test/wax
+spawn 760 544
+frames 40
+input
+  0..14 R jump
+  15..19 R
+  20 R dash
+  21..39 R
+end
+expect
+  at 16 event.wall_cling=1 state=wall
+  at 20 event.dash=1 facing=-1
+  never 0..39 event.ignite=1
+  at 29 x<700u
+end

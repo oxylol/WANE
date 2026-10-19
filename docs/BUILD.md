@@ -224,7 +224,7 @@ The pogo is the heart of the movement system. Attacking down while airborne, on 
 All of these must work for every Wick (with their overrides) and be taught by the world, never by a tutorial pop-up.
 
 1. **Dash-slash**: dash into attack, frame-perfect cancel. Taught by a tight corridor of weak enemies.
-2. **Dash-jump**: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide: since the air jump, the air dash and the Ember Toss carry every route further, that is a width only a route with a dash-jump crosses, 1664 u for Ash, 59 u past the farthest route without one (docs/adr/0010; `tools/replay/gap_reach.gd` measures it).
+2. **Dash-jump**: carry dash speed into a jump. Taught by a gap exactly one dash-jump wide: since the air jump, the air dash and the Ember Toss carry every route further, that is a width only a route with a dash-jump crosses, 1664 u for Ash over a pit, 62 u past the farthest route without one (docs/adr/0010; `tools/replay/gap_reach.gd` measures it).
 3. **Pogo chain**: bounce off a line of enemies or hazards. Taught by a spike pit with Snuffed in it.
 4. **Pogo-dash reset**: pogo resets the air dash, so pogo, dash, pogo again crosses anything. Taught by a hidden room.
 5. **Wall-kick climb**: climb a single wall with neutral kicks. Taught by a well.

@@ -1,5 +1,5 @@
 fixture hazard_loop_stick_held_pit
-doc (movement review 4, M1) Review 4 (round 3's M3 is not closed): walking right off the chasm's edge into the spikes, holding right throughout, as hazard_respawn_stays_off_the_lip does. The 16 u margin puts the respawn at x 453 u, 27 u from the edge, and the stick still held walks Ash back off it 7 ticks later, inside the 20 f of hazard invulnerability, well inside a human's reaction time (about 12 ticks): the respawn-and-fall loop still runs, every 29 to 30 frames instead of every 23.
+doc docs/adr/0010, hazards (movement review 4, M1): walking right off the chasm's edge into the spikes, holding right throughout. The respawn is on safe ground 16 u back from the lip (x 453 u, 27 u from the edge) and the stick held through the send-back is ignored until it is let go or turned, so Ash stays put: no second hazard while the stick is still held from the first. (It used to walk Ash straight back off the edge, a respawn-and-fall loop every 29 to 30 frames.)
 room test/spike_chasm
 spawn 300 384
 frames 200
