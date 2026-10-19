@@ -1,0 +1,19 @@
+fixture zone1_09_control_hop_lands_in_front
+doc Control for tests/replay/zone1/09_reverse_pogo.fixture: without the dash, a running hop that turns back and strikes the guard's head from in front bleeds its forward speed in the turn (ADR-0010: air control, 8 f from 0 to max) and falls back in front of the guard, pressed against its west face (x 1046). The dash's speed is what clears the guard
+seed 1
+room zone1/09_reverse_pogo
+spawn 74 960
+frames 160
+input
+  0..101 R
+  102..103 R jump
+  104..106 R
+  107 L D attack
+  108..159
+end
+expect
+  mark bounce 108..115 event.pogo=1
+  at bounce facing=-1
+  mark land bounce+1..159 event.land=1
+  at land x<1056u y=960u facing=-1
+end
