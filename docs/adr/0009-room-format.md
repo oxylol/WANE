@@ -5,6 +5,16 @@
 - BUILD.md sections: 9 (rooms, zones), 13 ("Room templates and handcrafted vistas"; content as data), CLAUDE.md "Rooms are authored in the room editor plugin (`tools/room_editor/`) and stored as text"
 - Checklist lines: none directly; every movement fixture runs in a room
 
+## Summary
+
+- A room is a `.room` text file parsed by `core/rooms/room_data.gd`: `room`, `size`, `spawn`, a `tiles` block, `solid`, `entity`, `door` lines (see Decision).
+- The `room` id must match the path: `content/rooms/<id>.room`, or `tests/replay/rooms/<name>.room` for id `test/<name>` (see Decision).
+- Tile characters (`TileGrid.CHARS`): `.` `#` `S` `=` `^` `~`, 45-degree `/` `\`, 1:2 slopes `a` `b` (right) and `c` `d` (left) (see Tile characters).
+- `RoomData.errors` collects every problem, `TileGrid.validate()` included; `Simulation` reports `load_errors`, which fail fixtures (see Validation).
+- Solid tags: `tag=pogo` is pogo-able, `tag=wax` is ignited by a kindle-dash, `cling=0` makes a solid smooth (see Solid tags).
+- Room text is in the content hash (`ContentHash.add_room`); the simulation copies the room's solids, so breaking one never changes the room (see Determinism).
+- `RoomData.to_text()` inverts `parse()` for the editor; entities are parsed but not yet simulated; doors are ADR-0014 (see Consequences).
+
 ## Context
 
 CLAUDE.md requires rooms authored in an editor plugin and stored as text, so that an agent can read and diff them and replays can name them. The physics (ADR-0008) needs a tile grid plus rectangles for things that change (doors, wax walls), and the simulation needs a spawn point and entity markers. Task 3 needs rooms before the editor exists (task 7).

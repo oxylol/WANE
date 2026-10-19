@@ -5,6 +5,19 @@
 - BUILD.md sections: 5 (all movement tables, the twelve tech interactions, the feel rules), 6 (the Taper's cancel column, Ember Toss)
 - Checklist lines: every Movement line; Combat "Dash cancels an attack on frame 4 and the cancel never eats the next attack input"
 
+## Summary
+
+- `core/fsm/player.gd` runs locomotion and a strike layer side by side, the Ember Toss beside both; the toss acts before dash and jump (see Structure).
+- Stick threshold 64 of 127; dash and toss read 8 sectors, strikes 4; a buffered press keeps its press-time stick; buffers are 8 f (see Reading the stick).
+- Landing by any route restores air jump and dash, clears the ground dash cooldown, caps speed at run speed; air keeps dash speed (see Landing, Air momentum).
+- Ground: turnaround keeps 60% speed; crouch needs the stick straight down. Jump: apex hang 4 f at 0.6x, release cut from frame 4, coyote (see Ground, Jump).
+- Dash: 20 u/f for 9 f then 3 f at 50%, invulnerable frames 1 to 7, 24 f ground cooldown, one air dash per airtime, dash-jump on frames 5 to 9 (see Dash).
+- Wall: cling slides 3 u/f up to 90 f; the first cling since a landing restores jump and dash; wall coyote 6 f; wall-jump 5 f lock, kick 1 f (see Wall).
+- A dash cancels a strike from its table frame and keeps an earlier attack press (`Player.queued_attack_left`); strikes turn at once (see Cancels, Strikes).
+- Pogo: down-strike box 36 x 24 u live on frames 3 to 9; the bounce keeps horizontal speed, restores jump and dash, and beats a hazard that frame (see Pogo).
+- Hazards send back to safe ground (`safe_ground_margin_u` 16 u), 20 f invulnerable; Ember Toss: 600 u/s, 12 s cooldown, fit 24 u (see Hazards, Ember Toss).
+- Tech 2's chasm is 1664 u (a crossing needs 1654 u of reach; no-dash-jump routes reach 1592 u); see also Reverse pogo, Kindle-dash and the director questions.
+
 ## Context
 
 BUILD.md section 5 gives numbers, not rules for how they combine. Several rows also conflict, with each other or with the checklist:

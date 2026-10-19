@@ -8,6 +8,19 @@
   - 13, presentation: "the camera"; "Rendering interpolates between the last two simulation states".
 - Checklist lines: Movement, "The camera never shows the player within 80 units of the screen edge during normal play". Also CLAUDE.md rule 9: "The camera never takes control during combat. Lead, dead zone and lerp values come from `content/camera.tres`".
 
+## Summary
+
+- `CameraRig` is stepped once per tick from a `CameraSubject`; `GameCamera` interpolates between ticks; every value is in `content/camera.tres` (see Decision).
+- Horizontal is rigid: the player plus a 60 u lead, a 40 u dead zone, no smoothing; the lead swings 4 u a tick when Ash turns (see Horizontal).
+- The lead follows a turn only after 120 u (`lead_commit_u`) or 20 ticks; no turn commits after a wall touch until 400 u away (see Horizontal).
+- Vertical: the view rests on the last support, eases up to a higher one at 8 u a tick, follows the feet down at once, in air only beyond 256 u (see Vertical).
+- Vertical speed changes at most 3 u per tick per tick; a view faster than the player may slow to the player's speed at once (see Never outrunning the player).
+- Look-down: 200 u at 8 u a tick after 20 ticks crouched with the stick down; a dash, strike or spell never asks for it (see Look-down).
+- Falls look 20 ticks ahead, up to 16 u a tick, never past ground air control can reach; an up-dash shows 120 u ahead (see Falls, Up-dashes).
+- Room edges: the view centre stays in the room grown by 80 u, eased in over 160 u; vertical bounds add `edge_slack_u` 48 u (see Room edges).
+- The player stays 80 u from the view edge, `follow_misses` 0; a teleport glides 24 ticks, or cuts inside `glide_cut_u` 160 u (see The margin, Teleport).
+- Combat never moves the camera and shake offsets the drawn view only; fixtures play at 16:9, 16:10, 4:3, 21:9 (see No combat control, Screen shape).
+
 ## Context
 
 BUILD.md gives the camera four numbers and a principle. Followed literally, the numbers fight the player in four places, measured on the camera fixtures (`tests/replay/camera/`) before the rules below existed:

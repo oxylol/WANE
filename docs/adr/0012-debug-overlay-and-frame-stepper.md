@@ -11,6 +11,19 @@
   - Process, "The F3 overlay shows hitboxes, state, frame counter and input history in the build";
   - Movement, "Landing on a 1-pixel ledge edge lands; the corner-correction nudge is invisible"
 
+## Summary
+
+- Keys (`game/debug/debug_controls.gd`, keyboard only): F3 shows the overlay; with it shown F4 pauses, F5 steps one tick, F6 ten; no modifiers (see Keys).
+- Stepping goes through `SimDriver.step_once`, the play path: it polls, records the replay and fires the tick signal (see Keys).
+- Boxes (`game/debug/debug_boxes.gd`): collider, hurtbox, strike, pogo, ember, solids, spikes, pits, bounce and hazard marks; never interpolated (see Boxes).
+- Text (`debug_overlay.gd`) uses Godot's embedded default font at 18 px on 26 px lines; frame F is the state after input frame F (see Text).
+- Input history (`input_history.gd`) shows `Simulation.last_input` as runs of identical ticks, 24 kept, in numpad stick notation (see Input history).
+- The overlay records history every tick even while hidden and never writes the simulation; tests check the state hash does not move (see Input history).
+- The frame-stepped contact sheet is `tools/replay/film.gd --overlay on` (`--zoom Z`, `--set`); `play.gd` stays headless (see The frame-stepped contact sheet).
+- The drawn player eases a corner nudge over `nudge_ease_frames` (3), lag capped by `nudge_lag_percent` (200); the collider never moves (see The drawn player).
+- The overlay collider and the drawn player may differ during an ease by up to twice the run's largest nudge; that is the ease, not a bug (see Consequences).
+- Every new system adds its boxes and lines to the overlay, which draws only while shown (see Consequences).
+
 ## Context
 
 Every checklist line is checked with the F3 overlay on, and every contact sheet is filmed with it (CLAUDE.md working method, step 5). So the overlay must show exactly what the simulation resolved on a tick, and stepping must not change what happens.

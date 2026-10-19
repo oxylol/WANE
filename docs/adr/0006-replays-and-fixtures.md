@@ -5,6 +5,18 @@
 - BUILD.md sections: 13 (determinism and replays; testing and CI)
 - Checklist lines: Run tension, "A seeded replay of a full run reproduces bit-for-bit on Windows, Linux and the Deck"; Process, "CI is green"
 
+## Summary
+
+- `.wrp` replays hold versions, content fingerprint, `Scenario`, two coded input streams and a hash every 60 ticks; under 2 KB a minute (see Replay files).
+- The decoder rejects malformed data and more than four hours of frames; the game writes `user://replays/last_session.wrp` on exit (see Replay files).
+- `ReplayPlayer` needs hashes at every 60th tick plus the last; an older build or different content is reported, not a desync (see Verification).
+- `tools/replay/bless.gd` refuses to re-bless moved state hashes with unchanged inputs and content unless `Simulation.VERSION` is bumped (see Verification).
+- Every fixture is encoded and decoded; full playback runs for `tests/replay/core/` and every fourth fixture, `FixtureRunner.PLAYBACK_EVERY` (see Cost).
+- The suite runs in up to four processes (`FixtureRunner.MAX_SHARDS`) inside a 10 s wall-clock budget; fixture time is printed beside it (see Shards).
+- `StateHasher` takes the first 32 bits of the native SHA-256 of a buffer of 64-bit words, 56 us a hash (see State hash).
+- `.fixture` is a text language (`input`, then `expect` with at, during, never, mark); anything undefined fails and nothing passes vacuously (see Fixtures).
+- CI runs fixtures on Linux, Windows and macOS against `tests/replay/golden_hashes.txt`; `bless.gd` rewrites it (see Determinism checks).
+
 ## Context
 
 BUILD.md section 13: "Every run records seed, Wick, difficulty, pacts and the input stream (about 2 KB per minute). A replay reproduces the run bit-for-bit on any platform; a desync is a P0 bug caught by a state hash every 60 ticks. All 12 tech interactions and every boss phase are replay fixtures in tests/replay/: an input script and the expected state at named frames. They run headless in under 10 seconds total."

@@ -5,6 +5,18 @@
 - BUILD.md sections: 5 (feel rules), 6 (hit feedback: "Hitstop is never applied to the player's own input reading"), 12 (input), 13 (input layer)
 - Checklist lines: Movement, "Jump pressed 8 frames before landing fires on the landing frame"; Combat, "Hitstop never causes a dropped input; buffered inputs fire on the first free frame"; "Attack comes out on frame 3 from a neutral press, every time, including during hitstop"
 
+## Summary
+
+- `InputFrame` holds `held` and `pressed` bitfields (7 buttons) and an 8-bit signed stick (plus/minus 127, +y down); 30 bits in replays (see Decision 1).
+- `pressed` carries every rising edge since the last tick, including a press and release that both fall between two ticks (see Decision 1).
+- `game/input/` owns remapping and dead zones: buttons down at 50% and up below 40%, stick dead zone inner 12% and outer 95%, steps of 8 (see Decision 2).
+- Every poll re-reads the devices so a missed release cannot stick a button; a button pressed during a pause counts as held on resume (see Decision 2).
+- `InputRing` has 9 slots (ages 0 to 8); a query returns the latest unconsumed press and `consume` also uses all older presses of that button (see Decision 3).
+- During hitstop the new frame merges into the newest slot instead of pushing, so a press made then is 1 frame old on the first free frame (see Decision 4).
+- Hold time is counted per button outside the ring, so holds past 9 frames (the 24 f charged strike) are exact (see Decision 5).
+- Directions are derived from the stick inside the core with a content threshold, so keyboard, d-pad and stick behave alike (see Decision 6).
+- `Simulation` decides push or merge per tick from the player's freeze state (see Consequences).
+
 ## Context
 
 BUILD.md section 13: "polls raw device state every frame before physics into an InputFrame (buttons as a bitfield, stick as fixed-point) and keeps an 8-frame ring buffer that always serves the latest press." Section 5: "Buffers are generous (8 f) and the buffer always stores the latest input." Section 15 requires a jump pressed 8 frames before landing to fire on the landing frame, so a press must still be available when it is 8 frames old. Section 6 requires that hitstop (up to 20 frames) never drops an input.

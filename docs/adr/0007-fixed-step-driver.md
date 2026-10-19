@@ -5,6 +5,16 @@
 - BUILD.md sections: 1 (GOTY bar: input-to-photon latency at most 2 frames; "unlocked to 240 on PC, with deterministic 60 Hz simulation"), 5 (feel rules: "acted on the same frame"), 13 ("Rendering interpolates between the last two simulation states for high refresh rates")
 - Checklist lines: Graphics and feel, "No frame-time spike above 20 ms ..." (indirectly); Movement, every line (no added latency)
 
+## Summary
+
+- `SimDriver` steps a tick as soon as any of its 1/60 s has begun; views draw `lerp(previous, newest, alpha)` with alpha in (0, 1] (see Decision 1).
+- Input is polled once per tick right before its step; catch-up frames poll per tick and never lose a latched press (see Decision 2).
+- After 120 frames in a row within 0.6 ms of a whole tick count the driver locks to whole ticks and repays drift in whole ticks (see Decision 3).
+- Unlocked frames are counted exactly and interpolated; over 6 misses in 60 unlocks; 30 vsync frames relock after a stutter (see Decision 4).
+- After a hitch the driver steps at most 4 ticks in one frame and drops the remaining time (see Decision 5).
+- The frame-stepper (paused driver) draws the newest state with alpha 1 (see Decision 6).
+- Views keep the previous and newest state of what they interpolate; the contract is tested in `tests/unit/game/test_sim_driver.gd` (see Consequences).
+
 ## Context
 
 The simulation runs at exactly 60 Hz; displays run at 60, 120, 144, 240 Hz or odd rates such as 59.94 or 62 Hz. The textbook fixed-step loop ("step while the accumulator holds a full tick, then draw lerp(previous, current, accumulator / tick)") always draws the previous tick at 60 Hz, adding a full frame (16.7 ms) of display latency to every input, which the GOTY bar's 2-frame latency budget cannot afford.

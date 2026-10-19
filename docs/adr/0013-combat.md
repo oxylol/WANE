@@ -17,6 +17,19 @@
   - "A kill releases an ember that reaches the player within 20 frames; Flame reacts";
   - Graphics and feel, "Screen shake at default 50% never moves the frame more than 3 units".
 
+## Summary
+
+- Each tick: input, player step, enemy steps, then `Combat.resolve` (effects age, player hits, enemy hits); player hits win a tie (see Order within a tick).
+- One strike, one hit: every strike, spell and pogo has a serial and an enemy keeps the last; Blaze trails burn once per strike (see One strike, one hit).
+- Flame: 11 per Taper hit, 8 per pogo, 33 per parry, 11 per kill ember (arrives in 16 ticks); Kindling +1 per hit, +5 per parry (see Damage, Flame, Kindling).
+- Hitstop: light 2 f, finisher 4, Charged 6, parry 12, kill 3 or more, player hit 8 (player only); damage over 30 adds 1 f per 10, capped at 8 (see Hitstop).
+- A hit takes poise equal to its damage; at 0 the enemy staggers 30 f; knockback bleeds at `knockback_decel` 2400 u/s2 (see Poise, Knockback on enemies).
+- Parry: an attack press no older than 7 player frames when a parryable box touches; spends the press; 0 damage, +33 Flame, +5 Kindling (see Parry).
+- Player hit: a heart lost, Kindling down a tier, 8 f hitstop, 300 u/s knockback for 12 f, 20 f invulnerable; hazards cost a heart (see The player hit).
+- Charged strike: hold attack 24 f then release, 36 damage; Kindle costs 33 Flame, Radiance 66 at Blaze, Mend 33 (see The Charged strike, Spells).
+- Enemies are simulated bodies; a telegraph is at least 20 f, and `telegraph_cue` fires exactly 20 ticks before the swing lands (see Enemies).
+- Presentation only reads the core: shake capped at 6 u (scaler 50%), flash 0.55 opacity, all effects through the VFX budget (see Presentation).
+
 ## Context
 
 BUILD.md section 6 gives the strikes' frames, the resources and the feedback table, but leaves open how a tick resolves hits, how long a parry press counts, what Mend and Radiance are bound to, how a Charged strike is asked for, what knockback does to the player's control, what a hazard costs once there are hearts, and what dying does before the run loop exists.

@@ -5,6 +5,15 @@
 - BUILD.md sections: 13 (static analysis gate)
 - Checklist lines: Process, "CI is green: ... lint"
 
+## Summary
+
+- Every GDScript warning guarding typing or correctness is level 2 (error) in `project.godot`; `tools/ci/run_tests.gd` compiles every script (see Decision 1).
+- `integer_division`, `inferred_declaration` and `return_value_discarded` are off; negatives use `Fx.div_floor`/`Fx.div_round` (see Decisions 2 to 4).
+- Calls that return an `Error` must be checked; reviewers enforce it (see Decision 4).
+- `missing_await` is level 2; only `res://addons/gdUnit4` is exempt, first-party editor plugins get the full policy (see Decisions 5 and 6).
+- `ci/lint.sh` rejects `@warning_ignore`, gdlint/gdformat suppression comments and untyped `Array`/`Dictionary` (see Decision 7).
+- `tests/unit/test_toolchain.gd` asserts every level and fails on a Godot warning this ADR has not assigned (see Decision 8).
+
 ## Context
 
 CLAUDE.md: "GDScript with static typing everywhere: typed variables, typed signatures, typed arrays. `@warning_ignore` is never used to silence a type warning." BUILD.md section 13: static analysis "zero warnings". Godot reports GDScript warnings to the editor, not to a headless run, so a warning set to level 1 can never fail CI.

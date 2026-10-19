@@ -5,6 +5,19 @@
 - BUILD.md sections: 5 (ground table: slope handling, corner correction, crouch; wall table: ledge-grab; feel rules: "The player never clips a corner they visually cleared"), 13 ("the AABB physics sweep (slopes, one-way platforms, corner correction)"; frame budget: input and simulation 3.0 ms)
 - Checklist lines: Movement, "Landing on a 1-pixel ledge edge lands; the corner-correction nudge is invisible"; "Dash-jump keeps 100% of dash speed" (off a lip too); "Head bumping a ceiling corner by under 6 units slides around it"; "60-second movement-only loop" (no snags)
 
+## Summary
+
+- Rooms are 32 u tiles plus `SolidBox` rects; slopes are 45 degree or 1:2, and `TileGrid.validate()` at load rejects exposed faces (see decisions 1 and 2).
+- A body is an upper body (never in walls), a foot point (stands on floors) and a foot zone (lowest `half_w`, may enter a crest) (see decisions 3 and 4).
+- A wall top within the foot zone above the slope under the centre is a crest and holds nothing up; one-way and solid-box tops always do (see decision 4).
+- Walking (`CollisionWorld.walk`) is an exact swept test per tile column; slopes never change horizontal speed (see decision 5).
+- Sideways moves (air, air dash) ignore crests in the foot zone and ride up slopes, so a 20 u/tick dash climbs ramps at full speed (see decision 6).
+- Corner correction: steps up to the 8 u lift, ledge-grab 10 u from the feet, ceiling corners of at most 6 u ducked or slid round (see decision 7).
+- One-ways stop only a box that started above; `drop_through` needs one-ways alone; air moves x then y, with a far-edge landing (see decisions 8 and 9).
+- The view eases `nudge_x`/`nudge_y` over `nudge_ease_frames` (3); contacts refresh per move; the broad phase keeps boxes in reach (see decisions 10 and 11).
+- Joins: load refuses a solid-box top under tile ground by up to `join_band_u` (12 u) or a one-way 1 to 12 u above a box top (see decision 12).
+- 3.0 ms budget for 200 bodies (`tools/bench/physics_bench.gd`); one thread per world; ledge-grab measured from the feet (see Performance, Director question).
+
 ## Context
 
 BUILD.md asks for an AABB sweep with slopes up to 45 degrees ("speed unchanged; no sliding on slopes"), one-way platforms, corner correction of 8 u over ledge corners and 6 u around ceiling corners, and an automatic ledge-grab within 10 u of a wall's top. One tile is 32 u ("5.5 tiles (176 u)"). It does not say how a box meets a slope, which slopes exist, or how corner correction interacts with walls.

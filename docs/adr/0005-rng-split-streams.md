@@ -5,6 +5,16 @@
 - BUILD.md sections: 13 (simulation core: "a seeded RNG with split streams (loot, spawns, VFX, AI)")
 - Checklist lines: Run tension, "A seeded replay ... reproduces bit-for-bit"
 
+## Summary
+
+- The generator is xoshiro128** on four 32-bit words held in 64-bit ints and masked; multiplications use `Fx.mul32` (see Decision 1).
+- Each stream's state is `fmix32(x + constant)`, `x` mixing the run seed and the stream id, so an all-zero state is impossible (see Decision 2).
+- Five streams: loot, spawns, vfx, ai and procs (Votive proc rolls), so one system's draws never shift another's (see Decision 3).
+- Ranges use rejection sampling to stay unbiased; chances are per-mille integers (see Decision 4).
+- Presentation never draws from core streams; core events it decorates carry a seed drawn from the vfx stream (see Decision 5).
+- Seed 1's first outputs are pinned against an independent Python implementation; changing the generator invalidates every replay (see Decision 6).
+- A new random system picks a stream, or adds one without changing existing sequences (see Consequences).
+
 ## Context
 
 A run is a seed plus an input stream. Randomness must be identical on every platform, cheap in GDScript, and split so that one system's draws never shift another's.

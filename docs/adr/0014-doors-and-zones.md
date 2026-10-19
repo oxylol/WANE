@@ -5,6 +5,19 @@
 - BUILD.md sections: 3 ("each a hand-built level stitched from authored rooms"; The zones), 5 (the twelve core tech interactions, "taught by the world"), 13 (layer 2: "room and zone state"; "A run is a seed plus an input stream"), CLAUDE.md ("Every Wick, Votive, Vessel, enemy, boss, room and zone is a `.tres` resource under `content/` with a schema validated in CI"; kickoff task 7: "a grey-box zone 1 of 12 rooms")
 - Checklist lines: "A 60-second movement-only loop through zone 1 can be played with eyes on the character, never on the HUD"; "Dash-jump ... clears the reference gap in zone 1 room 7 every time"; "Pogo keeps full horizontal speed; a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; "Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap"
 
+## Summary
+
+- A door is a room-file line, `door <name> <side> <from> <to> <room id> <door name>`; the opening is whole tiles, at least 2 tiles long (see Decision).
+- The strip is the opening, 2 tiles (`DOOR_DEPTH_TILES`) deep; the player crosses when the whole collider is inside it at the end of a tick (see The strip).
+- The strip and the 2 tiles beyond must be empty; the grid border stays open there, so "outside the grid is solid" still holds (see The strip).
+- Side doors stand on floor and a top door lands on safe ground; doors pair on facing sides, same length, and lead back (see Safe ground, Pairs).
+- Crossing (`Simulation._take_door`, after combat) keeps speed, state, action and timers, so a dash or fall carries through (see Crossing).
+- Enemies, trails and Radiance's light stay behind; the next room's enemies start fresh; a kill ember in flight arrives, a tossed one goes out (see Crossing).
+- The tick sends `SimEvents.ROOM`; the camera cuts as on a respawn, the drawn player does not slide, and F3 draws each strip (see Crossing).
+- `RoomSet` loads the first room and, breadth first, every room doors reach, once; the content hash covers them all (see Rooms a run can reach).
+- Zones are `content/zones/*.tres` (`zone_def.gd`): every listed room reachable from the start, no door leaving the zone; CI checks each (see Zones).
+- The `room` probe is the id with slashes as underscores; `Simulation.VERSION` 8 added the current room to the state hash (see Fixture words, Consequences).
+
 ## Context
 
 Until task 7 every run lived in one room. A zone is a set of authored rooms the player crosses without a loading pause, and the simulation must cross them deterministically: a replay of a run through ten rooms must step through the same rooms on every platform. BUILD.md names zones and rooms but not how rooms connect, what the player keeps when crossing, or what the camera does. The physics treats everything outside a room's grid as solid (ADR-0008), and that rule is load-bearing for every fixture so far.
