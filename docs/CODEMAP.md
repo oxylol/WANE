@@ -47,6 +47,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 ## Commands (repo root; `godot` on PATH or `GODOT`)
 
 - Import: `godot --headless --path . --import`. Compile check only (5 s, includes core purity): `godot --headless --path . --script tools/ci/run_tests.gd -- --stage compile`.
+- Agents: `ci/test.sh --quiet` (one line per stage, failures only) and `ci/unit.sh --quiet <suite or folder>`; see `tests/README.md`.
 - All: `ci/test.sh` (must print `ALL STAGES PASSED`). Stages in order: `compile` (every script, `tools/ci/core_purity.gd`), `content` (every .tres validates, every .room parses), `fixtures` (expectations, replay round trip, goldens), `unit` (gdUnit4). Select with `-- --stage fixtures --stage unit`.
 - One fixture, no golden check: `godot --headless --path . --script tools/replay/check.gd -- tests/replay/movement/jump_tap.fixture`. Probe table: `tools/replay/trace.gd -- <fixture> state x y vy`.
 - Bless: `godot --headless --path . --script tools/replay/bless.gd`. It refuses ("refusing to bless") if a fixture's hash changed with the same inputs and content and `Simulation.VERSION` is unchanged: bump it in `core/sim/simulation.gd`, bless, commit `tests/replay/golden_hashes.txt` with the change.

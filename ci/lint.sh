@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Static analysis gate (BUILD.md section 13): gdlint and gdformat with zero findings over every
-# first-party GDScript file in the repository (everything except vendored gdUnit4 and Godot's
-# cache), plus project rules that no linter knows about:
+# first-party GDScript file in the repository (everything except vendored gdUnit4, Godot's cache
+# and agent worktrees under .claude/), plus project rules that no linter knows about:
 #   - no @warning_ignore and no gdlint/gdformat suppression comments (ADR-0002)
 #   - no untyped Array or Dictionary declarations, parameters or return types (CLAUDE.md:
 #     "typed arrays")
@@ -10,7 +10,7 @@ cd "$(dirname "$0")/.."
 files=()
 while IFS= read -r -d '' f; do files+=("$f"); done < <(
 	find . -name '*.gd' -not -path './.godot/*' -not -path './addons/gdUnit4/*' \
-		-not -path './.git/*' -print0 | sort -z
+		-not -path './.git/*' -not -path './.claude/*' -print0 | sort -z
 )
 if [ "${#files[@]}" -eq 0 ]; then echo "lint: no GDScript files"; exit 0; fi
 status=0
