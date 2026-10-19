@@ -151,6 +151,26 @@ func test_the_simulation_refuses_a_room_with_a_buried_top() -> void:
 	assert_str(" ".join(sim.load_errors)).contains("buried")
 
 
+func test_a_box_top_inside_a_pit_or_spike_tile_is_refused() -> void:
+	# Physics review 8, L1: standing on such a top is standing in the hazard. Level with the tile's
+	# top (a bridge) or above it is ground.
+	for room_id: String in ["test/invalid_pit_lid", "test/invalid_spike_lid"]:
+		var sim := Simulation.new(Scenario.make(1, room_id))
+		assert_str(" ".join(sim.load_errors)).override_failure_message(room_id).contains(
+			"must be level with the tile's top or above it"
+		)
+	for hazard: String in ["~", "^"]:
+		var rows: Array[String] = ["........", "........", "##" + hazard.repeat(3) + "###"]
+		for top_u: int in [63, 64, 65, 70]:
+			var lid: SolidBox = SolidBox.make(64 * U, top_u * U, 160 * U, 96 * U)
+			var problems: PackedStringArray = _errors(rows, [lid])
+			var label: String = "%s lid top %d" % [hazard, top_u]
+			if top_u <= 64:
+				assert_array(problems).override_failure_message(label).is_empty()
+			else:
+				assert_int(problems.size()).override_failure_message(label).is_equal(1)
+
+
 func test_every_room_in_the_repo_has_clean_joins() -> void:
 	var tuning: WorldTuning = load(WorldTuning.PATH) as WorldTuning
 	var checked: int = 0

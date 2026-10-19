@@ -1,0 +1,14 @@
+fixture walk_over_flush_pit_lid
+doc Physics review 8, L1, the control for the refused tests/replay/rooms/invalid_pit_lid.room (ADR-0008 decision 12: a box's top over a pit or spikes is level with the tile's top or above it). Walk right off the floor across the lid laid flush over the three-tile pit of test/pit_lid_flush and on to the floor beyond: the lid is ground, and the pit under it never touches the player.
+room test/pit_lid_flush
+spawn 60 224
+frames 40
+input
+  0..39 R
+end
+expect
+  at 39 xu>270 yu=224
+  never 0..39 event.hazard=1
+  never 0..39 state=air
+  during 0..39 hearts=5
+end

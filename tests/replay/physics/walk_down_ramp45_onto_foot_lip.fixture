@@ -1,0 +1,17 @@
+fixture walk_down_ramp45_onto_foot_lip
+doc Physics review 8, H1 (BUILD.md s5 Ground, corner correction: on the ground the 8 u nudge steps the player onto a lip such as a door left open as a floor; ADR-0008 decision 5: a walk downhill onto a solid box's top steps onto it and carries on along it). Walk left from the plateau down the 45-degree ramp of test/ramp45_foot_lip, whose leading foot corner meets the top corner of the door 5 u proud of the floor exactly (centre x 165, ramp and door top both y 219). The walk goes on along the door's top in the same tick, steps down its 5 u off its far end and runs to the room's wall, 9 u every tick; before the fix the corner read as the door's side, the step up was 0 u and refused, and the player stood at x 165 against nothing until they jumped.
+room test/ramp45_foot_lip
+spawn 300 192
+frames 40
+input
+  0..39 L
+end
+expect
+  at 16 xu=169 yu=214
+  at 17 xu=160 yu=219
+  at 24 xu=97 yu=219
+  at 25 xu=88 yu=224
+  at 39 xu=10 yu=224
+  never 0..39 state=air
+  never 0..32 hit_wall=-1
+end

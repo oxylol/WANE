@@ -1,0 +1,16 @@
+fixture walk_down_ramp12_onto_mid_lip
+doc Physics review 8, H1 (BUILD.md s5 Ground, corner correction; ADR-0008 decision 5). Walk left from the upper plateau down the two-row 1:2 ramp of test/ramp12_mid_lip onto the lip laid across its foot, 5 u proud of the ramp at its uphill face: the leading foot corner meets the lip's top corner exactly (centre x 240, y 216). The walk carries on along the lip, steps down its 8 u to the floor and runs on; before the fix it stood at x 240 from frame 25 for good.
+room test/ramp12_mid_lip
+spawn 450 160
+frames 50
+input
+  0..49 L
+end
+expect
+  at 24 xu=247 yu=212
+  at 25 xu=238 yu=216
+  at 29 xu=202 yu=216
+  at 30 xu=193 yu=224
+  never 0..49 state=air
+  never 0..49 hit_wall=-1
+end

@@ -134,6 +134,108 @@ func test_a_lip_on_a_ramp_is_walked_over_both_ways_on_the_ground() -> void:
 				return
 
 
+func test_a_lip_met_corner_to_corner_walking_down_a_ramp_never_stops_the_walk() -> void:
+	# Review 8, H1: whole-unit lips laid at, before or on the foot of a 45-degree or 1:2 ramp
+	# rising either way, their tops level with the feet at the moment the walk down the ramp brings
+	# the leading edge to their uphill face (and in a third of trials 1 to 7 u either side of that):
+	# walking or dashing down onto them with the lift carries on past them, never standing still on
+	# the ground. The corner-to-corner touch used to read as the box's side, the step up was 0 u and
+	# refused, and the walk stood at the face for good (135 of the 7,680 whole-unit lips the review
+	# swept). Random sub-pixel tops, as the tests above use, almost never touch corner to corner.
+	var tuning: WorldTuning = load(WorldTuning.PATH) as WorldTuning
+	var band: int = Fx.units(tuning.join_band_u)
+	var reach: int = Fx.units(tuning.join_reach_u)
+	var span: int = 40 * TileGrid.TILE_SP
+	var rng: Rng = Rng.seeded(73, 19)
+	var checked: int = 0
+	var corner: int = 0
+	for trial: int in range(600):
+		var steep: bool = rng.below(2) == 0
+		var mirror: bool = rng.below(2) == 0
+		var w: CollisionWorld = PhysicsKit.world(_ramp_rows(steep, mirror))
+		var foot: int = (8 if steep else 5) * TileGrid.TILE
+		var crest: int = (12 if steep else 13) * TileGrid.TILE
+		# Unmirrored, the walk goes left down the ramp and meets the lip's right (uphill) face with
+		# its left edge; mirrored, right, its right edge on the lip's left face.
+		var dir: int = 1 if mirror else -1
+		var face: int = rng.between(foot - 24, crest - 8) * U
+		if mirror:
+			face = span - face
+		var width: int = [6, 20, 40][rng.below(3)] * U
+		var l: int = face if mirror else face - width
+		var k: int = 0 if rng.below(3) > 0 else rng.between(-7, 7) * U
+		var top: int = _surface(w, face - dir * PhysicsKit.HALF_W) + k
+		var lip: SolidBox = SolidBox.make(l, top, l + width, top + 80 * U)
+		var room := RoomData.new()
+		room.grid = w.grid
+		room.solids = [lip]
+		if not RoomJoins.errors(room, band, reach).is_empty():
+			continue
+		w.solids.append(lip)
+		checked += 1
+		corner += 1 if k == 0 else 0
+		# On the plateau, a whole number of units plus any sub-pixel, so the touch falls anywhere in
+		# a tick's step, its start included.
+		var start: int = 24 * TileGrid.TILE_SP + rng.between(0, U - 1)
+		var b: Body = PhysicsKit.body(0, 9 * TileGrid.TILE)
+		b.x = span - start if mirror else start
+		w.refresh_ground(b)
+		var past: int = (l + width + PhysicsKit.HALF_W) if mirror else (l - PhysicsKit.HALF_W)
+		var speed: int = (20 if rng.below(2) == 0 else 9) * U
+		var problem: String = _walk_past(w, b, dir, past, speed)
+		if problem != "":
+			fail(
+				(
+					"trial %d (%s%s, lip [%d, %d) top %d, %d sp off the feet at the face, %d u/f): %s"
+					% [
+						trial,
+						"45" if steep else "1:2",
+						" mirrored" if mirror else "",
+						l,
+						l + width,
+						top,
+						k,
+						speed / U,
+						problem
+					]
+				)
+			)
+			return
+	assert_int(checked).is_greater(250)
+	assert_int(corner).is_greater(150)
+
+
+func test_the_lift_off_a_ramp_counts_what_stands_ahead_not_the_crest_behind() -> void:
+	# Review 8: on the 45-degree ramp the box's trailing foot zone rests in the crest wall uphill of
+	# it, up to its half-width above the feet (the plateau's wall starts at x 384, its top y 288).
+	# Walking, or moving through the air, downhill into a lip, the lift is to the lip's top, not the
+	# plateau's: with the centre at x 375 (feet y 297) a lip 5 u proud is a 5 u step, not a refused
+	# 9 u one that stood the walk at the lip's face for good; with the centre at x 377 (feet y 295) a
+	# lip 2 u proud is a 2 u lift, not a 7 u one that popped the box 5 u above the lip it stepped
+	# onto. Both moves step onto the lip's top and carry on along it, 9 u.
+	for case: Vector2i in [Vector2i(375, 292), Vector2i(377, 293)]:
+		for airborne: bool in [false, true]:
+			var w: CollisionWorld = PhysicsKit.world(_ramp_rows(true))
+			var face: int = case.x - 10
+			w.solids.append(SolidBox.make((face - 20) * U, case.y * U, face * U, (case.y + 80) * U))
+			var b: Body = PhysicsKit.body(case.x, 384 - case.x + 288)
+			w.refresh_ground(b)
+			assert_bool(b.on_ground and b.on_slope).is_true()
+			b.clear_contacts()
+			if airborne:
+				b.on_ground = false
+				w.move_x(b, -9 * U, LIFT)
+			else:
+				w.walk(b, -9 * U, LIFT)
+			var how: String = "%s from x %d" % ["air" if airborne else "walk", case.x]
+			assert_int(b.x).override_failure_message("%s: x %d" % [how, b.x]).is_equal(
+				(case.x - 9) * U
+			)
+			assert_int(b.y).override_failure_message("%s: y %d" % [how, b.y]).is_equal(case.y * U)
+			assert_int(b.hit_wall).override_failure_message(how).is_equal(0)
+			assert_bool(PhysicsKit.embedded(w, b)).override_failure_message(how).is_false()
+
+
 func test_an_air_move_rides_a_ramp_and_lifts_onto_a_lip_at_its_crest_in_one_tick() -> void:
 	# A level air dash (20 u a tick) skimming up a 45-degree or 1:2 ramp onto a plateau with a lip
 	# 1 to 8 u proud of it at the crest edge: the lift was measured from the feet before the ride
@@ -359,6 +461,25 @@ func _walk_to(w: CollisionWorld, b: Body, to: int, speed: int) -> String:
 		if PhysicsKit.embedded(w, b):
 			return "embedded on tick %d at (%d, %d)" % [tick, b.x, b.y]
 	return "never got there"
+
+
+## Walks [param b] in [param dir] at [param speed] a tick with the lift until its centre is past
+## [param past]: "" if it gets there, else where it stood still on the ground. Off a lip's far end
+## higher than the lift it falls, as the player would, and walks on from where it lands.
+func _walk_past(w: CollisionWorld, b: Body, dir: int, past: int, speed: int) -> String:
+	for tick: int in range(200):
+		if (b.x - past) * dir > 0:
+			return ""
+		if not b.on_ground:
+			PhysicsKit.fall(w, b)
+		var x0: int = b.x
+		b.clear_contacts()
+		w.walk(b, dir * speed, LIFT)
+		if b.x == x0:
+			return "stood still on tick %d at (%d, %d)" % [tick, b.x, b.y]
+		if PhysicsKit.embedded(w, b):
+			return "embedded on tick %d at (%d, %d)" % [tick, b.x, b.y]
+	return "never got past"
 
 
 ## The tile floor's top under the sub-pixel column at [param x].

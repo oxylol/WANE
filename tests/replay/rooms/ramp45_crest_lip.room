@@ -1,0 +1,19 @@
+room test/ramp45_crest_lip
+# Physics review 8: a 45-degree ramp rising right from its foot at x 160 (y 224) to the plateau at
+# y 192 (x 192), and a door laid as a floor 4 u below the plateau, x 0..173, top y 196, its right
+# end standing out of the ramp. Walking down the ramp, the body's leading edge reaches the door's
+# face (x 173) with its centre at x 183, where the ramp is at y 201: the door's top is 5 u proud of
+# the feet, while the trailing edge (x 193) is still over the plateau, 9 u above them.
+size 16 8
+spawn 300 192
+tiles
+................
+................
+................
+................
+................
+................
+...../##########
+################
+end
+solid 0 196 173 224

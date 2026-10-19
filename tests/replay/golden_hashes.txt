@@ -167,6 +167,8 @@ dash_carry_turnaround in:67acdb10 content:fbbbb2fb 30:5696e37c
 dash_diagonal_touchdown_buffered_jump in:9f9f1dc8 content:fbbbb2fb 40:6c564fa0
 dash_distance in:836ef2cc content:fbbbb2fb 30:9c48d099
 dash_down_lands_no_lag in:d90f9499 content:fbbbb2fb 30:edc7a31d
+dash_down_ramp45_onto_crest_lip in:8fbe84ef content:407fac6c 16:4d9cfb1e
+dash_down_ramp45_onto_foot_lip in:3b776367 content:c9d7eb37 16:337c3cfb
 dash_eight_way in:733cc82d content:fbbbb2fb 30:810f753c
 dash_ground_cooldown in:c53f4255 content:fbbbb2fb 50:eb885a03
 dash_ground_horizontal in:6137488c content:fbbbb2fb 60:054a5036 60:054a5036
@@ -358,7 +360,12 @@ up_strike_dash_cancel_edges in:6de57ae7 content:fbbbb2fb 30:e075c31c
 up_strike_never_cancels_itself in:d0e9e39d content:fbbbb2fb 24:2e969938
 up_strike_no_jump in:98b7f90b content:fbbbb2fb 30:b88c5a05
 walk_down_ramp12_off_lip_stays_grounded in:28536f64 content:1759ad23 120:b0da4a2b 60:4f18a33e 120:b0da4a2b
+walk_down_ramp12_onto_foot_lip in:00618813 content:7bf27858 40:9d90aca3
+walk_down_ramp12_onto_mid_lip in:77ca5274 content:97e06716 50:4e85d016
 walk_down_ramp45_off_door_stays_grounded in:71c8f18e content:30ef2b45 120:ab9f8ec9 60:84d9c595 120:ab9f8ec9
+walk_down_ramp45_onto_crest_lip in:e6b56e47 content:407fac6c 40:de200277
+walk_down_ramp45_onto_foot_lip in:0a26fa3e content:c9d7eb37 40:3927a3aa
+walk_over_flush_pit_lid in:dc0ec206 content:1075956b 40:5744af75
 walk_steps_down_small_lips in:a36178b0 content:33bb8f6a 90:cfc92989 60:27d504eb
 walk_steps_up_small_lips in:4eb76b17 content:33bb8f6a 170:c907eefd 60:f703e64c 120:acf4b09a
 walk_up_lip_stairs in:ed822afc content:dee86ff2 200:62678a45 60:fccd5b8d 120:5b33f3b5 180:849a3166

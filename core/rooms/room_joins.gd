@@ -20,6 +20,13 @@ extends RefCounted
 ## Wick's corner lift or ledge-grab, so a buried top or a shelf deeper than the band is out of
 ## every reach. "Beside" a top is as far as the widest Wick overhangs a box's edge
 ## ([member WorldTuning.join_reach_u]).
+##
+## A top below the top edge of a pit or spike tile is refused too, at any depth (physics review 8,
+## L1): standing on it is standing in the hazard (a pit fills its tile; spikes hurt from
+## [member WorldTuning.spike_inset_u] down), so it is ground that costs a heart. The line is the
+## tile's edge, not the spikes' inset: a lid laid low looks the same over a pit as over spikes, and
+## no tuning of the inset can make a room that loads hurt the player standing on a box. A top level
+## with the tile's top (a bridge or a trapdoor laid over it) or above it is ground.
 
 ## What a unit of a box's top meets: open air (or ground flush with it), terrain at most the band
 ## above it, or terrain deeper than that.
@@ -35,6 +42,9 @@ static func errors(room: RoomData, band_sp: int, reach_sp: int) -> PackedStringA
 		var buried: String = _buried(room, i, band_sp)
 		if buried != "":
 			out.append(buried)
+		var hazard: String = _in_hazard(room, s)
+		if hazard != "":
+			out.append(hazard)
 		var shelf: String = _shelf(room, s, band_sp, reach_sp)
 		if shelf != "":
 			out.append(shelf)
@@ -116,6 +126,31 @@ static func _slope_meets(grid: TileGrid, s: SolidBox, x: int, depth: int) -> boo
 		j -= 1
 		t = grid.get_tile(c, j)
 	return TileGrid.is_slope(t)
+
+
+## The first column box [param s] spans where its top lies below the top edge of a pit or spike
+## tile, as an error: a body standing there is in the hazard (a pit fills its tile; spikes hurt
+## from their inset down), or above the spikes' inset only by a tuned number.
+static func _in_hazard(room: RoomData, s: SolidBox) -> String:
+	var j: int = TileGrid.cell(s.top - 1)
+	for c: int in range(TileGrid.cell(s.left), TileGrid.cell(s.right - 1) + 1):
+		var t: int = room.grid.get_tile(c, j)
+		if t != TileGrid.PIT and t != TileGrid.SPIKES:
+			continue
+		return (
+			(
+				"solid %s: its top (y %s) is %s u down in the %s at column %d; "
+				% [
+					_name(s),
+					_u(s.top),
+					_u(s.top - j * TileGrid.TILE_SP),
+					"pit" if t == TileGrid.PIT else "spikes",
+					c
+				]
+			)
+			+ "a box's top over a pit or spikes must be level with the tile's top or above it"
+		)
+	return ""
 
 
 ## A one-way top that is above the box's top by no more than the band, in a column the box spans or

@@ -1,0 +1,19 @@
+room test/ramp45_foot_lip
+# Physics review 8, H1: a 45-degree ramp rising right from its foot at x 160 (y 224) to the
+# plateau at y 192 (x 192), and a door laid on the floor 5 u proud of it, ending 5 u short of the
+# ramp's foot: x 100..155, top y 219. Walking down the ramp, the body's leading edge reaches the
+# door's face (x 155) with its centre at x 165, where the ramp is at y 219: the leading foot corner
+# meets the door's top corner exactly, as whole-unit boxes often do.
+size 16 8
+spawn 300 192
+tiles
+................
+................
+................
+................
+................
+................
+...../##########
+################
+end
+solid 100 219 155 240

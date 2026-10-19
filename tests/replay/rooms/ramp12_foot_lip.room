@@ -1,0 +1,19 @@
+room test/ramp12_foot_lip
+# Physics review 8, H1: a 1:2 ramp rising right from its foot at x 160 (y 224) to the plateau at
+# y 192 (x 224), and a box 7 u proud of the floor at the ramp's foot whose right end runs 4 u up the
+# ramp: x 138..164, top y 217, the ramp under its right end at y 222 (a lip 5 u proud there, open
+# above). Walking down the ramp, the leading edge reaches the box's face (x 164) with the centre at
+# x 174, where the ramp is at y 217: corner to corner.
+size 16 8
+spawn 300 192
+tiles
+................
+................
+................
+................
+................
+................
+.....ab#########
+################
+end
+solid 138 217 164 258

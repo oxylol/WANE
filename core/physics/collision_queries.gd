@@ -301,6 +301,16 @@ func _highest_wall_top(l: int, r: int, t: int, b: int) -> int:
 	return best
 
 
+## Top y of the highest wall tile or solid that the box [l, r) x [t, b) would enter moving one
+## sub-pixel in [param dir] (the strip just ahead of its leading edge), or [param b] if none: what a
+## corner lift must clear. A wall the box already rests in is not in its way: a box on a slope has
+## its foot zone in the crest wall uphill of it, up to its half-width above the feet, and walking
+## downhill that wall is behind it (physics review 8).
+func _wall_top_ahead(l: int, r: int, t: int, b: int, dir: int) -> int:
+	var x: int = r if dir > 0 else l - 1
+	return _highest_wall_top(x, x + 1, t, b)
+
+
 ## Bottom y of the lowest ceiling (a wall, a slope's underside or a solid) overlapping
 ## [l, r) x [t, b), or [param t] if none.
 func _lowest_ceiling_bottom(l: int, r: int, t: int, b: int) -> int:
