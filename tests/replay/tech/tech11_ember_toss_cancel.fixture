@@ -1,5 +1,5 @@
 fixture tech11_ember_toss_cancel
-doc BUILD.md s5 tech 11 "Ember-toss cancel (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm"; s6 Ember Toss "600 u/s projectile", "3 f startup", "teleport to it with 6 f of invulnerability"
+doc BUILD.md s5 tech 11 "Ember-toss cancel (Ash): throw the ember during the dash-jump chain, teleport over the chasm" (docs/adr/0015; was "mid-dash, teleport after landing"); s6 Ember Toss "600 u/s projectile", "3 f startup", "teleport to it with 6 f of invulnerability"
 room test/gorge
 spawn 200 384
 frames 140

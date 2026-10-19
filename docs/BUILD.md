@@ -233,7 +233,7 @@ All of these must work for every Wick (with their overrides) and be taught by th
 8. **Attack-cancel landing**: landing never interrupts an attack. Taught by a boss with a short window.
 9. **Reverse pogo**: pogo while moving backward to reposition behind an enemy. Taught by a shielded enemy.
 10. **Crouch-dash under**: crouch, then dash, keeps the 28-tall hitbox for the dash. Taught by a low gap.
-11. **Ember-toss cancel** (Ash): throw the ember mid-dash, teleport after landing. Taught by a chasm.
+11. **Ember-toss cancel** (Ash): throw the ember during the dash-jump chain, teleport over the chasm (the teleport is the landing; docs/adr/0015). Taught by a chasm.
 12. **Kindle-dash** (universal with the Kindle Votive): dash through a wax wall or a Snuffed to ignite it. Taught by a wax door.
 
 ### Feel rules (non-negotiable)

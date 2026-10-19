@@ -16,6 +16,13 @@ const DASH_JUMP_REACH_U: int = 2243
 const DASH_JUMP_TOSS_REACH_U: int = 2505
 const BODY_HALF_WIDTH_U: int = 10
 const TILE_U: int = 32
+const NEAR_EDGE_U: int = 480
+## How far under the farthest route (gap_reach.gd's) the dash-jump control may fall: its run-up
+## starts from the arrival point and the dip, not the measuring room's ledge.
+const CONTROL_SLACK_U: int = 40
+const CONTROL_DASH_JUMP: String = "res://tests/replay/zone1/11_control_dash_jump_only.fixture"
+const CONTROL_PLAIN_THROW: String = "res://tests/replay/zone1/11_control_plain_throw.fixture"
+const ROUTE: String = "res://tests/replay/zone1/11_ember_toss_cancel.fixture"
 ## The dip of the safe first encounter, columns 4 to 7, two tiles deep.
 const DIP_FIRST_COL: int = 4
 const DIP_LAST_COL: int = 7
@@ -25,6 +32,36 @@ func _room(room_id: String) -> RoomData:
 	var room: RoomData = RoomData.load_id(room_id)
 	assert_array(Array(room.errors)).is_empty()
 	return room
+
+
+## The farthest x (u) past the near edge with the feet at or above the ledge's height plus the
+## ledge-grab before any hazard: the measure of gap_reach.gd, taken on a fixture's inputs in this
+## room, so the constants above are held to the physics rather than to themselves.
+func _reach_u(path: String) -> int:
+	var fx: Fixture = Fixture.parse_file(path)
+	assert_array(Array(fx.errors)).is_empty()
+	var sim := Simulation.new(fx.scenario)
+	var ledge: int = Fx.units(LEDGE_ROW * TILE_U) + sim.player.p.ledge_grab
+	var best: int = 0
+	for i: int in range(fx.frame_total):
+		sim.step(fx.input_frame(i))
+		if sim.events.has(SimEvents.HAZARD):
+			break
+		if sim.player.body.y <= ledge:
+			best = maxi(best, sim.player.body.x)
+	return Fx.div_floor(best, Fx.SUB) - NEAR_EDGE_U
+
+
+func test_the_dash_jump_control_is_the_measured_near_miss() -> void:
+	var reach: int = _reach_u(CONTROL_DASH_JUMP)
+	var needed: int = (FAR_FACE_COL - NEAR_EDGE_COL) * TILE_U - BODY_HALF_WIDTH_U
+	assert_int(reach).is_less_equal(DASH_JUMP_REACH_U)
+	assert_int(reach).is_greater_equal(DASH_JUMP_REACH_U - CONTROL_SLACK_U)
+	assert_int(needed - reach).is_greater(100)
+
+
+func test_the_plain_throw_control_is_far_short_of_the_dash_jump() -> void:
+	assert_int(_reach_u(CONTROL_PLAIN_THROW)).is_less(DASH_JUMP_REACH_U / 2)
 
 
 func test_the_chasm_needs_the_toss_and_the_toss_route_has_it() -> void:

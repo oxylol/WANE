@@ -81,4 +81,5 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0012-debug-overlay-and-frame-stepper` F3 overlay from the latest tick; F4 to F6 step.
 - `0013-combat` Combat resolves once per tick, after all movement.
 - `0014-doors-and-zones` Paired `door` lines, crossed inside the strip.
+- `0015-ember-toss-cancel-over-a-chasm` Tech 11: throw in the dash-jump chain, teleport over the chasm.
 - `0000-template` The ADR template.

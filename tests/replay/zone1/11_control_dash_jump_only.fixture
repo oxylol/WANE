@@ -20,6 +20,9 @@ expect
   at 141 event.dash=1 state=dash
   # The route falls into the pit short of the far face (2880 u); the send-back puts Ash back on
   # the near ledge.
+  # A near miss, not a poor route: 2229 u past the edge at the last tick with the feet at the
+  # ledge's height, 161 u short of the 2390 u a crossing needs.
+  at 174 x>2680u x<2730u y<384u state=air
   mark fell 142..219 event.hazard=1
   at fell x<2880u
   never 0..219 x>2880u

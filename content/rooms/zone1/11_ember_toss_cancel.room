@@ -1,11 +1,13 @@
 room zone1/11_ember_toss_cancel
-# Zone 1, room 11: tech 11, Ember-toss cancel (BUILD.md s5: "throw the ember mid-dash, teleport
-# after landing. Taught by a chasm"; s6 Ember Toss: 600 u/s, 3 f startup, 6 f invulnerable; ADR-0010).
-# Grey box, not art.
+# Zone 1, room 11: tech 11, Ember-toss cancel (BUILD.md s5: "throw the ember during the dash-jump
+# chain, teleport over the chasm"; s6 Ember Toss: 600 u/s, 3 f startup, 6 f invulnerable, 12 s
+# cooldown; ADR-0010, ADR-0015). Grey box, not art.
 #
-# The first encounter is safe: a dip 4 tiles (128 u) wide and 2 tiles (64 u) deep, 54 u from the
-# door. Falling in costs nothing (a jump climbs out); an ember thrown across it flies 400 u (40 f
-# at 10 u/f) and a teleport puts the body on the far lip, so the toss is met before it is needed.
+# The first encounter is a warm-up jump: a dip 4 tiles (128 u) wide and 2 tiles (64 u) deep, 54 u
+# from the door. Falling in costs nothing (a jump climbs out). It is not a place for the toss: a
+# throw is not back for 12 s (720 ticks), and the pit's send-back does not refill it, so a throw
+# spent here or on a failed attempt leaves the chasm uncrossable until the cooldown has run out
+# (tests/replay/zone1/11_control_toss_spent_in_dip). Wait on the near ledge, it is safe.
 #
 # Then the chasm: 75 tiles (2400 u) from the near edge at 480 u to the far face at 2880 u, over a
 # pit 192 u below the ledges (row 18; falling in is a hazard that sends Ash back to the arrival

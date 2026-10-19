@@ -389,4 +389,5 @@ white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
 zone1_11_control_dash_jump_only in:3adbb309 content:63f3dcc8 220:779f4b90 60:ef570125 120:4cd0c5d9 180:d62971a9
 zone1_11_control_plain_throw in:bb97771d content:63f3dcc8 200:0832e498 60:5f8f361e 120:6f3c809e 180:444fd159
+zone1_11_control_toss_spent_in_dip in:59fe6fe1 content:63f3dcc8 250:30289252 60:0849cb00 120:cb67685f 180:c17f5ee9 240:5c736c20
 zone1_11_ember_toss_cancel in:7c94886d content:63f3dcc8 250:49ba18ab 60:ef570125 120:a7f18406 180:51c528b8 240:34aae92b

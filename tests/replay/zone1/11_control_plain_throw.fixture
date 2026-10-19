@@ -1,5 +1,5 @@
 fixture zone1_11_control_plain_throw
-doc Control for BUILD.md s5 tech 11: a plain throw. The ember is thrown straight ahead from the near ledge (a throw flies 400 u: 40 f at 10 u/f) and teleported to once it has stopped; the air jump and the air dash then carry the body on. No dash-jump, no throw mid-dash: it falls into the pit well short of the far face (2880 u).
+doc Control for BUILD.md s5 tech 11 and docs/adr/0015: a plain throw. The ember is thrown straight ahead from the near ledge (a throw flies 400 u: 40 f at 10 u/f) and teleported to once it has stopped; the air jump and the air dash then carry the body on. No dash-jump, no throw mid-dash: it falls into the pit well short of the far face (2880 u).
 room zone1/11_ember_toss_cancel
 frames 200
 input
