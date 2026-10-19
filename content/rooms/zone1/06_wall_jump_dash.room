@@ -1,28 +1,98 @@
-# Zone 1, room 6 (stub, Phase 1 task 7): replaced by the room that teaches tech 6, Wall-jump dash (BUILD.md s5).
+# Zone 1, room 6: Wall-jump dash. Phase 1 grey box.
+# BUILD.md s5 tech 6: "wall-jump, then dash, then wall-cling the next wall. Taught by a shaft"; s5
+# Wall-jump "794 u/s up, 480 u/s away; 5 f of locked direction ... Resets double jump and air dash";
+# s5 Dash "8-way in air".
+#
+# Layout. The corridor from the west door opens into a shaft 640 u (20 tiles) wide. Its walls are
+# smooth but for four clingable bands, each 128 u (4 tiles) tall, on alternate walls, their bottoms
+# 384 u apart: band 0 on the east wall 128..256 u above the floor, band 1 on the west wall
+# 512..640 u, band 2 east 896..1024 u, band 3 west 1280..1408 u. The exit floor, the east wall's
+# top, is 1632 u up; its corridor leads to the east door.
+#
+# Stand-ins: none needed.
+#
+# How it teaches. A jump from the floor reaches band 0 across the shaft. Each crossing is the tech:
+# the wall-jump away from the cling (it gives the air dash back), the dash diagonally up toward the
+# next wall at the wall-jump's top, the air jump at the dash's top, and the cling on the next band
+# (the first cling since the wall-jump gives both back again). The first crossing is over the floor,
+# where a miss costs only a fall; the fourth lands on the exit floor.
+#
+# Why only that way (every number measured: docs/feel_log/2026-10-19-zone1-b.md). A band is too
+# short to climb on its own (kicking past its top meets smooth wall), so each must be left for the
+# next one across the shaft. Without the dash the farthest crossing (a kick from the band's top and
+# the air jump on the tick that carries furthest; a wall-jump carries 40 u less) meets the far wall
+# 69 u too low for the next band (tests/replay/zone1/06_control_no_dash_crossing); with the dash the
+# teaching route meets each next wall 84 to 93 u inside its band's reach (387 u above the cling it
+# left; the best dash crossing measured, a kick, the air jump and an up-dash, 508 u). The Ember Toss
+# carries one crossing at most: its landing trick (the ember thrown from above band 0, a fall to the
+# floor, the teleport 400 u up) reaches band 2, and the crossing from there falls 74 u short of
+# band 3 (06_control_no_dash_toss).
 room zone1/06_wall_jump_dash
-size 60 20
-spawn 200 544
+size 60 62
+spawn 74 1888
 tiles
-############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-............................................................
-............................................................
-............................................................
-............................................................
-############################################################
-############################################################
-############################################################
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS........................................
+SSSSSSSSSSSSSSSSSSSS........................................
+SSSSSSSSSSSSSSSSSSSS........................................
+SSSSSSSSSSSSSSSSSSSS........................................
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSS#....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSS....................#SSSSSSSSSSSSSSSSSSS
+........................................SSSSSSSSSSSSSSSSSSSS
+........................................SSSSSSSSSSSSSSSSSSSS
+........................................SSSSSSSSSSSSSSSSSSSS
+........................................SSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 end
-door west left 416 544 zone1/05_wall_kick_climb east
-door east right 416 544 zone1/07_coyote_dash west
+door west left 1760 1888 zone1/05_wall_kick_climb east
+door east right 128 256 zone1/07_coyote_dash west

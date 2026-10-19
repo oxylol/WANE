@@ -22,3 +22,4 @@ The tuned values become the spec: when a number changes here, the same commit ch
 | 2026-10-17 | [corner-correction ease](2026-10-17-nudge-ease.md) | The drawn player eases onto a nudge over 6 frames, tuned to 3: no hop, no sinking |
 | 2026-10-19 | [task 6: combat](2026-10-19-task6-combat.md) | The Taper's hits, Flame, Kindling, the parry, Kindle, Mend, Radiance, the Charged strike, hit feedback and the training dummy; first-time values; the parry flash's opacity 1.0 to 0.55 |
 | 2026-10-19 | [corner-correction ease on runs](2026-10-19-nudge-ease-runs.md) | The cap moves from the gap to the catch-up speed's change: no hitch up a staircase of lips, at the cost of lag up a dashed one |
+| 2026-10-19 | [task 7: zone 1 rooms 4 to 6](2026-10-19-zone1-b.md) | The pogo-dash tower to a hidden alcove, the kick-climb well, the wall-jump-dash shaft; each sized against the Ember Toss's landing trick; a wall-jump and up-dash cycle out-climbs kicks (director question) |

@@ -1,0 +1,68 @@
+fixture zone1_06_wall_jump_dash_climb
+doc BUILD.md s5 tech 6 "Wall-jump dash: wall-jump, then dash, then wall-cling the next wall. Taught by a shaft"; s5 Wall-jump "794 u/s up, 480 u/s away ... Resets double jump and air dash"; s5 Dash "8-way in air"; zone 1 room 6's teaching route, west door to east door
+room zone1/06_wall_jump_dash
+spawn 74 1888
+frames 488
+input
+  # Across the shaft's floor to band 0 on the far (right) wall; then four crossings of the 640 u
+  # shaft, each the same rhythm: the wall-jump away from the cling, the dash diagonally up toward
+  # the next wall at the wall-jump's top, the air jump at the dash's top, and the cling on the next
+  # wall's band; the fourth lands on the exit floor.
+  0..129 R
+  130..151 R jump
+  152..153 R
+  154..171 L jump
+  172 L
+  173 L U !dash
+  174..192 L
+  193..211 L jump
+  212..220 L
+  221..238 R jump
+  239 R
+  240 R U !dash
+  241..259 R
+  260..278 R jump
+  279..287 R
+  288..305 L jump
+  306 L
+  307 L U !dash
+  308..326 L
+  327..345 L jump
+  346..354 L
+  355..372 R jump
+  373 R
+  374 R U !dash
+  375..393 R
+  394..406 R jump
+  407..487 R
+end
+expect
+  at 130 event.jump=1
+  # Band 0 (right wall, 128..256 u up): the first cling since the floor.
+  at 152 event.wall_cling=1 wall=1
+  # Crossing 1: the wall-jump (480 u/s away, 794 u/s up), the dash up-left at its top, the air
+  # jump at the dash's top, and band 1 on the left wall (512..640 u up).
+  at 154 event.wall_jump=1 vx=-8u air_jumps=1 air_dashes=1
+  at 173 event.dash=1 vx<-14u vy<-14u air_dashes=0
+  at 193 event.air_jump=1
+  at 219 event.wall_cling=1 wall=-1 y<1376u air_jumps=1 air_dashes=1
+  # Crossing 2: to band 2 on the right wall (896..1024 u up).
+  at 221 event.wall_jump=1 vx=8u
+  at 240 event.dash=1 vx>14u vy<-14u
+  at 260 event.air_jump=1
+  at 286 event.wall_cling=1 wall=1 y<992u
+  # Crossing 3: to band 3 on the left wall (1280..1408 u up).
+  at 288 event.wall_jump=1
+  at 307 event.dash=1
+  at 327 event.air_jump=1
+  at 353 event.wall_cling=1 wall=-1 y<608u
+  # Crossing 4: onto the exit floor (1632 u up) on the right.
+  at 355 event.wall_jump=1
+  at 374 event.dash=1
+  at 394 event.air_jump=1
+  at 420 event.land=1 y=256u x>1270u
+  # Every crossing is a wall-jump: never a kick, never a hazard.
+  never 0..487 event.wall_kick=1
+  never 0..487 event.hazard=1
+  at 486 event.room=1 room=zone1_07_coyote_dash
+end

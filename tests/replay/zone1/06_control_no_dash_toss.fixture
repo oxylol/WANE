@@ -1,0 +1,49 @@
+fixture zone1_06_control_no_dash_toss
+doc BUILD.md s5 tech 6 "Taught by a shaft"; s6 Ember Toss; zone 1 room 6's control: the strongest climb without a dash, the Ember Toss's landing trick included, reaches band 2 and no further; docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+room zone1/06_wall_jump_dash
+spawn 74 1888
+frames 400
+input
+  # No dash at all. Band 0's highest cling (a kick up it), a kick and the air jump to the top
+  # beside the right wall, the ember thrown straight up there, the fall to the floor (the landing
+  # gives the air jump back and makes the next cling fresh), the teleport once the ember has flown
+  # its whole way, beside band 2: a kick up to its top and the first cling since the floor; then
+  # the farthest crossing without a dash (a kick, the air jump 36 ticks later) toward band 3.
+  0..127 R
+  128..148 R jump
+  149 R
+  150..171 R jump
+  172..188 R
+  189..209 R jump
+  210..212 R
+  213..231 R jump
+  232 R
+  233 U !toss
+  276 !toss
+  277..298 R jump
+  299..315 R
+  316 jump
+  317..350 L jump
+  351 L
+  352..399 L jump
+end
+expect
+  at 188 event.wall_cling=1 wall=1
+  at 213 event.air_jump=1
+  # The ember thrown straight up from 542 u above the floor ...
+  at 233 event.toss=1 y>1346u y<1347u
+  at 266 event.land=1 air_jumps=1 air_dashes=1
+  # ... and the teleport to it, 927 u up, beside band 2 (896..1024 u up).
+  at 276 event.teleport=1 y>961u y<962u
+  at 277 event.wall_kick=1
+  # Band 2's top: the first cling since the floor gives the air jump back.
+  at 314 event.wall_cling=1 wall=1 y<878u air_jumps=1
+  at 316 event.wall_kick=1
+  at 352 event.air_jump=1
+  # The crossing meets the left wall 1162 u up; a cling on band 3 (1280..1408 u up) needs the
+  # feet above 652 u (1236 u up): 74 u short.
+  at 386 x=650u y>725u y<726u vy>0
+  never 0..399 state=wall wall=-1 y<725u
+  never 0..399 event.dash=1
+  never 0..399 room=zone1_07_coyote_dash
+end

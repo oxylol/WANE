@@ -1,28 +1,119 @@
-# Zone 1, room 4 (stub, Phase 1 task 7): replaced by the room that teaches tech 4, Pogo-dash reset (BUILD.md s5).
+# Zone 1, room 4: Pogo-dash reset. Phase 1 grey box.
+# BUILD.md s5 tech 4: "pogo resets the air dash, so pogo, dash, pogo again crosses anything. Taught
+# by a hidden room"; s15 Movement: "Pogo resets air dash; pogo, dash, pogo crosses the reference
+# hidden-room gap"; s3: "hidden rooms reachable only with movement tech ... hold a guaranteed
+# Lantern-tier Votive or a Lamplighter note".
+#
+# Layout. The main route crosses plainly: the floor runs from the west door to the east door, whose
+# corridor passes under the east wall. Over the floor's east half stands the hidden part, a tower of
+# four spike posts in two columns 160 u apart (x 1328 and 1488), their tops 256, 704, 1152 and
+# 1600 u above the floor (448 u apart), and at its top the alcove: a recess in the east wall, its
+# floor 2048 u up, holding the hidden room's Lantern-tier Votive (an entity marker: Phase 1 has no
+# pickups). A hole at the alcove's far end drops down a one-tile chute through the east door: the
+# way out.
+#
+# Stand-ins. Each post is a single spike tile, BUILD.md's pogo-able spike: it cannot be stood on or
+# clung to (a bell, a solid, would be a platform and give back everything a landing does). Every
+# wall is smooth: no cling, no kick.
+#
+# How it teaches. Post 1 is the safe first encounter: a jump and the air jump from the floor and a
+# down-strike onto it (8 tiles up, so a full jump under it never touches it). Each step up is 448 u:
+# a bounce and the air jump it gives back rise 257 u, 159 u short (a down-strike reaches spikes the
+# feet are up to 32 u below their top); with the up-dash they rise 507 u, 91 u to spare. Post 1 to
+# post 2 spends the dash; every step after needs the one the last bounce gave back: pogo, dash,
+# pogo, the reference hidden-room gap. A fall lands on the floor and costs only the climb.
+#
+# Why only that way (every number measured: docs/feel_log/2026-10-19-zone1-b.md). Without the reset
+# a climb has one air dash and one Ember Toss. A post two steps up (896 u, a down-strike reaching it
+# with the feet 864 u up) needs more than a bounce, its air jump and the toss (782 u: the ember
+# 400 u up, and an air jump a second bounce gives back before the teleport). The toss's best is
+# its landing trick: the ember thrown from the top of the climb (960 u up, after post 2), a fall to
+# the floor that gives the air jump and the dash back, the teleport, the up-dash onto post 4: it
+# tops out 1859 u up, 179 u under the alcove's floor with the 10 u ledge-grab
+# (tests/replay/zone1/04_control_no_reset_toss). The natural try, pogo, dash, pogo and no second
+# dash, stops 155 u under post 3's reach (04_control_no_second_dash). The chute is smooth, and its
+# 2048 u are beyond any climb from the floor.
 room zone1/04_pogo_dash_reset
-size 60 20
-spawn 200 544
+size 60 76
+spawn 74 2336
 tiles
-############################################################
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
-#..........................................................#
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+S...................................................SSSSSSSS
+S..........................................................S
+S..........................................................S
+S..........................................................S
+S..........................................................S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S.............................................^.....SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S........................................^..........SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S.............................................^.....SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S........................................^..........SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
+S...................................................SSSSSS.S
 ............................................................
 ............................................................
 ............................................................
 ............................................................
-############################################################
-############################################################
-############################################################
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 end
-door west left 416 544 zone1/03_pogo_chain east
-door east right 416 544 zone1/05_wall_kick_climb west
+door west left 2208 2336 zone1/03_pogo_chain east
+door east right 2208 2336 zone1/05_wall_kick_climb west
+entity votive 1760 288 tier=lantern

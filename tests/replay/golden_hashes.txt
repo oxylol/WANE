@@ -387,3 +387,12 @@ wall_ledge_grab_too_low in:7762c2e6 content:edbe1440 20:1c5c1866
 wall_spent_still_kicks in:5bec08c6 content:2593f714 260:88bbbbc9 60:eb43a256 120:f6c0ddb9 180:786d13f5 240:094b4b68
 white_dash_cooldown_control in:742cf2bd content:fbbbb2fb 30:9c48d099
 white_dash_has_no_cooldown in:eb040a2a content:fbbbb2fb 30:ab5380bf
+zone1_04_control_no_reset_toss in:d4675762 content:2920ba05 430:fc9cf466 60:59a156d4 120:656b2190 180:4731da22 240:0270b30f 300:e4919f8f 360:292d07d9 420:84a225a9
+zone1_04_control_no_second_dash in:57a308f5 content:2920ba05 318:4d8f3f92 60:59a156d4 120:656b2190 180:4731da22 240:32bb1c81 300:f7e0d785
+zone1_04_hidden_route in:f0291d95 content:2920ba05 550:7985040e 60:59a156d4 120:656b2190 180:4731da22 240:32bb1c81 300:9c77daaa 360:2f097f17 420:9fd27b81 480:3be47285 540:9ed4a2b5
+zone1_05_control_no_kick in:ea8e0a33 content:6c14f083 330:32e2cfc4 60:4468a7e3 120:c045a75d 180:49db7a65 240:96a42e5a 300:091e8cef
+zone1_05_kick_climb in:baf3ea86 content:6c14f083 413:2b12df67 60:4468a7e3 120:f0d693f0 180:fd4c8383 240:ccdb79eb 300:ec7a3a0f 360:956b64d6
+zone1_05_wall_jump_dash_cycle in:3b1ab751 content:6c14f083 334:16eec75d 60:4468a7e3 120:d4dae055 180:1132d8ee 240:59721ddd 300:ff571473
+zone1_06_control_no_dash_crossing in:c011df5f content:f3dceaed 282:69fc21ef 60:1d6455a3 120:ba7bdda8 180:47fee212 240:1a69ec09
+zone1_06_control_no_dash_toss in:9cd9d63d content:f3dceaed 400:e2f491dd 60:1d6455a3 120:ba7bdda8 180:47fee212 240:fe5f835c 300:ed6f4acb 360:31914cf0
+zone1_06_wall_jump_dash_climb in:58cf2897 content:f3dceaed 488:794d4219 60:1d6455a3 120:ba7bdda8 180:b8c39d81 240:84bdd152 300:caab2e27 360:c6b8d564 420:1b4d7ed7 480:c9afa5ad
