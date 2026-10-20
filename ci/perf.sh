@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Performance gate, the CPU half (BUILD.md section 13, "Testing and CI" and "Frame budget";
 # docs/adr/0020): import the project, then run two benches. tools/bench/stress_bench.gd plays the
-# stress room's scripted run (200 enemies, 150 of them walking, the 39-proc Votive set) and the
-# zone 1 loop, times every tick's input plus Simulation.step and compares the 99th percentile and
-# the worst tick with content/perf/budget.tres. tools/bench/frame_bench.gd plays the same run
+# stress room's scripted run (200 enemies, 150 of them walking, a 39-proc chain per Taper hit,
+# ADR-0020 Decision 15), reports the same room under the proc storm (every proc event chains;
+# measured, never gated), plays the zone 1 loop, times every tick's input plus Simulation.step
+# and compares the 99th percentile and the worst tick with content/perf/budget.tres.
+# tools/bench/frame_bench.gd plays the same run
 # through the game's real scene tree (views, camera, feedback, VFX budget, voices, HUD, the
 # Pitch lighting stand-in) and gates the presentation's script time (sprites 2.0 + VFX 2.0 +
 # audio and UI 1.0 = 5.0 ms at the 99th percentile). Both always run; either failing fails the
@@ -16,8 +18,8 @@
 # The run must exit 0 AND print the marker: if the bench does not compile, Godot idles instead of
 # exiting, so a time limit and the marker are what keep that from looking green.
 # Usage: GODOT=/path/to/godot ci/perf.sh [--verbose] [--only stress|zone|frame] [--repeats N]
-# --only stress: the stress room alone (the CI job that is red until the C++ decision, ADR-0020
-# Decision 8); --only zone: the 5-minute zone 1 run alone; --only frame: the presentation alone.
+# --only stress: the stress room (and the storm) alone (the CI job that is red until the enemies'
+# steps and the proc path are native too, ADR-0020 Decision 15); --only zone: the 5-minute zone 1 run alone; --only frame: the presentation alone.
 # CI runs the stress room apart from the other two so that a red stress gate cannot hide the
 # presentation gate or the spike line (ADR-0020 Decision 14).
 set -euo pipefail

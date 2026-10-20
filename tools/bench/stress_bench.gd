@@ -369,19 +369,19 @@ func _zone(budget: PerfBudget, repeats: int) -> void:
 	var top: int = sorted[sorted.size() - 1]
 	_say(
 		(
-			"zone 1 loop x%d on one simulation (%d ticks), best of %d runs: "
-			+ (
-				"p50 %s ms, p99 %s ms, max %s ms (gate %s)"
-				% [
-					budget.zone_passes,
-					best.size(),
-					repeats,
-					PerfStats.ms(PerfStats.percentile(sorted, 500)),
-					PerfStats.ms(PerfStats.percentile(sorted, P99)),
-					PerfStats.ms(top),
-					PerfStats.ms(budget.zone_max_us),
-				]
+			(
+				"zone 1 loop x%d on one simulation (%d ticks), best of %d runs: "
+				+ "p50 %s ms, p99 %s ms, max %s ms (gate %s)"
 			)
+			% [
+				budget.zone_passes,
+				best.size(),
+				repeats,
+				PerfStats.ms(PerfStats.percentile(sorted, 500)),
+				PerfStats.ms(PerfStats.percentile(sorted, P99)),
+				PerfStats.ms(top),
+				PerfStats.ms(budget.zone_max_us),
+			]
 		),
 		true
 	)
