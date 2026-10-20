@@ -40,7 +40,7 @@ var _tick_feet: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	# Fire, the blade's heat and the Charged glow are light: the ambient never dims them.
-	LightingRig.make_emissive(self)
+	LightField.make_emissive(self)
 
 
 ## Reads the latest tick, and spawns its objects into the budget. Call it after the feedback has

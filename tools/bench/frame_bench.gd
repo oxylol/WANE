@@ -5,8 +5,8 @@ extends SceneTree
 ## pass 3.0; VFX 2.0; Post 1.0; Audio and UI 1.0; Headroom 4.6"; docs/adr/0020). Plays the stress
 ## room's scripted run (tests/perf/stress_run.fixture) through the game's real scene tree: the
 ## boot scene game/main.tscn with its views, the camera, the hit feedback, the VFX budget, the
-## voices, the HUD and, because the fixture says `lighting pitch`, the Phase 1 stand-in lighting
-## ([LightingRig]). The driver steps exactly one tick a frame, from the fixture's inputs, through
+## voices, the HUD and, because the fixture says `lighting pitch`, the lighting pass ([LightField])
+## held at Pitch. The driver steps exactly one tick a frame, from the fixture's inputs, through
 ## [method SimDriver.step_once]; the engine then runs the frame (the views' _process, every _draw).
 ##
 ## Per frame it records, in microseconds: the simulation step ([member SimDriver.last_step_us]),
@@ -36,7 +36,7 @@ extends SceneTree
 ##
 ## Options: --quiet (the gate lines only), --report <path> (the full report to a file too),
 ## --repeats N (passes; the budget's by default, 1 in a window), --ticks N (only the first N
-## ticks), --lighting pitch|off (default: the fixture's), --worst N (frames listed, default 8).
+## ticks), --lighting pitch|dusk|off (default: the fixture's; off builds no lighting), --worst N (frames listed, default 8).
 
 ## Phases of a pass.
 enum { SETUP, RUN, TEARDOWN }

@@ -21,9 +21,9 @@ extends SceneTree
 ## working: the frame-stepped contact sheet of CLAUDE.md's working method, step 5. With the overlay
 ## on, --zoom Z (default 1) magnifies the world Z times around the player so the boxes can be read
 ## against each other at sheet size; the overlay's text stays on the screen. --set changes a
-## tuning value for the fixtures after it, as in play.gd. --lighting pitch|off films the fixtures
-## after it under the Phase 1 stand-in Pitch lighting (game/lighting) or unlit; by default a
-## fixture's own `lighting` word decides. Frame numbers are drawn top left, the
+## tuning value for the fixtures after it, as in play.gd. --lighting pitch|dusk films the fixtures
+## after it with the lighting pass (game/lighting) held at Pitch or at Dusk; by default a
+## fixture's own `lighting` word decides, and Dusk if it has none. Frame numbers are drawn top left, the
 ## fixture's number at the start of its row.
 ##
 ## Each row ends with the player's track on screen over every tick of the fixture: where the
@@ -163,15 +163,16 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		stage.add_child(n)
 	for n: Node in [feedback, hud, screen]:
 		stage.add_child(n)
-	var rig: LightingRig = null
-	if LightingRig.asks_for_pitch(_lighting if _lighting != "" else fx.lighting):
-		rig = LightingRig.new()
-		stage.add_child(rig)
+	var rig := LightField.new()
+	var word: String = _lighting if _lighting != "" else fx.lighting
+	var level: float = LightField.level_for_word(word)
+	rig.set_dark_level(level if level >= 0.0 else LightField.DUSK_LEVEL)
+	stage.add_child(rig)
 	root.add_child(stage)
 	camera.make_current()
 	room_view.show_world(sim.world, sim.room.doors)
-	if rig != null:
-		rig.show_world(sim.world)
+	rig.show_world(sim.world)
+	await rig.settle()
 	combat_view.player_view = player_view
 	feedback.attach(vfx, null)
 	hud.vitals = sim.player.vitals
@@ -191,8 +192,8 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		sim.step(fx.input_frame(f))
 		if sim.events.has(SimEvents.ROOM):
 			room_view.show_world(sim.world, sim.room.doors)
-			if rig != null:
-				rig.show_world(sim.world)
+			rig.show_world(sim.world)
+			await rig.settle()
 		player_view.capture(sim)
 		enemy_view.capture(sim)
 		combat_view.capture(sim)
@@ -212,8 +213,6 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		)
 		room_view.refresh()
 		player_view.show_at(1.0)
-		if rig != null:
-			rig.follow(player_view.box_at(1.0).get_center(), float(every) / 60.0)
 		enemy_view.show_at(1.0)
 		combat_view.show_at(1.0)
 		camera.show_at(1.0)
@@ -221,6 +220,7 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		if opts.y > 1.0:
 			camera.zoom *= opts.y
 			camera.position = overlay.player.get_center()
+		rig.present(f, 1.0, player_view.box_at(1.0).get_center())
 		overlay.queue_redraw()
 		debug.refresh()
 		await RenderingServer.frame_post_draw

@@ -17,18 +17,19 @@ const LAST_REPLAY_PATH: String = "user://replays/last_session.wrp"
 const START_ZONE: String = "res://content/zones/zone1.tres"
 const ROOM_ARG: String = "--room="
 const VOTIVE_ARG: String = "--votive="
-## `-- --lighting=pitch` draws the room under the Phase 1 stand-in lighting at Pitch (the ember
-## and its shadows, ambient 0.15; game/lighting). The default is the unlit grey box.
+## The lighting pass is always on (docs/adr/0023). `-- --lighting=pitch` holds the Dark at Pitch
+## (the ember and its shadows, ambient 0.15) and `--lighting=dusk` at Dusk, the default; the Wane
+## Clock will drive it in play.
 const LIGHTING_ARG: String = "--lighting="
 
 ## Set by a harness (the frame bench) before the scene is added: the session to start in place of
 ## the zone's, and the lighting word to use in place of the command line's ("" reads the command
-## line; "off" is the unlit grey box).
+## line; "off" builds no lighting field, for the frame bench's baseline).
 static var scenario_override: Scenario = null
 static var lighting_word: String = ""
 
-## Built only when the command line, or a harness, asks for Pitch.
-var lighting: LightingRig = null
+## The lighting pass; null only for the word "off".
+var lighting: LightField = null
 ## Whether the session's replay is written when the scene leaves the tree (a harness turns it off).
 var save_on_exit: bool = true
 
@@ -115,24 +116,26 @@ func _on_ticked() -> void:
 	debug_overlay.capture()
 
 
-## Shows the room the player has come into ([param sim]'s current room): its tiles, and under
-## Pitch its occluders.
+## Shows the room the player has come into ([param sim]'s current room): its tiles and its lighting.
 func enter_room(sim: Simulation) -> void:
 	room_view.show_world(sim.world, sim.room.doors)
 	if lighting != null:
 		lighting.show_world(sim.world, sim.room.id)
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	room_view.refresh()
 	player_view.show_at(driver.alpha)
-	if lighting != null:
-		lighting.follow(player_view.box_at(driver.alpha).get_center(), delta)
 	enemy_view.show_at(driver.alpha)
 	combat_view.show_at(driver.alpha)
 	game_camera.show_at(driver.alpha)
 	# The shake moves the drawn view only, never the camera rig (BUILD.md section 6).
 	game_camera.apply_shake(hit_feedback.shake_offset())
+	# After the camera, so the light and its shadows are placed against the view that is drawn.
+	if lighting != null:
+		lighting.present(
+			driver.sim.tick, driver.alpha, player_view.box_at(driver.alpha).get_center()
+		)
 	debug_overlay.refresh()
 
 
@@ -142,17 +145,20 @@ func _start_lighting() -> void:
 		for arg: String in OS.get_cmdline_user_args():
 			if arg.begins_with(LIGHTING_ARG):
 				word = arg.trim_prefix(LIGHTING_ARG)
-	if LightingRig.asks_for_pitch(word):
-		lighting = LightingRig.new()
-		$World.add_child(lighting)
-		lighting.show_world(driver.sim.world, driver.sim.room.id)
-		# Every room of the zone's set is built now, hidden, so that a crossing builds nothing (a
-		# zone's rooms are all reached by doors; at 60 rooms a zone this becomes the neighbours
-		# of the room, docs/adr/0020 Decision 19). An edited grid is rebuilt by prebuild.
-		for id: String in driver.sim.rooms.rooms:
-			var beyond: RoomData = driver.sim.rooms.rooms[id]
-			if beyond.errors.is_empty():
-				lighting.prebuild(id, beyond.grid)
+	if word == LightField.OFF:
+		return
+	lighting = LightField.new()
+	var level: float = LightField.level_for_word(word)
+	lighting.set_dark_level(level if level >= 0.0 else LightField.DUSK_LEVEL)
+	$World.add_child(lighting)
+	lighting.show_world(driver.sim.world, driver.sim.room.id)
+	# Every room of the zone's set is built now, so that a crossing builds nothing (a zone's rooms
+	# are all reached by doors; at 60 rooms a zone this becomes the neighbours of the room,
+	# docs/adr/0020 Decision 19). An edited grid is rebuilt by prebuild.
+	for id: String in driver.sim.rooms.rooms:
+		var beyond: RoomData = driver.sim.rooms.rooms[id]
+		if beyond.errors.is_empty():
+			lighting.prebuild(id, beyond.grid)
 
 
 func _on_rumble(strength: float, msec: int) -> void:

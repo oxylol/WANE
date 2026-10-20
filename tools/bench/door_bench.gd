@@ -1,15 +1,15 @@
 extends SceneTree
 ## The door crossing's presentation cost (BUILD.md section 13, Testing and CI: no frame-time spike
 ## above 20 ms; docs/adr/0020). A door is crossed on one tick: [method Main._on_ticked] then shows
-## the new room (the room view's tiles and, under Pitch, the lighting's occluders). That must cost
+## the new room (the room view's tiles and the lighting's room field). That must cost
 ## no more than any other tick, so this plays it for every room of zone 1: the boot scene at Pitch
 ## (the stress room's lighting), then for each room a fresh [Simulation] on it and the time of
 ## [method Main.enter_room], the call the room event makes. The first crossing into each room is
 ## what is timed (a second would find anything cached), the least over [member PerfBudget.repeats]
 ## fresh boots; the worst room is gated against [member PerfBudget.door_max_us]. Headless (the
 ## dummy renderer) this is the script and scene-tree cost, as in frame_bench.gd: it excludes the
-## renderer's occluder and shadow-map update when a hidden node becomes visible, so the gate is a
-## script-side gate and the GPU half is measured windowed on hardware (PROGRESS.md, Blocked 2).
+## renderer's bake of a room's distance field (done at prebuild, off the door frame), so the gate is
+## a script-side gate and the GPU half is measured windowed on hardware (PROGRESS.md, Blocked 2).
 ##
 ##   godot --headless --path . --script tools/bench/door_bench.gd [-- --quiet --report <path>]
 
@@ -45,7 +45,7 @@ func _initialize() -> void:
 
 func _boot() -> void:
 	# The boot scene reads these when it enters the tree, which is after this call.
-	Main.lighting_word = LightingRig.PITCH
+	Main.lighting_word = LightField.PITCH
 	Main.scenario_override = Scenario.make(1, _rooms[0])
 	var started: int = Time.get_ticks_usec()
 	_main = (load(SCENE) as PackedScene).instantiate() as Main

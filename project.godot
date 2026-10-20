@@ -89,7 +89,59 @@ report/godot/script_error=true
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/canvas_textures/default_texture_filter=1
+viewport/hdr_2d=true
 environment/defaults/default_clear_color=Color(0.07, 0.07, 0.08, 1)
+
+[shader_globals]
+
+wane_ambient={
+"type": "color",
+"value": Color(0.2, 0.17, 0.26, 1)
+}
+wane_dark={
+"type": "float",
+"value": 1.0
+}
+wane_key={
+"type": "vec4",
+"value": Vector4(-0.6, -0.8, 0.5, 0)
+}
+wane_ember={
+"type": "vec4",
+"value": Vector4(0, 0, 420, 1.6)
+}
+wane_light_table={
+"type": "sampler2D",
+"value": ""
+}
+wane_light_count={
+"type": "int",
+"value": 0
+}
+wane_shadow={
+"type": "sampler2D",
+"value": ""
+}
+wane_view={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
+wane_room_sdf={
+"type": "sampler2D",
+"value": ""
+}
+wane_room_rect={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
+wane_boil={
+"type": "float",
+"value": 0.0
+}
+wane_time={
+"type": "float",
+"value": 0.0
+}
 
 [wane]
 
