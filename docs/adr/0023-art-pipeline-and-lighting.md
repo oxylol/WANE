@@ -342,3 +342,35 @@ Light is the third pillar and the Dark the fourth. The ember has to reveal thing
   - "Nothing is drawn without the VFX budget manager" still holds: the bloom is post, not effects.
 - Retired with the stand-in: `LightingRig`, `OccluderBuilder`'s occluders as a shadow source (its merge logic moves into `RoomSdf`), `CanvasModulate`, and ADR-0020 Decisions 10 to 13 as they concern lighting (the frame bench and door gates stay).
 - Revisit: the shadow scale per profile, and Compatibility against Mobile, on hardware (ADR-0001 Decision 4, PROGRESS Blocked 2); the Dark slope when the director rules (3.5); the 16-light and 16-occluder caps if a room needs more.
+
+## Addendum: the shaders builder (Phase 2 task 1, ink and gouache; docs/feel_log/2026-10-20-ink-gouache-shaders.md)
+
+What building Decisions 2 and 7.2 settled or changed. Every item keeps the interfaces the other two builders depend on, or adds to them.
+
+**Additions to the interface**
+- Material uniform `texel_u` (float, u per texel at the bound scale: 1, 0.5, 0.25). The four-tap gradients and the frame-local position need it, and the shader cannot know the scale otherwise. `SpriteSheet` sets it.
+- Three more packed globals, because the four vec4s of 7.2 are full: `wane_ink_more` (ink_value 0.18, taper_floor 0.2, ink_over_fill 0.6, emissive_gain 3.0), `wane_ink_light` (line_light_lo -0.2, line_light_hi 0.4, bg_drop_lo 0.15, bg_drop_hi 0.55) and `wane_ink_bg` (bg_break_lo 0.42, bg_break_hi 0.5, bg_thin 0.35, bg_mask_wave_u 48). All in `content/art/ink.tres`; declared in project.godot with the same values (a test holds the two equal).
+- `wane_boil` is read by these shaders and written by `InkGlobals.set_tick` (the lighting builder may set it instead; it is one global).
+- Per-instance values: the neutral `self_modulate` is `Color(0, 1, 0, 1)` (no flash, full emissive boost, no dissolve, opaque), not white; `InkSprite` sets it. Emissive strength is `palette alpha x emissive_gain x g`, with `emissive_gain` 3 so that the post pass has HDR to bloom.
+- `carries_ember` and `palette_row` are material parameters, not per-sprite: `SpriteSheet.material(background, carrier, row, mode)` caches one material per family, so a family batches and instance uniforms are not needed.
+- A sheet's frame `rect` in `<asset>.sheet.json` is an object keyed by scale, `{"1": [x, y, w, h], "2": [...], "4": [...]}`; `cell_u` and `origin_u` are `[x, y]` in u. artbuild must write exactly that (Decision 1.6 left the form open).
+- `assets/art/build/noise/noise.png` must be imported with mipmaps (the brush streaks and the paper grain are minified at 1x; `filter_linear_mipmap`).
+
+**What the shaders need from `light_common.gdshaderinc` (the lighting builder's file; the stub in this tree follows these)**
+- `wane_line_dir` returns the direction toward the line light scaled to its strength: its length is 0 to 1, 0 where no light reaches. The line weight's `line_strength` of Decision 2.1 is that length.
+- `wane_key_irradiance` includes N.L: it returns the sum of energy x attenuation x visibility x max(N.L, 0), without ambient. For a carrier it follows the room's key (`wane_key`), not the carrier's own ember, which would otherwise light every surface.
+- `wane_light_reaching` is the energy at a point as a share of the ember's own, 0 to 1 (the open line's drop-out thresholds are shares of it).
+- `wane_radiance` includes ambient and returns a linear multiplier; a surface's colour is `mix(shadow, lit, step) x radiance`.
+
+**Behaviour decided by looking at the renders** (each is in the feel log)
+- Emissive parts carry no ink. The rim band starts under the line, not under the silhouette. `brush_noise` 0.10 to 0.05.
+- The line, the rim and the edge darkening are only worked out within reach of a visible edge (the shadow side's weight, or `line_min_px` screen pixels when zoomed out, plus anti-aliasing, wobble, darkening and rim); outside it the output is byte-identical (measured against the unculled shader), and the gradient taps are skipped for most of a sprite.
+- Where the four U taps straddle an edge the gradient collapses, so the bevel normal's outward direction stands in (below 0.2 of unit length).
+
+**Measured on the renderer**
+- Godot 4.7 Compatibility: `source_color` has no effect on sampling (a 128 byte reads 0.502 through `texture()` and `texelFetch()`), and the viewport holds what the shader writes. Palettes are display values; the HDR image is read back as written. If Mobile is chosen, its sRGB decode will change the palette's look and needs one decision then.
+- `self_modulate` reaches the vertex stage as `COLOR`, `MODEL_MATRIX` gives world positions, and `VERTEX` is frame-local when the node sits at the feet pivot, so sprites sharing one material draw different instance values in one frame (tests/screenshot/run_ink_render_tests.gd).
+- The dummy renderer parses shaders: a shader that fails to compile lists no uniforms. That is the headless compile test. It keeps no global values, so what `InkGlobals.apply` writes is read back only under a display.
+- Built-ins (`FRAGCOORD`, `SCREEN_UV`) are not visible inside functions; `ink_shade` takes them as arguments.
+- The probe's GDScript bake takes 0.2 s (1x figure), 2.6 s (4x figure), 1.0 s (stage) and 1.0 s (the noise), and the whole render test file runs in about 25 s on llvmpipe; artbuild replaces the bake.
+- **Import settings are part of the channel layout.** Godot's default texture import (`process/fix_alpha_border=true`) overwrites the RGB of every transparent pixel next to an opaque one (measured: a (200, 100, 50, 0) pixel beside an opaque one came back (10, 20, 30, 0)). Every channel here carries data in RGB and alpha, so the default would corrupt the palette index, the brush angle and the taper beside each alpha pixel. project.godot now has `[importer_defaults] texture` with `fix_alpha_border` false, `premult_alpha` false, `compress/mode` 0 (lossless) and `mipmaps/generate` false, for every texture (nothing in this game is a picture); `SpriteSheet` reports a sheet whose `.import` overrides them; `SpriteSheet.load_noise()` builds the noise's mipmaps itself, so the noise needs no `.import` of its own.

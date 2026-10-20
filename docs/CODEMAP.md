@@ -37,7 +37,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 ## Fixture language (spec: `tests/replay/README.md`, ADR-0006)
 
 Header `fixture`, `doc` (required), `seed`, `room <id>` (test/<name> means <name>.room in `tests/replay/rooms/`; other ids are in `content/rooms/`), `wick`, `spawn x y`, `option k v`, `frames N`; blocks `input ... end` (`<frame> jump|atk|dash|spell|mend|vessel|toss|L|R|U|D`, `!jump` a one-tick tap) and `expect ... end` (`at F`, `during A..B`, `never A..B`, `mark name A..B`).
-A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player keys in `core/fsm/player_probe.gd read`, `enemy.<k>` and `enemy<n>.<k>` in `core/enemies/enemy_probe.gd read`, `event.<name>`, `held.<BUTTON>`, `press_age.<BUTTON>`. Values: integers, `12u` (x256), `key@mark`, `key@(mark+3)`, sums, or a word. A word must be an identifier listed by `probe_words(key)` (`state`, `action`, `chain`, `spell`, `tier`, `room`, enemy `state`) or the fixture fails; so does any expectation that cannot be evaluated.
+A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player keys in `core/fsm/player_probe.gd read`, `enemy.<k>` and `enemy<n>.<k>` in `core/enemies/enemy_probe.gd read`, `event.<name>`, `held.<BUTTON>`, `press_age.<BUTTON>`. Values: integers, `12u` (x256), `key@mark`, `key@(mark+3)`, sums, or a word. A word must be listed by `probe_words(key)` or the fixture fails; so does any expectation that cannot be evaluated.
 
 ## Tunable numbers (.tres files in BUILD.md units, compiled at load, each with `validate()`)
 

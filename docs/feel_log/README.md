@@ -33,3 +33,4 @@ The tuned values become the spec: when a number changes here, the same commit ch
 | 2026-10-19 | [task 7: zone 1 room 12](2026-10-19-zone1-room12.md) | Room 12: the Kindle-dash through a wax screen and a wax door over a chasm; first implementation, no tuned number changed |
 | 2026-10-19 | [task 7: zone 1 whole](2026-10-19-merge-zone1.md) | The rooms re-timed on the fixed engine (rooms 1 and 8), and the 60-second loop through all twelve rooms: 3584 ticks |
 | 2026-10-20 | [Phase 2 task 1: the art build](2026-10-20-artbuild.md) | `tools/artbuild/`: SVG parts to exact distance-field sheets, normal and emissive maps and metadata; the probe and a test prop; byte-identical builds; first implementation, no tuned number changed |
+| 2026-10-20 | [Phase 2 task 1: ink and gouache shaders](2026-10-20-ink-gouache-shaders.md) | The ink line, two-value gouache, rim, brush, grain and emissive as canvas shaders on the ADR-0023 channel layout; brush_noise 0.10 to 0.05 |
