@@ -12,7 +12,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind, EnemyCells (query cells, native `WaneCells`).
 - `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy, EnemyBatch (one native call). `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/native/` NativeBackend (`use_native`, off/auto/on), NativeWorld (box mirror), NativeRef (twins of `native/src/`: sweep.cpp is CollisionWorld, cells.cpp EnemyCells; `game/native/native_boot.gd` reads `WANE_NATIVE`). `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods.
 - `game/` root: SimDriver, Main, ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget (`spawn`, `spawn_rect`). `game/lighting/` LightField, RoomSdf, ShadowBuffer, ShadowTwin, LightKind, LightWord (shaders: `shaders/lighting/`). `game/art/` InkTuning, InkGlobals, SpriteSheet, InkSprite (shaders: `shaders/ink/`). `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Views: `game/player/` and siblings.
-- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics, proc, stress, stage and frame benches (PerfStats, PerfBudget, FrameProbes), `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below); `tools/artbuild/` SVG parts to sheets (ADR-0023; `tools/artbuild/assetbuild.py`; test prop `tests/art/src/candle_stump/`).
+- `content/` see Tunable numbers. `tools/ci/` test gate ; `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics, proc, stress, stage and frame benches, `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below); `tools/artbuild/` SVG parts to sheets (ADR-0023; `tools/artbuild/assetbuild.py`, `tools/artbuild/review.sh <asset>` the three-size review; test prop `tests/art/src/candle_stump/`, lit room `tests/screenshot/rooms/lit_test.room`).
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/` the stress room `tests/perf/rooms/stress.room` and run `tests/perf/stress_run.fixture`.
 - `ci/` `ci/test.sh`, `ci/unit.sh`, `ci/perf.sh`, `ci/lint.sh`, `ci/setup_godot.sh`, `ci/build_native.sh`, `ci/native_release_check.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/`.
 
@@ -43,7 +43,7 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 
 - `content/wicks/ash/movement.tres` (`core/fsm/movement_tuning.gd compile`), `content/wicks/ash/kit.tres` (`core/fsm/kit_tuning.gd compile`), `content/wicks/ash/taper.tres` (AttackSet); loaded by `Simulation._build_player`.
 - `content/combat/combat.tres` (`core/combat/combat_tuning.gd compile`); `content/physics/world.tres` (WorldTuning); `content/enemies/dummy.tres` (EnemyDef; kinds in `Simulation.ENEMY_KINDS`); `content/zones/zone1.tres` (ZoneDef); `content/perf/budget.tres` (PerfBudget).
-- Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`, `content/lighting.tres`.
+- Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`, `content/lighting.tres`, `content/art/ink.tres`.
 - Rooms: `content/rooms/zone1/` (12 tech rooms; routes, controls and `zone1_loop` in `tests/replay/zone1/`), `content/rooms/sandbox.room`. A tuning change needs a feel-log entry, a BUILD.md update, and a re-bless.
 
 ## Commands (repo root; `godot` on PATH or `GODOT`)
@@ -56,7 +56,7 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd`; raw: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps); fix format with `gdformat <file>`.
-- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`; art: `python3 tools/artbuild/build.py [--check]`, `python3 tools/ci/test_artbuild.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (`PERF_LIB=release`; CI jobs `perf`, `perf-stress`) against `content/perf/budget.tres`; `tools/bench/stage_bench.gd` times a tick's stages.
+- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`; art: `python3 tools/artbuild/build.py [--check]`, `python3 tools/ci/test_artbuild.py`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (`PERF_LIB=release`; CI jobs `perf`, `perf-stress`) against `content/perf/budget.tres`.
 
 ## Rules agents trip on
 
@@ -85,3 +85,4 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 - `0021-native-extension-toolchain` godot-cpp pin, `WANE_NATIVE`, parity rules.
 - `0018-room-editor-install`
 - `0023-art-pipeline-and-lighting` Baked SDF channels, live ink shaders, room SDF shadows.
+- `0024-lighting-pass-implementation` LightField, room field bake, shadow buffer, Dark.

@@ -43,6 +43,8 @@ const SHEET_ZOOM: int = 2
 const SHEET_WIDTH_PX: int = 1900
 const SHEET_PAD_PX: int = 6
 const LABEL_PX: int = 14
+## The sheet is at least this wide so that its title fits above a single frame.
+const TITLE_WIDTH_PX: int = 560
 const FRAMES_SETTLE: int = 3
 
 var _asset: String = ""
@@ -363,7 +365,7 @@ func _compose(
 	width = maxi(width, mini(key_pics.size(), key_per_row) * key_w)
 	var height: int = LABEL_PX + 4 + rows * ch + key_rows * key_h + SHEET_PAD_PX
 	var vp := SubViewport.new()
-	vp.size = Vector2i(maxi(width, 64), height)
+	vp.size = Vector2i(maxi(width, TITLE_WIDTH_PX), height)
 	vp.transparent_bg = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	root.add_child(vp)
@@ -389,7 +391,9 @@ func _compose(
 		tex.position = Vector2(cx, cy + LABEL_PX)
 		tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		vp.add_child(tex)
-		var smear: bool = not SpriteSheet.json_dict(frames_meta[i].get("smear", null)).is_empty()
+		var smear: bool = SpriteSheet.json_dict(frames_meta[i].get("smear", null)).values().has(
+			true
+		)
 		var key: bool = frames_meta[i].get("key", false) == true
 		var text: String = (
 			"%d t%d%s%s" % [i, starts[i], " K" if key else "", " SMEAR" if smear else ""]

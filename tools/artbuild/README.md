@@ -33,3 +33,12 @@ Roots (`build.py ROOTS`): `assets/art/src/<asset>/` to `assets/art/build/<asset>
 - Reductions: normal and gloss are reduced from the 4x master with Mitchell weighted by silhouette coverage, so the silhouette edge does not dilute them, then renormalised; emissive is a box average; everything else is evaluated exactly at each scale's pixel centres.
 - `.import` files: Godot's default `fix_alpha_border` rewrites the colour of pixels with zero alpha, which is most of the data in these textures. `project.godot` `[importer_defaults]` turns it (and premultiplied alpha) off for new imports; a test checks that every committed `.import` of a built texture agrees.
 - The probe is a folder (`tools/artbuild/tests/data/probe/parts.svg`, `palette.tres`, `pose.json`), not a single file.
+- A blade-tagged part reports `tip` (u from the pivot) beside its box: the main pose's vertex farthest from the posed pivot. The review draws the arc through it.
+
+## The review
+
+```
+tools/artbuild/review.sh <asset> [--root res://dir] [--out dir] [--carries-ember] [action...]
+```
+
+Builds the asset with its 4x masters, then (`tools/artbuild/review.gd`, under xvfb, with the game's own shaders and `LightField`) writes `sil64.png`, `dusk1x.png`, `pitch1x.png`, `detail4x.png` and a contact sheet per action to `docs/gallery/<asset>/` (ADR-0023 Decision 5). The lit test room is `tests/screenshot/rooms/lit_test.room`. `ci/lighting.sh` runs it on the test prop.
