@@ -1,4 +1,4 @@
-# 2026-10-21: The stress room's simulation gate is closed (p99 5.01 to 2.67 ms)
+# 2026-10-20: The stress room's simulation gate is closed (p99 5.01 to 2.67 ms)
 
 - Author: Claude
 - BUILD.md section and table row: section 13, Frame budget ("Input + simulation step 3.0 ms") and Testing and CI (Performance: "a stress room (200 enemies, 40 procs, Pitch lighting)"); section 13, Architecture ("C++ via GDExtension for the physics sweep, hitbox resolution ... once profiling demands it")

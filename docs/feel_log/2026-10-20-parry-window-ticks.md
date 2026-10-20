@@ -1,9 +1,9 @@
-# 2026-10-21: The parry window is 8 ticks when the press connects; dash-jump audit notes
+# 2026-10-20: The parry window is 8 ticks when the press connects; dash-jump audit notes
 
 - Author: Claude
 - BUILD.md section and table row: section 6, Parry ("Press attack in the 8 f before an enemy's hit lands ... the 8 frames that end on the frame it lands"); section 5, Dash, "Dash-jump" and Air control
 - Fixture(s): `tests/replay/combat/parry_window_connecting_first_frame`, `_last_frame`, `_too_early`, `_too_early_9`, `_too_late`; `tests/replay/movement/dash_jump_released_stick_decays`, `dash_jump_early_press_waits_for_frame_5`, `dash_jump_press_on_dash_frame_1_waits`
-- Contact sheet: `docs/feel_log/2026-10-21-parry-window-ticks.png` (`parry_window_connecting_too_early`: the press 8 frames before the landing strikes the dummy, the swing hits, hearts 5 to 4, the red hit vignette on the landing frame)
+- Contact sheet: `docs/feel_log/2026-10-20-parry-window-ticks.png` (`parry_window_connecting_too_early`: the press 8 frames before the landing strikes the dummy, the swing hits, hearts 5 to 4, the red hit vignette on the landing frame)
 
 ## Change
 

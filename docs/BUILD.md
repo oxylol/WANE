@@ -812,7 +812,7 @@ Every milestone build passes every line below before any new feature is started.
 - [ ] Tap jump and full jump differ by at least 3 tiles and the release feels like a decision, not a cut
 - [ ] Turning around never produces a dead frame; the sprite flips on the input frame
 - [ ] Dash from standstill and dash at full run reach the same distance
-- [ ] Dash-jump keeps 100% of dash speed and clears the reference gap in zone 1 room 7 every time
+- [ ] Dash-jump keeps 100% of dash speed and clears the reference gap in zone 1 room 7 every time (the grey box's reference gap is room 02, ADR-0019 Decision 4)
 - [ ] Pogo keeps full horizontal speed; a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second
 - [ ] Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap
 - [ ] Wall-kick climbs a single wall without the player ever feeling stuck to it

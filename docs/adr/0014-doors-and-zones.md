@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-19
 - BUILD.md sections: 3 ("each a hand-built level stitched from authored rooms"; The zones), 5 (the twelve core tech interactions, "taught by the world"), 13 (layer 2: "room and zone state"; "A run is a seed plus an input stream"), CLAUDE.md ("Every Wick, Votive, Vessel, enemy, boss, room and zone is a `.tres` resource under `content/` with a schema validated in CI"; kickoff task 7: "a grey-box zone 1 of 12 rooms")
-- Checklist lines: "A 60-second movement-only loop through zone 1 can be played with eyes on the character, never on the HUD"; "Dash-jump ... clears the reference gap in zone 1 room 7 every time"; "Pogo keeps full horizontal speed; a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; "Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap"
+- Checklist lines: "A 60-second movement-only loop through zone 1 can be played with eyes on the character, never on the HUD"; "Dash-jump ... clears the reference gap in zone 1 room 7 (the grey box's is room 02, ADR-0019 Decision 4) every time"; "Pogo keeps full horizontal speed; a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; "Pogo resets air dash; pogo, dash, pogo crosses the reference hidden-room gap"
 
 ## Summary
 
