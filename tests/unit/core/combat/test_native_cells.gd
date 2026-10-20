@@ -64,12 +64,16 @@ func _ask(rng: Rng, crowd: Array[Enemy], ref: EnemyCells, nat: EnemyCells, label
 		Array(want)
 	)
 	var near_want: int = _brute_nearest(crowd, at, radius, skip)
-	assert_int(ref.nearest(crowd, at, radius, skip)).override_failure_message(
-		"%s: reference nearest" % label
-	).is_equal(near_want)
-	assert_int(nat.nearest(crowd, at, radius, skip)).override_failure_message(
-		"%s: native nearest" % label
-	).is_equal(near_want)
+	(
+		assert_int(ref.nearest(crowd, at, radius, skip))
+		. override_failure_message("%s: reference nearest" % label)
+		. is_equal(near_want)
+	)
+	(
+		assert_int(nat.nearest(crowd, at, radius, skip))
+		. override_failure_message("%s: native nearest" % label)
+		. is_equal(near_want)
+	)
 	var l: int = at.x
 	var t: int = at.y
 	var box := Rect2i(l, t, rng.between(1, 200) * U, rng.between(1, 120) * U)
@@ -98,9 +102,11 @@ func _ask(rng: Rng, crowd: Array[Enemy], ref: EnemyCells, nat: EnemyCells, label
 	for k: int in range(crowd.size()):
 		if crowd[k].body.left() < box.end.x and crowd[k].body.right() > box.position.x:
 			if crowd[k].body.top() < box.end.y and crowd[k].body.y > box.position.y:
-				assert_bool(touch_nat.has(k)).override_failure_message(
-					"%s: touching missed enemy %d" % [label, k]
-				).is_true()
+				(
+					assert_bool(touch_nat.has(k))
+					. override_failure_message("%s: touching missed enemy %d" % [label, k])
+					. is_true()
+				)
 	return 3
 
 

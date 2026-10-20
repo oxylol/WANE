@@ -59,8 +59,13 @@ func _play_room(grid: TileGrid, rng: Rng, met: Dictionary[String, int], label: S
 			w.solids.append(SolidBox.make(s.position.x, s.position.y, s.end.x, s.end.y))
 		worlds.append(w)
 	var count: int = 12
-	var bodies: Array[Array] = [[], [], []]
-	var dirs: Array[Array] = [[], [], []]
+	var bodies: Array[Array] = []
+	var dirs: Array[Array] = []
+	for _style: int in range(3):
+		var body_list: Array[Body] = []
+		bodies.append(body_list)
+		var dir_list: Array[int] = []
+		dirs.append(dir_list)
 	var kinds: PackedInt64Array = PackedInt64Array()
 	var steps: PackedInt64Array = PackedInt64Array()
 	var drops: PackedInt64Array = PackedInt64Array()
@@ -68,7 +73,9 @@ func _play_room(grid: TileGrid, rng: Rng, met: Dictionary[String, int], label: S
 		var start: Body = _start(worlds[0], rng)
 		var dir: int = 1 if rng.below(2) == 0 else -1
 		kinds.append(rng.below(4))
-		steps.append(rng.between(1, 4) * U + rng.below(U) if rng.below(4) > 0 else rng.between(5, 40) * U)
+		steps.append(
+			rng.between(1, 4) * U + rng.below(U) if rng.below(4) > 0 else rng.between(5, 40) * U
+		)
 		drops.append(rng.between(4, 40) * U)
 		for style: int in range(3):
 			var b := Body.make(start.x, start.y, start.half_w, start.height)
@@ -78,7 +85,9 @@ func _play_room(grid: TileGrid, rng: Rng, met: Dictionary[String, int], label: S
 	for tick: int in range(120):
 		# Kinds: 0 a stander (refreshes), 1 and 3 a walker that turns, 2 one that walks off ledges.
 		for style: int in range(3):
-			_tick(worlds[style], bodies[style], dirs[style], kinds, steps, drops, style == 2, met)
+			var body_list: Array[Body] = bodies[style]
+			var dir_list: Array[int] = dirs[style]
+			_tick(worlds[style], body_list, dir_list, kinds, steps, drops, style == 2, met)
 		for k: int in range(count):
 			var ref_body: Body = bodies[0][k]
 			var ref_dir: int = dirs[0][k]
@@ -98,8 +107,8 @@ func _play_room(grid: TileGrid, rng: Rng, met: Dictionary[String, int], label: S
 
 func _tick(
 	w: CollisionWorld,
-	bodies: Array,
-	dirs: Array,
+	bodies: Array[Body],
+	dirs: Array[int],
 	kinds: PackedInt64Array,
 	steps: PackedInt64Array,
 	drops: PackedInt64Array,
@@ -129,16 +138,7 @@ func _tick(
 			continue
 		ops.append_array(
 			PackedInt64Array(
-				[
-					_patrol_kind(kinds[k]),
-					b.x,
-					b.y,
-					b.half_w,
-					b.height,
-					dir,
-					steps[k],
-					drops[k]
-				]
+				[_patrol_kind(kinds[k]), b.x, b.y, b.half_w, b.height, dir, steps[k], drops[k]]
 			)
 		)
 		queued.append(k)
@@ -162,7 +162,9 @@ func _tick(
 		_after_walk(b, dirs, k, out[at + 3], met)
 
 
-func _after_walk(b: Body, dirs: Array, k: int, flags: int, met: Dictionary[String, int]) -> void:
+func _after_walk(
+	b: Body, dirs: Array[int], k: int, flags: int, met: Dictionary[String, int]
+) -> void:
 	if (flags & CollisionWorld.PATROL_LEDGE) != 0:
 		dirs[k] = -dirs[k]
 		met["ledge"] = met.get("ledge", 0) + 1
@@ -195,7 +197,16 @@ func _start(w: CollisionWorld, rng: Rng) -> Body:
 
 func _differ(a: Body, b: Body, dir_a: int, dir_b: int) -> String:
 	for field: String in [
-		"x", "y", "vy", "on_ground", "on_slope", "ground_tile", "hit_wall", "hit_ceiling", "nudge_x", "nudge_y"
+		"x",
+		"y",
+		"vy",
+		"on_ground",
+		"on_slope",
+		"ground_tile",
+		"hit_wall",
+		"hit_ceiling",
+		"nudge_x",
+		"nudge_y"
 	]:
 		if a.get(field) != b.get(field):
 			return "%s reference %s, native %s" % [field, str(a.get(field)), str(b.get(field))]

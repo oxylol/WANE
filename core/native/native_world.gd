@@ -146,9 +146,7 @@ func refresh_ground(w: CollisionQueries, b: Body) -> void:
 
 ## A walker's step in one call (docs/adr/0020): the ledge test, the turn and the walk. Sets the
 ## body's position and ground contact and clears its other contacts, as the reference does.
-func patrol_walk(
-	w: CollisionQueries, b: Body, dir: int, step: int, drop: int, falls: bool
-) -> int:
+func patrol_walk(w: CollisionQueries, b: Body, dir: int, step: int, drop: int, falls: bool) -> int:
 	_sync(w)
 	var r: PackedInt64Array = _sweep.call(
 		&"patrol_walk", b.x, b.y, b.half_w, b.height, dir, step, drop, falls

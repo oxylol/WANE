@@ -173,7 +173,9 @@ func test_every_cells_method_is_a_method_of_enemy_cells() -> void:
 	for i: int in range(reference_list.size()):
 		reference_methods.append(str(reference_list[i]["name"]))
 	var missing: Array[String] = []
-	var native_list: Array[Dictionary] = ClassDB.class_get_method_list(EnemyCells.NATIVE_CLASS, true)
+	var native_list: Array[Dictionary] = ClassDB.class_get_method_list(
+		EnemyCells.NATIVE_CLASS, true
+	)
 	for i: int in range(native_list.size()):
 		var method_name: String = str(native_list[i]["name"])
 		if not CELLS_SETUP.has(method_name) and not reference_methods.has(method_name):

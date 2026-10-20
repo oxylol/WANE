@@ -21,6 +21,16 @@ extends CollisionQueries
 ## at a time. While a move runs, [member solids] holds only the enabled boxes the
 ## move can reach (a broad phase; the order is kept); the full list is back before it returns.
 
+## What [method patrol_many] takes and gives per body (native/src/wane_sweep.h).
+const PATROL_IN: int = 8
+const PATROL_OUT: int = 4
+const PATROL_REFRESH: int = 0
+const PATROL_TURNS: int = 1
+const PATROL_FALLS: int = 2
+## [method patrol_walk]'s flags.
+const PATROL_LEDGE: int = 1
+const PATROL_WALL: int = 2
+
 # The box a walking sweep moves (see _sweep_walk and _swept_advance): its left, right and top
 # edges, direction, horizontal distance and rise or fall.
 var _sw_l: int = 0
@@ -99,17 +109,6 @@ func flat_ahead(body: Body, dx: int) -> bool:
 	if native != null:
 		return false
 	return use_flat_walk and _narrowed == 0 and flat.covers(body, dx, grid, solids)
-
-
-## What [method patrol_many] takes and gives per body (native/src/wane_sweep.h).
-const PATROL_IN: int = 8
-const PATROL_OUT: int = 4
-const PATROL_REFRESH: int = 0
-const PATROL_TURNS: int = 1
-const PATROL_FALLS: int = 2
-## [method patrol_walk]'s flags.
-const PATROL_LEDGE: int = 1
-const PATROL_WALL: int = 2
 
 
 ## One step of a patrolling walker that stands on the ground (docs/adr/0020 Decision 2, the
