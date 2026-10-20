@@ -1,6 +1,7 @@
-extends "res://tests/votives/stress_arc.gd"
+extends VotiveListener
 ## The gated stress set's listener (tests/votives/stress_taper_*.tres; never content): the same arc
-## as [code]stress_arc.gd[/code], held to the spec's size of burst. BUILD.md section 13 asks the
+## as [code]stress_arc.gd[/code] (it arcs to the nearest other enemy and hits it), held to the
+## spec's size of burst. BUILD.md section 13 asks the
 ## stress room for "40 procs", section 6 gives a spell tick a coefficient of 0.2 (Radiance) to 0.5
 ## (Kindle), and a real Votive carries an internal cooldown, so this one
 ##   - answers a Taper hit or a pogo (and the chain below them), never a spell tick;
@@ -11,6 +12,8 @@ extends "res://tests/votives/stress_arc.gd"
 ##     (docs/adr/0020, Decision 15).
 
 const COOLDOWN: String = "cooldown_ticks"
+const REACH: String = "reach_u"
+const DAMAGE: String = "damage"
 
 
 func on_proc(api: ProcApi) -> void:
@@ -21,13 +24,14 @@ func on_proc(api: ProcApi) -> void:
 		if api.counter() > 0 and api.tick() + 1 < ready_at:
 			return
 		api.set_counter(api.tick() + 1)
-	super.on_proc(api)
+	var to: int = api.nearest_enemy(api.param(REACH), true)
+	if to < 0:
+		to = api.target()
+	api.hit(to, api.param(DAMAGE))
 
 
 func params_used() -> PackedStringArray:
-	var used: PackedStringArray = super.params_used()
-	used.append(COOLDOWN)
-	return used
+	return PackedStringArray([REACH, DAMAGE, COOLDOWN])
 
 
 static func _starts_a_chain(source: int) -> bool:

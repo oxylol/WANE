@@ -285,6 +285,7 @@ func test_every_bus_field_is_accounted_for() -> void:
 		"events",
 		"rng",
 		"raised",
+		"tick",
 		"fired_slots",
 		"fired_levels",
 		"_listeners",

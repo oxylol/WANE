@@ -99,3 +99,35 @@ func test_the_pin_is_the_runs_first_ticks() -> void:
 		assert_int(pin.stick_x[i]).is_equal(run.stick_x[i])
 		assert_int(pin.stick_y[i]).is_equal(run.stick_y[i])
 	assert_str(pin.scenario.room).is_equal(run.scenario.room)
+
+
+func test_the_storm_run_is_the_same_room_and_inputs_with_the_storm_set() -> void:
+	var run: Fixture = Fixture.parse_file(RUN)
+	var storm: Fixture = Fixture.parse_file("res://tests/perf/storm_run.fixture")
+	assert_array(Array(storm.errors)).is_empty()
+	assert_int(storm.frame_total).is_greater_equal(1200)
+	assert_str(storm.scenario.room).is_equal(run.scenario.room)
+	for i: int in range(storm.frame_total):
+		assert_int(storm.held[i]).is_equal(run.held[i])
+		assert_int(storm.taps[i]).is_equal(run.taps[i])
+	var gated: Array[String] = []
+	var stormy: Array[String] = []
+	for key: String in run.scenario.options:
+		if key.begins_with("votive_"):
+			gated.append(key)
+	for key: String in storm.scenario.options:
+		if key.begins_with("votive_"):
+			stormy.append(key)
+	(
+		assert_array(gated)
+		. contains_exactly(
+			[
+				"votive_test_stress_taper_a",
+				"votive_test_stress_taper_b",
+				"votive_test_stress_taper_c",
+			]
+		)
+	)
+	assert_array(stormy).contains_exactly(
+		["votive_test_stress_arc_a", "votive_test_stress_arc_b", "votive_test_stress_arc_c"]
+	)

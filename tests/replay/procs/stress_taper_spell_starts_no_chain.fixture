@@ -1,0 +1,16 @@
+fixture stress_taper_spell_starts_no_chain
+doc BUILD.md s13 Testing and CI, "a stress room (200 enemies, 40 procs, Pitch lighting)"; s6 Item procs, Kindle 0.5 per tick (docs/adr/0015, docs/adr/0020 Decision 15). The gated stress set answers a Taper hit or a pogo with its chain and a spell tick with nothing: Kindle's burn ticks on the far dummy roll (the three Votives are sure on a Taper hit, 50% on Kindle: three procs on tick 19) but no proc hits, so the deepest level any proc reaches is 1. The storm set (stress_arc_*) would chain each of them to depth 3.
+room test/dummy_far
+option votive_test_stress_taper_a 1
+option votive_test_stress_taper_b 1
+option votive_test_stress_taper_c 1
+option flame 33
+frames 80
+input
+  0 spell
+end
+expect
+  at 19 procs=3 proc_level=1 enemy.hp=168
+  never 0..79 proc_level>1
+  at 79 enemy.hp=160
+end
