@@ -243,8 +243,12 @@ def write_fixture(path, frames, ticks, pin):
         "seed 1", "room perf/stress", "wick ash",
         "option votive_test_stress_arc_a 1", "option votive_test_stress_arc_b 1",
         "option votive_test_stress_arc_c 1", "option kindle 1",
-        f"frames {frames}", "input",
+        f"frames {frames}",
     ]
+    if not pin:
+        # Presentation only (not in the scenario, no hash moves): the run is drawn at Pitch.
+        out.append("lighting pitch")
+    out.append("input")
     i = 0
     while i < frames:
         j = i

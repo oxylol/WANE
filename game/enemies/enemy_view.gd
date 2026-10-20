@@ -83,6 +83,8 @@ func _init(p_tuning: FeedbackTuning = null) -> void:
 func _ready() -> void:
 	_cues = Node2D.new()
 	_cues.z_index = CUE_Z
+	# A telegraph is light: the ambient never dims it (Pitch lighting, game/lighting).
+	LightingRig.make_emissive(_cues)
 	add_child(_cues)
 	_cues.draw.connect(_draw_cues)
 

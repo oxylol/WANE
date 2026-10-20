@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="LightingTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/lighting/lighting_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+ember_radius_u = 420.0
+ember_energy = 1.6
+ember_colour = Color(1, 0.66, 0.36, 1)
+flicker_hz = 0.5
+flicker_amplitude = 0.04
+falloff_power = 1.6
+texture_px = 256
+ember_height_px = 0.0
+shadow_filter = 1
+shadow_smooth = 2.0
+border_u = 64.0
+pitch_ambient = 0.15
+ambient_tint = Color(0.78, 0.84, 1, 1)

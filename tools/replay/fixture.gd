@@ -24,13 +24,24 @@ const BUTTON_TOKENS: Dictionary[String, int] = {
 }
 ## Directive -> exact word count (including the directive); -1 means "at least 2".
 const HEADER_WORDS: Dictionary[String, int] = {
-	"fixture": 2, "doc": -1, "seed": 2, "room": 2, "wick": 2, "spawn": 3, "option": 3, "frames": 2
+	"fixture": 2,
+	"doc": -1,
+	"seed": 2,
+	"room": 2,
+	"wick": 2,
+	"spawn": 3,
+	"option": 3,
+	"frames": 2,
+	"lighting": 2,
 }
 
 var path: String = ""
 var name: String = ""
 var doc: String = ""
 var scenario: Scenario = Scenario.new()
+## How the fixture is to be drawn: "" (the game as it is) or "pitch" (the Phase 1 stand-in lighting
+## at Pitch, game/lighting). Presentation only: not part of the scenario, so no hash moves.
+var lighting: String = ""
 var frame_total: int = 0
 ## Held bits, tap (press-without-hold) bits and stick per frame, length [member frame_total].
 var held: PackedInt32Array = PackedInt32Array()
@@ -214,6 +225,11 @@ func _header(words: PackedStringArray, line_number: int) -> void:
 			scenario.options[words[1]] = _int_word(words, 2, line_number)
 		"frames":
 			frame_total = _int_word(words, 1, line_number)
+		"lighting":
+			if LightingRig.asks_for_pitch(words[1]):
+				lighting = words[1]
+			else:
+				errors.append("line %d: lighting is 'pitch', not '%s'" % [line_number, words[1]])
 
 
 func _int_word(words: PackedStringArray, i: int, line_number: int) -> int:

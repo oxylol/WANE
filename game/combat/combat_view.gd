@@ -34,6 +34,11 @@ var _charged: bool = false
 var _mend: float = -1.0
 
 
+func _ready() -> void:
+	# Fire, the blade's heat and the Charged glow are light: the ambient never dims them.
+	LightingRig.make_emissive(self)
+
+
 ## Reads the latest tick.
 func capture(sim: Simulation) -> void:
 	var pl: Player = sim.player

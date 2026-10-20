@@ -8,6 +8,7 @@ option votive_test_stress_arc_b 1
 option votive_test_stress_arc_c 1
 option kindle 1
 frames 3840
+lighting pitch
 input
   0 R attack
   1..13 R

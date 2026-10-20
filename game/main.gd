@@ -16,6 +16,12 @@ const LAST_REPLAY_PATH: String = "user://replays/last_session.wrp"
 const START_ZONE: String = "res://content/zones/zone1.tres"
 const ROOM_ARG: String = "--room="
 const VOTIVE_ARG: String = "--votive="
+## `-- --lighting=pitch` draws the room under the Phase 1 stand-in lighting at Pitch (the ember
+## and its shadows, ambient 0.15; game/lighting). The default is the unlit grey box.
+const LIGHTING_ARG: String = "--lighting="
+
+## Built only when the command line asks for Pitch.
+var lighting: LightingRig = null
 
 @onready var input_layer: InputLayer = $InputLayer
 @onready var driver: SimDriver = $SimDriver
@@ -41,6 +47,7 @@ func _ready() -> void:
 	for problem: String in driver.sim.load_errors:
 		push_error("%s: %s" % [scenario.room, problem])
 	room_view.show_world(driver.sim.world, driver.sim.room.doors)
+	_start_lighting()
 	player_view.begin(driver.sim)
 	game_camera.begin(driver.sim)
 	debug_overlay.attach(driver, game_camera)
@@ -80,6 +87,8 @@ func _on_ticked() -> void:
 	var sim: Simulation = driver.sim
 	if sim.events.has(SimEvents.ROOM):
 		room_view.show_world(sim.world, sim.room.doors)
+		if lighting != null:
+			lighting.show_world(sim.world)
 	player_view.capture(sim)
 	enemy_view.capture(sim)
 	combat_view.capture(sim)
@@ -95,15 +104,28 @@ func _on_ticked() -> void:
 	debug_overlay.capture()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	room_view.refresh()
 	player_view.show_at(driver.alpha)
+	if lighting != null:
+		lighting.follow(player_view.box_at(driver.alpha).get_center(), delta)
 	enemy_view.show_at(driver.alpha)
 	combat_view.show_at(driver.alpha)
 	game_camera.show_at(driver.alpha)
 	# The shake moves the drawn view only, never the camera rig (BUILD.md section 6).
 	game_camera.apply_shake(hit_feedback.shake_offset())
 	debug_overlay.refresh()
+
+
+func _start_lighting() -> void:
+	for arg: String in OS.get_cmdline_user_args():
+		if (
+			arg.begins_with(LIGHTING_ARG)
+			and LightingRig.asks_for_pitch(arg.trim_prefix(LIGHTING_ARG))
+		):
+			lighting = LightingRig.new()
+			$World.add_child(lighting)
+			lighting.show_world(driver.sim.world)
 
 
 func _on_rumble(strength: float, msec: int) -> void:

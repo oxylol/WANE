@@ -83,6 +83,8 @@ var _screen_priority: int = AMBIENT
 
 func _init(p_tuning: FeedbackTuning = null) -> void:
 	tuning = p_tuning if p_tuning != null else load(FeedbackTuning.PATH) as FeedbackTuning
+	# Sparks, bursts and procs are light: the ambient never dims them (game/lighting).
+	LightingRig.make_emissive(self)
 
 
 ## Spawns an effect, in [param tint] if one is given (its alpha above 0) or the kind's colour, for
