@@ -56,6 +56,9 @@ var opacity: float = 1.0:
 		opacity = value
 		_modulate()
 
+## The atlas page of the frame shown.
+var _page: int = 0
+
 
 func _init() -> void:
 	centered = false
@@ -67,15 +70,19 @@ func _init() -> void:
 ## its scale; the node is scaled back to u).
 func setup(s: SpriteSheet, action: StringName) -> void:
 	sheet = s
-	texture = s.shape
-	offset = -s.origin_u * float(s.texels_per_u)
+	_page = -1
 	_apply_scale()
-	_bind_material()
 	show_frame(action, 0)
 
 
 ## Shows frame [param index] of [param action].
 func show_frame(action: StringName, index: int) -> void:
+	var page: int = sheet.frame_page(action, index)
+	if page != _page:
+		_page = page
+		texture = sheet.shape_page(page)
+		_bind_material()
+	offset = -sheet.origin_of(action) * float(sheet.texels_per_u)
 	region_rect = Rect2(sheet.frame_rect(action, index))
 
 
@@ -88,7 +95,7 @@ func _apply_scale() -> void:
 func _bind_material() -> void:
 	if sheet == null:
 		return
-	material = sheet.material(background, carries_ember, palette_row, int(mode))
+	material = sheet.material(background, carries_ember, palette_row, int(mode), _page)
 
 
 ## The per-instance values on the vertex colour: r flash, g emissive boost, b dissolve, a opacity.

@@ -114,7 +114,8 @@
           "properties": {
            "part": {"type": "string"},
            "tags": {"type": "array", "items": {"type": "string"}},
-           "box": {"$ref": "#/definitions/box"}
+           "box": {"$ref": "#/definitions/box"},
+           "tip": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
           }
          }
         },

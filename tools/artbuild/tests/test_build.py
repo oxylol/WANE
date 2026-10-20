@@ -166,6 +166,25 @@ class Sheets(unittest.TestCase):
         self.assertNotEqual(flick[0]["part_boxes"], flick[1]["part_boxes"])  # the pose moved the flame
         self.assertEqual([f["ticks"] for f in flick], [5, 5, 5])
 
+    def test_a_blade_reports_its_tip_through_every_pose_and_nothing_else_does(self) -> None:
+        """The review draws the blade's arc through `tip`: the main pose's vertex farthest from the
+        posed pivot, not an end of the smear (the box corner it replaced was not a point of the
+        blade)."""
+        src = common.source(common.PROBE_DIR)
+        swing = next(i for i, a in enumerate(src.actions) if a.name == "swing")
+        tips = []
+        for index in range(len(src.actions[swing].frames)):
+            _, res = common.baked(common.PROBE_DIR, swing, index, (1,))
+            by_part = {b["part"]: b for b in res.meta["part_boxes"]}
+            self.assertEqual([k for k, b in by_part.items() if "tip" in b], ["blade"])
+            tip = by_part["blade"]["tip"]
+            x0, y0, x1, y1 = by_part["blade"]["box"]
+            # Inside the blade's box (which the smear sweep may widen), on the arc's far end.
+            self.assertTrue(x0 - 1e-3 <= tip[0] <= x1 + 1e-3 and y0 - 1e-3 <= tip[1] <= y1 + 1e-3)
+            tips.append(tip)
+        self.assertGreater(len(set(map(tuple, tips))), 1)  # the blade moved, so did its tip
+        self.assertTrue(all("tip" not in b for f in self.sheet["actions"]["idle"]["frames"] for b in f["part_boxes"]))
+
     def test_palette_image_rows_and_slots(self) -> None:
         pal = assetbuild.png_pixels(self.files["candle_stump.palette.png"])
         self.assertEqual(pal.shape, (8, 16, 4))  # base and dusk, four rows each

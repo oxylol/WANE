@@ -48,7 +48,11 @@ def frame_meta(lib: PartLibrary, pal: Palette, posed: Posed, part_polys) -> dict
         if not part.tags:
             continue
         b = geo.bounds(part_polys[k])
-        meta["part_boxes"].append({"part": part.id, "tags": list(part.tags), "box": _box(b, origin)})
+        entry = {"part": part.id, "tags": list(part.tags), "box": _box(b, origin)}
+        if part.id in posed.tips:
+            tx, ty = posed.tips[part.id]
+            entry["tip"] = [round(tx - origin[0], 4), round(ty - origin[1], 4)]
+        meta["part_boxes"].append(entry)
         if "emissive" in part.tags:
             cx, cy = (b[0] + b[2]) * 0.5, (b[1] + b[3]) * 0.5
             pts = np.concatenate(part_polys[k])

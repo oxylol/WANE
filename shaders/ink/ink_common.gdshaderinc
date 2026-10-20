@@ -26,7 +26,6 @@ global uniform vec4 wane_fill_more; // brush_stretch, rim_u, grain_strength, bac
 global uniform vec4 wane_ink_more; // ink_value, taper_floor, ink_over_fill, emissive_gain
 global uniform vec4 wane_ink_light; // line_light_lo, line_light_hi, bg_drop_lo, bg_drop_hi
 global uniform vec4 wane_ink_bg; // bg_break_lo, bg_break_hi, bg_thin, bg_mask_wave_u
-global uniform float wane_boil;
 
 // ---- The channel layout. These constants are the decode half of ADR-0023 Decision 1.3 and must
 // ---- equal tools/artbuild/channels.py (tools/ci/test_ink_layout.py checks).

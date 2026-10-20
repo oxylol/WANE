@@ -71,6 +71,9 @@ class Piece:
 class Posed:
     pieces: list[Piece]
     smear: dict[str, bool]  # part id -> smeared on this frame, for every smear-tagged part
+    # part id -> the vertex of the part's main pose (not its smear) farthest from its posed pivot,
+    # for every blade-tagged part: the blade tip the review draws its arc through
+    tips: dict[str, tuple[float, float]] = field(default_factory=dict)
 
 
 def _affine(v, where: str) -> geo.Affine:
@@ -191,6 +194,7 @@ def sweep(arc: list[geo.Affine], pts: np.ndarray, pivot: tuple[float, float]) ->
 def pose_frame(lib: PartLibrary, spec: FrameSpec) -> Posed:
     pieces: list[Piece] = []
     smear_flags: dict[str, bool] = {}
+    tips: dict[str, tuple[float, float]] = {}
     for k, part in enumerate(lib.parts):
         main = spec.parts.get(part.id, geo.IDENTITY)
         arcs = [*spec.smear.get(part.id, []), main]
@@ -200,7 +204,12 @@ def pose_frame(lib: PartLibrary, spec: FrameSpec) -> Posed:
             pieces.append(Piece(k, [geo.clean(geo.apply(m, p)) for p in part.polys]))
         if "smear" in part.tags:
             smear_flags[part.id] = part.id in spec.smear
-    return Posed(pieces, smear_flags)
+        if "blade" in part.tags:
+            pts = np.concatenate([geo.apply(main, p) for p in part.polys])
+            pv = geo.apply(main, np.array([part.pivot], dtype=np.float64))[0]
+            far = ((pts[:, 0] - pv[0]) ** 2 + (pts[:, 1] - pv[1]) ** 2).argmax()
+            tips[part.id] = (float(pts[far, 0]), float(pts[far, 1]))
+    return Posed(pieces, smear_flags, tips)
 
 
 def posed_bounds(posed: Posed) -> tuple[float, float, float, float]:

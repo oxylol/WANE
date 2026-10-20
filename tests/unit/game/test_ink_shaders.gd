@@ -231,6 +231,22 @@ func test_a_sheet_lays_out_a_frame_at_its_scale() -> void:
 	sprite.free()
 
 
+func test_a_sprite_set_up_again_takes_the_new_sheets_texture_and_the_actions_pivot() -> void:
+	# The review sets one node up with the 1x sheet and then the 4x masters: the texture, the scale
+	# and the pivot must follow the sheet, not stay with the first (a measured bug).
+	var noise: ImageTexture = InkProbe.noise_texture()
+	var one: SpriteSheet = InkProbe.figure_sheet(1, noise)
+	var four: SpriteSheet = InkProbe.figure_sheet(4, noise)
+	var sprite := InkSprite.new()
+	sprite.setup(one, &"idle")
+	assert_object(sprite.texture).is_same(one.shape)
+	sprite.setup(four, &"idle")
+	assert_object(sprite.texture).is_same(four.shape)
+	assert_vector(sprite.scale).is_equal(Vector2(0.25, 0.25))
+	assert_vector(sprite.offset).is_equal(-InkProbe.FIGURE_ORIGIN_U * 4.0)
+	sprite.free()
+
+
 func test_sprites_of_one_family_share_a_material_and_instance_values_ride_on_the_colour() -> void:
 	var noise: ImageTexture = InkProbe.noise_texture()
 	var sheet: SpriteSheet = InkProbe.figure_sheet(1, noise)
@@ -268,10 +284,16 @@ func test_a_sheet_reads_the_json_of_adr_1_6() -> void:
 			{
 				"fps": 24,
 				"loop": true,
+				"cell_u": [96, 120],
+				"cell_origin_u": [48, 104],
 				"frames":
 				[
 					{"rect": {"1": [0, 0, 96, 128], "2": [0, 0, 192, 256]}, "ticks": 3},
-					{"rect": {"1": [96, 0, 96, 128], "2": [192, 0, 192, 256]}, "ticks": 2},
+					{
+						"page": 1,
+						"rect": {"1": [96, 0, 96, 128], "2": [192, 0, 192, 256]},
+						"ticks": 2
+					},
 				],
 			}
 		},
@@ -288,6 +310,12 @@ func test_a_sheet_reads_the_json_of_adr_1_6() -> void:
 	assert_int(sheet.frame_ticks(&"run", 0)).is_equal(3)
 	assert_bool(sheet.action_loops(&"run")).is_true()
 	assert_vector(sheet.origin_u).is_equal(Vector2(48, 112))
+	# A cell is per action (the artbuild packs each action in the cell it needs), and so is the
+	# page of a frame; the top-level numbers are the fallback.
+	assert_vector(sheet.cell_of(&"run")).is_equal(Vector2(96, 120))
+	assert_vector(sheet.origin_of(&"run")).is_equal(Vector2(48, 104))
+	assert_int(sheet.frame_page(&"run", 0)).is_equal(0)
+	assert_int(sheet.frame_page(&"run", 1)).is_equal(1)
 	var missing: PackedStringArray = sheet.errors
 	assert_bool(missing.size() > 0).is_true()
 	assert_bool(SpriteSheet.open(dir, "nothing", 1, null).is_valid()).is_false()

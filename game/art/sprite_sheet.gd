@@ -12,27 +12,39 @@ const NOISE_PATH: String = "res://assets/art/build/noise/noise.png"
 const PALETTE_ROWS: int = 4
 
 
-## The frames of one action: the rectangle of each in texels at this scale and its length in
-## 60 Hz ticks.
+## The frames of one action: the rectangle of each in texels at this scale, the page of the atlas
+## it is on and its length in 60 Hz ticks. A cell is per action (the artbuild packs each action's
+## frames in a cell of the size that action needs), so the cell and the feet pivot inside it are
+## too (sheet.json `cell_u` and `cell_origin_u` of the action).
 class ActionFrames:
 	extends RefCounted
 	var fps: int = 24
 	var loop: bool = true
 	var rects: Array[Rect2i] = []
+	var pages: Array[int] = []
 	var ticks: Array[int] = []
+	var cell_u: Vector2 = Vector2.ZERO
+	var origin_u: Vector2 = Vector2.ZERO
 
 
 var asset: String = ""
 ## Texels per u: 1 for the 1080p set, 2 for the 2160p set, 4 for the review masters.
 var texels_per_u: int = 1
+## Page 0 of the atlas (the whole of it for an asset that fits one page).
 var shape: Texture2D
 var normal: Texture2D
 var parts: Texture2D
 var palette: Texture2D
 var noise: Texture2D
-## The frame cell in u, and the feet pivot inside it measured from the cell's top-left, in u.
+## Pages beyond the first (`<asset>.p<N>@<s>x.*.png`), index 0 being page 1.
+var more_shape: Array[Texture2D] = []
+var more_normal: Array[Texture2D] = []
+var more_parts: Array[Texture2D] = []
+## The largest frame cell in u, and the feet pivot of the asset's source, in u. Each action has its
+## own cell and pivot inside it ([method cell_of], [method origin_of]).
 var cell_u: Vector2 = Vector2.ZERO
 var origin_u: Vector2 = Vector2.ZERO
+var page_count: int = 1
 var errors: PackedStringArray = []
 var _actions: Dictionary[StringName, ActionFrames] = {}
 var _materials: Dictionary[int, ShaderMaterial] = {}
@@ -50,7 +62,7 @@ static func open(dir: String, asset_id: String, scale: int, noise_tex: Texture2D
 	if text.is_empty():
 		sheet.errors.append("%s: not found or empty" % json_path)
 		return sheet
-	var meta: Dictionary[String, Variant] = _dict(JSON.parse_string(text))
+	var meta: Dictionary[String, Variant] = json_dict(JSON.parse_string(text))
 	if meta.is_empty():
 		sheet.errors.append("%s: not a JSON object" % json_path)
 		return sheet
@@ -60,6 +72,12 @@ static func open(dir: String, asset_id: String, scale: int, noise_tex: Texture2D
 	sheet.normal = sheet._texture("%s.normal.png" % stem)
 	sheet.parts = sheet._texture("%s.parts.png" % stem)
 	sheet.palette = sheet._texture("%s/%s.palette.png" % [dir, asset_id])
+	for page: int in range(1, sheet.page_count):
+		var tail: String = ".p%d@%dx" % [page, scale]
+		var base: String = "%s/%s%s" % [dir, asset_id, tail]
+		sheet.more_shape.append(sheet._texture("%s.shape.png" % base))
+		sheet.more_normal.append(sheet._texture("%s.normal.png" % base))
+		sheet.more_parts.append(sheet._texture("%s.parts.png" % base))
 	return sheet
 
 
@@ -80,7 +98,10 @@ static func from_images(
 	sheet.origin_u = origin
 	var frames := ActionFrames.new()
 	frames.rects.append(Rect2i(Vector2i.ZERO, size))
+	frames.pages.append(0)
 	frames.ticks.append(1)
+	frames.cell_u = sheet.cell_u
+	frames.origin_u = origin
 	sheet._actions[&"idle"] = frames
 	return sheet
 
@@ -107,9 +128,41 @@ func frame_rect(action: StringName, index: int) -> Rect2i:
 	return _actions[action].rects[index]
 
 
+## The atlas page frame [param index] of [param action] is on.
+func frame_page(action: StringName, index: int) -> int:
+	return _actions[action].pages[index]
+
+
+## The frame cell of [param action] in u.
+func cell_of(action: StringName) -> Vector2:
+	return _actions[action].cell_u
+
+
+## The feet pivot inside [param action]'s cell, measured from the cell's top-left, in u.
+func origin_of(action: StringName) -> Vector2:
+	return _actions[action].origin_u
+
+
+func shape_page(page: int) -> Texture2D:
+	return shape if page == 0 else more_shape[page - 1]
+
+
+func normal_page(page: int) -> Texture2D:
+	return normal if page == 0 else more_normal[page - 1]
+
+
+func parts_page(page: int) -> Texture2D:
+	return parts if page == 0 else more_parts[page - 1]
+
+
 ## How long a frame is held, in 60 Hz ticks (from the pose timing).
 func frame_ticks(action: StringName, index: int) -> int:
 	return _actions[action].ticks[index]
+
+
+## The action's baked frame rate.
+func fps_of(action: StringName) -> int:
+	return _actions[action].fps
 
 
 func action_loops(action: StringName) -> bool:
@@ -117,17 +170,21 @@ func action_loops(action: StringName) -> bool:
 
 
 ## The shared material for a family of sprites: one material per (kind, carrier, palette row,
-## mode) so every sprite of a sheet in the same family batches. The per-instance values (flash,
-## emissive boost, dissolve, alpha) ride on self_modulate, not on the material.
-func material(background: bool, carrier: bool, palette_row: int, mode: int) -> ShaderMaterial:
-	var key: int = int(background) | (int(carrier) << 1) | (palette_row << 2) | (mode << 12)
+## mode, atlas page) so every sprite of a sheet in the same family batches. The per-instance values
+## (flash, emissive boost, dissolve, alpha) ride on self_modulate, not on the material.
+func material(
+	background: bool, carrier: bool, palette_row: int, mode: int, page: int = 0
+) -> ShaderMaterial:
+	var key: int = (
+		int(background) | (int(carrier) << 1) | (palette_row << 2) | (mode << 12) | (page << 16)
+	)
 	if _materials.has(key):
 		return _materials[key]
 	var mat := ShaderMaterial.new()
 	mat.shader = load(BACKGROUND_SHADER if background else SPRITE_SHADER) as Shader
-	mat.set_shader_parameter(&"shape_tex", shape)
-	mat.set_shader_parameter(&"normal_tex", normal)
-	mat.set_shader_parameter(&"parts_tex", parts)
+	mat.set_shader_parameter(&"shape_tex", shape_page(page))
+	mat.set_shader_parameter(&"normal_tex", normal_page(page))
+	mat.set_shader_parameter(&"parts_tex", parts_page(page))
 	mat.set_shader_parameter(&"palette_tex", palette)
 	mat.set_shader_parameter(&"noise_tex", noise)
 	mat.set_shader_parameter(&"frame_u", cell_u)
@@ -189,57 +246,71 @@ static func load_noise() -> Texture2D:
 
 
 func _read_meta(meta: Dictionary[String, Variant], scale: int) -> void:
-	if int(_num(meta.get("version", 0), 0.0)) != SHEET_VERSION:
+	if int(json_num(meta.get("version", 0), 0.0)) != SHEET_VERSION:
 		errors.append("%s: sheet.json version must be %d" % [asset, SHEET_VERSION])
-	var cell: Array[Variant] = _list(meta.get("cell_u", null))
-	var origin: Array[Variant] = _list(meta.get("origin_u", null))
+	var cell: Array[Variant] = json_list(meta.get("cell_u", null))
+	var origin: Array[Variant] = json_list(meta.get("origin_u", null))
 	if cell.size() == 2:
-		cell_u = Vector2(_num(cell[0], 0.0), _num(cell[1], 0.0))
+		cell_u = Vector2(json_num(cell[0], 0.0), json_num(cell[1], 0.0))
 	else:
 		errors.append("%s: cell_u must be [w, h]" % asset)
 	if origin.size() == 2:
-		origin_u = Vector2(_num(origin[0], 0.0), _num(origin[1], 0.0))
+		origin_u = Vector2(json_num(origin[0], 0.0), json_num(origin[1], 0.0))
 	else:
 		errors.append("%s: origin_u must be [x, y]" % asset)
-	var actions: Dictionary[String, Variant] = _dict(meta.get("actions", null))
+	var pages: Array[Variant] = json_list(meta.get("pages", null))
+	page_count = maxi(1, pages.size())
+	var actions: Dictionary[String, Variant] = json_dict(meta.get("actions", null))
 	if actions.is_empty():
 		errors.append("%s: actions must be a non-empty object" % asset)
 	for action_name: String in actions:
-		_read_action(StringName(action_name), _dict(actions[action_name]), scale)
+		_read_action(StringName(action_name), json_dict(actions[action_name]), scale)
 
 
 func _read_action(action: StringName, body: Dictionary[String, Variant], scale: int) -> void:
 	var frames := ActionFrames.new()
-	frames.fps = int(_num(body.get("fps", 24), 24.0))
+	frames.fps = int(json_num(body.get("fps", 24), 24.0))
 	var loops: bool = body.get("loop", true)
 	frames.loop = loops
-	var list: Array[Variant] = _list(body.get("frames", null))
+	var cell: Array[Variant] = json_list(body.get("cell_u", null))
+	var origin: Array[Variant] = json_list(body.get("cell_origin_u", null))
+	frames.cell_u = (
+		Vector2(json_num(cell[0], 0.0), json_num(cell[1], 0.0)) if cell.size() == 2 else cell_u
+	)
+	frames.origin_u = (
+		Vector2(json_num(origin[0], 0.0), json_num(origin[1], 0.0))
+		if origin.size() == 2
+		else origin_u
+	)
+	var list: Array[Variant] = json_list(body.get("frames", null))
 	if list.is_empty():
 		errors.append("%s: action %s has no frames" % [asset, action])
 		return
 	for frame_v: Variant in list:
-		var frame: Dictionary[String, Variant] = _dict(frame_v)
-		var r: Array[Variant] = _list(_dict(frame.get("rect", null)).get(str(scale), null))
+		var frame: Dictionary[String, Variant] = json_dict(frame_v)
+		var r: Array[Variant] = json_list(json_dict(frame.get("rect", null)).get(str(scale), null))
 		if r.size() != 4:
 			errors.append("%s: a frame of %s has no rect for scale %d" % [asset, action, scale])
 			continue
-		var x: int = int(_num(r[0], 0.0))
-		var y: int = int(_num(r[1], 0.0))
-		var w: int = int(_num(r[2], 0.0))
-		var h: int = int(_num(r[3], 0.0))
+		var x: int = int(json_num(r[0], 0.0))
+		var y: int = int(json_num(r[1], 0.0))
+		var w: int = int(json_num(r[2], 0.0))
+		var h: int = int(json_num(r[3], 0.0))
 		frames.rects.append(Rect2i(x, y, w, h))
-		frames.ticks.append(int(_num(frame.get("ticks", 1), 1.0)))
+		frames.pages.append(int(json_num(frame.get("page", 0), 0.0)))
+		frames.ticks.append(int(json_num(frame.get("ticks", 1), 1.0)))
 	_actions[action] = frames
 
 
-static func _num(v: Variant, fallback: float) -> float:
+## JSON reading helpers (a value of the wrong type reads as the fallback or an empty container).
+static func json_num(v: Variant, fallback: float) -> float:
 	if v is float or v is int:
 		var f: float = v
 		return f
 	return fallback
 
 
-static func _list(v: Variant) -> Array[Variant]:
+static func json_list(v: Variant) -> Array[Variant]:
 	var out: Array[Variant] = []
 	if typeof(v) == TYPE_ARRAY:
 		for item: Variant in v:
@@ -247,7 +318,7 @@ static func _list(v: Variant) -> Array[Variant]:
 	return out
 
 
-static func _dict(v: Variant) -> Dictionary[String, Variant]:
+static func json_dict(v: Variant) -> Dictionary[String, Variant]:
 	var out: Dictionary[String, Variant] = {}
 	if typeof(v) == TYPE_DICTIONARY:
 		for k: Variant in v:

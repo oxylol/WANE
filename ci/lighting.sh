@@ -30,3 +30,40 @@ if [ "$status" -ne 0 ] || ! grep -q "^LIGHTING GPU CHECK PASSED" "$log"; then
 	echo "lighting: FAILED (exit $status)" >&2
 	exit 1
 fi
+# The three-size review (docs/adr/0023 Decision 5) on the committed test prop: the pictures must be
+# there, drawn (not one flat colour) and the silhouette white on black. The 4x masters are a
+# review product of the art build, so the detail is not asserted here.
+out="$(mktemp -d)"
+trap 'rm -f "$log"; rm -rf "$out"' EXIT
+timeout "${LIGHTING_TIME_LIMIT:-300}" xvfb-run -a -s "-screen 0 1920x1080x24" "$godot" --path . \
+	--rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 \
+	--script tools/artbuild/review.gd -- candle_stump --root res://tests/art/build --out "$out" \
+	> "$log" 2>&1 || status=$?
+if grep -E "SHADER ERROR|SCRIPT ERROR|Parse Error|Compile Error" "$log" > /dev/null; then
+	grep -E "SHADER ERROR|SCRIPT ERROR|Parse Error|Compile Error" "$log" >&2
+	echo "lighting: shader or script errors in the review" >&2
+	exit 1
+fi
+python3 - "$out" <<'PY'
+import sys
+from pathlib import Path
+from PIL import Image
+
+out = Path(sys.argv[1])
+for name in ("sil64", "dusk1x", "pitch1x", "idle", "flicker"):
+    path = out / f"{name}.png"
+    if not path.exists():
+        sys.exit(f"lighting: the review did not write {name}.png")
+    colours = len(Image.open(path).convert("RGB").getcolors(1 << 24) or [])
+    if colours < 16:
+        sys.exit(f"lighting: {name}.png is nearly one flat colour ({colours} colours)")
+sil = Image.open(out / "sil64.png").convert("L")
+white = sum(1 for v in sil.tobytes() if v > 200)
+if not 200 < white < sil.width * sil.height // 2:
+    sys.exit(f"lighting: sil64.png has {white} white pixels, not a figure on black")
+print("review: sil64, dusk1x, pitch1x and the contact sheets drawn")
+PY
+if [ "$status" -ne 0 ]; then
+	echo "lighting: review FAILED (exit $status)" >&2
+	exit 1
+fi

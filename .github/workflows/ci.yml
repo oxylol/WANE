@@ -153,7 +153,9 @@ jobs:
       - name: Install a virtual display and a software GL driver
         run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
       - uses: ./.github/actions/native-build
-      - name: Lighting GPU check
+      # The review check (ci/lighting.sh) reads its pictures with Pillow, pinned with the art build.
+      - run: python3 -m pip install --user "$(grep -i '^pillow' tools/requirements.txt)"
+      - name: Lighting GPU check and art review
         run: ci/lighting.sh
 
   native-release:
