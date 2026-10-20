@@ -1,5 +1,5 @@
 fixture zone1_loop
-doc The 60-second loop through zone 1 that stands for the Immaculate Checklist's "movement-only loop" (it is the same route, not a stripped one: it strikes, with 48 attack presses that are the pogo down-strikes and dash-slashes the rooms teach, and it carries the Kindle Votive; it takes no hit): from room 01's west arrival with the Kindle Votive (option kindle 1), through all twelve rooms by their teaching routes (each room's route fixture, started on the tick after the previous room's door is crossed, so Ash arrives with the speed she left with) and out of room 12's east door back into room 01. 3461 ticks (57.7 s); per room: 359, 242, 221, 552, 412, 487, 161, 211, 214, 179, 247, 176. No hit is taken and no heart lost. Room 3 is the 4-a-second chain of 10 bounces over the 3008 u pit (zone1_03_pogo_chain_route; the carried speed puts Ash at the door a tick sooner, so 221 ticks, not 222). Room 4 opens with one tick of left, to give back the 13 u that the carried speed adds, and room 7 with 2 and room 11 with 1 (see docs/feel_log/2026-10-19-merge-zone1.md). Longer than the 600-frame guideline by design.
+doc The 60-second loop through zone 1 that stands for the Immaculate Checklist's "movement-only loop" (it is the same route, not a stripped one: it strikes, with 48 attack presses that are the pogo down-strikes and dash-slashes the rooms teach, and it carries the Kindle Votive; it takes no hit): from room 01's west arrival with the Kindle Votive (option kindle 1), through all twelve rooms by their teaching routes (each room's route fixture, started on the tick after the previous room's door is crossed, so Ash arrives with the speed she left with) and out of room 12's east door back into room 01. 3696 ticks (61.6 s); per room: 359, 242, 456, 552, 412, 487, 161, 211, 214, 179, 247, 176. No hit is taken and no heart lost. Room 3 is the main route of room 03, the open 2496 u pit crossed by a relaxed chain (zone1_03_main_route: the patch's bounce and 8 pit bounces at the run speed, about 36 frames each; Ash arrives at the run speed, 9 u/f, so the route's hop is timed on x, not on the tick). The optional 4-a-second tunnel is not on the loop (zone1_03_pogo_chain_route). Room 4 opens with one tick of left, to give back the 13 u that the carried speed adds (the run speed now, not the dash-jump's; the tick is still needed), and room 7 with 2 and room 11 with 1 (see docs/feel_log/2026-10-19-merge-zone1.md). Longer than the 600-frame guideline by design.
 room zone1/01_dash_slash
 spawn 74 832
 option kindle 1
@@ -75,7 +75,7 @@ input
   537 R U jump dash
   538..574 R jump
   575..600 R
-  # Room 3, Pogo chain (its route, tests/replay/zone1/03_*): from tick 601.
+  # Room 3, Pogo chain (its route, tests/replay/zone1/03_*): from tick 601 (the main route, 456 ticks).
   601..614 R
   615..617 R jump
   618..626 R
@@ -97,7 +97,7 @@ input
   886..919 R
   920 R D attack
   921..1056 R
-  # Room 4, Pogo-dash reset (its route, tests/replay/zone1/04_*): from tick 822.
+  # Room 4, Pogo-dash reset (its route, tests/replay/zone1/04_*): from tick 1057.
   1058 L
   1060 R !dash
   1061..1084 R
