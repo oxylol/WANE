@@ -9,7 +9,9 @@ extends GdUnitTestSuite
 ## content (the room and the enemy's numbers are in the content fingerprint), and a solid
 ## dummy's blocker, a box in the world's solids (which the simulation hashes) that follows the body.
 ## The proc bus is hashed on its own (tests/unit/core/items/test_proc_bus.gd); combat's query cells
-## are rebuilt from the enemies every tick they are asked for.
+## are rebuilt from the enemies every tick they are asked for. A walking dummy's speed, ledge depth
+## and ledge rule come from the enemy's numbers and its room marker (content), and `settled` lives
+## within a tick; its direction is state (hashed once it is not 0: docs/adr/0020).
 const NOT_STATE: Array[String] = [
 	"procs",
 	"_cells",
@@ -32,6 +34,10 @@ const NOT_STATE: Array[String] = [
 	"blocker",
 	"_gravity",
 	"_terminal",
+	"patrol_step",
+	"patrol_falls",
+	"patrol_drop",
+	"settled",
 ]
 
 
