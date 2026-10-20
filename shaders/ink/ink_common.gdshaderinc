@@ -168,6 +168,12 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	float reach_u = max(wane_ink.y, wane_ink.z * upp) + back_u + 2.0 * aa + wane_ink.w + wane_ink_wave.z + wane_fill_more.y;
 	float cover = 0.0;
 	float w = 0.0;
+	// The break mask of a background's open line (sampled outside the branch below: a mipmapped
+	// fetch needs uniform control flow).
+	float bg_mask = 1.0;
+	if (background) {
+		bg_mask = texture(noise_tex, p_u / (wane_ink_bg.w * INK_WOBBLE1_CELLS)).b;
+	}
 	if (u_dist < reach_u) {
 		// The visible edge's outward normal: minus the gradient of U on the front side, plus it on
 		// the back. Where the four taps straddle the edge the gradient collapses; the bevel
@@ -186,8 +192,7 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 		w = max(w, wane_ink.z * upp);
 		float line_cover_scale = 1.0;
 		if (background) {
-			float mask = texture(noise_tex, p_u / (wane_ink_bg.w * INK_WOBBLE1_CELLS)).b;
-			w *= mix(wane_ink_bg.z, 1.0, smoothstep(wane_ink_bg.x, wane_ink_bg.y, mask));
+			w *= mix(wane_ink_bg.z, 1.0, smoothstep(wane_ink_bg.x, wane_ink_bg.y, bg_mask));
 			float reach = wane_light_reaching(world, screen_uv);
 			line_cover_scale = 1.0 - smoothstep(wane_ink_light.z, wane_ink_light.w, reach);
 		}

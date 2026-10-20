@@ -143,7 +143,49 @@ func _texture(path: String) -> Texture2D:
 	if not ResourceLoader.exists(path):
 		errors.append("%s: not imported or missing" % path)
 		return null
+	var sidecar: String = FileAccess.get_file_as_string("%s.import" % path)
+	for problem: String in import_problems(sidecar):
+		errors.append("%s: %s" % [path, problem])
 	return load(path) as Texture2D
+
+
+## What is wrong with a channel texture's import settings (the text of its .import file). The
+## channels are data, not pictures: Godot's default import bleeds the colour of opaque pixels into
+## the RGB of transparent neighbours (fix_alpha_border), which here overwrites the palette index,
+## the brush angle and the taper next to every pixel that has an alpha (a measured corruption), and
+## lossy compression or premultiplication would change them too. project.godot [importer_defaults]
+## sets all of this for every texture; this catches an asset that overrides it.
+static func import_problems(import_text: String) -> PackedStringArray:
+	var problems: PackedStringArray = []
+	if import_text.is_empty():
+		return problems
+	var wanted: Dictionary[String, String] = {
+		"process/fix_alpha_border": "false",
+		"process/premult_alpha": "false",
+		"compress/mode": "0",
+		"mipmaps/generate": "false",
+	}
+	var lines: PackedStringArray = import_text.split("\n")
+	for key: String in wanted:
+		var want: String = "%s=%s" % [key, wanted[key]]
+		var found: bool = false
+		for line: String in lines:
+			if line.strip_edges() == want:
+				found = true
+		if not found:
+			problems.append("import setting %s must be %s (channel data)" % [key, wanted[key]])
+	return problems
+
+
+## The shared noise (assets/art/build/noise/noise.png), with mipmaps whatever its import says: the
+## brush streaks and the paper grain are minified at 1x, and without mipmaps they alias.
+static func load_noise() -> Texture2D:
+	if not ResourceLoader.exists(NOISE_PATH):
+		return null
+	var img: Image = (load(NOISE_PATH) as Texture2D).get_image()
+	if not img.has_mipmaps():
+		img.generate_mipmaps()
+	return ImageTexture.create_from_image(img)
 
 
 func _read_meta(meta: Dictionary[String, Variant], scale: int) -> void:

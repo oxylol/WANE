@@ -291,3 +291,29 @@ func test_a_sheet_reads_the_json_of_adr_1_6() -> void:
 	var missing: PackedStringArray = sheet.errors
 	assert_bool(missing.size() > 0).is_true()
 	assert_bool(SpriteSheet.open(dir, "nothing", 1, null).is_valid()).is_false()
+
+
+func test_the_project_imports_channel_textures_as_data() -> void:
+	# Godot's default import would overwrite the RGB next to every alpha pixel (measured), so the
+	# project sets its importer defaults for every texture (ADR-0023 Decision 1.3).
+	var defaults: Variant = ProjectSettings.get_setting("importer_defaults/texture")
+	assert_bool(defaults is Dictionary).is_true()
+	assert_bool(defaults["process/fix_alpha_border"] == false).is_true()
+	assert_bool(defaults["process/premult_alpha"] == false).is_true()
+	assert_int(defaults["compress/mode"]).is_equal(0)
+	assert_bool(defaults["mipmaps/generate"] == false).is_true()
+
+
+func test_a_channel_texture_that_overrides_the_import_defaults_is_reported() -> void:
+	var good: String = (
+		"[params]\n\ncompress/mode=0\nmipmaps/generate=false\n"
+		+ "process/fix_alpha_border=false\nprocess/premult_alpha=false\n"
+	)
+	assert_int(SpriteSheet.import_problems(good).size()).is_equal(0)
+	var godot_default: String = good.replace("fix_alpha_border=false", "fix_alpha_border=true")
+	var problems: PackedStringArray = SpriteSheet.import_problems(godot_default)
+	assert_int(problems.size()).is_equal(1)
+	assert_bool(problems[0].contains("fix_alpha_border")).is_true()
+	var lossy: String = good.replace("compress/mode=0", "compress/mode=2")
+	assert_int(SpriteSheet.import_problems(lossy).size()).is_equal(1)
+	assert_int(SpriteSheet.import_problems("").size()).is_equal(0)
