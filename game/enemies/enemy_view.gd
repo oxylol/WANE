@@ -94,20 +94,32 @@ func _ready() -> void:
 func capture(sim: Simulation) -> void:
 	var count: int = sim.combat.enemies.size()
 	var fresh: bool = count != shown.size()
-	_before.clear()
-	for s: Shown in shown:
-		_before.append(s.box)
-	shown.clear()
+	_before.resize(shown.size())
+	for i: int in range(shown.size()):
+		_before[i] = shown[i].box
+	# One snapshot object per enemy, rewritten in place: 200 allocations a tick were most of this
+	# method's 2.3 ms in the stress run (docs/adr/0020 Decision 17).
+	var kept: int = shown.size()
+	if count < kept:
+		shown.resize(count)
 	for i: int in range(count):
-		shown.append(_snapshot(sim.combat.enemies[i]))
+		if i >= kept:
+			shown.append(Shown.new())
+		_fill(shown[i], sim.combat.enemies[i])
 	if fresh:
-		_before.clear()
-		for s: Shown in shown:
-			_before.append(s.box)
+		_before.resize(count)
+		for i: int in range(count):
+			_before[i] = shown[i].box
 
 
-static func _snapshot(e: Enemy) -> Shown:
+## A new snapshot of [param e]: what [method capture] rewrites a kept one to.
+static func snapshot_of(e: Enemy) -> Shown:
 	var s := Shown.new()
+	_fill(s, e)
+	return s
+
+
+static func _fill(s: Shown, e: Enemy) -> void:
 	var b: Body = e.body
 	s.box = Rect2(
 		float(b.left()) / Fx.SUB,
@@ -120,14 +132,14 @@ static func _snapshot(e: Enemy) -> Shown:
 	s.facing = e.facing
 	s.since_hit = e.since_hit
 	s.telegraph = cue_progress(e)
-	if e.attack != null:
-		s.parryable = e.attack.parryable
+	s.parryable = e.attack.parryable if e.attack != null else true
 	var hit: Rect2i = e.attack_box()
 	if hit.size != Vector2i.ZERO:
 		s.attack = Rect2(Vector2(hit.position) / Fx.SUB, Vector2(hit.size) / Fx.SUB)
+	else:
+		s.attack = Rect2()
 	s.hp = float(e.hp) / float(e.max_hp)
 	s.poise = float(e.poise) / float(e.max_poise)
-	return s
 
 
 ## How far the telegraph has risen, 0..1, while its cue shows: through the telegraph and on the
