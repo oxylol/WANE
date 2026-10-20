@@ -1,0 +1,46 @@
+# Builds the native extension (native/, ADR-0021) with a cache that survives a failing run.
+#
+# actions/cache saves in a post step that runs only if the whole job succeeded, so a job that built
+# for 13 minutes and then failed a later step (or hit its time limit) saved nothing and the next
+# run built cold again. Here the cache is saved right after the build, whatever happens next.
+#
+# The cache holds godot-cpp (the pinned checkout and its objects) and SCons's signature database;
+# the extension's own objects are rebuilt (a few seconds). The key names the target, so the
+# release job's cache and the debug jobs' caches do not fight over one key; the restore key lets
+# a changed SConstruct or build profile start from the last cache of the same target and platform.
+name: native-build
+description: Restore the godot-cpp cache, build the native extension, save the cache.
+
+inputs:
+  target:
+    description: template_debug (the editor and the headless tests load it) or template_release.
+    required: false
+    default: template_debug
+
+runs:
+  using: composite
+  steps:
+    - name: Install SCons (pinned in tools/requirements.txt)
+      shell: bash
+      run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+    - name: Restore godot-cpp and its build products
+      id: restore
+      uses: actions/cache/restore@v4
+      with:
+        path: |
+          native/godot-cpp
+          native/.sconsign.dblite
+        key: native-${{ inputs.target }}-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'native/SConstruct', 'native/build_profile.json', 'ci/build_native.sh', 'ci/setup_godot_cpp.sh') }}
+        restore-keys: |
+          native-${{ inputs.target }}-${{ runner.os }}-${{ runner.arch }}-
+    - name: Build the native extension (ADR-0021)
+      shell: bash
+      run: ci/build_native.sh ${{ inputs.target }}
+    - name: Save godot-cpp and its build products
+      if: steps.restore.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: |
+          native/godot-cpp
+          native/.sconsign.dblite
+        key: ${{ steps.restore.outputs.cache-primary-key }}

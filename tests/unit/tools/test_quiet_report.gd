@@ -234,7 +234,19 @@ func test_a_stage_is_one_line() -> void:
 	assert_str(QuietReport.stage_line("unit", false, "1203 cases, 2 failed", 61.04)).is_equal(
 		"unit FAIL 1203 cases, 2 failed 61.0 s"
 	)
-	assert_str(QuietReport.stage_line("unit", true, "", 0.25)).is_equal("unit PASS 0.2 s")
+	# A tie rounds up, on every platform: printf rounds 0.25 to "0.2" on Linux and macOS and CI's
+	# Windows printed "0.23" (the old assertion here).
+	assert_str(QuietReport.stage_line("unit", true, "", 0.25)).is_equal("unit PASS 0.3 s")
+
+
+func test_seconds_are_one_decimal_rounded_half_up_in_integers() -> void:
+	assert_str(QuietReport.seconds_text(0.0)).is_equal("0.0")
+	assert_str(QuietReport.seconds_text(0.04)).is_equal("0.0")
+	assert_str(QuietReport.seconds_text(0.05)).is_equal("0.1")
+	assert_str(QuietReport.seconds_text(0.75)).is_equal("0.8")
+	assert_str(QuietReport.seconds_text(9.96)).is_equal("10.0")
+	assert_str(QuietReport.seconds_text(384.8)).is_equal("384.8")
+	assert_str(QuietReport.seconds_text(-1.0)).is_equal("0.0")
 
 
 func test_a_failing_fixture_shows_its_name_path_and_failing_expectations() -> void:

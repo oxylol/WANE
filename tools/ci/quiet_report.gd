@@ -59,8 +59,17 @@ static func stage_line(stage: String, ok: bool, summary: String, seconds: float)
 	var parts: PackedStringArray = [stage, "PASS" if ok else "FAIL"]
 	if summary != "":
 		parts.append(summary)
-	parts.append("%.1f s" % seconds)
+	parts.append("%s s" % seconds_text(seconds))
 	return " ".join(parts)
+
+
+## [param seconds] to one decimal, rounded half up, in integer arithmetic. printf rounds a tie by
+## the C library it was built with and CI's Windows run printed 0.25 as "0.23" where Linux and
+## macOS print "0.2"; a time in a log needs no more than the same text on every platform.
+static func seconds_text(seconds: float) -> String:
+	var tenths: int = maxi(roundi(seconds * 10.0), 0)
+	var whole: int = floori(float(tenths) / 10.0)
+	return "%d.%d" % [whole, tenths - whole * 10]
 
 
 ## A failure as one block of lines: [param heading], then [param detail] clipped and indented.

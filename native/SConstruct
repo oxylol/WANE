@@ -7,6 +7,11 @@
 import os
 
 godot_cpp = os.environ.get("GODOT_CPP_DIR", "godot-cpp")
+# Only the engine classes this extension uses are bound (build_profile.json, relative to this
+# folder): godot-cpp's full bindings are about a thousand generated files and most of a cold
+# build, 13 minutes on a CI runner. Add a class to the profile when native code starts using it;
+# a build_profile=... argument on the command line wins.
+ARGUMENTS.setdefault("build_profile", "build_profile.json")
 env = SConscript(os.path.join(godot_cpp, "SConstruct"))
 
 env.Append(CPPPATH=["src/"])

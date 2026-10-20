@@ -81,10 +81,12 @@ func _initialize() -> void:
 	var seconds: float = float(Time.get_ticks_usec() - started_usec) / 1000000.0
 	OS.remove_logger(_errors)
 	if failed.is_empty():
-		print("ALL STAGES PASSED (%.1f s)" % seconds)
+		print("ALL STAGES PASSED (%s s)" % QuietReport.seconds_text(seconds))
 		quit(0)
 	else:
-		var marker: String = "FAILED STAGES: %s (%.1f s)" % [", ".join(failed), seconds]
+		var marker: String = (
+			"FAILED STAGES: %s (%s s)" % [", ".join(failed), QuietReport.seconds_text(seconds)]
+		)
 		if _quiet:
 			print(marker)
 		else:

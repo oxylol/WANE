@@ -31,7 +31,7 @@ jobs:
   test:
     name: test (compile, content, fixtures, unit)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,29 +42,22 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Install SCons (pinned in tools/requirements.txt)
-        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
-      - name: Cache godot-cpp and its build
-        uses: actions/cache@v4
-        with:
-          path: |
-            native/godot-cpp
-            native/.sconsign.dblite
-          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: Build the native extension (ADR-0021)
-        run: ci/build_native.sh
+      - uses: ./.github/actions/native-build
       - name: Sweep core under UBSan and ASan (ADR-0022)
         run: ci/sanitize_native.sh
+      # Quiet runs: a failure prints only the failing stage's own words and ends the log, instead
+      # of sitting before a thousand lines of passing unit cases (the reports/ upload keeps the
+      # full gdUnit4 output).
       - name: Headless tests, GDScript reference (native off)
         env:
           WANE_NATIVE: "off"
-        run: ci/test.sh
+        run: ci/test.sh --quiet
       - name: Fixtures and parity with the native path on (same goldens, same hashes)
         env:
           WANE_NATIVE: "on"
         run: |
-          ci/test.sh --stage compile --stage fixtures
-          ci/unit.sh tests/unit/core/test_native_parity.gd
+          ci/test.sh --quiet --stage compile --stage fixtures
+          ci/unit.sh --quiet tests/unit/core/test_native_parity.gd
       - name: Core coverage (gate 85%)
         run: python3 tools/ci/gd_coverage.py --min 85
       - name: Upload unit test reports
@@ -90,17 +83,7 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Install SCons (pinned in tools/requirements.txt)
-        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
-      - name: Cache godot-cpp and its build
-        uses: actions/cache@v4
-        with:
-          path: |
-            native/godot-cpp
-            native/.sconsign.dblite
-          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: "Build the native extension (ADR-0021, ADR-0022: the sweep runs native)"
-        run: ci/build_native.sh
+      - uses: ./.github/actions/native-build
       - name: Zone 1 5-minute run
         run: ci/perf.sh --only zone
       - name: Presentation (frame bench)
@@ -134,17 +117,7 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Install SCons (pinned in tools/requirements.txt)
-        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
-      - name: Cache godot-cpp and its build
-        uses: actions/cache@v4
-        with:
-          path: |
-            native/godot-cpp
-            native/.sconsign.dblite
-          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: "Build the native extension (ADR-0021, ADR-0022: the sweep runs native)"
-        run: ci/build_native.sh
+      - uses: ./.github/actions/native-build
       - name: Stress room
         run: ci/perf.sh --only stress
       - name: Upload the stress report
@@ -183,16 +156,10 @@ jobs:
           godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Install SCons (pinned in tools/requirements.txt)
-        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
-      - name: Cache godot-cpp and its build
-        uses: actions/cache@v4
+      - uses: ./.github/actions/native-build
         with:
-          path: |
-            native/godot-cpp
-            native/.sconsign.dblite
-          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: Build the release extension and run the fixtures on it
+          target: template_release
+      - name: Run the fixtures on the release extension
         run: ci/native_release_check.sh
 
   determinism:
@@ -206,7 +173,9 @@ jobs:
           - os: macos-14
             platform: macos
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # Windows runs the whole unit stage twice (8 minutes each on its 2 processors) after a native
+    # build; 20 minutes was never enough once the native build joined the job.
+    timeout-minutes: 60
     defaults:
       run:
         shell: bash
@@ -220,24 +189,17 @@ jobs:
           godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Install SCons (pinned in tools/requirements.txt)
-        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
-      - name: Cache godot-cpp and its build
-        uses: actions/cache@v4
-        with:
-          path: |
-            native/godot-cpp
-            native/.sconsign.dblite
-          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: Build the native extension (ADR-0021)
-        run: ci/build_native.sh
+      - uses: ./.github/actions/native-build
       # Quiet: a failure prints only the failing fixtures and unit cases, so the end of the log says
-      # what broke (the full logs of a Windows run are thousands of lines).
-      - name: Replay fixtures against the golden hashes, and the RNG and hash unit tests (native off)
+      # what broke (the full logs of a Windows run are thousands of lines). The time limits are
+      # hang guards, not gates: the unit stage took 8 minutes of the default 10 on Windows.
+      - name: Replay fixtures against the golden hashes, and the unit tests (native off)
         env:
           WANE_NATIVE: "off"
-        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit
+          TEST_TIME_LIMIT: "1800"
+        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit --unit-time-limit 1500
       - name: The same, with the native path on (a desync here is a P0, ADR-0021)
         env:
           WANE_NATIVE: "on"
-        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit
+          TEST_TIME_LIMIT: "1800"
+        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit --unit-time-limit 1500
