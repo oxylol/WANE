@@ -32,6 +32,8 @@ const FOLD_SEEDS: Array[int] = [0, 7, -1, 0x123456789]
 const FOLD_EXPECTED: Array[int] = [0, 2720193583, 3342073359, 1940800226]
 ## Native methods with no reference because they return build information, not simulation data.
 const NATIVE_ONLY: Array[String] = ["describe"]
+## WaneSweep methods that feed the native copy of the world instead of porting a method of it.
+const SWEEP_SETUP: Array[String] = ["set_grid", "set_spike_inset", "set_boxes", "set_box"]
 
 var _saved_mode: NativeBackend.Mode = NativeBackend.Mode.AUTO
 
@@ -132,6 +134,27 @@ func test_every_native_method_has_a_reference() -> void:
 	for i: int in range(native_list.size()):
 		var method_name: String = str(native_list[i]["name"])
 		if not NATIVE_ONLY.has(method_name) and not reference_methods.has(method_name):
+			missing.append(method_name)
+	assert_array(missing).is_empty()
+
+
+func test_every_sweep_method_is_a_method_of_the_gdscript_world() -> void:
+	# The sweep's reference is CollisionWorld itself (docs/adr/0022), not a NativeRef twin: every
+	# ported method keeps its name there, and test_native_sweep.gd plays the two side by side.
+	if not ClassDB.class_exists(NativeWorld.SWEEP_CLASS):
+		assert_int(NativeBackend.mode()).is_not_equal(NativeBackend.Mode.ON)
+		return
+	var reference_methods: Array[String] = []
+	var reference_list: Array[Dictionary] = (CollisionWorld as Script).get_script_method_list()
+	for i: int in range(reference_list.size()):
+		reference_methods.append(str(reference_list[i]["name"]))
+	var missing: Array[String] = []
+	var native_list: Array[Dictionary] = ClassDB.class_get_method_list(
+		NativeWorld.SWEEP_CLASS, true
+	)
+	for i: int in range(native_list.size()):
+		var method_name: String = str(native_list[i]["name"])
+		if not SWEEP_SETUP.has(method_name) and not reference_methods.has(method_name):
 			missing.append(method_name)
 	assert_array(missing).is_empty()
 

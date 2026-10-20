@@ -17,7 +17,7 @@ namespace wane {
 
 // Bumped whenever any native behaviour changes. core/native/native_backend.gd refuses a library
 // whose version differs from its EXPECTED_VERSION, so a stale binary can never run a replay.
-constexpr int64_t NATIVE_VERSION = 1;
+constexpr int64_t NATIVE_VERSION = 2;
 
 class NativeProbe : public godot::RefCounted {
 	GDCLASS(NativeProbe, godot::RefCounted)

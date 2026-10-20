@@ -1,5 +1,7 @@
 extends GdUnitTestSuite
 ## The flat walk (core/physics/flat_walk.gd; docs/adr/0020) answers exactly what the sweep answers.
+## It belongs to the GDScript sweep: every world here has its native sweep taken away, which would
+## answer without it (docs/adr/0022).
 ## Two worlds are built alike, one with the flat walk and one without it (the sweep is the
 ## reference), and the same bodies make the same random moves in both; every field of every body,
 ## and every distance returned, must agree after every move. Rooms: flat ground with steps,
@@ -34,7 +36,9 @@ func test_a_body_in_a_new_world_does_not_take_its_old_run_for_a_new_one() -> voi
 	var rows_a: Array[String] = ["#........#", "#........#", "##########", "##########"]
 	var rows_b: Array[String] = ["#........#", "#........#", "#...####.#", "##########"]
 	var a: CollisionWorld = PhysicsKit.world(rows_a)
+	a.native = null
 	var b: CollisionWorld = PhysicsKit.world(rows_b)
+	b.native = null
 	var body: Body = Body.make(5 * 32 * U, 2 * 32 * U, 10 * U, 44 * U)
 	a.walk(body, 100)
 	assert_int(a.flat.hits).is_greater(0)
@@ -49,6 +53,7 @@ func test_a_body_in_a_new_world_does_not_take_its_old_run_for_a_new_one() -> voi
 func test_a_run_is_not_trusted_after_the_world_changes() -> void:
 	var rows: Array[String] = ["#..........#", "#..........#", "############", "############"]
 	var w: CollisionWorld = PhysicsKit.world(rows)
+	w.native = null
 	var body: Body = Body.make(3 * 32 * U, 2 * 32 * U, 10 * U, 44 * U)
 	w.walk(body, 100)
 	var served: int = w.flat.hits
@@ -60,6 +65,7 @@ func test_a_run_is_not_trusted_after_the_world_changes() -> void:
 	assert_int(body.hit_wall).is_equal(1)
 	# A solid box moved in front of it.
 	var w2: CollisionWorld = PhysicsKit.world(rows)
+	w2.native = null
 	var box: SolidBox = SolidBox.make(40 * 32 * U, 32 * U, 41 * 32 * U, 2 * 32 * U)
 	w2.solids.append(box)
 	var b2: Body = Body.make(3 * 32 * U, 2 * 32 * U, 10 * U, 44 * U)
@@ -73,6 +79,7 @@ func test_a_run_is_not_trusted_after_the_world_changes() -> void:
 func test_a_body_off_a_tile_boundary_or_near_a_ledge_is_swept() -> void:
 	var rows: Array[String] = ["#..........#", "#..........#", "#####..#####", "############"]
 	var w: CollisionWorld = PhysicsKit.world(rows)
+	w.native = null
 	var near_ledge: Body = Body.make(4 * 32 * U + 20 * U, 2 * 32 * U, 10 * U, 44 * U)
 	w.walk(near_ledge, 4 * U)
 	assert_int(w.flat.hits).is_equal(0)
@@ -187,6 +194,7 @@ func _pair(grid: TileGrid, specs: Array[Rect2i]) -> Array[CollisionWorld]:
 	var out: Array[CollisionWorld] = []
 	for flat: bool in [true, false]:
 		var w := CollisionWorld.new(grid.copy())
+		w.native = null
 		(load(WorldTuning.PATH) as WorldTuning).apply(w)
 		w.use_flat_walk = flat
 		for s: Rect2i in specs:

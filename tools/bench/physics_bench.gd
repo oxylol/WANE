@@ -16,7 +16,12 @@ extends SceneTree
 ## falling onto it as they move off it, every one of them landing there, timed against the plain
 ## air step from the same places in open air.
 ##
-##   godot --headless --path . --script tools/bench/physics_bench.gd [-- far_edge]
+## The sweep runs native when the library is built and the switch allows it (docs/adr/0022); the
+## speed-up per call is the same bench with the switch both ways, the GDScript sweep (with its flat
+## walk) and the native one:
+##
+##   WANE_NATIVE=off godot --headless --path . --script tools/bench/physics_bench.gd [-- far_edge]
+##   WANE_NATIVE=on  godot --headless --path . --script tools/bench/physics_bench.gd [-- far_edge]
 
 const BODIES: int = 200
 const TICKS: int = 200

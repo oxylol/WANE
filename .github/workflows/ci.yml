@@ -88,6 +88,17 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Install SCons (pinned in tools/requirements.txt)
+        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+      - name: Cache godot-cpp and its build
+        uses: actions/cache@v4
+        with:
+          path: |
+            native/godot-cpp
+            native/.sconsign.dblite
+          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
+      - name: Build the native extension (ADR-0021, ADR-0022: the sweep runs native)
+        run: ci/build_native.sh
       - name: Zone 1 5-minute run
         run: ci/perf.sh --only zone
       - name: Presentation (frame bench)
@@ -103,10 +114,10 @@ jobs:
 
   # BUILD.md section 13: input + simulation step 99th percentile <= 3.0 ms in the stress room
   # (200 enemies, 40 procs), no tick above 20 ms; budgets in content/perf/budget.tres. This gate
-  # is known red (p99 about 9 ms, worst about 20 ms): GDScript cannot meet it and the C++ port is
-  # the director's decision (ADR-0020 Decision 8). continue-on-error until
-  # that decision, expiring 2026-12-31 (PROGRESS.md, Feature flags with expiry); the step's own log and the uploaded report
-  # still show FAIL lines, the job just stays out of the way of `perf`.
+  # was red on GDScript alone (p99 about 9 ms, worst about 20 ms, ADR-0020 Decision 8); the physics
+  # sweep now runs native (ADR-0022) and this job builds the extension. continue-on-error stays
+  # until the measured p99 is green on CI hardware (PROGRESS.md, Feature flags with expiry); the
+  # step's own log and the uploaded report still show FAIL lines.
   perf-stress:
     name: perf-stress (stress room, known red until the C++ decision)
     runs-on: ubuntu-24.04
@@ -119,6 +130,17 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Install SCons (pinned in tools/requirements.txt)
+        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+      - name: Cache godot-cpp and its build
+        uses: actions/cache@v4
+        with:
+          path: |
+            native/godot-cpp
+            native/.sconsign.dblite
+          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
+      - name: Build the native extension (ADR-0021, ADR-0022: the sweep runs native)
+        run: ci/build_native.sh
       - name: Stress room
         run: ci/perf.sh --only stress
       - name: Upload the stress report

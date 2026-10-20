@@ -38,6 +38,7 @@ var _swept_by_y: bool = false
 func _init(p_grid: TileGrid = null) -> void:
 	grid = p_grid if p_grid != null else TileGrid.new()
 	WorldTuning.new().apply(self)
+	native = NativeWorld.create()
 
 
 # --- horizontal, airborne ------------------------------------------------------------------
@@ -51,6 +52,8 @@ func _init(p_grid: TileGrid = null) -> void:
 func move_x(body: Body, dx: int, lift_sp: int = 0, duck_sp: int = 0) -> int:
 	if dx == 0:
 		return 0
+	if native != null:
+		return native.move_x(self, body, dx, lift_sp, duck_sp)
 	var all: Array[SolidBox] = solids
 	if not all.is_empty():
 		all = _narrow_solids(body, absi(dx))
@@ -85,6 +88,8 @@ func _narrow_solids(body: Body, reach: int) -> Array[SolidBox]:
 ## plain flat floor that goes on under it for the whole move. A cheap "is there floor ahead" for
 ## a walker (docs/adr/0020); false only says the sweep must be asked.
 func flat_ahead(body: Body, dx: int) -> bool:
+	if native != null:
+		return false
 	return use_flat_walk and _narrowed == 0 and flat.covers(body, dx, grid, solids)
 
 
@@ -382,6 +387,8 @@ func _try_duck(body: Body, dir: int, dist: int, allowed: int, max_duck: int) -> 
 ## (BUILD.md: 6 u). Downward moves land on floors; a one-way platform only stops a box whose
 ## bottom starts at or above it. Updates the ground contact. Returns the distance moved.
 func move_y(body: Body, dy: int, corner_sp: int = 0) -> int:
+	if native != null:
+		return native.move_y(self, body, dy, corner_sp)
 	if dy == 0:
 		refresh_ground(body)
 		return 0
@@ -472,6 +479,8 @@ func _slide_fits(body: Body, shift: int, rise: int) -> bool:
 func landing_contact(body: Body, dx: int, dy: int, lift_sp: int = 0, slide_sp: int = 0) -> int:
 	if dx == 0 or dy <= 0:
 		return NONE
+	if native != null:
+		return native.landing_contact(self, body, dx, dy, lift_sp, slide_sp)
 	var x0: int = body.x
 	var y0: int = body.y
 	var floor_y: int = _landing(body, y0, y0 + dy)
@@ -535,6 +544,8 @@ func _move_down(body: Body, dist: int) -> int:
 ## onto (BUILD.md: "Horizontal: 8 u nudge over ledge corners"; see [method _step_up]). Returns the
 ## horizontal distance moved.
 func walk(body: Body, dx: int, lift_sp: int = 0) -> int:
+	if native != null:
+		return native.walk(self, body, dx, lift_sp)
 	if dx == 0:
 		refresh_ground(body)
 		return 0

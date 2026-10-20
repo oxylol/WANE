@@ -17,6 +17,10 @@ var solids: Array[SolidBox] = []
 ## swept (docs/adr/0020). Tests switch it off to play the sweep itself beside it.
 var use_flat_walk: bool = true
 var flat: FlatWalk = FlatWalk.new()
+## The native sweep that answers this world's moves and queries instead of the code below, or null
+## (docs/adr/0022). Set when the world is made if [method NativeBackend.use_native]; a test sets
+## it to null, or to [method NativeWorld.create], to play the two side by side.
+var native: NativeWorld = null
 ## Depth below a spike tile's top edge at which its hazard volume begins. A new world starts
 ## with [WorldTuning]'s defaults; the game applies content/physics/world.tres.
 var spike_inset_sp: int = 0
@@ -165,6 +169,9 @@ func _set_ground(body: Body, grounded: bool) -> void:
 
 ## Re-reads the ground contact of a body without moving it.
 func refresh_ground(body: Body) -> void:
+	if native != null:
+		native.refresh_ground(self, body)
+		return
 	if use_flat_walk and _narrowed == 0 and flat.try_ground(body, grid, solids):
 		return
 	_set_ground(body, _landing(body, body.y, body.y) == body.y)
@@ -176,6 +183,8 @@ func refresh_ground(body: Body) -> void:
 ## True if [param l, r) x [param t, b) overlaps a wall tile, an enabled solid box, or the solid
 ## part of a slope.
 func region_blocked(l: int, r: int, t: int, b: int) -> bool:
+	if native != null:
+		return native.region_blocked(self, l, r, t, b)
 	if r <= l or b <= t:
 		return false
 	for c: int in range(TileGrid.cell(l), TileGrid.cell(r - 1) + 1):
@@ -218,6 +227,8 @@ func _walls_overlap(l: int, r: int, t: int, b: int) -> bool:
 ## overlaps it anywhere (not even its foot zone) and its foot point is not inside a slope. Used to
 ## place a body (a teleport, a respawn).
 func body_fits(cx: int, bottom: int, half_w: int, height: int) -> bool:
+	if native != null:
+		return native.body_fits(self, cx, bottom, half_w, height)
 	if region_blocked(cx - half_w, cx + half_w, bottom - height, bottom):
 		return false
 	return _floor_at(TileGrid.cell(cx), cx, cx, bottom, bottom, bottom) != INSIDE
@@ -225,6 +236,8 @@ func body_fits(cx: int, bottom: int, half_w: int, height: int) -> bool:
 
 ## True if the point is inside a wall tile, an enabled solid box, or a slope below its surface.
 func point_solid(x_sp: int, y_sp: int) -> bool:
+	if native != null:
+		return native.point_solid(self, x_sp, y_sp)
 	var c: int = TileGrid.cell(x_sp)
 	var j: int = TileGrid.cell(y_sp)
 	var t: int = grid.get_tile(c, j)
@@ -242,6 +255,8 @@ func point_solid(x_sp: int, y_sp: int) -> bool:
 ## A read-only query for presentation (the camera's look ahead
 ## of a fall): unlike the floor queries the moves use, it leaves no finding behind in the world.
 func floor_top_in(l: int, r: int, y0: int, y1: int) -> int:
+	if native != null:
+		return native.floor_top_in(self, l, r, y0, y1)
 	var best: int = NONE
 	if r <= l or y1 < y0:
 		return best
@@ -346,6 +361,8 @@ func _lowest_ceiling_bottom(l: int, r: int, t: int, b: int) -> int:
 ## feet holds it up; a slope tile under its width does not (a box standing on a slope is
 ## on_slope, and anywhere else a slope's surface is below its feet).
 func can_drop_through(body: Body) -> bool:
+	if native != null:
+		return native.can_drop_through(self, body)
 	if not body.on_ground or body.on_slope:
 		return false
 	var y: int = body.y
@@ -367,6 +384,8 @@ func can_drop_through(body: Body) -> bool:
 ## True if a clingable wall (or, with [param include_smooth], any wall) lies within
 ## [param reach] sub-pixels of the body's side in [param dir], beside the body above its foot zone.
 func wall_near(body: Body, dir: int, reach: int, include_smooth: bool = false) -> bool:
+	if native != null:
+		return native.wall_near(self, body, dir, reach, include_smooth)
 	var l: int = body.right() if dir > 0 else body.left() - reach
 	var r: int = body.right() + reach if dir > 0 else body.left()
 	var t: int = body.top()
@@ -385,6 +404,8 @@ func wall_near(body: Body, dir: int, reach: int, include_smooth: bool = false) -
 ## True if the box [l, r) x [t, b) overlaps the hazard volume of any spike tile: the tile below
 ## [member spike_inset_sp] from its top.
 func touches_spikes(l: int, r: int, t: int, b: int) -> bool:
+	if native != null:
+		return native.touches_spikes(self, l, r, t, b)
 	return _touches_tile(l, r, t, b, TileGrid.SPIKES, spike_inset_sp)
 
 
@@ -392,6 +413,8 @@ func touches_spikes(l: int, r: int, t: int, b: int) -> bool:
 ## spike tile's hazard part, or any part of a pit tile. What sends the player back; only spikes
 ## can be pogoed off ([method touches_spikes]).
 func touches_hazard(l: int, r: int, t: int, b: int) -> bool:
+	if native != null:
+		return native.touches_hazard(self, l, r, t, b)
 	return touches_spikes(l, r, t, b) or _touches_tile(l, r, t, b, TileGrid.PIT, 0)
 
 
@@ -408,6 +431,8 @@ func _touches_tile(l: int, r: int, t: int, b: int, kind: int, inset: int) -> boo
 ## True if the body could stand where it is at [param new_height] (for un-crouching): the part of
 ## the taller box above its foot zone is clear.
 func headroom(body: Body, new_height: int) -> bool:
+	if native != null:
+		return native.headroom(self, body, new_height)
 	var top: int = body.y - new_height
 	return not (
 		region_blocked(body.left(), body.right(), top, body.y - body.half_w)

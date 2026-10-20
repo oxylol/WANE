@@ -253,11 +253,11 @@ func _warm_up(best: PackedInt32Array, facts: Facts, warmup: int, max_us: int) ->
 		peak_procs = maxi(peak_procs, facts.procs[i])
 	_say(
 		(
-			"  warm-up (first %d ticks, out of the percentile): worst %s ms at tick %d, "
-			+ (
-				"most procs on a tick %d"
-				% [count, PerfStats.ms(best[worst_tick]), worst_tick, peak_procs]
+			(
+				"  warm-up (first %d ticks, out of the percentile): worst %s ms at tick %d, "
+				+ "most procs on a tick %d"
 			)
+			% [count, PerfStats.ms(best[worst_tick]), worst_tick, peak_procs]
 		),
 		false
 	)

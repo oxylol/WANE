@@ -123,6 +123,11 @@ func get_tile(i: int, j: int) -> int:
 	return _tiles[j * width + i]
 
 
+## The tiles, row by row, as the native sweep copies them ([NativeWorld]).
+func raw() -> PackedByteArray:
+	return _tiles
+
+
 func set_tile(i: int, j: int, t: int) -> void:
 	if in_bounds(i, j):
 		revision += 1
