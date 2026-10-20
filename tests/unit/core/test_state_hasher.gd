@@ -69,3 +69,16 @@ func test_a_string_is_its_length_then_its_bytes() -> void:
 	var d := StateHasher.new()
 	d.add_string("a\u0000")
 	assert_int(c.value()).is_not_equal(d.value())
+
+
+func test_a_batch_hashes_as_the_same_ints_one_by_one() -> void:
+	var one := StateHasher.new()
+	var batch := StateHasher.new()
+	for v: int in [3, -7, 1 << 40, 0]:
+		one.add_int(v)
+	batch.add_ints(PackedInt64Array([3, -7, 1 << 40, 0]))
+	assert_int(batch.value()).is_equal(one.value())
+	batch.add_int(9)
+	batch.add_ints(PackedInt64Array())
+	one.add_int(9)
+	assert_int(batch.value()).is_equal(one.value())

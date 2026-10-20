@@ -37,8 +37,9 @@ var blocker: SolidBox
 var patrol_dir: int = 0
 var patrol_step: int = 0
 var patrol_falls: bool = false
-var _idle: int = 0
+## How far below its feet the floor ahead must be missing for it to turn at a ledge, in sub-pixels.
 var patrol_drop: int = 0
+var _idle: int = 0
 
 
 ## Builds a dummy from a room entity marker and its content.
@@ -132,6 +133,7 @@ func _patrol() -> void:
 	body.clear_contacts()
 	if body.on_ground:
 		world.walk(body, patrol_dir * patrol_step)
+		settled = true
 	else:
 		world.move_x(body, patrol_dir * patrol_step)
 	var wall: int = body.hit_wall
@@ -140,9 +142,13 @@ func _patrol() -> void:
 		patrol_dir = -patrol_dir
 
 
-## True if there is no floor within [member patrol_drop] of the feet one step ahead.
+## True if there is no floor within [member patrol_drop] of the feet under the leading edge
+## after the next step.
 func _ledge_ahead() -> bool:
-	var front: int = body.x + patrol_dir * (body.half_w + patrol_step)
+	if world.flat_ahead(body, patrol_dir * patrol_step):
+		return false
+	var front: int = body.x + patrol_dir * patrol_step
+	front += body.half_w - 1 if patrol_dir > 0 else -body.half_w
 	return (
 		world.floor_top_in(front, front + 1, body.y - patrol_drop, body.y + patrol_drop)
 		== CollisionQueries.NONE

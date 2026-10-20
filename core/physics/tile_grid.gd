@@ -36,6 +36,8 @@ const CHARS: String = ".#S=/\\abcd^~"
 
 var width: int = 0
 var height: int = 0
+## Counts the grid's edits, for what is cached from its tiles ([FlatWalk]).
+var revision: int = 0
 var _tiles: PackedByteArray = PackedByteArray()
 
 
@@ -44,6 +46,7 @@ func _init(w: int = 0, h: int = 0) -> void:
 
 
 func resize(w: int, h: int) -> void:
+	revision += 1
 	width = maxi(w, 0)
 	height = maxi(h, 0)
 	_tiles.resize(width * height)
@@ -122,6 +125,7 @@ func get_tile(i: int, j: int) -> int:
 
 func set_tile(i: int, j: int, t: int) -> void:
 	if in_bounds(i, j):
+		revision += 1
 		_tiles[j * width + i] = t
 
 

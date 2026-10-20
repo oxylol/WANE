@@ -21,6 +21,12 @@ func add_int(v: int) -> void:
 	_words.append(v)
 
 
+## Appends [param values] in order, as the same number of [method add_int] calls would (a state
+## with many fields adds them in one call: the hash of 200 enemies is the cost of a tick).
+func add_ints(values: PackedInt64Array) -> void:
+	_words.append_array(values)
+
+
 func add_bool(v: bool) -> void:
 	_words.append(1 if v else 0)
 

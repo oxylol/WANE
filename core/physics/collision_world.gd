@@ -59,7 +59,7 @@ func move_x(body: Body, dx: int, lift_sp: int = 0, duck_sp: int = 0) -> int:
 	_move_x(body, dx, lift_sp, duck_sp)
 	if airborne and lift_sp > 0 and body.hit_wall == signi(dx):
 		_air_steps(body, dx, x0, lift_sp)
-	solids = all
+	_restore_solids(all)
 	return body.x - x0
 
 
@@ -77,7 +77,22 @@ func _narrow_solids(body: Body, reach: int) -> Array[SolidBox]:
 		if sb.enabled and sb.left < r and sb.right > l and sb.top < b and sb.bottom > t:
 			near.append(sb)
 	solids = near
+	_narrowed += 1
 	return all
+
+
+## True if a walk of [param dx] by [param body] would be served by [FlatWalk]: it stands on a
+## plain flat floor that goes on under it for the whole move. A cheap "is there floor ahead" for
+## a walker (docs/adr/0020); false only says the sweep must be asked.
+func flat_ahead(body: Body, dx: int) -> bool:
+	return use_flat_walk and _narrowed == 0 and flat.covers(body, dx, grid, solids)
+
+
+## Puts the full list [param all] back after a move that may have narrowed it.
+func _restore_solids(all: Array[SolidBox]) -> void:
+	if not is_same(solids, all):
+		_narrowed -= 1
+		solids = all
 
 
 ## The air corner lift is measured from the feet where the move began. Skimming over a slope,
@@ -374,7 +389,7 @@ func move_y(body: Body, dy: int, corner_sp: int = 0) -> int:
 		return _move_up(body, -dy, corner_sp) if dy < 0 else _move_down(body, dy)
 	var all: Array[SolidBox] = _narrow_solids(body, absi(dy))
 	var moved: int = _move_up(body, -dy, corner_sp) if dy < 0 else _move_down(body, dy)
-	solids = all
+	_restore_solids(all)
 	return moved
 
 
@@ -523,13 +538,15 @@ func walk(body: Body, dx: int, lift_sp: int = 0) -> int:
 	if dx == 0:
 		refresh_ground(body)
 		return 0
+	if use_flat_walk and _narrowed == 0 and flat.try_walk(body, dx, grid, solids):
+		return dx
 	# Twice the distance: a walk that runs off a ledge carries on through the air from up to dx
 	# away, and that move looks a further dx ahead.
 	if solids.is_empty():
 		return _walk(body, dx, lift_sp)
 	var all: Array[SolidBox] = _narrow_solids(body, 2 * absi(dx))
 	var moved: int = _walk(body, dx, lift_sp)
-	solids = all
+	_restore_solids(all)
 	return moved
 
 

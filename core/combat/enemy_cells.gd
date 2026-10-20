@@ -13,6 +13,10 @@ const CELL: int = 128 * Fx.SUB
 
 ## Each enemy's centre, x then y, in sub-pixels.
 var centres: PackedInt32Array = PackedInt32Array()
+## The widest half-width and the tallest height among the enemies: how far a collider can reach
+## from its centre.
+var reach_x: int = 0
+var reach_y: int = 0
 var _x0: int = 0
 var _y0: int = 0
 var _cols: int = 0
@@ -35,8 +39,12 @@ func build(enemies: Array[Enemy]) -> void:
 	var lo_y: int = 0x7FFFFFFF
 	var hi_x: int = -0x7FFFFFFF
 	var hi_y: int = -0x7FFFFFFF
+	reach_x = 0
+	reach_y = 0
 	for k: int in range(n):
 		var c: Vector2i = enemies[k].centre()
+		reach_x = maxi(reach_x, enemies[k].body.half_w)
+		reach_y = maxi(reach_y, enemies[k].body.height)
 		centres[2 * k] = c.x
 		centres[2 * k + 1] = c.y
 		if c.x < lo_x:
@@ -82,6 +90,37 @@ func within(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> Pack
 				var dx: int = centres[2 * k] - at.x
 				var dy: int = centres[2 * k + 1] - at.y
 				if dx * dx + dy * dy <= r2 and k != skip and enemies[k].state != Enemy.DEAD:
+					out.append(k)
+				k = _next[k]
+			cy += 1
+		cx += 1
+	return out
+
+
+## The enemies whose colliders could meet [param box]: every one (the dead too) whose centre lies
+## within the box grown by the colliders' reach, in no particular order. A superset of the ones
+## whose hurtboxes meet it; the caller does the exact test.
+func touching(box: Rect2i) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	if _cols == 0:
+		return out
+	var l: int = box.position.x - reach_x
+	var r: int = box.end.x + reach_x
+	var t: int = box.position.y - reach_y
+	var b: int = box.end.y + reach_y
+	var cx0: int = maxi(Fx.div_floor(l, CELL) - _x0, 0)
+	var cx1: int = mini(Fx.div_floor(r, CELL) - _x0, _cols - 1)
+	var cy0: int = maxi(Fx.div_floor(t, CELL) - _y0, 0)
+	var cy1: int = mini(Fx.div_floor(b, CELL) - _y0, _rows - 1)
+	var cx: int = cx0
+	while cx <= cx1:
+		var cy: int = cy0
+		while cy <= cy1:
+			var k: int = _heads[cx * _rows + cy]
+			while k >= 0:
+				var x: int = centres[2 * k]
+				var y: int = centres[2 * k + 1]
+				if x >= l and x <= r and y >= t and y <= b:
 					out.append(k)
 				k = _next[k]
 			cy += 1

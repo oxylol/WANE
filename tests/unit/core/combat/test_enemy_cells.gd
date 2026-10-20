@@ -73,3 +73,28 @@ func test_no_enemies_no_answer() -> void:
 	var none: Array[Enemy] = []
 	cells.build(none)
 	assert_int(cells.within(none, Vector2i.ZERO, Fx.units(100), -1).size()).is_zero()
+
+
+func test_the_cells_offer_every_enemy_a_box_could_meet() -> void:
+	# touching() is a superset of the enemies whose hurtboxes meet the box: it never misses one,
+	# wherever the box and the enemies stand.
+	var sim: Simulation = _sim()
+	var rng: Rng = Rng.seeded(8, 1)
+	for trial: int in range(20):
+		var enemies: Array[Enemy] = _scatter(sim, rng.between(1, 120), rng)
+		var cells := EnemyCells.new()
+		cells.build(enemies)
+		for _q: int in range(30):
+			var box := Rect2i(
+				Fx.units(rng.between(-500, 2000)),
+				Fx.units(rng.between(-400, 1100)),
+				Fx.units(rng.between(0, 200)),
+				Fx.units(rng.between(0, 120))
+			)
+			var offered: Array[int] = []
+			offered.assign(Array(cells.touching(box)))
+			for k: int in range(enemies.size()):
+				if enemies[k].is_alive() and box.intersects(enemies[k].hurtbox()):
+					if not offered.has(k):
+						fail("trial %d: enemy %d meets %s but was not offered" % [trial, k, box])
+						return

@@ -22,10 +22,10 @@ expect
   at 2 procs=117 proc_events=120 proc_level=3
   never 3..5 procs>0
   at 6 procs=39 proc_events=40 proc_level=3
-  # A walker on the lower tier turns back at its platform's edge (enemy 102, x 1166 to 1164 u)...
+  # A walker on the lower tier turns back at its platform's edge (enemy 102, x 1168 u back to 1164 u)...
   at 3 enemy102.x=298496
-  at 4 enemy102.x=297984
-  at 19 enemy102.x=290304
+  at 4 enemy102.x=299008
+  at 19 enemy102.x=291328
   # ...and one marked fall walks off the edge and falls to the ground below (enemy 100, 640 u to 736 u).
   at 19 enemy100.y=163840
   at 25 enemy100.y=168313

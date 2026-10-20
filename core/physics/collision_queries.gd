@@ -13,9 +13,17 @@ const INSIDE: int = -(1 << 60)
 
 var grid: TileGrid
 var solids: Array[SolidBox] = []
+## Whether a body standing or walking on a plain flat floor is answered by [FlatWalk] instead of
+## swept (docs/adr/0020). Tests switch it off to play the sweep itself beside it.
+var use_flat_walk: bool = true
+var flat: FlatWalk = FlatWalk.new()
 ## Depth below a spike tile's top edge at which its hazard volume begins. A new world starts
 ## with [WorldTuning]'s defaults; the game applies content/physics/world.tres.
 var spike_inset_sp: int = 0
+
+# How many moves are running with [member solids] narrowed to what they can reach: the flat walk
+# knows the whole list only when none is.
+var _narrowed: int = 0
 
 # What the last floor query found: the tile kind (TileGrid.SOLID for a solid box), whether it is a
 # slope, the tile's cell, and whether it was a solid box.
@@ -157,6 +165,8 @@ func _set_ground(body: Body, grounded: bool) -> void:
 
 ## Re-reads the ground contact of a body without moving it.
 func refresh_ground(body: Body) -> void:
+	if use_flat_walk and _narrowed == 0 and flat.try_ground(body, grid, solids):
+		return
 	_set_ground(body, _landing(body, body.y, body.y) == body.y)
 
 

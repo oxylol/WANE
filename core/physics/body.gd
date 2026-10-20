@@ -29,6 +29,17 @@ var hit_wall: int = 0
 var nudge_x: int = 0
 var nudge_y: int = 0
 
+## The flat run this body last found itself in or missed ([FlatWalk]): a cache of the world,
+## not state; never hashed, never copied.
+var run_lo: int = 1
+var run_hi: int = 0
+var run_y: int = 0
+var run_h: int = 0
+var run_hw: int = 0
+var run_token: int = 0
+var run_tile: int = -1
+var run_miss_x: int = 0
+
 
 static func make(cx: int, bottom: int, p_half_w: int, p_height: int) -> Body:
 	var b := Body.new()

@@ -7,10 +7,31 @@ extends RefCounted
 ## Tags of boxes the game can take away during a run: wax burns (BUILD.md s5 tech 12).
 const FRAGILE_TAGS: Array[String] = ["wax"]
 
-var left: int = 0
-var top: int = 0
-var right: int = 0
-var bottom: int = 0
+## Counts every move of any box's edges, for what is cached from where the boxes stand
+## ([FlatWalk]). Switching a box on or off does not count: the cache holds the places of all of
+## them.
+static var revision: int = 0
+
+var left: int = 0:
+	set(v):
+		if v != left:
+			left = v
+			revision += 1
+var top: int = 0:
+	set(v):
+		if v != top:
+			top = v
+			revision += 1
+var right: int = 0:
+	set(v):
+		if v != right:
+			right = v
+			revision += 1
+var bottom: int = 0:
+	set(v):
+		if v != bottom:
+			bottom = v
+			revision += 1
 var enabled: bool = true
 ## Whether the wall-cling verb works on its sides (textured, not smooth or wet).
 var clingable: bool = true

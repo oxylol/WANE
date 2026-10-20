@@ -106,18 +106,23 @@ func _initialize() -> void:
 		_zone(budget)
 	_say(
 		(
-			"frame budget (section 13): input + simulation %s ms is gated above; sprites %s, lighting %s, VFX %s, post %s, audio and UI %s, headroom %s ms and the %s ms (reference PC) and %s ms (Deck) 99th-percentile frame need a GPU runner (PROGRESS.md, Blocked 2)"
-			% [
-				PerfStats.ms(budget.sim_p99_us),
-				PerfStats.ms(budget.sprite_us),
-				PerfStats.ms(budget.lighting_us),
-				PerfStats.ms(budget.vfx_us),
-				PerfStats.ms(budget.post_us),
-				PerfStats.ms(budget.audio_ui_us),
-				PerfStats.ms(budget.headroom_us),
-				PerfStats.ms(budget.reference_p99_us),
-				PerfStats.ms(budget.deck_p99_us),
-			]
+			"frame budget (section 13): input + simulation %s ms is gated above; sprites %s, "
+			+ "lighting %s, VFX %s, post %s, audio and UI %s, headroom %s ms, and the %s ms "
+			+ "(reference PC) and %s ms (Deck) 99th-percentile frame need a GPU runner "
+			+ (
+				"(PROGRESS.md, Blocked 2)"
+				% [
+					PerfStats.ms(budget.sim_p99_us),
+					PerfStats.ms(budget.sprite_us),
+					PerfStats.ms(budget.lighting_us),
+					PerfStats.ms(budget.vfx_us),
+					PerfStats.ms(budget.post_us),
+					PerfStats.ms(budget.audio_ui_us),
+					PerfStats.ms(budget.headroom_us),
+					PerfStats.ms(budget.reference_p99_us),
+					PerfStats.ms(budget.deck_p99_us),
+				]
+			)
 		),
 		false
 	)

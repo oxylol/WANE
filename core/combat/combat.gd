@@ -18,6 +18,10 @@ extends RefCounted
 ## hit froze and counts from the next tick; the player's input keeps being read meanwhile
 ## ([InputRing]).
 
+## From this many enemies a Blaze trail asks the query cells which enemies could be in it, rather
+## than testing every enemy (building the cells costs more than a few enemies' tests).
+const CELL_QUERY_MIN: int = 24
+
 var params: CombatParams
 var events: SimEvents
 ## The run's Votives and the proc event bus (docs/adr/0015).
@@ -263,15 +267,21 @@ func _pogo(pl: Player, ring: InputRing) -> int:
 ## overlap (task 6 review, H2: two strikes' trails took turns and burned every tick). An enemy
 ## remembers the strikes that burned it until their trails have all gone out.
 func _trails(pl: Player) -> void:
+	# With many enemies each trail asks the query cells which could be in it, in the room's order
+	# (the cells stay good for the procs after: nothing moves an enemy before they resolve).
+	var by_cells: bool = not trails.is_empty() and enemies.size() >= CELL_QUERY_MIN
+	if by_cells and not _indexed:
+		_cells.build(enemies)
+		_indexed = true
 	for t: FireTrail in trails:
-		for i: int in range(enemies.size()):
-			var e: Enemy = enemies[i]
-			if not e.is_alive() or e.trail_burned.has(t.serial):
-				continue
-			if not t.box.intersects(e.hurtbox()):
-				continue
-			e.trail_burned.append(t.serial)
-			_damage(pl, i, params.blaze_trail_damage, HitKind.BURN, Vector2i.ZERO)
+		if by_cells:
+			var near: PackedInt32Array = _cells.touching(t.box)
+			near.sort()
+			for i: int in near:
+				_burn(pl, t, i)
+		else:
+			for i: int in range(enemies.size()):
+				_burn(pl, t, i)
 	for e: Enemy in enemies:
 		var k: int = 0
 		while k < e.trail_burned.size():
@@ -279,6 +289,18 @@ func _trails(pl: Player) -> void:
 				k += 1
 			else:
 				e.trail_burned.remove_at(k)
+
+
+## Trail [param t] burns enemy [param i] if it is alive, not burned by that strike's trails yet,
+## and in the fire.
+func _burn(pl: Player, t: FireTrail, i: int) -> void:
+	var e: Enemy = enemies[i]
+	if not e.is_alive() or e.trail_burned.has(t.serial):
+		return
+	if not t.box.intersects(e.hurtbox()):
+		return
+	e.trail_burned.append(t.serial)
+	_damage(pl, i, params.blaze_trail_damage, HitKind.BURN, Vector2i.ZERO)
 
 
 func _trail_lives(serial: int) -> bool:

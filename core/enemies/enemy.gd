@@ -55,6 +55,8 @@ var burn_next: int = 0
 var knock_vx: int = 0
 ## Launched by finishers and juggled by up-strikes (from [member EnemyDef.light]).
 var light: bool = false
+## A walk this tick has already set the ground contact: [method _move] need not read it again.
+var settled: bool = false
 var _gravity: int = 0
 var _terminal: int = 0
 var _stagger_left: int = 0
@@ -296,7 +298,10 @@ func _advance_attack() -> void:
 
 ## Knockback bleeds off; gravity pulls it down onto the ground.
 func _move() -> void:
+	var read: bool = not settled
+	settled = false
 	if knock_vx != 0:
+		read = true
 		world.move_x(body, knock_vx)
 		if body.hit_wall != 0:
 			knock_vx = 0
@@ -306,35 +311,53 @@ func _move() -> void:
 		world.move_y(body, body.vy)
 		if body.on_ground:
 			body.vy = 0
-	else:
+	elif read:
 		world.refresh_ground(body)
 
 
 func hash_into(h: StateHasher) -> void:
-	h.add_int(body.x)
-	h.add_int(body.y)
-	h.add_int(body.vy)
-	h.add_int(hp)
-	h.add_int(poise)
-	h.add_int(max_hp)
-	h.add_int(max_poise)
-	h.add_int(facing)
-	h.add_int(state)
-	h.add_int(state_frame)
-	h.add_int(attack_frame)
-	h.add_int(def.attacks.find(attack) if attack != null else -1)
-	h.add_int(freeze)
-	h.add_int(since_hit)
-	h.add_int(last_strike)
-	h.add_int(trail_burned.size())
+	(
+		h
+		. add_ints(
+			PackedInt64Array(
+				[
+					body.x,
+					body.y,
+					body.vy,
+					hp,
+					poise,
+					max_hp,
+					max_poise,
+					facing,
+					state,
+					state_frame,
+					attack_frame,
+					def.attacks.find(attack) if attack != null else -1,
+					freeze,
+					since_hit,
+					last_strike,
+					trail_burned.size(),
+				]
+			)
+		)
+	)
 	for serial: int in trail_burned:
 		h.add_int(serial)
-	h.add_int(1 if cue_sent else 0)
-	h.add_int(home_x)
-	h.add_int(home_y)
-	h.add_int(1 if attack_spent else 0)
-	h.add_int(burn_left)
-	h.add_int(burn_next)
-	h.add_int(knock_vx)
-	h.add_int(_stagger_left)
-	h.add_int(1 if light else 0)
+	(
+		h
+		. add_ints(
+			PackedInt64Array(
+				[
+					1 if cue_sent else 0,
+					home_x,
+					home_y,
+					1 if attack_spent else 0,
+					burn_left,
+					burn_next,
+					knock_vx,
+					_stagger_left,
+					1 if light else 0,
+				]
+			)
+		)
+	)
