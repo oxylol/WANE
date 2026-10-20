@@ -169,7 +169,7 @@ func test_the_split_fires_the_whole_millions_and_rolls_the_rest() -> void:
 		var want: int = rows[i + 1]
 		var sim: Simulation = _sim({"votive_test_chain_spark": stacks})
 		var c: Vector2i = sim.combat.enemies[0].centre()
-		sim.procs.begin_tick()
+		sim.procs.begin_tick(sim.tick)
 		sim.procs.raise(ProcSource.TAPER, 0, c.x, c.y, 10, EMBER, 2)
 		sim.procs.resolve(sim.combat, sim.player)
 		assert_int(sim.procs.fired()).is_equal(want)
@@ -196,7 +196,7 @@ func test_an_event_at_the_chain_depth_is_not_queued() -> void:
 func test_a_chain_fires_three_levels_and_stops() -> void:
 	var sim: Simulation = _sim({"votive_test_chain_spark": 10})
 	var c: Vector2i = sim.combat.enemies[0].centre()
-	sim.procs.begin_tick()
+	sim.procs.begin_tick(sim.tick)
 	sim.procs.raise(ProcSource.TAPER, 0, c.x, c.y, 10, EMBER)
 	sim.procs.resolve(sim.combat, sim.player)
 	assert_array(Array(sim.procs.fired_levels)).is_equal([1, 2, 3])
@@ -218,7 +218,7 @@ func test_votives_fire_in_run_order() -> void:
 		ids.append(v.id)
 	assert_array(ids).is_equal(["test_chain_spark", "test_coin", "test_tally"])
 	var c: Vector2i = sim.combat.enemies[0].centre()
-	sim.procs.begin_tick()
+	sim.procs.begin_tick(sim.tick)
 	sim.procs.raise(ProcSource.TAPER, 0, c.x, c.y, 10, EMBER, 2)
 	sim.procs.resolve(sim.combat, sim.player)
 	assert_array(Array(sim.procs.fired_slots)).is_equal([0, 1, 2])

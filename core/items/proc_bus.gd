@@ -166,7 +166,7 @@ func run_mods() -> RunMods:
 
 
 ## The start of tick [param p_tick]: this tick's counts start again.
-func begin_tick(p_tick: int = 0) -> void:
+func begin_tick(p_tick: int) -> void:
 	tick = p_tick
 	raised = 0
 	fired_slots.clear()

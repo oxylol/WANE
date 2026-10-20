@@ -29,6 +29,11 @@ const STRESS: Array[String] = [
 ]
 
 
+## The ticks the reps of a bench are apart: further than any Votive's internal cooldown, so every rep
+## fires what it measures.
+const TICK_GAP: int = 1000
+
+
 func _initialize() -> void:
 	print("proc bus, %d dummies; microseconds" % ENEMIES)
 	var none: float = _raise_unheard()
@@ -138,7 +143,7 @@ func _raise_unheard() -> float:
 	var n: int = REPS * 40
 	var start: int = Time.get_ticks_usec()
 	for i: int in range(REPS):
-		bus.begin_tick()
+		bus.begin_tick(i * TICK_GAP)
 		for k: int in range(40):
 			bus.raise(ProcSource.TAPER, k, c.x, c.y, 10, Kindling.EMBER)
 		bus.resolve(sim.combat, sim.player)
@@ -153,8 +158,8 @@ func _listening(k: int, events: int) -> float:
 		bus.give(_idle(i), 1)
 	var c: Vector2i = sim.combat.enemies[0].centre()
 	var start: int = Time.get_ticks_usec()
-	for _r: int in range(REPS):
-		bus.begin_tick()
+	for rep: int in range(REPS):
+		bus.begin_tick(rep * TICK_GAP)
 		for e: int in range(events):
 			bus.raise(ProcSource.TAPER, e, c.x, c.y, 10, Kindling.EMBER)
 		bus.resolve(sim.combat, sim.player)
@@ -171,7 +176,7 @@ func _burst() -> float:
 	var start: int = Time.get_ticks_usec()
 	for r: int in range(REPS):
 		var c: Vector2i = sim.combat.enemies[r % ENEMIES].centre()
-		bus.begin_tick()
+		bus.begin_tick(r * TICK_GAP)
 		bus.raise(ProcSource.TAPER, r % ENEMIES, c.x, c.y, 10, Kindling.EMBER)
 		bus.resolve(sim.combat, sim.player)
 		fired += bus.fired()
