@@ -64,6 +64,7 @@ func _ready() -> void:
 	debug_controls.overlay = debug_overlay
 	enemy_view.capture(driver.sim)
 	combat_view.player_view = player_view
+	combat_view.vfx = vfx
 	hit_feedback.attach(vfx, voices)
 	hit_feedback.slow_motion.connect(driver.slow)
 	hit_feedback.rumble.connect(_on_rumble)
@@ -100,11 +101,12 @@ func _on_ticked() -> void:
 		enter_room(sim)
 	player_view.capture(sim)
 	enemy_view.capture(sim)
-	combat_view.capture(sim)
 	game_camera.step(sim)
 	# The feedback ages the VFX budget before it starts this tick's effects, so each is drawn from
 	# its first frame.
 	hit_feedback.on_tick(sim)
+	# After the feedback has aged the budget: the combat view's objects are drawn from tick 0.
+	combat_view.capture(sim)
 	enemy_view.flash_scale = hit_feedback.flash_scale
 	hud.flash_scale = hit_feedback.flash_scale
 	hud.on_tick(sim.events)

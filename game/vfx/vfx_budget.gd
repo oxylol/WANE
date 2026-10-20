@@ -27,7 +27,7 @@ extends Node2D
 ## its cell; docs/adr/0015). Effects age once per simulation tick, before the tick's new effects
 ## are born (see [method HitFeedback.on_tick]), so each is drawn from age 0.
 
-enum { SPARK, BURST, SMEAR, EMBER, TELEGRAPH, RING, PROC_MARK }
+enum { SPARK, BURST, SMEAR, EMBER, TELEGRAPH, RING, PROC_MARK, AREA, OUTLINE }
 ## Priorities, low to high. SPELL is Radiance's burst and ring, which must show whatever spark
 ## the cell holds.
 enum { AMBIENT, PROC, BURN, HIT, TELEGRAPH_PRIORITY, PLAYER, SPELL }
@@ -36,6 +36,11 @@ enum { SCREEN_FLASH, SCREEN_SPLIT, SCREEN_VIGNETTE }
 
 const BRIGHT: Array[int] = [SPARK, BURST, SMEAR, RING, PROC_MARK]
 const SCREEN_BRIGHT: Array[int] = [SCREEN_FLASH, SCREEN_SPLIT]
+## Effects drawn under the enemies, by [CombatView], not here: a filled rectangle (Kindle's cone, a
+## Blaze trail, Mend's channel) and a rectangle's outline (the Charged glow), both one-tick marks
+## spawned by [method spawn_rect] each tick they last. They are not bright: they take no cell, only
+## a place in the capacity.
+const UNDER: Array[int] = [AREA, OUTLINE]
 const COLOURS: Dictionary[int, Color] = {
 	SPARK: Color(1.0, 0.95, 0.8),
 	BURST: Color(1.0, 0.75, 0.4),
@@ -44,6 +49,8 @@ const COLOURS: Dictionary[int, Color] = {
 	TELEGRAPH: Color(1.0, 1.0, 1.0),
 	RING: Color(1.0, 0.95, 0.8),
 	PROC_MARK: Color(1.0, 1.0, 1.0),
+	AREA: Color(1.0, 0.55, 0.1, 0.45),
+	OUTLINE: Color(1.0, 1.0, 0.95),
 }
 ## Half the angle a smear's arc sweeps, in radians.
 const SMEAR_HALF_ANGLE: float = 1.1
@@ -62,6 +69,9 @@ class Effect:
 	var life: int = 1
 	var size: float = 1.0
 	var born: int = 0
+	## The rectangle of an [constant AREA] or [constant OUTLINE] (its size field is the outline's
+	## width in pixels).
+	var rect: Rect2 = Rect2()
 	## Effects of one non-zero group (one hit's feedback) share a cell.
 	var group: int = 0
 
@@ -134,6 +144,18 @@ func spawn(
 	effects.append(e)
 	if BRIGHT.has(kind) and not shares:
 		_cells[cell] = e
+	return true
+
+
+## Spawns a rectangle effect ([constant AREA], filled, or [constant OUTLINE] with a line
+## [param width] pixels wide) over [param rect] in [param tint], for [param life] ticks if given;
+## false if the budget refused it.
+func spawn_rect(
+	kind: int, priority: int, rect: Rect2, tint: Color, life: int = 0, width: float = 1.0
+) -> bool:
+	if not spawn(kind, priority, rect.get_center(), Vector2.RIGHT, 0, width, tint, 0, life):
+		return false
+	effects.back().rect = rect
 	return true
 
 
@@ -233,13 +255,23 @@ func _least_important(priority: int) -> int:
 
 func _draw() -> void:
 	for e: Effect in effects:
+		if UNDER.has(e.kind):
+			continue
 		var t: float = float(e.age) / float(e.life)
 		var c := Color(e.colour, e.colour.a * (1.0 - t))
 		match e.kind:
 			SPARK:
 				_draw_spark(e, t, c)
 			BURST:
-				draw_arc(e.at, (8.0 + 40.0 * t) * e.size, 0.0, TAU, 24, c, 3.0)
+				draw_arc(
+					e.at,
+					(tuning.vfx_burst_start_u + tuning.vfx_burst_growth_u * t) * e.size,
+					0.0,
+					TAU,
+					24,
+					c,
+					tuning.vfx_burst_width_px
+				)
 			SMEAR:
 				var mid: float = e.dir.angle()
 				# Centred on the swing's origin, [member Effect.size] the radius in units.
@@ -250,14 +282,23 @@ func _draw() -> void:
 					mid + SMEAR_HALF_ANGLE,
 					16,
 					c,
-					10.0 * (1.0 - t)
+					tuning.vfx_smear_width_px * (1.0 - t)
 				)
 			EMBER:
-				draw_circle(e.at, 5.0 * e.size, c)
+				draw_circle(e.at, tuning.vfx_ember_radius_u * e.size, c)
 			TELEGRAPH:
-				draw_rect(Rect2(e.at - Vector2(4, 4), Vector2(8, 8)), c)
+				var half := Vector2(tuning.vfx_mark_size_u, tuning.vfx_mark_size_u) * 0.5
+				draw_rect(Rect2(e.at - half, half * 2.0), c)
 			RING:
-				draw_arc(e.at, tuning.radiance_ring_radius_u * t, 0.0, TAU, 64, c, 6.0)
+				draw_arc(
+					e.at,
+					tuning.radiance_ring_radius_u * t,
+					0.0,
+					TAU,
+					64,
+					c,
+					tuning.vfx_ring_width_px
+				)
 			PROC_MARK:
 				_draw_proc(e, t, c)
 
@@ -266,7 +307,7 @@ func _draw() -> void:
 ## at full size: it springs out over its first third and fades as it holds.
 func _draw_proc(e: Effect, t: float, c: Color) -> void:
 	var r: float = e.size * minf(1.0, 0.4 + 1.8 * t)
-	var w: float = 3.0
+	var w: float = tuning.vfx_proc_width_px
 	match e.variant:
 		ProcLook.Shape.RING:
 			draw_arc(e.at, r, 0.0, TAU, 48, c, w)
@@ -321,5 +362,12 @@ func _draw_spark(e: Effect, t: float, c: Color) -> void:
 	for k: int in range(count):
 		var a: float = e.dir.angle() + spread * (float(k) / float(count - 1) - 0.5)
 		var d := Vector2.from_angle(a)
-		var from: Vector2 = e.at + d * (6.0 + 30.0 * t) * e.size
-		draw_line(from, from + d * 12.0 * (1.0 - t) * e.size, c, 2.0)
+		var from: Vector2 = (
+			e.at + d * (tuning.vfx_spark_start_u + tuning.vfx_spark_travel_u * t) * e.size
+		)
+		draw_line(
+			from,
+			from + d * tuning.vfx_spark_length_u * (1.0 - t) * e.size,
+			c,
+			tuning.vfx_spark_width_px
+		)

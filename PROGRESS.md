@@ -63,7 +63,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | At Pitch the ember reveals a Clinger 30 frames before it drops | no: neither the Clinger nor the ember light exists in Phase 1 | carried |
 | Every enemy identifiable by silhouette at 64 px | no: art is Phase 2 | carried |
 | Every attack has a smear frame | no: animation is Phase 2 | carried |
-| Landing squash and jump stretch visible and never block input | partial: grey-box squash and stretch driven by the core's timings | not started |
+| Landing squash and jump stretch visible and never block input | yes (grey box): `PlayerView` squashes 110% wide for 3 ticks on the core's land event (scaled by impact speed) and stretches to 94% wide for 2 ticks at the apex, feet anchored, drawn only; numbers in `content/player_view.tres`; `tests/unit/game/test_player_squash.gd`; sheet `docs/feel_log/2026-10-20-squash-stretch.png`, entry `docs/feel_log/2026-10-20-squash-stretch.md` (the stretch is 2 u narrower on a 20 u box: director to judge) | rig, smears and ink line in Phase 2 |
 | Ember flicker visible on nearby normal-mapped surfaces | no: normal maps are Phase 2 | carried |
 | Screen shake at default 50% never moves the frame more than 3 units | yes | green: the largest shake (a player hit, 4 u) is 2 u at 50%, and the total is capped (`test_shake_at_the_default_fifty_percent_never_exceeds_three_units`; content validation refuses a default that would pass 3 u) |
 | Any boss-fight frame could be the store page | no: art is Phase 2 | carried |

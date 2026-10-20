@@ -83,22 +83,92 @@ func test_the_overlay_text_carries_the_vitals_and_the_spell() -> void:
 	assert_str(text).contains("spell mend frame 1")
 
 
-func test_the_combat_view_follows_the_drawn_player() -> void:
+func _count(vfx: VfxBudget, kind: int) -> int:
+	var n: int = 0
+	for e: VfxBudget.Effect in vfx.effects:
+		n += 1 if e.kind == kind else 0
+	return n
+
+
+func _wired_view() -> Array[Node]:
 	var view: CombatView = auto_free(CombatView.new())
-	var pv: PlayerView = auto_free(PlayerView.new())
-	add_child(pv)
+	var vfx: VfxBudget = auto_free(VfxBudget.new())
 	add_child(view)
-	view.player_view = pv
+	add_child(vfx)
+	view.vfx = vfx
+	return [view, vfx]
+
+
+func test_kindles_cone_goes_through_the_vfx_budget() -> void:
+	# CLAUDE.md rule 7: nothing is drawn without the budget manager. The cone is spawned into it
+	# each tick it lasts, at the boxes the core hit with, and lives one tick.
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
 	var cone_sim: Simulation = _sim("test/dummy", {"flame": 33})
-	pv.begin(cone_sim)
 	cone_sim.step(_in(InputFrame.SPELL))
+	var seen: bool = false
 	for i: int in range(5):
 		cone_sim.step(_in())
-		pv.capture(cone_sim)
+		vfx.step()
 		view.capture(cone_sim)
-	assert_int(view._cone.size()).is_equal(3)
-	# Relative to the player's centre, so the cone moves with the drawn (interpolated) player.
-	assert_float(view._cone[0].position.x).is_equal_approx(0.0, 0.001)
+		var boxes: Array[Rect2i] = PlayerSpells.kindle_boxes(cone_sim.player)
+		assert_int(_count(vfx, VfxBudget.AREA)).is_equal(boxes.size())
+		seen = seen or not boxes.is_empty()
+		for e: VfxBudget.Effect in vfx.effects:
+			var matched: bool = false
+			for r: Rect2i in boxes:
+				matched = matched or DebugBoxes.units(r) == e.rect
+			assert_bool(matched).is_true()
+	assert_bool(seen).is_true()
+	vfx.step()
+	assert_int(vfx.effects.size()).is_equal(0)
+
+
+func test_a_crowd_of_kill_embers_cannot_overrun_the_budget() -> void:
+	# 200 enemies killed at once release 200 embers: the budget's capacity caps what is drawn, and
+	# an ember (the lowest priority) never displaces a hit's spark.
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat")
+	for k: int in range(vfx.tuning.vfx_capacity + 200):
+		sim.combat.embers.append(KillEmber.new(Vector2i(k * 256, 0), 20))
+	assert_bool(vfx.spawn(VfxBudget.SPARK, VfxBudget.HIT, Vector2(5000, 5000))).is_true()
+	view.capture(sim)
+	assert_int(vfx.effects.size()).is_equal(vfx.tuning.vfx_capacity)
+	assert_int(vfx.refused).is_greater(0)
+	assert_int(_count(vfx, VfxBudget.SPARK)).is_equal(1)
+
+
+func test_trails_and_the_charged_glow_go_through_the_budget() -> void:
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat")
+	sim.combat.trails.append(FireTrail.new(Rect2i(0, 0, 256 * 40, 256 * 10), 5, 1))
+	sim.step(_in())
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.AREA)).is_equal(1)
+	assert_int(vfx.effects[0].priority).is_equal(VfxBudget.BURN)
+	sim.player.charge_held = 1000
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.OUTLINE)).is_equal(1)
+	assert_float(vfx.effects.back().size).is_equal(view.tuning.charge_width_px)
+
+
+func test_mends_channel_goes_through_the_budget() -> void:
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat", {"flame": 33, "hearts": 3})
+	sim.step(_in(InputFrame.MEND))
+	assert_int(sim.player.spell).is_equal(PlayerSpells.MEND)
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.AREA)).is_equal(1)
 
 
 func test_hazards_radiance_and_tiers_answer_in_the_feedback() -> void:

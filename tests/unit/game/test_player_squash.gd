@@ -162,7 +162,8 @@ func test_the_apex_stretches_for_two_frames() -> void:
 	assert_float(k.x * k.y).is_equal_approx(1.0, 0.001)
 
 
-func test_a_head_bump_is_no_apex() -> void:
+	# Hitting a ceiling stops the rise; that is not the top of a jump, so nothing stretches
+	# around the bump.
 	# Hitting a ceiling stops the rise; that is not the top of a jump, so nothing stretches around the bump.
 	var view: PlayerView = _view()
 	var fx: Fixture = Fixture.parse_file(CEILING_FIXTURE)

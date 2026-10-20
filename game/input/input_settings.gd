@@ -27,6 +27,9 @@ const ACTIONS: Array[String] = [
 ## A stick that has left the inner dead zone counts as moved until it falls back to this percent
 ## (hysteresis, so a stick resting on the 12% edge does not flicker; not in BUILD.md).
 @export_range(0, 50) var dead_zone_release_percent: int = 10
+## The engine's own dead zone on every action, percent: it only keeps a resting stick from
+## registering at all, since the layer applies the real thresholds itself (with hysteresis).
+@export_range(0, 20) var action_dead_zone_percent: int = 5
 ## Analog travel, percent, at which a trigger (or stick) bound as a button counts as pressed, and
 ## how far below that it must fall to count as released (hysteresis).
 @export_range(5, 95) var trigger_press_percent: int = 50
@@ -51,6 +54,8 @@ func validate() -> PackedStringArray:
 		or stick_axis_y >= JOY_AXIS_MAX
 	):
 		errors.append("stick axes must be valid joypad axes")
+	if action_dead_zone_percent < 0 or action_dead_zone_percent > dead_zone_inner_percent:
+		errors.append("the action dead zone must be 0 to the inner dead zone")
 	# Range hints are not enforced when a .tres loads, so check every range here.
 	if dead_zone_inner_percent < 0 or dead_zone_outer_percent > 100:
 		errors.append("dead zones must lie in 0..100 percent")

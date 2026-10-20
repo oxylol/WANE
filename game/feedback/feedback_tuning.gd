@@ -95,6 +95,70 @@ const PATH: String = "res://content/feedback.tres"
 @export var vignette_depth: float = 0.12
 @export var vignette_alpha: float = 0.5
 
+@export_group("HUD layout")
+## The grey-box HUD's layout, in pixels: the margin from the screen's corner, a heart's width and
+## the gap after it, the Flame bar's width and height and the gap before it, a Kindling pip's
+## size, the gap after it and how far below the hearts the pips sit, a gain flash's outline, and
+## the width of the bar's frame and cost marks.
+@export var hud_margin_px: float = 32.0
+@export var hud_heart_px: float = 28.0
+@export var hud_heart_gap_px: float = 8.0
+@export var hud_bar_w_px: float = 14.0
+@export var hud_bar_h_px: float = 120.0
+@export var hud_bar_gap_px: float = 8.0
+@export var hud_pip_px: float = 14.0
+@export var hud_pip_gap_px: float = 6.0
+@export var hud_pip_drop_px: float = 14.0
+@export var hud_gain_outline_px: float = 4.0
+@export var hud_line_px: float = 2.0
+
+@export_group("VFX shapes")
+## How the budget draws its grey-box effects: a spark's strokes start this far (units) from the
+## hit, travel this much further over its life, are this long and this wide (pixels); a burst's
+## ring starts at and grows by these radii and is this wide; a smear's arc is this wide when it
+## starts; an ember is this radius and a one-tick mark this big; Radiance's ring and a proc's mark
+## are this wide.
+@export var vfx_spark_start_u: float = 6.0
+@export var vfx_spark_travel_u: float = 30.0
+@export var vfx_spark_length_u: float = 12.0
+@export var vfx_spark_width_px: float = 2.0
+@export var vfx_burst_start_u: float = 8.0
+@export var vfx_burst_growth_u: float = 40.0
+@export var vfx_burst_width_px: float = 3.0
+@export var vfx_smear_width_px: float = 10.0
+@export var vfx_ember_radius_u: float = 5.0
+@export var vfx_mark_size_u: float = 8.0
+@export var vfx_ring_width_px: float = 6.0
+@export var vfx_proc_width_px: float = 3.0
+
+@export_group("Effect sizes")
+## The size each feedback asks of its effect (the spark's, the burst's and the ring's scale; a
+## smear is as long as the strike's reach, at least smear_min_radius_u).
+@export var hit_spark_size: float = 1.0
+@export var radiance_burst_size: float = 3.0
+@export var radiance_ring_size: float = 1.0
+@export var heal_burst_size: float = 0.8
+@export var stagger_burst_size: float = 1.2
+@export var charged_burst_size: float = 1.5
+@export var parry_burst_size: float = 1.2
+@export var finisher_burst_size: float = 1.0
+@export var smear_min_radius_u: float = 1.0
+
+@export_group("Combat view")
+## The grey-box objects of combat's view (units): the blade's size and how far below the top of
+## the box it hangs, the Charged glow's outline (grown round the box) and its width in pixels,
+## Mend's channel bar (width, height at full, gap beside the box), and a Blaze trail's opacity
+## when fresh.
+@export var blade_w_u: float = 4.0
+@export var blade_h_u: float = 14.0
+@export var blade_drop_u: float = 18.0
+@export var charge_grow_u: float = 3.0
+@export var charge_width_px: float = 2.0
+@export var mend_w_u: float = 4.0
+@export var mend_h_u: float = 30.0
+@export var mend_gap_u: float = 8.0
+@export var trail_alpha: float = 0.5
+
 @export_group("Sparks and sound")
 ## "Hit spark (3 variants)": 3 to 5 (section 10); the synth has a hit sound for each.
 @export var spark_variants: int = 3
@@ -149,4 +213,61 @@ func validate() -> PackedStringArray:
 		e.append("the Flame bar's ghost needs a speed and a gain flash a length")
 	if split_offset_px < 0.0 or split_alpha < 0.0 or vignette_depth < 0.0 or vignette_alpha < 0.0:
 		e.append("the split and the vignette must not be negative")
+	for px: float in [
+		hud_margin_px,
+		hud_heart_px,
+		hud_bar_w_px,
+		hud_bar_h_px,
+		hud_pip_px,
+		hud_gain_outline_px,
+		hud_line_px,
+		vfx_spark_length_u,
+		vfx_spark_width_px,
+		vfx_burst_width_px,
+		vfx_smear_width_px,
+		vfx_ember_radius_u,
+		vfx_mark_size_u,
+		vfx_ring_width_px,
+		vfx_proc_width_px,
+		blade_w_u,
+		blade_h_u,
+		charge_width_px,
+		mend_w_u,
+		mend_h_u
+	]:
+		if px <= 0.0:
+			e.append("every HUD, effect and combat view size must be positive")
+			break
+	for gap: float in [
+		hud_heart_gap_px,
+		hud_bar_gap_px,
+		hud_pip_gap_px,
+		hud_pip_drop_px,
+		vfx_spark_start_u,
+		vfx_spark_travel_u,
+		vfx_burst_start_u,
+		vfx_burst_growth_u,
+		charge_grow_u,
+		mend_gap_u,
+		blade_drop_u
+	]:
+		if gap < 0.0:
+			e.append("every gap, offset and travel must not be negative")
+			break
+	for size: float in [
+		hit_spark_size,
+		radiance_burst_size,
+		radiance_ring_size,
+		heal_burst_size,
+		stagger_burst_size,
+		charged_burst_size,
+		parry_burst_size,
+		finisher_burst_size,
+		smear_min_radius_u
+	]:
+		if size <= 0.0:
+			e.append("every effect size must be positive")
+			break
+	if trail_alpha <= 0.0 or trail_alpha > 1.0:
+		e.append("trail_alpha must be in (0, 1]")
 	return e
