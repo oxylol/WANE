@@ -158,13 +158,9 @@ func _test_line_follows_the_light() -> void:
 	# (250, 194), 4 px a u, so screen y = (178 - 194) * 4 + 180 = 116 and x = (wx - 250) * 4 + 320.
 	for facing: int in [1, -1]:
 		var img: Image = await _shot_facing(facing, _tuning, 0)
-		var y: int = 116
-		var cx: int = int((240.0 - 250.0) * 4.0 + 320.0)
-		var fill: float = _lum(img.get_pixel(cx, y))
-		# 44 px is the head's radius: look from each edge (pixel cx - 44 is the first inside on the
-		# left, cx + 43 the last on the right) a few pixels in.
-		var left: int = _dark_run(img, y, cx - 44, cx - 34, fill, 0.45)
-		var right: int = _dark_run(img, y, cx + 34, cx + 43, fill, 0.45)
+		var widths: Vector2i = _head_widths(img)
+		var left: int = widths.x
+		var right: int = widths.y
 		_check(
 			right >= left + 3,
 			(
@@ -354,14 +350,18 @@ func _test_scales_agree() -> void:
 	)
 
 
-## The ink widths in pixels on the head's lit (left) and shadow (right) edges of a 4x frame.
+## The ink widths in pixels on the head's lit (left) and shadow (right) edges of a 4x frame. 44 px
+## is the head's radius: pixel cx - 44 is the first inside on the left and cx + 43 the last on the
+## right. Ink is what is darker than 0.45 of the fill 14 px in from that edge (the head's own
+## shadow value is darker than its lit one, so one reference for both sides would count it).
 func _head_widths(img: Image) -> Vector2i:
 	var y: int = 116
 	var cx: int = int((240.0 - 250.0) * 4.0 + 320.0)
-	var fill: float = _lum(img.get_pixel(cx, y))
+	var lit_fill: float = _lum(img.get_pixel(cx - 30, y))
+	var shadow_fill: float = _lum(img.get_pixel(cx + 29, y))
 	return Vector2i(
-		_dark_run(img, y, cx - 44, cx - 34, fill, 0.45),
-		_dark_run(img, y, cx + 34, cx + 43, fill, 0.45)
+		_dark_run(img, y, cx - 44, cx - 34, lit_fill, 0.45),
+		_dark_run(img, y, cx + 34, cx + 43, shadow_fill, 0.45)
 	)
 
 

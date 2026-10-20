@@ -26,6 +26,7 @@ global uniform vec4 wane_key; // xy toward the key light, z strength
 
 const float WANE_STUB_HEIGHT_U = 40.0;
 const float WANE_STUB_FALLOFF = 1.6;
+const float WANE_STUB_KEY_HEIGHT = 0.8;
 const vec3 WANE_STUB_EMBER_COLOUR = vec3(1.0, 0.61, 0.24);
 
 float wane_stub_attenuation(vec2 world) {
@@ -48,6 +49,12 @@ vec3 wane_radiance(vec2 world, vec3 n, vec2 screen_uv) {
 }
 
 float wane_key_irradiance(vec2 world, vec3 n, vec2 screen_uv, bool carrier) {
+	if (carrier) {
+		// A carrier's own ember lights it from inside, so every surface would be lit: its two
+		// values follow the room's key instead (wane_key: xy toward the key, z strength).
+		vec3 to_key = normalize(vec3(wane_key.xy, WANE_STUB_KEY_HEIGHT));
+		return clamp(wane_key.z, 0.0, 1.0) * max(dot(n, to_key), 0.0);
+	}
 	return wane_stub_attenuation(world) * wane_ember.w * wane_stub_n_dot_l(world, n);
 }
 

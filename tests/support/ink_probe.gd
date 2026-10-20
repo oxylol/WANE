@@ -20,6 +20,7 @@ const STAGE_CELL_U: Vector2 = Vector2(480.0, 270.0)
 const STAGE_MARK_U: Vector2 = Vector2(240.0, 232.0)
 
 const S_RANGE: float = 16.5
+## A part's bevel when it gives none (ADR-0023 Decision 1.1's data-bevel-u default).
 const BEVEL_U: float = 3.0
 const TILT_DEG: float = 62.0
 const TAPER_FULL_U: float = 2.5
@@ -39,6 +40,7 @@ class Prim:
 	var emissive: bool = false
 	var angle: float = 0.0
 	var flags: int = 0
+	var bevel: float = BEVEL_U
 	var _h: float = 0.0
 	var _e: Vector2 = Vector2.ZERO
 	var _k: float = 0.0
@@ -175,7 +177,7 @@ static func bake(prims: Array[Prim], cell_u: Vector2, scale: int) -> Dictionary[
 			shape[at + 3] = clampi(roundi(emis * 255.0), 0, 255)
 			var po: Prim = prims[o]
 			var depth: float = -d[o]
-			var tilt: float = tilt_max * (1.0 - clampf(depth / BEVEL_U, 0.0, 1.0))
+			var tilt: float = tilt_max * (1.0 - clampf(depth / po.bevel, 0.0, 1.0))
 			var g: Vector2 = po.gradient(p)
 			var nv := Vector3(sin(tilt) * g.x, sin(tilt) * g.y, cos(tilt))
 			normal[at] = clampi(roundi((0.5 + 0.5 * nv.x) * 255.0), 0, 255)
@@ -199,9 +201,12 @@ static func figure_prims() -> Array[Prim]:
 	var list: Array[Prim] = []
 	list.append(Prim.cone(o + Vector2(-5, -40), o + Vector2(-13, -27), 2.4, 1.8, 0, 1))
 	var body: Prim = Prim.cone(o + Vector2(0, -9), o + Vector2(0, -40), 9.0, 5.5, 1, 2)
+	body.bevel = 8.0
 	list.append(body)
 	list.append(Prim.cone(o + Vector2(1, -64), o + Vector2(4, -75), 1.6, 0.35, 2, 4))
-	list.append(Prim.circle(o + Vector2(0, -54), 11.0, 3, 3))
+	var head: Prim = Prim.circle(o + Vector2(0, -54), 11.0, 3, 3)
+	head.bevel = 10.0
+	list.append(head)
 	list.append(Prim.cone(o + Vector2(4, -41), o + Vector2(13, -32), 2.6, 2.1, 4, 5))
 	list.append(Prim.circle(o + Vector2(14, -31), 2.7, 5, 6))
 	var blade: Prim = Prim.cone(o + Vector2(15, -31), o + Vector2(35, -53), 1.7, 0.25, 6, 7)
