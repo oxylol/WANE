@@ -8,11 +8,49 @@ const U: int = Fx.SUB
 const SEED: int = 20261022
 const STRESS: String = "res://tests/perf/stress_run.fixture"
 const MIX: String = "res://tests/replay/combat/batch_mix_runs.fixture"
+const STORM: String = "res://tests/perf/storm_run.fixture"
+## Ticks of the proc storm played the same way (453 procs on one tick: the proc path's cells).
+const STORM_TICKS: int = 400
 ## Ticks of the stress run played with the batch on and off (it holds 200 enemies, striking and
 ## pogoing from the first tick on).
 const STRESS_TICKS: int = 700
 
 var _saved_mode: NativeBackend.Mode = NativeBackend.Mode.AUTO
+
+
+## The query cells that count the questions asked of them.
+class CountingCells:
+	extends EnemyCells
+	var builds: int = 0
+	var touches: int = 0
+	var withins: int = 0
+	var nearests: int = 0
+
+	func asked(what: String) -> int:
+		match what:
+			"touches":
+				return touches
+			"withins":
+				return withins
+			"nearests":
+				return nearests
+		return -1
+
+	func build(enemies: Array[Enemy]) -> void:
+		builds += 1
+		super.build(enemies)
+
+	func touching(box: Rect2i) -> PackedInt32Array:
+		touches += 1
+		return super.touching(box)
+
+	func within(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> PackedInt32Array:
+		withins += 1
+		return super.within(enemies, at, radius, skip)
+
+	func nearest(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> int:
+		nearests += 1
+		return super.nearest(enemies, at, radius, skip)
 
 
 func before_test() -> void:
@@ -222,10 +260,10 @@ func test_the_batched_enemies_hash_as_the_reference_loop_every_tick() -> void:
 	if not NativeBackend.available():
 		assert_int(NativeBackend.mode()).is_not_equal(NativeBackend.Mode.ON)
 		return
-	for path: String in [MIX, STRESS]:
+	for path: String in [MIX, STRESS, STORM]:
 		var fx: Fixture = Fixture.parse_file(path)
 		assert_array(fx.errors).is_empty()
-		var ticks: int = mini(fx.frame_total, STRESS_TICKS if path == STRESS else 900)
+		var ticks: int = mini(fx.frame_total, _ticks_of(path))
 		NativeBackend.configure(NativeBackend.Mode.ON)
 		EnemyBatch.enabled = false
 		var reference := Simulation.new(fx.scenario)
@@ -241,6 +279,43 @@ func test_the_batched_enemies_hash_as_the_reference_loop_every_tick() -> void:
 				return
 		assert_int(reference.enemy_batch.sent).is_equal(0)
 		assert_int(batched.enemy_batch.sent).is_greater(ticks)
+
+
+func _ticks_of(path: String) -> int:
+	match path:
+		STRESS:
+			return STRESS_TICKS
+		STORM:
+			return STORM_TICKS
+	return 900
+
+
+## The differential above is only as good as what its runs reach: the Blaze trails' cells in the
+## mix room (24 enemies, the query threshold), and the burst's and the procs' cells in the stress
+## run and the storm (review of the stress gate, F4). If an edit to a fixture or to the thresholds
+## leaves a path out, this fails instead of the differential going hollow.
+func test_the_differential_runs_reach_every_query_cell_path() -> void:
+	NativeBackend.configure(NativeBackend.Mode.AUTO)
+	var wanted: Dictionary[String, PackedStringArray] = {
+		MIX: PackedStringArray(["touches"]),
+		STRESS: PackedStringArray(["touches", "withins", "nearests"]),
+		STORM: PackedStringArray(["withins", "nearests"]),
+	}
+	for path: String in wanted:
+		var fx: Fixture = Fixture.parse_file(path)
+		var sim := Simulation.new(fx.scenario)
+		var cells := CountingCells.new()
+		sim.combat._cells = cells
+		assert_int(sim.combat.enemies.size()).is_greater_equal(Combat.CELL_QUERY_MIN)
+		for i: int in range(mini(fx.frame_total, _ticks_of(path))):
+			sim.step(fx.input_frame(i))
+		assert_int(cells.builds).is_greater(0)
+		for what: String in wanted[path]:
+			(
+				assert_int(cells.asked(what))
+				. override_failure_message("%s never asked the query cells '%s'" % [path, what])
+				. is_greater(0)
+			)
 
 
 func test_without_the_native_sweep_the_batch_is_the_reference_loop() -> void:
