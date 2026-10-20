@@ -55,3 +55,78 @@ func test_probe() -> void:
 	assert_int(sim.probe("stick_y")).is_equal(64)
 	assert_object(sim.probe("no_such_key")).is_null()
 	assert_object(sim.probe("held.nothing")).is_null()
+
+
+## What [method Simulation.probe] answered for a key before the player's keys were tried first.
+func _probe_in_the_old_order(sim: Simulation, key: String) -> Variant:
+	if key.begins_with("enemy"):
+		return EnemyProbe.read(sim.combat, key)
+	if key.begins_with("proc.") or key.begins_with("votive."):
+		return sim._probe_votive(key)
+	var value: Variant = sim._probe_input(key)
+	if value == null and sim.player != null:
+		value = PlayerProbe.read(sim.player, sim.events, key)
+	return value
+
+
+func test_the_players_keys_are_answered_as_they_were_when_the_prefixes_came_first() -> void:
+	# The keys with no dot and "event.<name>" skip the checks for enemy, proc, votive and input keys.
+	var keys: Array[String] = [
+		"x",
+		"y",
+		"vx",
+		"vy",
+		"state",
+		"action",
+		"chain",
+		"spell",
+		"tier",
+		"ground",
+		"hearts",
+		"flame",
+		"air_frames",
+		"dash_frame",
+		"facing",
+		"since_bounce",
+		"nope",
+		"",
+		"enemy",
+		"enemyx",
+		"proc",
+		"votive",
+		"held",
+		"event",
+		"event.",
+		"event.dash",
+		"event.hazard",
+		"event.nope",
+		"enemy.hp",
+		"enemy.state",
+		"enemy9.hp",
+		"enemy.nope",
+		"proc.a",
+		"votive.a",
+		"proc.",
+		"held.jump",
+		"held.nothing",
+		"press_age.attack",
+		"press_age.",
+		"x.y",
+		"a.b.c",
+	]
+	for scenario: Scenario in [
+		Scenario.make(5, "test/dummy"), Scenario.make(5, "test/dummy", ""), Scenario.make(5)
+	]:
+		var sim := Simulation.new(scenario)
+		for i: int in range(24):
+			sim.step(
+				InputFrame.make(
+					InputFrame.DASH if i == 8 else 0, InputFrame.DASH if i == 8 else 0, 127, 0
+				)
+			)
+			for key: String in keys:
+				(
+					assert_that(sim.probe(key))
+					. override_failure_message("%s, '%s' after tick %d" % [scenario.room, key, i])
+					. is_equal(_probe_in_the_old_order(sim, key))
+				)

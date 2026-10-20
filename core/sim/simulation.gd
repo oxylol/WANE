@@ -364,6 +364,11 @@ func probe(key: String) -> Variant:
 		"proc_level":
 			value = procs.deepest()
 		_:
+			# The player's keys, answered before the prefixes that cannot match them are tried: a
+			# key with no dot, or "event.<name>", is neither an enemy's, a Votive's nor an input's.
+			# A fixture reads a hundred thousand of them.
+			if player != null and (key.find(".") < 0 or key.begins_with("event.")):
+				return PlayerProbe.read(player, events, key)
 			if key.begins_with("enemy"):
 				return EnemyProbe.read(combat, key)
 			if key.begins_with("proc.") or key.begins_with("votive."):
