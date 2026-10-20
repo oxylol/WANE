@@ -1,0 +1,266 @@
+fixture storm_run
+doc BUILD.md s13 Testing and CI, the proc storm (docs/adr/0020, Decision 15): the stress room's first 1800 ticks with the storm Votive set, which fires on every proc event, so a Kindle cone or a Radiance burst on a dozen dummies raises 300 to 525 procs in one tick. Played, reported and not gated by tools/bench/stress_bench.gd; the pin of its first ticks is tests/replay/perf/storm_pin.fixture.
+seed 1
+room perf/stress
+wick ash
+option votive_test_stress_arc_a 1
+option votive_test_stress_arc_b 1
+option votive_test_stress_arc_c 1
+option kindle 1
+frames 1800
+lighting pitch
+input
+  0 R attack
+  1..13 R
+  14 R spell
+  15..43 R
+  44..55 R jump
+  56..61 R
+  62..63 D
+  64 D attack
+  65..67 D
+  68..89 R
+  90 R attack
+  91..103 R
+  104 R attack
+  105..116 R
+  117 R attack
+  118..129 R
+  130 R attack
+  131..143 R
+  144 R attack
+  145..156 R
+  157 R attack
+  158..169 R
+  170 R attack
+  171..183 R
+  184 R dash
+  185..207 R
+  208 R attack
+  209..221 R
+  222 R attack
+  223..235 R
+  236..247 R jump
+  248..253 R
+  254..255 D
+  256 D attack
+  257..259 D
+  260..281 R
+  282 R attack
+  283..294 R
+  295 R attack
+  296..307 R
+  308 R attack
+  309..321 R
+  322..329 R jump
+  330..333 L jump
+  334..339 L
+  340..341 D
+  342 D attack
+  343..345 D
+  346..367 L
+  368 L attack
+  369..381 L
+  382 L attack
+  383..394 L
+  395 L attack
+  396..407 L
+  408 L attack
+  409..421 L
+  422..433 L jump
+  434..439 L
+  440..441 D
+  442 D attack
+  443..445 D
+  446..467 L
+  468 L attack
+  469..481 L
+  482..483 U
+  484 U attack
+  485 U
+  486..503 L
+  504 L spell
+  505..533 L
+  534 L attack
+  535..547 L
+  548 L attack
+  549..561 L
+  562 L dash
+  563..585 L
+  586 L attack
+  587..598 L
+  599 L attack
+  600..611 L
+  612 L attack
+  613..625 L
+  626 L attack
+  627..639 L
+  640 L attack
+  641..652 L
+  653 L attack
+  654..659 L
+  660..665 R
+  666 R attack
+  667..679 R
+  680 R attack
+  681..693 R
+  694 R attack
+  695..707 R
+  708 R attack
+  709..720 R
+  721 R attack
+  722..733 R
+  734 R attack
+  735..747 R
+  748 R attack
+  749..760 R
+  761 R attack
+  762..773 R
+  774 R attack
+  775..787 R
+  788 R attack
+  789..801 R
+  802 R attack
+  803..815 R
+  816 R attack
+  817..829 R
+  830 R attack
+  831..842 R
+  843 R attack
+  844..855 R
+  856 R attack
+  857..869 R
+  870 R attack
+  871..883 R
+  884 R attack
+  885..897 R
+  898..909 R jump
+  910..915 R
+  916..917 D
+  918 D attack
+  919..921 D
+  922..943 R
+  944 R dash
+  945..967 R
+  968 R attack
+  969..981 R
+  982..983 U
+  984 U attack
+  985 U
+  986..989 R
+  990..1003 L
+  1004 L spell
+  1005..1033 L
+  1034 L attack
+  1035..1047 L
+  1048 L attack
+  1049..1060 L
+  1061 L attack
+  1062..1073 L
+  1074 L attack
+  1075..1087 L
+  1088..1099 L jump
+  1100..1105 L
+  1106..1107 D
+  1108 D attack
+  1109..1111 D
+  1112..1133 L
+  1134..1145 L jump
+  1146..1151 L
+  1152..1153 D
+  1154 D attack
+  1155..1157 D
+  1158..1179 L
+  1180..1181 U
+  1182 U attack
+  1183 U
+  1184..1201 L
+  1202 L attack
+  1203..1214 L
+  1215 L attack
+  1216..1227 L
+  1228 L attack
+  1229..1241 L
+  1242..1253 L jump
+  1254..1259 L
+  1260..1261 D
+  1262 D attack
+  1263..1265 D
+  1266..1287 L
+  1288 L dash
+  1289..1293 L
+  1294 L attack
+  1295..1311 L
+  1312 L dash
+  1313..1319 L
+  1320..1335 R
+  1336 R spell
+  1337..1365 R
+  1366 R attack
+  1367..1378 R
+  1379 R attack
+  1380..1391 R
+  1392 R attack
+  1393..1405 R
+  1406 R dash
+  1407..1411 R
+  1412 R attack
+  1413..1429 R
+  1430 R attack
+  1431..1443 R
+  1444..1455 R jump
+  1456..1461 R
+  1462..1463 D
+  1464 D attack
+  1465..1467 D
+  1468..1489 R
+  1490 R attack
+  1491..1502 R
+  1503 R attack
+  1504..1515 R
+  1516 R attack
+  1517..1529 R
+  1530 R attack
+  1531..1543 R
+  1544 R dash
+  1545..1567 R
+  1568 R dash
+  1569..1573 R
+  1574 R attack
+  1575..1591 R
+  1592 R attack
+  1593..1604 R
+  1605 R attack
+  1606..1617 R
+  1618 R attack
+  1619..1631 R
+  1632 R attack
+  1633..1644 R
+  1645 R attack
+  1646..1649 R
+  1650..1657 L
+  1658 L attack
+  1659..1671 L
+  1672..1683 L jump
+  1684..1689 L
+  1690..1691 D
+  1692 D attack
+  1693..1695 D
+  1696..1717 L
+  1718 L attack
+  1719..1730 L
+  1731 L attack
+  1732..1743 L
+  1744 L attack
+  1745..1757 L
+  1758 L attack
+  1759..1770 L
+  1771 L attack
+  1772..1783 L
+  1784 L attack
+  1785..1797 L
+  1798 L attack
+  1799 L
+end
+expect
+end

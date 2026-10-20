@@ -19,6 +19,11 @@ B = 26  # row of the base floor's top
 TILE = 32
 RUN_TICKS = 3840
 PIN_TICKS = 60
+STORM_TICKS = 1800  # the storm run: the same inputs, the first 30 seconds
+# The Votive sets (tests/votives/): the gated set raises 39 procs from a Taper hit or a pogo and
+# none from a spell tick; the storm set (docs/adr/0020, Decision 15) fires on every proc event.
+GATED_SET = "test_stress_taper_"
+STORM_SET = "test_stress_arc_"
 INPUT_SEED = 1
 LEG = 330  # ticks of a pass in one direction
 
@@ -174,6 +179,8 @@ def main():
         return
     write_fixture(ROOT / "tests/perf/stress_run.fixture", RUN_TICKS, inputs, False)
     write_fixture(ROOT / "tests/replay/perf/stress_pin.fixture", PIN_TICKS, inputs, True)
+    write_fixture(ROOT / "tests/perf/storm_run.fixture", STORM_TICKS, inputs, False, STORM_SET)
+    write_fixture(ROOT / "tests/replay/perf/storm_pin.fixture", PIN_TICKS, inputs, True, STORM_SET)
 
 
 def ash_inputs(rng):
@@ -222,27 +229,35 @@ def ash_inputs(rng):
     return ticks
 
 
-def write_fixture(path, frames, ticks, pin):
+def write_fixture(path, frames, ticks, pin, votives=GATED_SET):
     name = path.stem
     kept = []
     if path.exists():
         text = path.read_text().split("\nexpect\n")
         if len(text) == 2:
             kept = text[1].rstrip("\n").split("\n")[:-1]  # drop the closing end
+    storm = votives == STORM_SET
+    run_name = "storm_run" if storm else "stress_run"
     out = [
         f"fixture {name}",
         ("doc BUILD.md s13 Testing and CI, the stress room (200 enemies, 40 procs): the first "
-         f"{frames} ticks of tests/perf/stress_run.fixture, in the fixture suite so that the "
+         f"{frames} ticks of tests/perf/{run_name}.fixture, in the fixture suite so that the "
          "scenario stays loadable and bit-exact (docs/adr/0020)."
          if pin else
+         "doc BUILD.md s13 Testing and CI, the proc storm (docs/adr/0020, Decision 15): the "
+         f"stress room's first {frames} ticks with the storm Votive set, which fires on every proc "
+         "event, so a Kindle cone or a Radiance burst on a dozen dummies raises 300 to 525 procs "
+         "in one tick. Played, reported and not gated by tools/bench/stress_bench.gd; the pin of "
+         "its first ticks is tests/replay/perf/storm_pin.fixture."
+         if storm else
          "doc BUILD.md s13 Testing and CI, \"a stress room (200 enemies, 40 procs, Pitch "
          f"lighting)\": Ash sweeps perf/stress for {frames} ticks, striking, dashing, pogoing and "
          "casting, with the stress Votive set stacked (39 procs a Taper hit). Played and timed by "
          "tools/bench/stress_bench.gd; the pin of its first ticks is "
          "tests/replay/perf/stress_pin.fixture (docs/adr/0020)."),
         "seed 1", "room perf/stress", "wick ash",
-        "option votive_test_stress_arc_a 1", "option votive_test_stress_arc_b 1",
-        "option votive_test_stress_arc_c 1", "option kindle 1",
+        f"option votive_{votives}a 1", f"option votive_{votives}b 1",
+        f"option votive_{votives}c 1", "option kindle 1",
         f"frames {frames}",
     ]
     if not pin:

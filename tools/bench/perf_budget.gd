@@ -24,8 +24,8 @@ const FRAME_US: int = 16600
 @export var warmup_ticks: int = 120
 ## What the stress run must have done, or it measured nothing: Votive procs fired, hits landed,
 ## enemies killed, enemies walking.
-@export var min_procs: int = 12000
-@export var min_hits: int = 14000
+@export var min_procs: int = 8000
+@export var min_hits: int = 9000
 @export var min_kills: int = 80
 @export var min_walkers: int = 100
 ## What the frame bench's run must have shown, or it measured nothing: the most Votive procs

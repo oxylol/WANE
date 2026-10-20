@@ -21,6 +21,7 @@ extends SceneTree
 ## --repeats N (override the budget's), --only stress|zone, --worst N (ticks listed, default 8).
 
 const STRESS_FIXTURE: String = "res://tests/perf/stress_run.fixture"
+const STORM_FIXTURE: String = "res://tests/perf/storm_run.fixture"
 const ZONE_FIXTURE: String = "res://tests/replay/zone1/zone1_loop.fixture"
 const P99: int = 990
 ## Event flags on a tick, for the worst-tick list.
@@ -115,6 +116,7 @@ func _initialize() -> void:
 	var worst: int = _arg_int(args, "--worst", 8)
 	if only != "zone":
 		_stress(budget, repeats, worst)
+		_storm(budget, repeats)
 	if only != "stress":
 		_zone(budget, repeats)
 	_say(_frame_budget_line(budget), false)
@@ -237,6 +239,72 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 				),
 				false
 			)
+
+
+## The proc storm (docs/adr/0020, Decision 15): the same room and inputs with the storm Votive
+## set, which fires a sure chain on every proc event, so one area hit on a crowd raises hundreds of
+## procs on a tick. Measured and reported with the same least-of-runs method; never gated, because
+## it is not the workload section 13 names ("40 procs") and the threshold is not to be bent to it.
+## The line says what a proc costs, so a Votive design can be weighed against the budget.
+func _storm(budget: PerfBudget, repeats: int) -> void:
+	var fx: Fixture = Fixture.parse_file(STORM_FIXTURE)
+	for e: String in fx.errors:
+		_fail("storm fixture: %s" % e)
+	var best: PackedInt32Array = PackedInt32Array()
+	var facts: Facts = null
+	for r: int in range(repeats):
+		var run_facts: Facts = Facts.new(fx.frame_total) if r == 0 else null
+		var run: BenchRun = _play(fx, fx.frame_total, run_facts)
+		PerfStats.fold_min(best, run.us)
+		if r == 0:
+			facts = run_facts
+	var sorted: PackedInt32Array = PerfStats.sorted_from(best, budget.warmup_ticks)
+	var peak: int = 0
+	var proc_ticks: int = 0
+	for n: int in facts.procs:
+		peak = maxi(peak, n)
+		proc_ticks += 1 if n > 0 else 0
+	_say(
+		(
+			"proc storm (not gated): %d ticks, %d procs fired (most on a tick %d, %d ticks with any)"
+			% [fx.frame_total, facts.total_procs, peak, proc_ticks]
+		),
+		false
+	)
+	_say(
+		(
+			"  storm input + step: p50 %s ms, p99 %s ms, max %s ms (the gated workload is above)"
+			% [
+				PerfStats.ms(PerfStats.percentile(sorted, 500)),
+				PerfStats.ms(PerfStats.percentile(sorted, P99)),
+				PerfStats.ms(sorted[sorted.size() - 1])
+			]
+		),
+		true
+	)
+	var proc_us: int = _cost_per_proc(best, facts, budget.warmup_ticks)
+	_say("  cost per proc on a tick that fires 100 or more: about %d us" % proc_us, false)
+
+
+## The cost of one proc, estimated from the storm run: the mean extra time of ticks that fired 100
+## procs or more over the mean of ticks that fired none, per proc.
+func _cost_per_proc(best: PackedInt32Array, facts: Facts, from: int) -> int:
+	var quiet_sum: int = 0
+	var quiet_n: int = 0
+	var burst_sum: int = 0
+	var burst_procs: int = 0
+	var burst_n: int = 0
+	for i: int in range(from, best.size()):
+		if facts.procs[i] == 0:
+			quiet_sum += best[i]
+			quiet_n += 1
+		elif facts.procs[i] >= 100:
+			burst_sum += best[i]
+			burst_procs += facts.procs[i]
+			burst_n += 1
+	if quiet_n == 0 or burst_n == 0:
+		return 0
+	return (burst_sum - burst_n * (quiet_sum / quiet_n)) / burst_procs
 
 
 ## The warm-up ticks are played and left out of the percentile; the biggest early bursts are in

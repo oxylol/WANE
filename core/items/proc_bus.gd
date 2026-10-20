@@ -49,6 +49,9 @@ var counters: PackedInt32Array = PackedInt32Array()
 ## cleared every tick, never read by the simulation): how many events were raised, and each proc
 ## fired, by its Votive's slot and its level.
 var raised: int = 0
+## The tick being played (the simulation's, as [method begin_tick] was given it): read by a
+## listener through [method ProcApi.tick] for an internal cooldown. Derived, never hashed.
+var tick: int = 0
 var fired_slots: PackedInt32Array = PackedInt32Array()
 var fired_levels: PackedInt32Array = PackedInt32Array()
 
@@ -162,8 +165,9 @@ func run_mods() -> RunMods:
 # --- proc events -----------------------------------------------------------------------------
 
 
-## The start of a tick: this tick's counts start again.
-func begin_tick() -> void:
+## The start of tick [param p_tick]: this tick's counts start again.
+func begin_tick(p_tick: int = 0) -> void:
+	tick = p_tick
 	raised = 0
 	fired_slots.clear()
 	fired_levels.clear()

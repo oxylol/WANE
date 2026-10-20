@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Votive" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/items/votive.gd" id="1"]
+[ext_resource type="Script" path="res://core/items/stacking_curve.gd" id="2"]
+[ext_resource type="Script" path="res://tests/votives/stress_taper_arc.gd" id="3"]
+
+[sub_resource type="Resource" id="curve"]
+script = ExtResource("2")
+kind = 1
+first_stack = 1000
+per_stack = 1000
+
+[resource]
+script = ExtResource("1")
+id = "test_stress_taper_c"
+display_name = "Stress Taper Arc C (test)"
+tier = 1
+curve = SubResource("curve")
+unit = "permille"
+listens_to = PackedStringArray("hit")
+listener = ExtResource("3")
+params = Dictionary[String, int]({
+"cooldown_ticks": 3,
+"damage": 1,
+"reach_u": 160
+})
+hit_coefficient_permille = 1000
+mechanical_line = ""
+in_world_line = ""
+author = ""

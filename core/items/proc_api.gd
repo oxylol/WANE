@@ -17,6 +17,12 @@ func level() -> int:
 	return _level
 
 
+## The simulation tick this proc fires on, for a Votive's internal cooldown (keep the last tick in
+## [method VotiveApi.counter]).
+func tick() -> int:
+	return _bus.tick
+
+
 ## What raised the event ([ProcSource]).
 func source() -> int:
 	return _source

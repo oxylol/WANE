@@ -3,9 +3,9 @@ doc BUILD.md s13 Testing and CI, "a stress room (200 enemies, 40 procs, Pitch li
 seed 1
 room perf/stress
 wick ash
-option votive_test_stress_arc_a 1
-option votive_test_stress_arc_b 1
-option votive_test_stress_arc_c 1
+option votive_test_stress_taper_a 1
+option votive_test_stress_taper_b 1
+option votive_test_stress_taper_c 1
 option kindle 1
 frames 3840
 lighting pitch
@@ -550,9 +550,10 @@ input
   3839 D
 end
 expect
-  # The first Taper hit lands on tick 2 on three dummies at once (three proc events, chained to depth 3: 117 procs);
-  # the second, on tick 6, on one (40 events, 39 procs: the stress set's burst).
-  at 2 procs=117 proc_events=120 proc_level=3
+  # The first Taper hit lands on tick 2 on three dummies at once. The gated set starts one chain per 3 ticks
+  # (its Votives' internal cooldown), so it is 39 procs and not 117; the other two dummies take their hit and the
+  # six procs that roll on them are inert (45 procs, 42 events). The second, on tick 6, is one hit: the burst of 39.
+  at 2 procs=45 proc_events=42 proc_level=3
   never 3..5 procs>0
   at 6 procs=39 proc_events=40 proc_level=3
   # A walker on the lower tier turns back at its platform's edge (enemy 102, x 1168 u back to 1164 u)...
@@ -564,5 +565,5 @@ expect
   at 25 enemy100.y=168313
   at 35 enemy100.y=188416
   # Ash, a second in.
-  at 59 hearts=5 kindling=7 flame=11 enemy0.hp=157 enemy1.hp=112
+  at 59 hearts=5 kindling=7 flame=11 enemy0.hp=163 enemy1.hp=151
 end
