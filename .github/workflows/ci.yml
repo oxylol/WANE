@@ -53,6 +53,8 @@ jobs:
           key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
       - name: Build the native extension (ADR-0021)
         run: ci/build_native.sh
+      - name: Sweep core under UBSan and ASan (ADR-0022)
+        run: ci/sanitize_native.sh
       - name: Headless tests, GDScript reference (native off)
         env:
           WANE_NATIVE: "off"

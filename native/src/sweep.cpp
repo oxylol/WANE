@@ -15,6 +15,9 @@ void Sweep::resize_boxes(int64_t n) {
 }
 
 void Sweep::set_box(int64_t slot, int64_t l, int64_t t, int64_t r, int64_t b, bool enabled, bool clingable) {
+	if (slot < 0 || slot >= static_cast<int64_t>(boxes.size())) {
+		return;
+	}
 	Box &box = boxes[static_cast<size_t>(slot)];
 	box.left = l;
 	box.top = t;

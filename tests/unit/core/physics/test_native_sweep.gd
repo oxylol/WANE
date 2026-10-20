@@ -150,6 +150,62 @@ func test_native_gives_the_references_answer_at_corners() -> void:
 				return
 
 
+func test_native_gives_the_references_answer_on_the_far_edge_of_a_ledge() -> void:
+	# Bodies put just above the far edge of a platform and moving off it, falling: the far-edge
+	# landing (landing_contact) and what the player does with it, on platforms three tiles wide
+	# with one-tile pits (physics_bench.gd's ledge ground).
+	var rng: Rng = Rng.seeded(SEED, 8)
+	var rows: Array[String] = []
+	for j: int in range(12):
+		if j == 6:
+			rows.append("#" + "###.".repeat(15) + "##" + "#")
+		elif j >= 10:
+			rows.append("#".repeat(64))
+		else:
+			rows.append("#" + ".".repeat(62) + "#")
+	var grid: TileGrid = TileGrid.from_rows(PackedStringArray(rows))
+	var landed: int = 0
+	for trial: int in range(2000):
+		var pair: Array[CollisionWorld] = []
+		var specs: Array[Rect2i] = RandomWorlds.box_specs(rng, trial % 3)
+		for native: bool in [false, true]:
+			var w := CollisionWorld.new(grid.copy())
+			w.native = NativeWorld.create(true) if native else null
+			for sp: Rect2i in specs:
+				w.solids.append(SolidBox.make(sp.position.x, sp.position.y, sp.end.x, sp.end.y))
+			pair.append(w)
+		# Platform k spans x 128 k + 32 to 128 k + 128 u, its top at y 192 u.
+		var edge: int = (128 * rng.between(0, 13) + 128) * U
+		var half_w: int = [10 * U, 16 * U][rng.below(2)]
+		var x: int = edge - rng.between(0, 24) * U + _sub(rng)
+		var y: int = 192 * U - rng.between(0, 6) * U + _sub(rng)
+		var a: Body = Body.make(x, y, half_w, 44 * U)
+		var b: Body = Body.make(x, y, half_w, 44 * U)
+		var dx: int = rng.between(2, 24) * U + _sub(rng)
+		var dy: int = rng.between(1, 14) * U + _sub(rng)
+		var lift: int = 8 * U if rng.below(4) != 0 else 0
+		var ca: int = pair[0].landing_contact(a, dx, dy, lift, 6 * U)
+		var cb: int = pair[1].landing_contact(b, dx, dy, lift, 6 * U)
+		var problem: String = _diff(a, b)
+		if ca != cb:
+			problem += " landing_contact %d against %d;" % [ca, cb]
+		if problem.is_empty() and ca != CollisionQueries.NONE:
+			landed += 1
+			var ra: int = (
+				pair[0].move_x(a, ca) + pair[0].move_y(a, dy) + pair[0].walk(a, dx - ca, lift)
+			)
+			var rb: int = (
+				pair[1].move_x(b, cb) + pair[1].move_y(b, dy) + pair[1].walk(b, dx - cb, lift)
+			)
+			problem = _diff(a, b)
+			if ra != rb:
+				problem += " returned %d against %d;" % [ra, rb]
+		if not problem.is_empty():
+			fail("far-edge trial %d from (%d, %d) dx %d dy %d: %s" % [trial, x, y, dx, dy, problem])
+			return
+	assert_int(landed).is_greater(100)
+
+
 func test_native_gives_the_references_answer_at_the_crest_of_a_ramp() -> void:
 	# A ramp up to a plateau with a lip box at its crest or beyond: the lift counted from the floor
 	# under the leading edge, the air steps over a lip met from a slope.
@@ -245,7 +301,6 @@ func test_native_gives_the_references_answer_at_the_crest_of_a_ramp() -> void:
 
 func test_the_random_play_met_every_kind_of_move() -> void:
 	# Meaningful only after the other tests have played; gdUnit runs a suite's tests in order.
-	print("MET ", met)
 	if met.is_empty():
 		return
 	for key: String in [
