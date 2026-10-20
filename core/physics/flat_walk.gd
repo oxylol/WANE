@@ -25,6 +25,13 @@ extends RefCounted
 const TILE: int = TileGrid.TILE_SP
 const MASK: int = TileGrid.TILE_SP - 1
 
+## The smallest body the flat walk answers for: half-width and height in sub-pixels. The sweep's
+## answer for a body under these (a hair-thin one, or one much squatter than its own foot zone is
+## wide) is its own, and the flat walk was never shown to give it, so such a body is swept. Every
+## body in the game is several times these.
+const MIN_HALF_W: int = Fx.SUB
+const MIN_HEIGHT: int = 2 * Fx.SUB
+
 ## How many tile columns a run reaches past the body's own at most: a run is found again when the
 ## body leaves it, so a short one costs a little more finding and a long one costs a long look
 ## each time the world's solid boxes move and every body's run must be found anew.
@@ -83,7 +90,7 @@ func try_ground(body: Body, g: TileGrid, solids: Array[SolidBox]) -> bool:
 
 ## True if [param body] is in a flat run under the world as it is now (found, if need be).
 func _in_flat(body: Body, g: TileGrid, solids: Array[SolidBox]) -> bool:
-	if body.y & MASK != 0:
+	if body.y & MASK != 0 or body.half_w < MIN_HALF_W or body.height < MIN_HEIGHT:
 		return false
 	if (
 		g != _grid

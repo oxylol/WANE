@@ -12,6 +12,9 @@ extends GdUnitTestSuite
 const U: int = PhysicsKit.U
 const CHARS: String = "......#S=/\\abcd^~"
 
+## Whether the bodies are sub-unit ones (_start).
+var _tiny: bool = false
+
 
 func test_the_flat_walk_gives_the_sweeps_answer_on_flat_worlds() -> void:
 	var rng: Rng = Rng.seeded(20261020, 1)
@@ -30,6 +33,18 @@ func test_the_flat_walk_gives_the_sweeps_answer_on_random_soup() -> void:
 	for room: int in range(60):
 		var pair: Array[CollisionWorld] = _pair(_soup_grid(rng), _solid_specs(rng, room % 3))
 		_play(pair, rng, "soup room %d" % room)
+
+
+func test_the_flat_walk_gives_the_sweeps_answer_for_bodies_under_two_units_tall() -> void:
+	# The sweep's answer for a body no taller than its half-width, or than a unit, is its own
+	# (a crest, a lip and the box itself are one thing there); the flat walk must not answer it.
+	_tiny = true
+	var rng: Rng = Rng.seeded(20261020, 5)
+	for room: int in range(900):
+		var grid: TileGrid = _soup_grid(rng) if room % 2 == 1 else _flat_grid(rng)
+		var pair: Array[CollisionWorld] = _pair(grid, _solid_specs(rng, room % 3))
+		_play(pair, rng, "tiny room %d" % room)
+	_tiny = false
 
 
 func test_a_body_in_a_new_world_does_not_take_its_old_run_for_a_new_one() -> void:
@@ -94,20 +109,26 @@ func _play(pair: Array[CollisionWorld], rng: Rng, label: String) -> Vector2i:
 	var flat_world: CollisionWorld = pair[0]
 	var sweep_world: CollisionWorld = pair[1]
 	var walks: int = 0
-	for _b: int in range(6):
+	for _b: int in range(3 if _tiny else 6):
 		var a: Body = _start(flat_world, rng)
 		if a == null:
 			continue
 		var r: Body = Body.make(a.x, a.y, a.half_w, a.height)
+		r.on_ground = a.on_ground
+		r.on_slope = a.on_slope
+		r.ground_tile = a.ground_tile
+		r.hit_wall = a.hit_wall
+		r.hit_ceiling = a.hit_ceiling
 		sweep_world.move_y(r, 2000 * U)
 		flat_world.move_y(a, 2000 * U)
-		for tick: int in range(160):
+		for tick: int in range(80 if _tiny else 160):
 			var op: int = rng.below(100)
 			var lift: int = 8 * U if rng.below(2) == 0 else 0
 			var moved_a: int = 0
 			var moved_r: int = 0
-			a.clear_contacts()
-			r.clear_contacts()
+			if not _tiny:
+				a.clear_contacts()
+				r.clear_contacts()
 			if op < 78:
 				var dx: int = _step(rng)
 				moved_a = flat_world.walk(a, dx, lift)
@@ -161,6 +182,22 @@ func _step(rng: Rng) -> int:
 func _start(w: CollisionWorld, rng: Rng) -> Body:
 	var half_w: int = [10 * U, 16 * U, 5 * U][rng.below(3)]
 	var height: int = [44 * U, 64 * U, 28 * U][rng.below(3)]
+	if _tiny:
+		half_w = rng.between(0, 3 * U)
+		height = rng.between(0, 4 * U)
+		# Any place, any sub-pixel, any contact left over from before.
+		var loose := Body.make(
+			rng.between(-40, w.grid.width * 32 + 40) * U + rng.between(0, 255),
+			rng.between(0, w.grid.height * 32) * U + rng.between(0, 255),
+			half_w,
+			height
+		)
+		loose.on_ground = rng.below(2) == 0
+		loose.on_slope = rng.below(4) == 0
+		loose.ground_tile = rng.between(-1, TileGrid.PIT)
+		loose.hit_wall = rng.between(-1, 1)
+		loose.hit_ceiling = rng.below(4) == 0
+		return loose
 	for _try: int in range(50):
 		var x: int = rng.between(40, w.grid.width * 32 - 40) * U + rng.between(0, 255)
 		var b := Body.make(x, rng.between(32, (w.grid.height - 2) * 32) * U, half_w, height)
