@@ -1,7 +1,7 @@
 fixture zone1_03_control_short_chain
 doc Control for room 03 (BUILD.md s5 tech 3, s15 "a 10-bounce chain"): the route's first six bounces and then no more down-strikes: the chain has to go on all the way, the spikes are 3008 u wide; the sixth arc falls into them at x 2511 u.
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 185
 input
   0..5 R

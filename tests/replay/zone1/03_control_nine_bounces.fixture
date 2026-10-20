@@ -1,7 +1,7 @@
 fixture zone1_03_control_nine_bounces
 doc Control for room 03 (BUILD.md s5 tech 3, s15 "a 10-bounce chain"): the route's first nine bounces at the same 4 a second (a down-strike on each fall, an air jump 5 frames after each bounce, 20 u/f kept) and then nothing: the ninth arc falls into the spikes at x 3451 u, 133 u short of the tunnel's end (3584 u). Ten are needed at this rhythm.
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 232
 input
   0..5 R

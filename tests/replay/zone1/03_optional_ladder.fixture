@@ -1,0 +1,21 @@
+fixture zone1_03_optional_ladder
+doc Room 03's optional path, the way up (BUILD.md s5 tech 3; docs/adr/0019 Decision 5): from the main hall, a ladder of three one-way platforms in a 96 u well, 96 u apart (tops at 576, 480 and 384 u), each a held jump up through the one above it, and out onto the upper level's floor (320 u) beside the well. The ladder is 320 u or more west of the main pit's edge (576 u), so no platform is a launch pad for the pit.
+room zone1/03_pogo_chain
+frames 130
+input
+  0..13 R
+  14 R jump
+  15..38 jump
+  53..75 jump
+  76..77 R jump
+  78 R
+  92..98 jump
+  99..116 R jump
+  117..122 R
+end
+expect
+  never 0..129 event.hazard=1
+  at 52 event.land=1 y=576u
+  at 91 event.land=1 y=480u
+  at 123 event.land=1 y=320u x>256u
+end

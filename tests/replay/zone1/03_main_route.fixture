@@ -1,0 +1,54 @@
+fixture zone1_03_main_route
+doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards. Taught by a spike pit"; docs/adr/0010 (Pogo), docs/adr/0019 Decision 5. Room 03's main route, the relaxed route: from the west door, a hop and one bounce on the short patch (the safe first encounter), then a run off the hall's edge into the open pit, 8 bounces at the natural pace (about 36 frames, 330 u at the run speed of 9 u/f, 1.6 a second), each down-strike pressed when the fall is 8 frames from the spikes (the middle of the window), and over the far wall's lip to the east hall and the door. No hazard is touched.
+room zone1/03_pogo_chain
+frames 456
+input
+  0..13 R
+  14..16 R jump
+  17..25 R
+  26 R D attack
+  27..69 R
+  70 R D attack
+  71..101 R
+  102 R D attack
+  103..137 R
+  138 R D attack
+  139..173 R
+  174 R D attack
+  175..210 R
+  211 R D attack
+  212..247 R
+  248 R D attack
+  249..283 R
+  284 R D attack
+  285..318 R
+  319 R D attack
+  320..455 R
+end
+expect
+  at 14 event.jump=1
+  # The short patch (tiles 9 to 11, x 288 to 384 u): a hop, then one down-strike bounces on it.
+  at 29 event.pogo=1 vx=2304 vy=-3388 x>288u x<384u
+  never 0..28 event.pogo=1
+  never 30..74 event.pogo=1
+  at 75 event.pogo=1 vx=2304 vy=-3388
+  never 76..104 event.pogo=1
+  at 105 event.pogo=1 vx=2304 vy=-3388
+  never 106..141 event.pogo=1
+  at 142 event.pogo=1 vx=2304 vy=-3388
+  never 143..178 event.pogo=1
+  at 179 event.pogo=1 vx=2304 vy=-3388
+  never 180..214 event.pogo=1
+  at 215 event.pogo=1 vx=2304 vy=-3388
+  never 216..251 event.pogo=1
+  at 252 event.pogo=1 vx=2304 vy=-3388
+  never 253..288 event.pogo=1
+  at 289 event.pogo=1 vx=2304 vy=-3388
+  never 290..322 event.pogo=1
+  at 323 event.pogo=1 vx=2304 vy=-3388
+  never 324..455 event.pogo=1
+  never 0..455 event.hazard=1
+  mark land 324..455 event.land=1
+  at land x>3072u y=672u
+  at 455 event.room=1 room=zone1_04_pogo_dash_reset
+end

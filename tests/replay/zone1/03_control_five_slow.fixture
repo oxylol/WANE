@@ -1,7 +1,7 @@
 fixture zone1_03_control_five_slow
 doc Control for room 03 (BUILD.md s5 tech 3; zone1_03_route_fewest_bounces): five bounces of the slow chain (an air dash 9 frames and an air dash-jump 17 frames after each bounce, 26-frame links, 520 u each, 20 u/f kept) fall into the spikes at x 3351 u, 233 u short of the tunnel's end (3584 u): six are the fewest at any rhythm.
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 227
 input
   0..5 R

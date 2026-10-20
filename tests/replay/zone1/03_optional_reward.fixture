@@ -1,0 +1,15 @@
+fixture zone1_03_optional_reward
+doc Room 03's optional path, the reward (BUILD.md s3: a Lantern-tier Votive, an entity marker at x 4160 u as room 04's alcove has): past the shaft that is the way back, the hall goes on 4 tiles to the reward ledge. A plain hop clears the 96 u shaft from the hall's last tile, at the run speed, with the coyote window to spare; the stick is held right throughout.
+room zone1/03_pogo_chain
+spawn 3700 320
+frames 80
+input
+  0..33 R
+  34..36 R jump
+  37..79 R
+end
+expect
+  never 0..79 event.hazard=1
+  mark ledge 34..79 event.land=1
+  at ledge x>4096u y=320u
+end

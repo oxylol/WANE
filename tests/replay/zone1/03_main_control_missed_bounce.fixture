@@ -1,0 +1,26 @@
+fixture zone1_03_main_control_missed_bounce
+doc Control for room 03's main pit (BUILD.md s5 tech 3, ADR-0016 "a tech room teaches, it does not gate"): the main route with the fourth pit bounce missed (no down-strike on tick 138): Ash falls into the spikes on the next fall, loses one heart and is sent back to where she last stood on solid ground (x 199 u, the hall's floor before the patch, 380 u of run to the pit again); the cost of a missed bounce is a hazard, not the run.
+room zone1/03_pogo_chain
+frames 220
+input
+  0..13 R
+  14..16 R jump
+  17..25 R
+  26 R D attack
+  27..69 R
+  70 R D attack
+  71..101 R
+  102 R D attack
+  103..137 R
+  138 R
+  139..219 R
+end
+expect
+  at 29 event.pogo=1
+  at 75 event.pogo=1 vx=2304 vy=-3388
+  at 105 event.pogo=1 vx=2304 vy=-3388
+  never 106..219 event.pogo=1
+  mark hazard 138..219 event.hazard=1
+  at hazard hearts=4
+  at hazard x>199u x<200u
+end

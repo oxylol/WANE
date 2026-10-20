@@ -1,7 +1,7 @@
 fixture zone1_03_route_fewest_bounces
 doc Room 03 (BUILD.md s5 tech 3): the fewest bounces that cross: six, at 2.3 a second, not 4. An air dash 9 frames and an air jump on the dash's last frame (an air dash-jump) 17 frames after each bounce and a down-strike on the fall, a stride of 26 frames and 520 u at 20 u/f kept. Five of these fall into the spikes (zone1_03_control_five_slow). The links are what the rhythm costs: the room asks ten bounces only of a chain no slower than 4 a second.
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 222
 input
   0..5 R
@@ -72,5 +72,6 @@ expect
   at 170 event.dash=1
   at 196 event.dash=1
   never 0..221 event.hazard=1
-  at 221 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  # Down on the upper level (320 u) past the tunnel's end (3584 u): the chain has crossed.
+  at 215 event.land=1 x>3584u y=320u
 end

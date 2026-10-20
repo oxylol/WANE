@@ -1,0 +1,28 @@
+fixture zone1_03_main_control_no_pogo_toss
+doc Control for room 03's main pit (BUILD.md s5 tech 3; docs/adr/0019 Decision 5): the farthest route without a pogo that tools/replay/gap_reach.gd finds on test/longpit (the pit with no far side; spawn 585, a ground dash on tick 0, jump 6, air jump 50, up-right air dash 94, up-right Ember Toss 109 with its teleport on 133: the dash-jump, the air jump, the air dash and the Ember Toss, 2432 u past the edge) is the strongest control the search found, and falls into the spikes on tick 158 at x 3018 u, 54 u short of the far wall (3072 u) and 44 u short of a crossing (the centre at 3062 u).
+room zone1/03_pogo_chain
+spawn 585 672
+frames 170
+input
+  0 R dash
+  1..5 R
+  6..48 R jump
+  49 R
+  50..93 R jump
+  94 R U jump dash
+  95..108 R jump
+  109 R U jump toss
+  110..132 R jump
+  133 R jump toss
+  134..169 R jump
+end
+expect
+  at 0 event.dash=1
+  at 6 event.jump=1
+  at 50 event.air_jump=1
+  at 109 event.toss=1
+  at 133 event.teleport=1
+  at 158 event.hazard=1
+  never 0..157 x>3020u
+  never 159..169 x>600u
+end
