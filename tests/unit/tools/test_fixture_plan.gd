@@ -22,9 +22,10 @@ end
 """
 
 
-func _keys_at(plan: Array[PackedStringArray], f: int) -> Array[String]:
+func _keys_at(plan: Dictionary[int, PackedStringArray], f: int) -> Array[String]:
 	var keys: Array[String] = []
-	keys.assign(plan[f])
+	if plan.has(f):
+		keys.assign(plan[f])
 	keys.sort()
 	return keys
 
@@ -32,8 +33,7 @@ func _keys_at(plan: Array[PackedStringArray], f: int) -> Array[String]:
 func test_the_plan_reads_what_each_expectation_looks_at_and_nothing_else() -> void:
 	var fx: Fixture = Fixture.parse_text(PLANNED)
 	assert_array(Array(fx.errors)).is_empty()
-	var plan: Array[PackedStringArray] = fx.probe_plan()
-	assert_int(plan.size()).is_equal(12)
+	var plan: Dictionary[int, PackedStringArray] = fx.probe_plan()
 	# Frame 0 reads every key once: the runner learns from it whether a key exists and what it holds.
 	assert_array(_keys_at(plan, 0)).is_equal(["held.attack", "stick_x", "stick_y", "tick"])
 	assert_array(_keys_at(plan, 1)).is_empty()
@@ -55,10 +55,7 @@ func test_a_fixture_without_expectations_probes_nothing() -> void:
 	var fx: Fixture = Fixture.parse_text(
 		"fixture a\ndoc x\nframes 5\ninput\n0..4 R\nend\nexpect\nend\n"
 	)
-	var plan: Array[PackedStringArray] = fx.probe_plan()
-	assert_int(plan.size()).is_equal(5)
-	for row: PackedStringArray in plan:
-		assert_bool(row.is_empty()).is_true()
+	assert_bool(fx.probe_plan().is_empty()).is_true()
 
 
 func test_a_reference_outside_the_run_reads_nothing_there() -> void:
@@ -68,8 +65,7 @@ func test_a_reference_outside_the_run_reads_nothing_there() -> void:
 			"fixture a\ndoc x\nframes 5\nexpect\nat 9 tick=1\nduring 3..40 tick>0\nat 2 tick=tick@7\nend\n"
 		)
 	)
-	var plan: Array[PackedStringArray] = fx.probe_plan()
-	assert_int(plan.size()).is_equal(5)
+	var plan: Dictionary[int, PackedStringArray] = fx.probe_plan()
 	assert_array(_keys_at(plan, 0)).is_equal(["tick"])
 	assert_array(_keys_at(plan, 2)).is_equal(["tick"])
 
@@ -186,3 +182,34 @@ func test_planning_nothing_or_fewer_fixtures_than_shards_works() -> void:
 	assert_int(few[0].size() + few[1].size() + few[2].size() + few[3].size()).is_equal(2)
 	assert_int(few[0].size()).is_equal(1)
 	assert_int(few[1].size()).is_equal(1)
+
+
+func test_the_shards_that_start_late_take_less() -> void:
+	# Shards 1 and on spend 10 of weight starting up, shard 0 none: 6 fixtures of 5 go 4 to shard 0
+	# (20), 1 to shard 1 (10 + 5) and 1 to shard 2 (10 + 5) rather than 2 each.
+	var weights: PackedInt64Array = _weights([5, 5, 5, 5, 5, 5])
+	var shares: Array[PackedInt32Array] = FixtureRunner.plan_shards(_places(6), weights, 3, 10)
+	assert_int(shares[0].size()).is_equal(4)
+	assert_int(shares[1].size()).is_equal(1)
+	assert_int(shares[2].size()).is_equal(1)
+	var even: Array[PackedInt32Array] = FixtureRunner.plan_shards(_places(6), weights, 3)
+	assert_int(even[0].size()).is_equal(2)
+	assert_int(even[1].size()).is_equal(2)
+	assert_int(even[2].size()).is_equal(2)
+
+
+func test_the_shared_input_frames_are_the_frames_of_every_tick() -> void:
+	var paths: Array[String] = FileWalk.find(FixtureRunner.FIXTURE_ROOT, [".fixture"])
+	var shared: int = 0
+	for path: String in paths:
+		var fx: Fixture = Fixture.parse_file(path)
+		var frames: Array[InputFrame] = fx.input_frames()
+		assert_int(frames.size()).override_failure_message(path).is_equal(fx.frame_total)
+		for i: int in range(fx.frame_total):
+			var want: InputFrame = fx.input_frame(i)
+			if frames[i].pack() != want.pack():
+				fail("%s frame %d: %s, not %s" % [path, i, frames[i].describe(), want.describe()])
+				return
+			if i > 0 and frames[i] == frames[i - 1]:
+				shared += 1
+	assert_int(shared).is_greater(1000)

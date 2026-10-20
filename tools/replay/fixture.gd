@@ -141,6 +141,29 @@ func input_frame(i: int) -> InputFrame:
 	return InputFrame.make(held[i], pressed, stick_x[i], stick_y[i])
 
 
+## [method input_frame] of every tick, in order. Ticks with the same input share one frame object:
+## nothing changes an [InputFrame] once it is made, and a held button or a stick left alone is most
+## of a fixture.
+func input_frames() -> Array[InputFrame]:
+	var out: Array[InputFrame] = []
+	out.resize(frame_total)
+	var frame: InputFrame = null
+	var prev_held: int = 0
+	for i: int in range(frame_total):
+		var pressed: int = (held[i] & ~prev_held) | taps[i]
+		if (
+			frame == null
+			or frame.held != held[i]
+			or frame.pressed != pressed
+			or frame.stick_x != stick_x[i]
+			or frame.stick_y != stick_y[i]
+		):
+			frame = InputFrame.make(held[i], pressed, stick_x[i], stick_y[i])
+		out[i] = frame
+		prev_held = held[i]
+	return out
+
+
 ## The input of tick [param i] of the fixture played over and over: the input starts again at its
 ## first frame every [member frame_total] ticks, and the first frame of a pass sees the last frame
 ## of the pass before as its previous one (so a key held across the seam is not pressed again).
@@ -171,9 +194,9 @@ func probe_keys() -> Array[String]:
 ## where the runner learns whether a key exists and what kind of value it takes. A frame an
 ## expectation reaches through a mark is any frame the mark can be at, so a mark's reach is the
 ## range of the line that sets it, and the plan is a superset of what is evaluated; the runner
-## fails a fixture whose expectation reads a value the plan left out. Entry [code]f[/code] holds
-## the keys to read after frame [code]f[/code].
-func probe_plan() -> Array[PackedStringArray]:
+## fails a fixture whose expectation reads a value the plan left out. The plan maps a frame to the
+## keys to read after it; a frame it does not name reads none.
+func probe_plan() -> Dictionary[int, PackedStringArray]:
 	var last: int = frame_total - 1
 	# Each key's frame ranges as pairs (first, last, first, last ...), ends included.
 	var wanted: Dictionary[String, PackedInt32Array] = {}
@@ -194,12 +217,11 @@ func probe_plan() -> Array[PackedStringArray]:
 				var at: Vector2i = _reach(t.at, marks, last)
 				if at.x <= at.y:
 					_want(wanted, t.key, at)
-	var plan: Array[PackedStringArray] = []
-	plan.resize(frame_total)
+	var plan: Dictionary[int, PackedStringArray] = {}
 	if frame_total == 0:
 		return plan
 	for key: String in probe_keys():
-		plan[0].append(key)
+		_plan_key(plan, 0, key)
 		var seen: PackedByteArray = PackedByteArray()
 		seen.resize(frame_total)
 		seen[0] = 1
@@ -208,8 +230,14 @@ func probe_plan() -> Array[PackedStringArray]:
 			for f: int in range(ranges[k], ranges[k + 1] + 1):
 				if seen[f] == 0:
 					seen[f] = 1
-					plan[f].append(key)
+					_plan_key(plan, f, key)
 	return plan
+
+
+func _plan_key(plan: Dictionary[int, PackedStringArray], frame: int, key: String) -> void:
+	if not plan.has(frame):
+		plan[frame] = PackedStringArray()
+	plan[frame].append(key)
 
 
 ## The frames a reference can resolve to: its literal frame, or the span of its mark, shifted by its

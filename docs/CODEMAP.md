@@ -6,7 +6,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 
 ## Directories
 
-- `core/sim/` Simulation, Scenario, InputFrame, InputRing, Fx (fixed-point), StateHasher, ContentHash, Replay, ReplayRecorder, ReplayPlayer, SimEvents.
+- `core/sim/` Simulation, Scenario, InputFrame, InputRing, Fx (fixed-point), StateHasher, ContentHash, SimCache, Replay, ReplayRecorder, ReplayPlayer, SimEvents.
 - `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning, FlatWalk (flat-floor fast path).
 - `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind, EnemyCells (query cells, native `WaneCells`).
@@ -27,7 +27,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel`; `tools/room_editor/room_document.gd RoomDocument`; in the same folder RoomCanvas, RoomHistory, RoomDoorEdits, RoomObjectEdits, EntityKinds.
 - Input: `core/sim/input_ring.gd push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
 - Hashes: `core/sim/state_hasher.gd add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd encode`, `core/sim/replay_player.gd verify`.
-- Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
+- Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (`plan_shards`, 10 s budget), `run_fixture`, `_bless`.
 - Films: `tools/replay/film.gd _initialize` (the game's own views, F3 on); `tools/replay/play.gd _initialize` (headless).
 - Camera: `game/camera/camera_rig.gd step` (per tick), `game/camera/game_camera.gd show_at` (between ticks).
 - Feedback: `game/feedback/hit_feedback.gd on_tick` reads SimEvents; sparks via `game/vfx/vfx_budget.gd spawn` and `:134 claim_screen`, sounds via `game/audio/voices.gd play`.

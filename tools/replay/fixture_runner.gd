@@ -14,10 +14,15 @@ extends RefCounted
 ## An expectation that cannot be evaluated (a value reference outside the run, a word compared
 ## with a number, a word the key never takes) fails; nothing passes vacuously.
 ##
-## The suite runs in several processes at once ([member shards]): each runs an interleaved share
-## of the fixtures ([code]tools/replay/fixture_shard.gd[/code]) and reports every result on its
-## output; this process checks them against the golden file, blesses, and keeps the time
-## (ADR-0006).
+## The suite runs in several shards at once ([member shards]), each a share of the fixtures that
+## [method plan_shards] balances: shard 0 in this process, the others in processes of their own
+## ([code]tools/replay/fixture_shard.gd[/code]) that report every result on their output. This
+## process checks the results against the golden file, blesses, and keeps the time (ADR-0006).
+##
+## What makes it fast is work not done, never a check not made (ADR-0006, Shards): the fixtures of
+## a shard share what their simulations read ([SimCache]), a fixture reads only the probe keys at
+## the frames its expectations look at ([method Fixture.probe_plan]), and no shard waits for the
+## others' playbacks.
 
 const FIXTURE_ROOT: String = "res://tests/replay"
 const GOLDEN_PATH: String = "res://tests/replay/golden_hashes.txt"
@@ -46,6 +51,11 @@ const MODE_PREFIX: String = "fixture-mode "
 ## The ticks of simulation one fixture's own work is taken to cost when the shards are balanced
 ## ([method shard_weight]).
 const FIXTURE_OVERHEAD_TICKS: int = 20
+## What a shard in a process of its own spends before its first fixture, in the same ticks: the
+## process starts, loads the project and compiles the simulation (about a second; a tick of the
+## suite's average fixture costs about a ninth of a millisecond). Shard 0 runs in the process that
+## started the others, has all of that done, and takes that much more of the suite.
+const CHILD_START_TICKS: int = 9000
 
 ## The snapshot of a frame no expectation looks at ([method Fixture.probe_plan]).
 const NOT_PROBED: Dictionary[String, Variant] = {}
@@ -59,8 +69,12 @@ var budget_msec: int = SUITE_BUDGET_MSEC
 ## Processes to run the suite in: 1 runs every fixture in this one (an instrumented coverage run
 ## must); 0 runs one per processor, up to [constant MAX_SHARDS].
 var shards: int = 0
-## The script each shard runs (a test points it elsewhere to see a shard die).
+## The script each shard in a process of its own runs (a test points it elsewhere to see a shard
+## die).
 var shard_script: String = SHARD_SCRIPT
+## What starting a shard's process costs, in ticks of simulation, when the shards are planned
+## ([constant CHILD_START_TICKS]); a test sets 0 to put fixtures in every process.
+var child_start_ticks: int = CHILD_START_TICKS
 ## The mode line each shard of the last [method run_sharded] reported, by shard (empty: none).
 var shard_modes: Array[String] = []
 ## The CPU time each shard of the last [method run_sharded] used, in milliseconds (-1: not
@@ -268,9 +282,11 @@ static func mode_line() -> String:
 	return "%s native=%s" % [NativeBackend.mode_name(), NativeBackend.use_native()]
 
 
-## Runs [param paths] in [param count] processes at once, each [constant SHARD_SCRIPT] with its
-## share ([method plan_shards]), and returns their results in path order. A fixture whose result
-## never came back (its process died) fails with what that process printed last.
+## Runs [param paths] in [param count] shards at once and returns their results in path order:
+## shard 0 in this process, which has its simulations compiled already, and each of the others in a
+## process of its own running [constant SHARD_SCRIPT], which spends [constant CHILD_START_TICKS]
+## of simulation starting up. Each has the share [method plan_shards] gave it. A fixture whose
+## result never came back (its process died) fails with what that process printed last.
 func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 	var began: int = Time.get_ticks_msec()
 	# A shard finds its fixtures by their place in the suite, which it walks as this process does.
@@ -285,7 +301,7 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 			var place: int = place_of[path]
 			wanted.append(place)
 			weights.append(shard_weight(path, place))
-	var shares: Array[PackedInt32Array] = plan_shards(wanted, weights, count)
+	var shares: Array[PackedInt32Array] = plan_shards(wanted, weights, count, child_start_ticks)
 	var shard_of: Dictionary[int, int] = {}
 	var outputs: Array[Array] = []
 	var codes: Array[int] = []
@@ -297,11 +313,18 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 		outputs[k] = output
 		for place: int in shares[k]:
 			shard_of[place] = k
-		if shares[k].is_empty():
+		if k == 0 or shares[k].is_empty():
 			continue
 		var thread := Thread.new()
 		thread.start(_run_shard.bind(k, count, shares[k], output, codes))
 		threads.append(thread)
+	var local: Array[Result] = []
+	var local_cpu: int = -1
+	if not shares[0].is_empty():
+		var cpu_began: int = process_cpu_msec()
+		local = run_places(suite, shares[0])
+		var cpu_ended: int = process_cpu_msec()
+		local_cpu = cpu_ended - cpu_began if cpu_began >= 0 and cpu_ended >= 0 else -1
 	for thread: Thread in threads:
 		thread.wait_to_finish()
 	sharded_msec = Time.get_ticks_msec() - began
@@ -311,7 +334,11 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 	shard_cpu_msec.clear()
 	shard_cpu_msec.resize(count)
 	shard_cpu_msec.fill(-1)
-	for k: int in range(count):
+	shard_modes[0] = mode_line()
+	shard_cpu_msec[0] = local_cpu
+	for result: Result in local:
+		by_path[result.path] = result
+	for k: int in range(1, count):
 		var found: Array[Result] = []
 		for chunk: Variant in outputs[k]:
 			for line: String in str(chunk).split("\n"):
@@ -370,12 +397,13 @@ static func plays_back(path: String, place: int) -> bool:
 
 ## Splits the fixtures at [param places] over [param count] shards so that each has about the same
 ## [param weights]: the heaviest fixture not yet placed goes to the shard with the least so far
-## (ties to the lower shard), and each shard runs its fixtures in suite order. The plan is a
+## (ties to the lower shard), and each shard runs its fixtures in suite order. Every shard but
+## the first starts with [param late_weight] already counted against it. The plan is a
 ## function of its arguments alone. It replaces the interleave (shard k ran every n-th fixture),
 ## which put every playback (every fourth fixture) on the same shard whenever n was 2 or 4, and
 ## left the slowest shard a third over the mean.
 static func plan_shards(
-	places: PackedInt32Array, weights: PackedInt64Array, count: int
+	places: PackedInt32Array, weights: PackedInt64Array, count: int, late_weight: int = 0
 ) -> Array[PackedInt32Array]:
 	var order: Array[int] = []
 	for i: int in range(places.size()):
@@ -388,7 +416,7 @@ static func plan_shards(
 	var loads: PackedInt64Array = PackedInt64Array()
 	for k: int in range(count):
 		shares.append(PackedInt32Array())
-		loads.append(0)
+		loads.append(0 if k == 0 else late_weight)
 	for i: int in order:
 		var lightest: int = 0
 		for k: int in range(1, count):
@@ -446,18 +474,18 @@ func run_fixture(fx: Fixture, play_back: bool = true, cache: SimCache = null) ->
 	var sim := Simulation.new(fx.scenario, cache)
 	var recorder := ReplayRecorder.new(fx.scenario)
 	var keys: Array[String] = fx.probe_keys()
-	var plan: Array[PackedStringArray] = fx.probe_plan()
+	var plan: Dictionary[int, PackedStringArray] = fx.probe_plan()
+	var inputs: Array[InputFrame] = fx.input_frames()
 	var snaps: Array[Dictionary] = []
 	for i: int in range(fx.frame_total):
-		var frame: InputFrame = fx.input_frame(i)
+		var frame: InputFrame = inputs[i]
 		sim.step(frame)
 		recorder.record(frame)
-		var wanted: PackedStringArray = plan[i]
-		if wanted.is_empty():
+		if not plan.has(i):
 			snaps.append(NOT_PROBED)
 			continue
 		var snap: Dictionary[String, Variant] = {}
-		for key: String in wanted:
+		for key: String in plan[i]:
 			snap[key] = sim.probe(key)
 		snaps.append(snap)
 	for key: String in keys:

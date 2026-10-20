@@ -1,7 +1,9 @@
 extends GdUnitTestSuite
-## The fixture suite runs in several processes at once (docs/adr/0006): a shard's results come
-## back exactly as the same fixtures run in this process, and a shard that dies fails its
-## fixtures instead of passing them by omission.
+## The fixture suite runs in several shards at once (docs/adr/0006): shard 0 in the runner's own
+## process, the others in processes of their own. A shard's results come back exactly as the same
+## fixtures run in this process, and a shard that dies fails its fixtures instead of passing them
+## by omission. The runner is told to start no process's work late (child_start_ticks 0), so that
+## each of these few fixtures is shared out and every process has some.
 
 const SOME: Array[String] = [
 	"res://tests/replay/movement/jump_full.fixture",
@@ -24,10 +26,16 @@ func test_the_fixtures_named_here_exist() -> void:
 	assert_int(_paths().size()).is_equal(SOME.size())
 
 
+func _runner() -> FixtureRunner:
+	var runner := FixtureRunner.new()
+	runner.child_start_ticks = 0
+	return runner
+
+
 func test_sharded_results_are_the_same_as_in_one_process() -> void:
 	var paths: Array[String] = _paths()
 	var here: Array[FixtureRunner.Result] = FixtureRunner.new().run_paths(paths)
-	var runner := FixtureRunner.new()
+	var runner: FixtureRunner = _runner()
 	var there: Array[FixtureRunner.Result] = runner.run_sharded(paths, 2)
 	assert_int(there.size()).is_equal(here.size())
 	# Each shard also reports the CPU time it used, as information (Linux only; the budget is wall
@@ -69,19 +77,24 @@ func test_a_result_survives_its_line() -> void:
 
 
 func test_a_shard_that_dies_fails_its_fixtures() -> void:
-	var runner := FixtureRunner.new()
+	var runner: FixtureRunner = _runner()
 	runner.shard_script = "res://tests/unit/tools/no_such_shard.gd"
 	var results: Array[FixtureRunner.Result] = runner.run_sharded(_paths(), 2)
 	assert_int(results.size()).is_equal(SOME.size())
+	# The runner's own shard ran its fixtures; the process that never started returned none.
+	var failed: int = 0
 	for r: FixtureRunner.Result in results:
-		assert_bool(r.passed).is_false()
+		if r.passed:
+			continue
+		failed += 1
 		assert_str(r.messages[0]).contains("returned no result")
+	assert_int(failed).is_between(1, SOME.size() - 1)
 
 
 func _run_in_mode(mode_value: NativeBackend.Mode) -> FixtureRunner:
 	var saved_mode: NativeBackend.Mode = NativeBackend.mode()
 	NativeBackend.configure(mode_value)
-	var runner := FixtureRunner.new()
+	var runner: FixtureRunner = _runner()
 	var results: Array[FixtureRunner.Result] = runner.run_sharded(_paths(), 2)
 	NativeBackend.configure(saved_mode)
 	for r: FixtureRunner.Result in results:
@@ -99,16 +112,21 @@ func test_a_shard_runs_in_the_mode_this_process_asked_for() -> void:
 
 
 func test_a_shard_on_another_path_fails_its_fixtures() -> void:
-	var runner := FixtureRunner.new()
+	var runner: FixtureRunner = _runner()
 	var saved_mode: NativeBackend.Mode = NativeBackend.mode()
 	runner.shard_script = "res://tests/unit/tools/shard_off_path.gd"
 	NativeBackend.configure(NativeBackend.Mode.AUTO)
 	var results: Array[FixtureRunner.Result] = runner.run_sharded(_paths(), 2)
 	NativeBackend.configure(saved_mode)
 	assert_int(results.size()).is_equal(SOME.size())
+	# The runner's own shard is on the path it asked for by definition; the other one is not.
+	var failed: int = 0
 	for r: FixtureRunner.Result in results:
-		assert_bool(r.passed).is_false()
+		if r.passed:
+			continue
+		failed += 1
 		assert_str(r.messages[r.messages.size() - 1]).contains("ran native")
+	assert_int(failed).is_between(1, SOME.size() - 1)
 
 
 func test_the_budget_holds_the_native_path_and_not_the_reference() -> void:
