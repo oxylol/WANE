@@ -215,7 +215,7 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 		_fail("stress p99 %s ms over %s ms" % [PerfStats.ms(p99), PerfStats.ms(budget.sim_p99_us)])
 	if top > budget.sim_max_us:
 		_fail("stress max %s ms over %s ms" % [PerfStats.ms(top), PerfStats.ms(budget.sim_max_us)])
-	_warm_up(best, facts, budget.warmup_ticks)
+	_warm_up(best, facts, budget.warmup_ticks, budget.sim_max_us)
 	_minimum("procs fired", facts.total_procs, budget.min_procs)
 	_minimum("hits", facts.total_hits, budget.min_hits)
 	_minimum("kills", facts.total_kills, budget.min_kills)
@@ -241,9 +241,9 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 
 ## The warm-up ticks are played and left out of the percentile; the biggest early bursts are in
 ## them (the stress pin's 117-proc hit on tick 2 and its 39-proc hit on tick 6), so their cost is
-## printed here, against the same worst-tick gate for the record (not gated: the first ticks of a
-## process pay for the engine's caches).
-func _warm_up(best: PackedInt32Array, facts: Facts, warmup: int) -> void:
+## reported here and held to the worst-tick gate (the p99 leaves them out, the 20 ms spike line
+## does not: it is about every tick the player could meet).
+func _warm_up(best: PackedInt32Array, facts: Facts, warmup: int, max_us: int) -> void:
 	var count: int = mini(warmup, best.size())
 	if count == 0:
 		return
@@ -253,11 +253,21 @@ func _warm_up(best: PackedInt32Array, facts: Facts, warmup: int) -> void:
 		peak_procs = maxi(peak_procs, facts.procs[i])
 	_say(
 		(
-			"  warm-up (first %d ticks, not counted): worst %s ms at tick %d, most procs on a tick %d"
-			% [count, PerfStats.ms(best[worst_tick]), worst_tick, peak_procs]
+			"  warm-up (first %d ticks, out of the percentile): worst %s ms at tick %d, "
+			+ (
+				"most procs on a tick %d"
+				% [count, PerfStats.ms(best[worst_tick]), worst_tick, peak_procs]
+			)
 		),
 		false
 	)
+	if best[worst_tick] > max_us:
+		_fail(
+			(
+				"stress warm-up tick %d: %s ms over %s ms"
+				% [worst_tick, PerfStats.ms(best[worst_tick]), PerfStats.ms(max_us)]
+			)
+		)
 
 
 ## The checklist's 5-minute zone 1 run: the 60-second loop played [member PerfBudget.zone_passes]
@@ -291,16 +301,19 @@ func _zone(budget: PerfBudget, repeats: int) -> void:
 	var top: int = sorted[sorted.size() - 1]
 	_say(
 		(
-			"zone 1 loop x%d on one simulation (%d ticks), best of %d runs: p50 %s ms, p99 %s ms, max %s ms (gate %s)"
-			% [
-				budget.zone_passes,
-				best.size(),
-				repeats,
-				PerfStats.ms(PerfStats.percentile(sorted, 500)),
-				PerfStats.ms(PerfStats.percentile(sorted, P99)),
-				PerfStats.ms(top),
-				PerfStats.ms(budget.zone_max_us),
-			]
+			"zone 1 loop x%d on one simulation (%d ticks), best of %d runs: "
+			+ (
+				"p50 %s ms, p99 %s ms, max %s ms (gate %s)"
+				% [
+					budget.zone_passes,
+					best.size(),
+					repeats,
+					PerfStats.ms(PerfStats.percentile(sorted, 500)),
+					PerfStats.ms(PerfStats.percentile(sorted, P99)),
+					PerfStats.ms(top),
+					PerfStats.ms(budget.zone_max_us),
+				]
+			)
 		),
 		true
 	)

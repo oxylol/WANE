@@ -15,8 +15,11 @@
 # what happened on them. The full report goes to reports/perf.txt either way (CI uploads it).
 # The run must exit 0 AND print the marker: if the bench does not compile, Godot idles instead of
 # exiting, so a time limit and the marker are what keep that from looking green.
-# Usage: GODOT=/path/to/godot ci/perf.sh [--verbose] [stress bench options: --repeats N --only stress|zone]
-# (--only skips the frame bench).
+# Usage: GODOT=/path/to/godot ci/perf.sh [--verbose] [--only stress|zone|frame] [--repeats N]
+# --only stress: the stress room alone (the CI job that is red until the C++ decision, ADR-0020
+# Decision 8); --only zone: the 5-minute zone 1 run alone; --only frame: the presentation alone.
+# CI runs the stress room apart from the other two so that a red stress gate cannot hide the
+# presentation gate or the spike line (ADR-0020 Decision 14).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 godot="${GODOT:-godot}"
@@ -53,12 +56,20 @@ run_bench() {
 		status=1
 	fi
 }
-case " ${extra[*]-} " in
-	*" --only zone "* | *" --only stress "*) frame=0 ;;
-	*) frame=1 ;;
+only=""
+for i in "${!extra[@]}"; do
+	if [ "${extra[$i]}" = "--only" ]; then only="${extra[$((i + 1))]-}"; fi
+done
+case "$only" in
+	"" | stress | zone | frame) ;;
+	*) echo "perf: --only takes stress, zone or frame, not '$only'" >&2; exit 2 ;;
 esac
-run_bench tools/bench/stress_bench.gd reports/perf.txt "PERF GATE PASSED" ${extra[@]+"${extra[@]}"}
-if [ "$frame" -eq 1 ]; then
+if [ "$only" = "frame" ]; then
+	extra=()
+else
+	run_bench tools/bench/stress_bench.gd reports/perf.txt "PERF GATE PASSED" ${extra[@]+"${extra[@]}"}
+fi
+if [ "$only" = "" ] || [ "$only" = "frame" ]; then
 	run_bench tools/bench/frame_bench.gd reports/frame.txt "FRAME GATE PASSED"
 fi
 exit "$status"

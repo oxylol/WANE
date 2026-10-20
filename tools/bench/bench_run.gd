@@ -1,6 +1,6 @@
 class_name BenchRun
 extends RefCounted
-## One timed play of a replay fixture for the perf bench (`tools/bench/stress_bench.gd`; docs/adr/0020).
+## One timed play of a replay fixture for the perf bench (`stress_bench.gd`; docs/adr/0020).
 ## A run is one [Simulation] stepped for [member ticks] ticks. When that is more than the fixture's
 ## length the fixture's input starts over from its first frame and the simulation carries on, so
 ## state that grows pass after pass (an event list, a trail list, a leak) shows in the later

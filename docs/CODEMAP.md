@@ -56,7 +56,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd`; raw failures: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
-- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh` (stress bench, then frame bench) against `content/perf/budget.tres`; windowed run in `tools/bench/frame_bench.gd`'s header.
+- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (stress bench incl. the 5-minute zone run via `tools/bench/bench_run.gd`, then frame bench; CI: `perf` = zone + frame, `perf-stress` = known red) against `content/perf/budget.tres`; windowed run in `tools/bench/frame_bench.gd`'s header.
 
 ## Rules agents trip on
 

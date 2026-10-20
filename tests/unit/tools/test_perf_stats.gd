@@ -2,6 +2,20 @@ extends GdUnitTestSuite
 ## The perf bench's statistics and gate numbers (tools/bench/perf_stats.gd, perf_budget.gd,
 ## content/perf/budget.tres; docs/adr/0020).
 
+const _LOOP: String = """fixture loop_probe
+doc A ten-frame loop for the bench run tests (BUILD.md s13).
+wick none
+seed 1
+frames 10
+input
+  2..3 R
+  4 R jump
+  5..9 R
+end
+expect
+end
+"""
+
 
 func test_a_tick_keeps_the_least_time_any_run_gave_it() -> void:
 	var best := PackedInt32Array()
@@ -101,21 +115,6 @@ func test_a_budget_that_breaks_a_rule_is_refused() -> void:
 			"min_frames":
 				b.min_frames = 0
 		assert_array(Array(b.validate())).is_not_empty()
-
-
-const _LOOP: String = """fixture loop_probe
-doc A ten-frame loop for the bench run tests (BUILD.md s13).
-wick none
-seed 1
-frames 10
-input
-  2..3 R
-  4 R jump
-  5..9 R
-end
-expect
-end
-"""
 
 
 func test_a_looped_fixture_starts_its_input_again_and_remembers_the_seam() -> void:
