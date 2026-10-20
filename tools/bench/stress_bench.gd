@@ -164,12 +164,14 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 	for e: String in fx.errors:
 		_fail("stress fixture: %s" % e)
 	var best: PackedInt32Array = PackedInt32Array()
+	var runs: Array[PackedInt32Array] = []
 	var facts: Facts = null
 	var hash_seen: int = 0
 	for r: int in range(repeats):
 		var run_facts: Facts = Facts.new(fx.frame_total) if r == 0 else null
 		var run: BenchRun = _play(fx, fx.frame_total, run_facts)
 		PerfStats.fold_min(best, run.us)
+		runs.append(run.us)
 		if r == 0:
 			facts = run_facts
 			hash_seen = run.end_hash
@@ -213,6 +215,7 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 		),
 		true
 	)
+	_say_single_passes(runs, facts, budget)
 	if p99 > budget.sim_p99_us:
 		_fail("stress p99 %s ms over %s ms" % [PerfStats.ms(p99), PerfStats.ms(budget.sim_p99_us)])
 	if top > budget.sim_max_us:
@@ -239,6 +242,49 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 				),
 				false
 			)
+
+
+## What one run alone read, beside the gate's best-of-runs figure (docs/adr/0020 Decision 17): the
+## least time of each tick is the code's cost and is what is gated, but a player gets one run, so
+## the report names each run's own 99th percentile and worst tick, how many of its ticks were over
+## the gate's p99 (more than 1% of the counted ticks is a failing run), and how many of the counted
+## ticks hold the state hash (one in [constant Simulation.HASH_INTERVAL] is more than the 1% the
+## percentile leaves, so the 99th percentile falls among them). Not gated.
+func _say_single_passes(runs: Array[PackedInt32Array], facts: Facts, budget: PerfBudget) -> void:
+	var from: int = budget.warmup_ticks
+	var counted: int = facts.flags.size() - from
+	var p99s: PackedStringArray = []
+	for us: int in PerfStats.p99_each(runs, from):
+		p99s.append(PerfStats.ms(us))
+	var tops: PackedStringArray = []
+	for us: int in PerfStats.max_each(runs, from):
+		tops.append(PerfStats.ms(us))
+	var overs: PackedStringArray = []
+	for run: PackedInt32Array in runs:
+		overs.append(str(PerfStats.count_over(run, from, budget.sim_p99_us)))
+	var hashed: int = 0
+	for i: int in range(from, facts.flags.size()):
+		if facts.flags[i] & F_HASH:
+			hashed += 1
+	_say(
+		(
+			(
+				"  single runs (what a player gets; not gated): p99 %s ms, worst %s ms, ticks over %s ms "
+				+ "%s of %d counted (1%% is %d); state-hash ticks %d (%.1f%%); run 1 also records the facts"
+			)
+			% [
+				" / ".join(p99s),
+				" / ".join(tops),
+				PerfStats.ms(budget.sim_p99_us),
+				" / ".join(overs),
+				counted,
+				counted / 100,
+				hashed,
+				float(hashed) * 100.0 / float(maxi(counted, 1)),
+			]
+		),
+		true
+	)
 
 
 ## The proc storm (docs/adr/0020, Decision 15): the same room and inputs with the storm Votive

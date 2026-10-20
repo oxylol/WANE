@@ -33,6 +33,33 @@ static func percentile(sorted: PackedInt32Array, permille: int) -> int:
 	return sorted[clampi(rank - 1, 0, sorted.size() - 1)]
 
 
+## The 99th percentile of each run alone, from tick [param from] on. [method fold_min] gives the
+## code's cost; a player gets one run, so a report that names the gate's figure also names these.
+static func p99_each(runs: Array[PackedInt32Array], from: int) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	for run: PackedInt32Array in runs:
+		out.append(percentile(sorted_from(run, from), 990))
+	return out
+
+
+## The worst tick of each run alone, from tick [param from] on.
+static func max_each(runs: Array[PackedInt32Array], from: int) -> PackedInt32Array:
+	var out := PackedInt32Array()
+	for run: PackedInt32Array in runs:
+		var sorted: PackedInt32Array = sorted_from(run, from)
+		out.append(sorted[sorted.size() - 1] if not sorted.is_empty() else 0)
+	return out
+
+
+## How many ticks from tick [param from] on took more than [param limit] microseconds.
+static func count_over(samples: PackedInt32Array, from: int, limit: int) -> int:
+	var n: int = 0
+	for i: int in range(clampi(from, 0, samples.size()), samples.size()):
+		if samples[i] > limit:
+			n += 1
+	return n
+
+
 ## The indices of the [param count] slowest ticks from tick [param from] on, slowest first (the
 ## earlier tick first among equals).
 static func worst(samples: PackedInt32Array, from: int, count: int) -> PackedInt32Array:

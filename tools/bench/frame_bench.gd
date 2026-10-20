@@ -77,6 +77,7 @@ var _best_sim: PackedInt32Array = PackedInt32Array()
 var _best_tick: PackedInt32Array = PackedInt32Array()
 var _best_wall: PackedInt32Array = PackedInt32Array()
 var _best_present: PackedInt32Array = PackedInt32Array()
+var _runs_present: Array[PackedInt32Array] = []
 var _best_proc: PackedInt32Array = PackedInt32Array()
 var _best_draw: PackedInt32Array = PackedInt32Array()
 var _best_gap: PackedInt32Array = PackedInt32Array()
@@ -249,6 +250,7 @@ func _end_pass() -> void:
 	PerfStats.fold_min(_best_tick, _tick)
 	PerfStats.fold_min(_best_wall, _wall)
 	PerfStats.fold_min(_best_present, present)
+	_runs_present.append(present)
 	PerfStats.fold_min(_best_capture, capture)
 	PerfStats.fold_min(_best_proc, _proc)
 	PerfStats.fold_min(_best_draw, _draw)
@@ -357,6 +359,16 @@ func _report_run() -> void:
 				PerfStats.ms(top),
 				PerfStats.ms(_budget.sim_max_us),
 			]
+		),
+		true
+	)
+	var singles: PackedStringArray = []
+	for us: int in PerfStats.p99_each(_runs_present, from):
+		singles.append(PerfStats.ms(us))
+	_say(
+		(
+			"  single passes (what a player gets; not gated): presentation p99 %s ms (gate %s)"
+			% [" / ".join(singles), PerfStats.ms(allowed)]
 		),
 		true
 	)

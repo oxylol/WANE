@@ -154,3 +154,38 @@ func test_a_bench_run_reports_each_tick_to_its_hooks() -> void:
 	assert_array(started).is_equal([0])
 	assert_int(seen.size()).is_equal(25)
 	assert_int(seen[24]).is_equal(24 * 100 + 25)
+
+
+func test_each_run_alone_reads_its_own_percentile_and_worst_tick() -> void:
+	# The gate reads the least time of each tick over the runs; a player sees one run
+	# (docs/adr/0020 Decision 17), so the bench also reports what each run alone read.
+	var a := PackedInt32Array([50, 1, 2, 3, 4])
+	var b := PackedInt32Array([9, 9, 1, 1, 1])
+	var runs: Array[PackedInt32Array] = [a, b]
+	assert_array(Array(PerfStats.p99_each(runs, 1))).is_equal([4, 9])
+	assert_array(Array(PerfStats.p99_each(runs, 0))).is_equal([50, 9])
+	assert_array(Array(PerfStats.max_each(runs, 1))).is_equal([4, 9])
+	assert_array(Array(PerfStats.max_each(runs, 0))).is_equal([50, 9])
+	var none: Array[PackedInt32Array] = []
+	assert_array(Array(PerfStats.p99_each(none, 0))).is_empty()
+
+
+func test_ticks_over_a_limit_are_counted_from_the_first_counted_tick() -> void:
+	var run := PackedInt32Array([99, 5, 7, 8, 7, 1])
+	assert_int(PerfStats.count_over(run, 1, 7)).is_equal(1)
+	assert_int(PerfStats.count_over(run, 0, 7)).is_equal(2)
+	assert_int(PerfStats.count_over(run, 0, 99)).is_equal(0)
+	assert_int(PerfStats.count_over(run, 99, 0)).is_equal(0)
+
+
+func test_a_pass_is_best_of_all_of_them_only_for_the_gate() -> void:
+	# The least of three runs can be well under every one of them: here p99 3 against 5, 6, 7.
+	var a := PackedInt32Array([1, 5, 1, 1])
+	var b := PackedInt32Array([6, 1, 1, 1])
+	var c := PackedInt32Array([1, 1, 7, 1])
+	var best := PackedInt32Array()
+	for run: PackedInt32Array in [a, b, c]:
+		PerfStats.fold_min(best, run)
+	assert_int(PerfStats.percentile(PerfStats.sorted_from(best, 0), 990)).is_equal(1)
+	var runs: Array[PackedInt32Array] = [a, b, c]
+	assert_array(Array(PerfStats.p99_each(runs, 0))).is_equal([5, 6, 7])
