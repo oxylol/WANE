@@ -1,0 +1,51 @@
+class_name PerfStats
+extends RefCounted
+## The statistics the perf bench reports (`tools/bench/stress_bench.gd`): per-tick times in
+## microseconds, folded across repeated runs and read as percentiles.
+
+
+## Folds [param run] into [param best]: each tick keeps the least time any run gave it. A tick's
+## work is fixed by the replay, so the least is the cost of the code and the rest is the machine
+## (a vCPU descheduled for 4 ms inside one dummy's step is the usual excess). The first run sets
+## [param best] when it is empty.
+static func fold_min(best: PackedInt32Array, run: PackedInt32Array) -> void:
+	if best.is_empty():
+		best.append_array(run)
+		return
+	for i: int in range(mini(best.size(), run.size())):
+		if run[i] < best[i]:
+			best[i] = run[i]
+
+
+## The times from tick [param from] on, sorted ascending.
+static func sorted_from(samples: PackedInt32Array, from: int) -> PackedInt32Array:
+	var out: PackedInt32Array = samples.slice(clampi(from, 0, samples.size()))
+	out.sort()
+	return out
+
+
+## The [param permille]/1000 percentile of [param sorted] by the nearest-rank rule: the smallest
+## value that at least that share of the samples do not exceed. 0 for no samples.
+static func percentile(sorted: PackedInt32Array, permille: int) -> int:
+	if sorted.is_empty():
+		return 0
+	var rank: int = (sorted.size() * permille + 999) / 1000
+	return sorted[clampi(rank - 1, 0, sorted.size() - 1)]
+
+
+## The indices of the [param count] slowest ticks from tick [param from] on, slowest first (the
+## earlier tick first among equals).
+static func worst(samples: PackedInt32Array, from: int, count: int) -> PackedInt32Array:
+	var order: Array[int] = []
+	for i: int in range(clampi(from, 0, samples.size()), samples.size()):
+		order.append(i)
+	order.sort_custom(
+		func(a: int, b: int) -> bool:
+			return samples[a] > samples[b] or (samples[a] == samples[b] and a < b)
+	)
+	return PackedInt32Array(order.slice(0, count))
+
+
+## Microseconds as milliseconds with two decimals: "3.07".
+static func ms(us: int) -> String:
+	return "%.2f" % (float(us) / 1000.0)

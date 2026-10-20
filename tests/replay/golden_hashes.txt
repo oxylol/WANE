@@ -2,11 +2,11 @@
 # Regenerate with: godot --headless --path . --script tools/replay/bless.gd
 # sim_version 11
 a_fizzle_leaves_the_dash_alone in:4ae88386 content:b41cef64 20:3438e8b2
-a_kill_by_a_proc_is_a_kill in:0ec2863c content:5318fcea 30:c5d4eab8
-a_kill_by_burn_stops_time in:ba080076 content:da9bba8a 40:20c7c706
+a_kill_by_a_proc_is_a_kill in:0ec2863c content:8d228827 30:c5d4eab8
+a_kill_by_burn_stops_time in:ba080076 content:3a153120 40:20c7c706
 a_repress_breaks_the_charge_hold in:3176c03e content:b41cef64 60:21bbaacc 60:21bbaacc
 a_spell_ends_mend in:f1c98a31 content:b41cef64 70:ed103451 60:fb058367
-a_spell_ends_the_hit_knockback in:ddfc47e4 content:758c1d07 80:aaf3fbd6 60:366e9307
+a_spell_ends_the_hit_knockback in:ddfc47e4 content:bdae41a2 80:aaf3fbd6 60:366e9307
 air_control in:23c0c7d5 content:b41cef64 40:622f7660
 air_control_after_air_reversal in:0f057479 content:d72485fc 40:6c670d91
 air_control_leaving_wall in:a208954b content:d72485fc 40:93e2cbe6
@@ -16,21 +16,21 @@ air_dash_rides_ramp_onto_crest_lip in:0b614694 content:dbe40e04 48:13febe8d
 air_dash_up_1to2_ramp_rows in:9dbf04ff content:00974f2d 30:2c6d0a05
 air_dash_up_45_ramp_rows in:83f183f4 content:bb5bb4f3 24:5a0e45f3
 air_reverse_keeps_momentum in:86adfe4f content:b41cef64 40:a1dcd31c
-bell_fifteen_stacks_rings_once in:0d33d74a content:883cf83e 10:1c181ba4
-bell_fifteen_stacks_rolls_a_second in:2dc57d59 content:883cf83e 10:6ead6658
-bell_flame_tier_adds_a_tenth in:6a9e53a8 content:883cf83e 10:a0a8e213
-bell_flame_tier_control in:708de3f5 content:883cf83e 10:f6774b6f
-bell_on_kindle_ticks_at_half_chance in:93bf1896 content:88306127 22:478ee4b7
-bell_on_radiance_reach in:e757d15d content:1b0888d2 12:64f1ad0f
-bell_rings_on_every_hit_at_ten_stacks in:223d8ae4 content:883cf83e 30:3b16b069
-bell_seed_1 in:d46d98bc content:783d2c63 120:464f8769 60:397aadba 120:464f8769
-bell_seed_2 in:6321ff12 content:783d2c63 120:93dbe641 60:9c4ecf7c 120:93dbe641
-bell_stun_takes_the_swing in:6c1e61bd content:e7a1ad8b 90:aa25cfc6 60:45583c64
-bell_stun_takes_the_swing_control in:1d09dc20 content:758c1d07 60:bf1ec44b 60:bf1ec44b
-blaze_chain_trails_burn_once in:1db38b13 content:49d040b7 30:30d3288d
-blaze_finisher_burst in:c9f61847 content:df99d035 30:0c65f501
-blaze_strike_keeps_knockback in:8d2e5a25 content:f94fd3f0 30:ee3b9cfc
-burn_tick_keeps_knockback in:8d304229 content:49d040b7 50:16c7f686
+bell_fifteen_stacks_rings_once in:0d33d74a content:d3839758 10:1c181ba4
+bell_fifteen_stacks_rolls_a_second in:2dc57d59 content:d3839758 10:6ead6658
+bell_flame_tier_adds_a_tenth in:6a9e53a8 content:d3839758 10:a0a8e213
+bell_flame_tier_control in:708de3f5 content:d3839758 10:f6774b6f
+bell_on_kindle_ticks_at_half_chance in:93bf1896 content:a26065f8 22:478ee4b7
+bell_on_radiance_reach in:e757d15d content:3523a469 12:64f1ad0f
+bell_rings_on_every_hit_at_ten_stacks in:223d8ae4 content:d3839758 30:3b16b069
+bell_seed_1 in:d46d98bc content:92cf19b1 120:464f8769 60:397aadba 120:464f8769
+bell_seed_2 in:6321ff12 content:92cf19b1 120:93dbe641 60:9c4ecf7c 120:93dbe641
+bell_stun_takes_the_swing in:6c1e61bd content:bcf6e2f1 90:aa25cfc6 60:45583c64
+bell_stun_takes_the_swing_control in:1d09dc20 content:bdae41a2 60:bf1ec44b 60:bf1ec44b
+blaze_chain_trails_burn_once in:1db38b13 content:38351a8d 30:30d3288d
+blaze_finisher_burst in:c9f61847 content:e45878c9 30:0c65f501
+blaze_strike_keeps_knockback in:8d2e5a25 content:2959d464 30:ee3b9cfc
+burn_tick_keeps_knockback in:8d304229 content:38351a8d 50:16c7f686
 cam5_air_jump_above_floor in:e33f45b1 content:b7779e28 260:7f8204f8 60:f016228c 120:9cd8a1fa 180:70fb06c5 240:4ac2c7e0
 cam5_borderless_top_up_dash in:d35e6284 content:a955e5f4 160:06fccbf6 60:f49368ec 120:c6028568
 cam5_climb_drop in:d325e63a content:44ab9ba7 300:6b117091 60:e0d8a8a4 120:93d7b2b4 180:0dc56187 240:90b92786 300:6b117091
@@ -52,9 +52,9 @@ cam6_tp_up_dash_otop in:cab3f72a content:a955e5f4 134:0f9dc123 60:69bd3b04 120:0
 cam7_climb_letgo in:0d8d1c72 content:295a3742 260:5164feb4 60:37efd03e 120:0b8a5a9e 180:6089840c 240:80adbdb7
 cam7_cling_walljump_fast in:28fd6d4b content:f240a99a 160:548ae720 60:fa565b96 120:50ccc789
 cam7_crouch_charge in:1dc99c68 content:295a3742 140:4b21138e 60:3e271979 120:4522b967
-cam7_death_far in:ec90068d content:ac9f8394 400:ca768f95 60:7d7a46a5 120:5cb1fcb6 180:03461df6 240:60cc4253 300:41a2703c 360:675035ff
-cam7_edge_hit in:0623762e content:9cd8a8d5 120:b73afb93 60:8f25c609 120:b73afb93
-cam7_sandbox_death in:fef2cb06 content:820cdab2 260:e2828615 60:011bc599 120:34516b5a 180:f666f78b 240:4f432d17
+cam7_death_far in:ec90068d content:5ead137d 400:ca768f95 60:7d7a46a5 120:5cb1fcb6 180:03461df6 240:60cc4253 300:41a2703c 360:675035ff
+cam7_edge_hit in:0623762e content:6a42ac65 120:b73afb93 60:8f25c609 120:b73afb93
+cam7_sandbox_death in:fef2cb06 content:2b2a8579 260:e2828615 60:011bc599 120:34516b5a 180:f666f78b 240:4f432d17
 cam7_step_up_hop_off in:52c69048 content:295a3742 200:b0319e4c 60:156a5896 120:ecef319f 180:43a27a35
 cam7_tp_up_updash in:c0714fd2 content:295a3742 110:abf48cbd 60:d2eff1f6
 cam_air_spikes_pogo in:605bc4ab content:2b6ef80f 260:5929d9f5 60:2bed2f60 120:fd973e37 180:09541863 240:85909fe8
@@ -161,19 +161,19 @@ cam_wall_dash in:e57784c8 content:295a3742 120:500f45a1 60:980cb156 120:500f45a1
 cam_wall_run in:18a521fb content:295a3742 220:699e5fbc 60:4314554d 120:3ae3cac4 180:b67d815e
 cam_wall_slide in:c05b527d content:295a3742 260:b056fdfb 60:64050739 120:f0e8a815 180:9ba8f178 240:265e693b
 cam_wide_shaft_jumps in:c605948c content:4c4fe4f4 400:4dce0977 60:9ead69d5 120:f77fd6d9 180:7ba5160c 240:685e2de2 300:c1bc7589 360:927e3e76
-chain_rising_weight in:93e8e0cf content:f94fd3f0 40:24355bd1
+chain_rising_weight in:93e8e0cf content:2959d464 40:24355bd1
 chain_side2_window_edges in:74c3b216 content:b41cef64 40:d82f5490
-chain_stops_at_depth_three in:91a50aea content:631ad37f 30:2de99b52
+chain_stops_at_depth_three in:91a50aea content:421d9545 30:2de99b52
 charged_on_cling_frame_goes_away in:bd48c457 content:d72485fc 50:20650753
-charged_startup_armor in:caa87863 content:be430dd8 80:92b9a7d8 60:974d62cc
-charged_strike_after_a_24_frame_hold in:be1ba360 content:f94fd3f0 50:a4b1d8bc
+charged_startup_armor in:caa87863 content:7cfa7edf 80:92b9a7d8 60:974d62cc
+charged_strike_after_a_24_frame_hold in:be1ba360 content:2959d464 50:a4b1d8bc
 charged_strike_goes_the_way_it_was_let_go in:60427196 content:b41cef64 50:1d9ad678
-charged_strike_needs_the_whole_hold in:2381123c content:f94fd3f0 50:9471b6b5
-cling_kick_ends_the_hit_knockback in:a47f2ba7 content:7308ce4d 90:653813ad 60:32c9d3ac
-coin_seed_1 in:0d68583c content:df4c0ae8 30:da555e49
-coin_seed_2 in:83ebbc77 content:df4c0ae8 50:ac70d669
-corpse_carries_momentum in:490d00ed content:2282d356 30:449305e8
-corpse_falls_and_respawns_at_its_marker in:eae5a52b content:ee3ab995 120:75a799fe 60:702f5a99 120:75a799fe
+charged_strike_needs_the_whole_hold in:2381123c content:2959d464 50:9471b6b5
+cling_kick_ends_the_hit_knockback in:a47f2ba7 content:0f90654e 90:653813ad 60:32c9d3ac
+coin_seed_1 in:0d68583c content:93c29c9c 30:da555e49
+coin_seed_2 in:83ebbc77 content:93c29c9c 50:ac70d669
+corpse_carries_momentum in:490d00ed content:af9fc472 30:449305e8
+corpse_falls_and_respawns_at_its_marker in:eae5a52b content:ff7c65f5 120:75a799fe 60:702f5a99 120:75a799fe
 crouch_hop_low_ceiling in:fd7b5503 content:bf236737 80:94e90e88 60:1727738a
 dash_air_landing_restores in:05c6afbf content:b41cef64 70:6c0750d2 60:0d522332
 dash_air_once in:1bdb0893 content:b41cef64 80:1d32ccf0 60:18e3464b
@@ -208,7 +208,7 @@ dash_jump_from_box_a_lip in:4cb440f8 content:fd1c7eb1 40:3993fe17
 dash_jump_keeps_speed in:db607ed7 content:b41cef64 50:87dc537c
 dash_on_cling_frame_goes_away in:bc33aa74 content:d72485fc 60:1f25bb7a 60:1f25bb7a
 dash_on_landing_tick_beside_step in:4da9277a content:8d696f2c 30:1170ad93
-dash_out_of_hitstop in:37a82e7f content:f94fd3f0 20:5dae5bc9
+dash_out_of_hitstop in:37a82e7f content:2959d464 20:5dae5bc9
 dash_ride_reaches_walk_stop in:ab409880 content:3bf6fee8 11:54643664
 dash_same_distance in:a1a2a72d content:b41cef64 50:0c9de2fd
 dash_slash_buffered_down_strike in:cd50682e content:b41cef64 30:92d18063
@@ -217,17 +217,17 @@ dash_up_lip_stairs in:520107ca content:e2e0d57b 120:aae654c8 60:a7fe4792 120:aae
 dash_up_ramp_onto_door_at_crest in:79ddd85b content:698d1a33 14:7a680e65
 ddash_runs_on_onto_lip in:2427ea8c content:d712d642 24:8d2720d5
 ddash_stairs_relanding_keeps_speed in:2d54f4be content:6800247a 12:53b541a3
-death_breaks_the_charge_hold in:494bd386 content:758c1d07 120:806b50a5 60:11719fc5 120:806b50a5
-death_far_from_the_spawn in:0fe44e73 content:9d9e3935 140:655529ba 60:8e3a525a 120:ecc2770e
-death_returns_to_the_spawn in:37783a3f content:be430dd8 70:8323a000 60:93f9fd93
-door_dash_carries_through in:263598ba content:43c0eb55 14:87ef4eb5
-door_ember_stays_behind in:a3ff046b content:43c0eb55 40:10e4ea24
-door_enemies_belong_to_their_room in:46336baa content:43c0eb55 60:152523a4 60:152523a4
-door_hazard_after_a_door_stays_in_the_room in:b3e85e38 content:43c0eb55 140:aab1dbc4 60:7d64b0c8 120:006ff363
-door_kill_ember_in_flight_reaches_ash in:68b21936 content:43c0eb55 20:27ef4983
-door_vertical_fall_and_jump in:88a7029e content:c66d8506 100:e52dc47f 60:1adb70a2
-door_walk_back_returns_through_the_same_door in:7b34b5c5 content:43c0eb55 70:09e8274e 60:87891283
-door_walk_through_keeps_the_run in:a97cf0e4 content:43c0eb55 30:fb49de92
+death_breaks_the_charge_hold in:494bd386 content:bdae41a2 120:806b50a5 60:11719fc5 120:806b50a5
+death_far_from_the_spawn in:0fe44e73 content:fa05fdf5 140:655529ba 60:8e3a525a 120:ecc2770e
+death_returns_to_the_spawn in:37783a3f content:7cfa7edf 70:8323a000 60:93f9fd93
+door_dash_carries_through in:263598ba content:d38a0250 14:87ef4eb5
+door_ember_stays_behind in:a3ff046b content:d38a0250 40:10e4ea24
+door_enemies_belong_to_their_room in:46336baa content:d38a0250 60:152523a4 60:152523a4
+door_hazard_after_a_door_stays_in_the_room in:b3e85e38 content:d38a0250 140:aab1dbc4 60:7d64b0c8 120:006ff363
+door_kill_ember_in_flight_reaches_ash in:68b21936 content:d38a0250 20:27ef4983
+door_vertical_fall_and_jump in:88a7029e content:e7052f97 100:e52dc47f 60:1adb70a2
+door_walk_back_returns_through_the_same_door in:7b34b5c5 content:d38a0250 70:09e8274e 60:87891283
+door_walk_through_keeps_the_run in:a97cf0e4 content:d38a0250 30:fb49de92
 down_dash_from_midair_lands_on_ledge_far_edge in:212e6d28 content:b03eeadc 12:490fd757
 down_dash_lands_on_ledge_far_corner in:339c92d8 content:b03eeadc 24:b52bb94a
 down_diagonal_toward_wall_never_clings in:4c89f197 content:d72485fc 20:ed5f243f
@@ -241,7 +241,7 @@ far_edge_downstrike_control in:ff3e4c8a content:b03eeadc 34:b4f63a92
 far_edge_landing_buffered_jump_keeps_stride in:6c8779ef content:b03eeadc 40:1f40204a
 far_edge_landing_lands in:ea6cd387 content:b03eeadc 40:65c5051d
 far_edge_touch_then_ground_jump in:dfd4e240 content:b03eeadc 30:fd6574a8
-five_parries_in_a_second in:c63403c2 content:5e130be5 100:5829ffb5 60:f7369382
+five_parries_in_a_second in:c63403c2 content:40ce10c3 100:5829ffb5 60:f7369382
 ground_corner_lift in:4f0bd993 content:4e6b23ee 60:ceb8a82b 60:ceb8a82b
 ground_crouch in:6d814d7b content:b41cef64 40:a96b2c3a
 ground_decel in:b51a4c19 content:b41cef64 30:f497e256
@@ -262,7 +262,7 @@ hollow_step_costs_a_heart in:e8b42c79 content:6eb5a2a7 2:331a838d
 hollow_step_dash_has_no_cooldown in:71b4c40e content:6eb5a2a7 30:795a7b81
 hollow_step_never_below_one_heart in:2ca9b0b7 content:6eb5a2a7 2:2e6afe52
 input_buffer_latest_press in:79863b73 content:74017edc 30:78853fdf
-invulnerability_covers_twenty_free_frames in:d2aadf2d content:892a776c 100:451339e7 60:162f5652
+invulnerability_covers_twenty_free_frames in:d2aadf2d content:741e892a 100:451339e7 60:162f5652
 jump_air_jump in:b7248470 content:b41cef64 80:08dba0a6 60:303deae9
 jump_buffer_8f in:9f9f81c6 content:b41cef64 70:ecbb4ed9 60:303deae9
 jump_buffer_9f_expires in:7c75c763 content:b41cef64 70:ecbb4ed9 60:303deae9
@@ -281,46 +281,46 @@ jump_tap_buffered_on_landing in:da030e89 content:b41cef64 80:08dba0a6 60:303deae
 jump_terminal in:1fdb348f content:d72485fc 60:707a2b9e 60:707a2b9e
 jump_two_ticks_before_wall_is_not_late in:cfb7f817 content:d72485fc 30:c712c8a1
 jump_variable_height in:237db32e content:b41cef64 50:f7539aea
-kill_ember_reaches_the_player in:490d00ed content:2282d356 30:449305e8
+kill_ember_reaches_the_player in:490d00ed content:af9fc472 30:449305e8
 kindle_cancels_from_frame_8 in:a6cf6917 content:b41cef64 20:3b07dff5
 kindle_from_cling_goes_away in:029be357 content:d72485fc 50:784872a7
-kindle_needs_flame in:fd62b0b2 content:26b963d1 20:aa59aa5b
-kindle_never_hits_a_corpse in:84c1a3f9 content:79571f02 60:ee9eafd0 60:ee9eafd0
+kindle_needs_flame in:fd62b0b2 content:e7b4269c 20:aa59aa5b
+kindle_never_hits_a_corpse in:84c1a3f9 content:16f6a688 60:ee9eafd0 60:ee9eafd0
 kindle_on_cling_frame_goes_away in:dac10845 content:d72485fc 50:784872a7
-kindle_reaches_a_far_dummy in:a55c2c9a content:26b963d1 30:f89a1f01
+kindle_reaches_a_far_dummy in:a55c2c9a content:e7b4269c 30:f89a1f01
 land_across_ramp_rows_walks_back in:3087c423 content:00974f2d 31:d91b96f7
 land_across_ramp_rows_walks_on in:e27e98dc content:00974f2d 40:471f20cf
 landing_clamps_dash_speed in:2245197b content:b8dce53f 200:4a658726 60:639b947c 120:20dd328b 180:fd6a33f5
 landing_jump_after_kindle_frame_8_ends_it in:c6380674 content:b41cef64 40:ef51edd8
 landing_jump_dash_falls_control in:e546170d content:36b02783 70:431dcd42 60:ac7b9417
 landing_jump_dash_falls_with_gravity in:6cb59b62 content:36b02783 70:706384a8 60:a1e64a46
-landing_jump_ends_the_hit_knockback in:5824c895 content:758c1d07 90:6d6d6f25 60:59fc3e43
+landing_jump_ends_the_hit_knockback in:5824c895 content:bdae41a2 90:6d6d6f25 60:59fc3e43
 landing_jump_then_dash_control in:150c1fbe content:b41cef64 60:3c599c44 60:3c599c44
 landing_jump_then_dash_rises in:0022b8f9 content:b41cef64 60:e341e836 60:e341e836
 landing_jump_waits_for_kindle in:623878f0 content:b41cef64 40:511f8d4a
 landing_no_lag in:b166e293 content:b41cef64 50:cd85e37c
 mend_chains_while_held in:2502c13e content:b41cef64 110:002001bd 60:a1723120
 mend_ended_by_a_jump_keeps_the_stick in:b18afba5 content:b41cef64 40:72c290e3
-mend_ends_the_hit_knockback in:2a822b9c content:758c1d07 80:b7cf52db 60:d66832fa
+mend_ends_the_hit_knockback in:2a822b9c content:bdae41a2 80:b7cf52db 60:d66832fa
 mend_heals_after_fifty_frames in:a0677092 content:b41cef64 70:3b0a3abd 60:0b609d83
 mend_let_go_loses_the_flame in:b9b05510 content:b41cef64 80:338bf7b2 60:7b81e6c5
 mend_let_go_turns_and_runs_at_once in:b5e3a40c content:b41cef64 20:e0761c32
 mend_pressed_before_landing in:99d7c3db content:b41cef64 40:f6f3f77e
 notch_fall_lands_on_block_across in:6b8e4ecd content:99a2093d 20:caf39504
-one_press_parries_once in:1fa3aa9b content:fd735a0d 80:ea9c6e40 60:1fc1cfd3
+one_press_parries_once in:1fa3aa9b content:19b7e62f 80:ea9c6e40 60:1fc1cfd3
 oneway_buffered_drop_through in:c17279d1 content:d84f54ee 60:5794303f 60:5794303f
 oneway_lip_crouch_slide_down in:62bb1d99 content:c7009ab4 30:2e238c43
 oneway_lip_step_down_then_drop in:60b63153 content:c7009ab4 50:3d4aaaa4
 oneway_low_stick_jumps in:143cf6e1 content:d84f54ee 30:9b698fda
-parry_window_first_frame in:d90b3d88 content:758c1d07 80:435c07bc 60:7a46afe6
-parry_window_last_frame in:bfc392d0 content:758c1d07 70:ea44d559 60:09996333
-parry_window_too_early in:fea6ec8e content:758c1d07 70:92806697 60:2131a3e9
+parry_window_first_frame in:d90b3d88 content:bdae41a2 80:435c07bc 60:7a46afe6
+parry_window_last_frame in:bfc392d0 content:bdae41a2 70:ea44d559 60:09996333
+parry_window_too_early in:fea6ec8e content:bdae41a2 70:92806697 60:2131a3e9
 pilgrims_wick_control in:e8a47522 content:b41cef64 40:2b229298
 pilgrims_wick_in_the_air in:c3d121bd content:49d77506 60:c89dab59 60:c89dab59
 pilgrims_wick_leaves_the_dash_alone in:d49c62bc content:49d77506 20:a3c05877
 pilgrims_wick_runs_faster in:e1950857 content:49d77506 40:e45a3cfc
 pilgrims_wick_two_stacks in:872f1405 content:49d77506 30:1d536aa0
-player_hit_knockback_and_invulnerability in:ec9b32a4 content:758c1d07 100:60b0ddf6 60:8fc34b2b
+player_hit_knockback_and_invulnerability in:ec9b32a4 content:bdae41a2 100:60b0ddf6 60:8fc34b2b
 pogo_beats_hazard_same_frame in:39e37c04 content:c2c91cf4 40:ee84bac5
 pogo_bounce in:3496bc2e content:c2c91cf4 45:2514a7f6
 pogo_bounce_control in:8c5072eb content:c2c91cf4 60:cb903f70 60:cb903f70
@@ -333,38 +333,39 @@ pogo_down_dash_pogo in:43e4f40e content:c2c91cf4 60:defbdd19 60:defbdd19
 pogo_held_press_never_charges in:b7061050 content:c2c91cf4 40:0ec49aa3
 pogo_hitbox_frames in:7b0be856 content:b41cef64 30:f7bd3b16
 pogo_keeps_horizontal in:aed44c30 content:c2c91cf4 80:180ac053 60:5e6eb9f5
-pogo_off_the_dummy in:4bbddb77 content:31f5df1f 20:9d45aed1
+pogo_off_the_dummy in:4bbddb77 content:747633a1 20:9d45aed1
 pogo_resets in:2a0452a8 content:c2c91cf4 60:674ed837 60:674ed837
-radiance_at_blaze in:440b4d97 content:f94fd3f0 20:a613336b
-radiance_below_blaze_is_kindle in:79713d12 content:f94fd3f0 20:772cf44c
-radiance_bursts_with_a_dash_on_its_burst_frame in:4dcba264 content:f94fd3f0 20:e0847083
-red_swing_is_never_parried in:763eaf81 content:be430dd8 70:f63c2e33 60:a62a526b
+radiance_at_blaze in:440b4d97 content:2959d464 20:a613336b
+radiance_below_blaze_is_kindle in:79713d12 content:2959d464 20:772cf44c
+radiance_bursts_with_a_dash_on_its_burst_frame in:4dcba264 content:2959d464 20:e0847083
+red_swing_is_never_parried in:763eaf81 content:7cfa7edf 70:f63c2e33 60:a62a526b
 safe_ground_never_in_crawl_gap in:d8766008 content:19eaba20 120:fedd0d75 60:f72eda47 120:fedd0d75
 safe_ground_never_on_wax in:0becf621 content:4a2076d9 400:fcf42fae 60:d4768927 120:3a45dc09 180:eb7bbf9e 240:19b3b7b2 300:f8741e89 360:773c857e
-second_ember_control in:cac0b959 content:31f5df1f 60:ed2bd877 60:ed2bd877
-second_ember_grants_an_air_dash in:b570b448 content:26ff0649 60:180c496a 60:180c496a
+second_ember_control in:cac0b959 content:747633a1 60:ed2bd877 60:ed2bd877
+second_ember_grants_an_air_dash in:b570b448 content:c5b2ec33 60:180c496a 60:180c496a
 second_ember_off_the_spikes in:e4efa613 content:1d15011f 60:2360f340 60:2360f340
-second_ember_two_stacks_and_the_landing in:dc4c77b2 content:26ff0649 80:9956b3af 60:b99706b9
-side1_hits_dummy_once in:f81113b6 content:f94fd3f0 30:c560c19b
-side1_recoil_moves_the_player in:f81113b6 content:f94fd3f0 30:c560c19b
-side1_recoil_under_a_run in:c4280b98 content:f94fd3f0 40:6d2e73a0
+second_ember_two_stacks_and_the_landing in:dc4c77b2 content:c5b2ec33 80:9956b3af 60:b99706b9
+side1_hits_dummy_once in:f81113b6 content:2959d464 30:c560c19b
+side1_recoil_moves_the_player in:f81113b6 content:2959d464 30:c560c19b
+side1_recoil_under_a_run in:c4280b98 content:2959d464 40:6d2e73a0
 side2_jump_waits in:a0007a62 content:b41cef64 50:b4d93889
-side3_startup_armor in:2413d4fd content:be430dd8 80:a7309c3a 60:c9b37614
-stress_burst_fires_thirty_nine in:d9ec3a2e content:8d1c2515 20:2a5f3d6e
+side3_startup_armor in:2413d4fd content:7cfa7edf 80:a7309c3a 60:c9b37614
+stress_burst_fires_thirty_nine in:d9ec3a2e content:80b832ca 20:2a5f3d6e
+stress_pin in:97e032cf content:0eb6f39d 60:bf86a850 60:bf86a850
 strike_air_down_diagonal_pogo in:e4fd68e8 content:c2c91cf4 40:3038f6e9
 strike_on_cling_frame_goes_away in:99bbd89e content:d72485fc 30:633ee5b0
 strike_on_landing_tick_beside_step in:c438755d content:8d696f2c 20:857006ca
 strike_stick_a_little_up_is_side in:6d7e934e content:b41cef64 30:96d2b9e0
 strike_stick_up_diagonal in:57ec28be content:b41cef64 40:b11bba25
 subframe_tap_is_kept in:a4cbd804 content:74017edc 12:f095ccf6
-tallow_knuckle_adds_three in:3524e55d content:7052804e 20:0fe6c1fb
-tallow_knuckle_before_kindling in:c006e8b3 content:7052804e 20:252540c2
-tallow_knuckle_before_kindling_control in:f2640074 content:f94fd3f0 20:624febb2
-tallow_knuckle_control in:631af8f7 content:f94fd3f0 20:0093f827
-tallow_knuckle_never_adds_weight in:e91b78ea content:7052804e 20:f6e7dff8
-tallow_knuckle_not_on_kindle in:649a0443 content:2c478f31 10:c0777bb3
-tallow_knuckle_on_the_pogo in:db4da05c content:8293f7d1 20:8904cea8
-tally_keeps_its_count_in_the_bus in:d6562388 content:07807747 30:9cea3374
+tallow_knuckle_adds_three in:3524e55d content:d60a5ce7 20:0fe6c1fb
+tallow_knuckle_before_kindling in:c006e8b3 content:d60a5ce7 20:252540c2
+tallow_knuckle_before_kindling_control in:f2640074 content:2959d464 20:624febb2
+tallow_knuckle_control in:631af8f7 content:2959d464 20:0093f827
+tallow_knuckle_never_adds_weight in:e91b78ea content:d60a5ce7 20:f6e7dff8
+tallow_knuckle_not_on_kindle in:649a0443 content:8539773c 10:c0777bb3
+tallow_knuckle_on_the_pogo in:db4da05c content:49c8293a 20:8904cea8
+tally_keeps_its_count_in_the_bus in:d6562388 content:ffbf238f 30:9cea3374
 tech01_dash_slash in:ec876087 content:b41cef64 60:b313aca7 60:b313aca7
 tech02_control_all_resources in:21692cf2 content:664fee6c 160:2bd9a075 60:1f817847 120:a8399701
 tech02_control_carry_jump in:1c2f714f content:664fee6c 170:c657a7a3 60:2ec7b026 120:ff844e36
@@ -419,14 +420,14 @@ tech12_kindle_dash_from_wax_cling_burns_through in:3ad77e17 content:33bd969c 40:
 tech12_kindle_dash_into_wax_from_air in:cf9cc059 content:33bd969c 30:7632282f
 tech12_kindle_dash_resets_air_jump in:c2ac2111 content:33bd969c 40:a2a0c0b5
 tech12_wax_blocks_without_kindle in:40ff9ea8 content:33bd969c 40:c8a40525
-telegraph_cue_keeps_its_word_through_hitstop in:2c12b81d content:758c1d07 60:4dd518ee 60:4dd518ee
-telegraph_cue_twenty_before_the_hit in:6042678f content:758c1d07 60:8fc34b2b 60:8fc34b2b
-telegraph_cue_waits_for_hitstop_before_it in:2242ebd8 content:758c1d07 60:c01c3782 60:c01c3782
-teleport_ends_the_side1_recoil in:40784cc6 content:f94fd3f0 30:7f691049
+telegraph_cue_keeps_its_word_through_hitstop in:2c12b81d content:bdae41a2 60:4dd518ee 60:4dd518ee
+telegraph_cue_twenty_before_the_hit in:6042678f content:bdae41a2 60:8fc34b2b 60:8fc34b2b
+telegraph_cue_waits_for_hitstop_before_it in:2242ebd8 content:bdae41a2 60:c01c3782 60:c01c3782
+teleport_ends_the_side1_recoil in:40784cc6 content:2959d464 30:7f691049
 toss_ember_goes_out_on_hazard_respawn in:f1e92d2a content:3bed5b47 140:135d9964 60:7dd9d847 120:1016b17a
 toss_on_cling_frame_goes_away in:af40b10a content:d72485fc 40:7d9823a2
 turn_after_hazard_in_wall_jump_lock in:0aea8fa3 content:2a6e25b8 50:7354d1a6
-two_parries_in_a_slow in:9a137cb2 content:f36aad05 100:4438105b 60:d37f87c8
+two_parries_in_a_slow in:9a137cb2 content:5150db62 100:4438105b 60:d37f87c8
 up_strike_dash_cancel_edges in:6de57ae7 content:b41cef64 30:3ebd507d
 up_strike_never_cancels_itself in:d0e9e39d content:b41cef64 24:36b3719d
 up_strike_no_jump in:98b7f90b content:b41cef64 30:08a71db3
@@ -467,65 +468,65 @@ wall_ledge_grab_too_low in:7762c2e6 content:17bf58a3 20:4e468cb2
 wall_spent_still_kicks in:5bec08c6 content:d72485fc 260:1fdb214c 60:04328be0 120:56e8f38d 180:0d2f1b66 240:dc91910a
 white_dash_cooldown_control in:742cf2bd content:b41cef64 30:d1585512
 white_dash_has_no_cooldown in:eb040a2a content:b41cef64 30:08b6625a
-z1_07_control_ground_dash in:e7ccfde6 content:7ceefc1a 170:37b7ef48 60:1f7655f6 120:fd35b920
-z1_07_control_late_dash in:7f3488dd content:7ceefc1a 170:782388ef 60:1f7655f6 120:f6b84312
-z1_07_control_standing_start in:3c2426fd content:7ceefc1a 120:61d4751b 60:b6274859 120:61d4751b
-z1_07_coyote_dash in:2d0521f1 content:7ceefc1a 170:5b4a096a 60:1f7655f6 120:b8e836bc
-zone1_01_control_dash_only in:00064e44 content:74237eb1 300:2ade0c5b 60:c5db976a 120:d2a1d666 180:30643d35 240:f4f03e1a 300:2ade0c5b
-zone1_01_control_run in:b8b21df6 content:74237eb1 300:6b3c9503 60:965b06b7 120:d3a6f36e 180:1db7a53f 240:68af67f7 300:6b3c9503
-zone1_01_control_run_slashes in:3a999034 content:74237eb1 435:dc6f0837 60:965b06b7 120:9a9b04cd 180:53678cc1 240:810c8d33 300:cd42e8f6 360:6f50d83c 420:877b98de
-zone1_01_dash_slash_route in:4e1cd3d6 content:74237eb1 359:6f615693 60:029982d5 120:87e23187 180:18fb1cd6 240:a77fe0b6 300:0242e17c
-zone1_02_control_all_resources in:0ffa681a content:9d9e5749 160:4693e155 60:19f2540b 120:fe020227
-zone1_02_control_carry_jump in:19f46952 content:9d9e5749 170:9d55dcad 60:5e5c374d 120:4e809715
-zone1_02_control_carry_toss in:ea355de9 content:9d9e5749 260:3037c011 60:996070b9 120:9cc02084 180:b6c60842 240:2fab5eb1
-zone1_02_dash_jump_route in:b8340315 content:9d9e5749 246:ed17e4b6 60:fea01aba 120:0399df6a 180:f2d94ab4 240:03f89f99
-zone1_03_control_nine_bounces in:0e4fd0e5 content:dcfeb07d 300:7439f3c6 60:fa846f49 120:7e4eaccc 180:0b4389f9 240:4cf07354 300:7439f3c6
-zone1_03_control_no_pogo in:b481ba8d content:dcfeb07d 200:9432172e 60:c522608e 120:2907aaf5 180:29883d7f
-zone1_03_control_short_chain in:85325890 content:dcfeb07d 200:2fee5c39 60:fa846f49 120:178646d6 180:ebf73d8f
-zone1_03_pogo_chain_route in:1a5ba5fd content:dcfeb07d 344:f0e4133b 60:fa846f49 120:178646d6 180:7ad8e630 240:729b264b 300:4493e28f
-zone1_03_route_fewest_bounces in:73c40fb7 content:dcfeb07d 331:0df974d8 60:fa846f49 120:7e4eaccc 180:0b4389f9 240:4cf07354 300:920650b1
-zone1_04_bypass_toss_wait in:3d12e82e content:12fb9caa 2526:3cbb2fec 60:c5a27b3b 120:0d7fbbd7 180:1774b0f5 240:7070ce8c 300:12b0a0e9 360:8dc211b6 420:135155a6 480:520037aa 540:adff74d7 600:5b9c357d 660:11d826fa 720:6a805bd5 780:8cd010b5 840:f5634a87 900:9204cc52 960:896a9992 1020:3a0d2f26 1080:6d632b04 1140:6a8c1ebf 1200:9c26f59d 1260:5dd16255 1320:2ff13669 1380:8ddceb22 1440:0511d592 1500:41a27aa7 1560:f71964c4 1620:7d1e0936 1680:ca0953ca 1740:2c2dd657 1800:db2382fc 1860:10dee522 1920:9d7a9bb5 1980:6b3a86f1 2040:ebbaf49a 2100:b6382912 2160:23ccab23 2220:fae37bcd 2280:ff5e5b4c 2340:4a7869e0 2400:33ea84b5 2460:e29d177f 2520:e16b3505
-zone1_04_control_no_reset_toss in:d4675762 content:12fb9caa 430:93af8e38 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:c41ec9ea 300:44593114 360:ca48333d 420:911d8301
-zone1_04_control_no_second_dash in:57a308f5 content:12fb9caa 318:3f4487d6 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:5ded3a2b 300:737078a9
-zone1_04_hidden_route in:f0291d95 content:12fb9caa 550:3aa3fc1d 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:5ded3a2b 300:ea720dd3 360:3e73dc27 420:9d28e09e 480:5d71a250 540:7e7be38f
-zone1_05_control_no_kick in:ea8e0a33 content:1cf024f3 330:d3194c03 60:49a1842b 120:29ee61af 180:e0bee268 240:b568ed97 300:089a518e
-zone1_05_kick_climb in:baf3ea86 content:1cf024f3 413:ff9020fe 60:49a1842b 120:076ff0cb 180:b501a79d 240:7af3b0ad 300:d2b360d4 360:06f8ddb4
-zone1_05_wall_jump_dash_cycle in:3b1ab751 content:1cf024f3 334:6f3d6772 60:49a1842b 120:e1bfdcb2 180:099503f2 240:62639788 300:2985e9c0
-zone1_06_control_no_dash_crossing in:c011df5f content:f6df0d1b 282:be97fb8c 60:6eaba5f7 120:82c3ac9c 180:636c1ccf 240:9c944a87
-zone1_06_control_no_dash_toss in:9cd9d63d content:f6df0d1b 400:1eeb6418 60:6eaba5f7 120:82c3ac9c 180:636c1ccf 240:5ff2e060 300:46a44035 360:b3dedb1a
-zone1_06_wall_jump_dash_climb in:58cf2897 content:f6df0d1b 488:6e954e00 60:6eaba5f7 120:82c3ac9c 180:cbfa252e 240:cb0541f8 300:0b31f1c5 360:f12987c0 420:e9cefce4 480:7468266f
-zone1_08_control_land_then_strike in:e9a9ae60 content:8f0beb41 130:c062357c 60:2d98226b 120:7d71ceee
-zone1_08_control_no_strike in:6a1ed213 content:8f0beb41 130:d4950529 60:2d98226b 120:7d71ceee
-zone1_08_control_one_dash in:f003196c content:8f0beb41 175:afb800bf 60:2d98226b 120:375c3a00
-zone1_08_control_strike_after_landing in:6217df59 content:8f0beb41 140:75509152 60:2d98226b 120:844c0d33
-zone1_08_control_wait in:c98fb1a0 content:8f0beb41 170:e8013eee 60:27dcf120 120:c4661640
-zone1_08_gap_two_dashes in:b223310a content:8f0beb41 180:5b11ac8d 60:2d98226b 120:62c04686 180:5b11ac8d
-zone1_08_strike_on_the_way_down in:a67abb59 content:8f0beb41 230:0ae3aba1 60:cbc171ce 120:73a074e3 180:c4b18229
-zone1_09_control_forward_pogo in:43f6c12a content:c6e5330c 150:1f6321cf 60:1566f538 120:f79e6b5c
-zone1_09_control_hop_lands_in_front in:224ccc9f content:c6e5330c 160:4772c0b7 60:1566f538 120:913a84bc
-zone1_09_note_plain_jump_crosses in:0c9576e3 content:c6e5330c 300:c8485d03 60:1566f538 120:95526bcd 180:a0e9a60b 240:1ba83fb2 300:c8485d03
-zone1_09_reverse_pogo in:7dfa2771 content:c6e5330c 220:adc712ca 60:1566f538 120:8f25c0ce 180:a04ccdbe
-zone1_09_reverse_pogo_strike_88 in:4bbe969c content:c6e5330c 170:a4437f62 60:1566f538 120:29c7e621
-zone1_09_reverse_pogo_strike_93 in:3f73612a content:c6e5330c 170:4461904b 60:1566f538 120:227ab02d
-zone1_09_reverse_pogo_without_dash in:40cb4941 content:c6e5330c 260:3ab5a6e5 60:1566f538 120:2f782e0a 180:615549b7 240:f59c5ff1
-zone1_10_crouch_alone_does_not_enter_b in:d8273a12 content:c6952d4b 80:978ff6a3 60:a8509e30
-zone1_10_crouch_dash_under in:e56eec14 content:c6952d4b 210:e5c349a0 60:7fb6fb55 120:c033e207 180:3deddb5f
-zone1_10_dash_from_the_door_stops_short_of_a in:3672003f content:c6952d4b 80:ef1aaa10 60:17e744f2
-zone1_10_dash_then_crouch_then_jump_stops_in_a in:d85a79d4 content:c6952d4b 90:ed9dca6d 60:e346a3a2
-zone1_10_dash_window_a_edge in:826015e9 content:c6952d4b 60:1076940f 60:1076940f
-zone1_10_dash_window_edge in:446db7b8 content:c6952d4b 60:0d8690a4 60:0d8690a4
-zone1_10_dash_window_missed in:5c5a2750 content:c6952d4b 60:34313d58 60:34313d58
-zone1_10_one_toss_skips_one_gap in:87aa4a0a content:c6952d4b 130:19a074af 60:1156a04f 120:739273cd
-zone1_10_standing_dash_stops_at_the_gap in:4458ab40 content:c6952d4b 100:1cbc023d 60:856f97ab
-zone1_10_stranded_second_dash_lands in:ee47292d content:c6952d4b 120:1a899d84 60:3ad48f1b 120:1a899d84
-zone1_10_toss_from_the_face_late_lands_on_the_rim in:a029a7a8 content:c6952d4b 100:2abc1d05 60:b778f49c
-zone1_10_toss_from_the_face_skips_b in:b5830b2c content:c6952d4b 100:ebee05af 60:ab374d8a
-zone1_10_wall_stops_the_full_kit in:96c2be3c content:c6952d4b 140:6bbe838c 60:a5117047 120:208b4605
-zone1_11_control_dash_jump_only in:3adbb309 content:d4f815ab 220:e367c082 60:12f18b95 120:a96c0824 180:b1721250
-zone1_11_control_plain_throw in:bb97771d content:d4f815ab 200:ee7f8561 60:6635d8ca 120:e862b98c 180:6ce93278
-zone1_11_control_toss_spent_in_dip in:59fe6fe1 content:d4f815ab 250:3f1fbe9c 60:38417e51 120:c771c833 180:e6783729 240:ca161335
-zone1_11_ember_toss_cancel in:7c94886d content:d4f815ab 250:2ba89ab9 60:12f18b95 120:68c4425c 180:ae005e75 240:b64c7e8a
-zone1_12_kindle_dash_through_wax in:4136c673 content:82c09487 180:3ffa8e70 60:1fb2671b 120:a4bda7a3 180:3ffa8e70
-zone1_12_no_kindle_door_holds in:d47900b4 content:82c09487 140:3ab02011 60:f9dba1b5 120:20039dc4
-zone1_12_no_kindle_screen_holds in:9221d94f content:82c09487 90:1d62c62f 60:cb8f8a8a
-zone1_loop in:71a1240c content:74237eb1 3584:2324f1c0 60:3da4d46f 120:af5e9d98 180:0e874f26 240:5fa3b052 300:6fd5b515 360:c25bec80 420:488f6715 480:0252295e 540:575c8323 600:fde842a2 660:12e0fae3 720:36298d8b 780:e4e224cc 840:c1000643 900:fe3f8ab8 960:ab3313c2 1020:f73c1634 1080:4a45ece9 1140:04255dd2 1200:0d4b3a9e 1260:42a96a09 1320:512bfb8b 1380:dfb99b97 1440:a0faa1d2 1500:e9aa645f 1560:ea08b5c2 1620:c1cb0fb5 1680:6b1df317 1740:a0a921d0 1800:9d01043a 1860:93b435f4 1920:eedd5dec 1980:2c06c627 2040:f22a1630 2100:a16d7e32 2160:1d7b205c 2220:cfd5981f 2280:f7a6f3aa 2340:32bc2d15 2400:0f7d2a90 2460:9fda37a4 2520:8c6707c4 2580:08a38007 2640:4a761021 2700:520e0da6 2760:c876022a 2820:ab18680e 2880:9381fc89 2940:687bcd4e 3000:6a89e10a 3060:08dd4166 3120:d120666d 3180:06e6f350 3240:dfdea582 3300:6783597c 3360:7cf267ae 3420:62f520b0 3480:6dc4719a 3540:3e11f42f
+z1_07_control_ground_dash in:e7ccfde6 content:9317936f 170:37b7ef48 60:1f7655f6 120:fd35b920
+z1_07_control_late_dash in:7f3488dd content:9317936f 170:782388ef 60:1f7655f6 120:f6b84312
+z1_07_control_standing_start in:3c2426fd content:9317936f 120:61d4751b 60:b6274859 120:61d4751b
+z1_07_coyote_dash in:2d0521f1 content:9317936f 170:5b4a096a 60:1f7655f6 120:b8e836bc
+zone1_01_control_dash_only in:00064e44 content:18fc2c15 300:2ade0c5b 60:c5db976a 120:d2a1d666 180:30643d35 240:f4f03e1a 300:2ade0c5b
+zone1_01_control_run in:b8b21df6 content:18fc2c15 300:6b3c9503 60:965b06b7 120:d3a6f36e 180:1db7a53f 240:68af67f7 300:6b3c9503
+zone1_01_control_run_slashes in:3a999034 content:18fc2c15 435:dc6f0837 60:965b06b7 120:9a9b04cd 180:53678cc1 240:810c8d33 300:cd42e8f6 360:6f50d83c 420:877b98de
+zone1_01_dash_slash_route in:4e1cd3d6 content:18fc2c15 359:6f615693 60:029982d5 120:87e23187 180:18fb1cd6 240:a77fe0b6 300:0242e17c
+zone1_02_control_all_resources in:0ffa681a content:b63d6318 160:4693e155 60:19f2540b 120:fe020227
+zone1_02_control_carry_jump in:19f46952 content:b63d6318 170:9d55dcad 60:5e5c374d 120:4e809715
+zone1_02_control_carry_toss in:ea355de9 content:b63d6318 260:3037c011 60:996070b9 120:9cc02084 180:b6c60842 240:2fab5eb1
+zone1_02_dash_jump_route in:b8340315 content:b63d6318 246:ed17e4b6 60:fea01aba 120:0399df6a 180:f2d94ab4 240:03f89f99
+zone1_03_control_nine_bounces in:0e4fd0e5 content:174a8b78 300:7439f3c6 60:fa846f49 120:7e4eaccc 180:0b4389f9 240:4cf07354 300:7439f3c6
+zone1_03_control_no_pogo in:b481ba8d content:174a8b78 200:9432172e 60:c522608e 120:2907aaf5 180:29883d7f
+zone1_03_control_short_chain in:85325890 content:174a8b78 200:2fee5c39 60:fa846f49 120:178646d6 180:ebf73d8f
+zone1_03_pogo_chain_route in:1a5ba5fd content:174a8b78 344:f0e4133b 60:fa846f49 120:178646d6 180:7ad8e630 240:729b264b 300:4493e28f
+zone1_03_route_fewest_bounces in:73c40fb7 content:174a8b78 331:0df974d8 60:fa846f49 120:7e4eaccc 180:0b4389f9 240:4cf07354 300:920650b1
+zone1_04_bypass_toss_wait in:3d12e82e content:cf05ee07 2526:3cbb2fec 60:c5a27b3b 120:0d7fbbd7 180:1774b0f5 240:7070ce8c 300:12b0a0e9 360:8dc211b6 420:135155a6 480:520037aa 540:adff74d7 600:5b9c357d 660:11d826fa 720:6a805bd5 780:8cd010b5 840:f5634a87 900:9204cc52 960:896a9992 1020:3a0d2f26 1080:6d632b04 1140:6a8c1ebf 1200:9c26f59d 1260:5dd16255 1320:2ff13669 1380:8ddceb22 1440:0511d592 1500:41a27aa7 1560:f71964c4 1620:7d1e0936 1680:ca0953ca 1740:2c2dd657 1800:db2382fc 1860:10dee522 1920:9d7a9bb5 1980:6b3a86f1 2040:ebbaf49a 2100:b6382912 2160:23ccab23 2220:fae37bcd 2280:ff5e5b4c 2340:4a7869e0 2400:33ea84b5 2460:e29d177f 2520:e16b3505
+zone1_04_control_no_reset_toss in:d4675762 content:cf05ee07 430:93af8e38 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:c41ec9ea 300:44593114 360:ca48333d 420:911d8301
+zone1_04_control_no_second_dash in:57a308f5 content:cf05ee07 318:3f4487d6 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:5ded3a2b 300:737078a9
+zone1_04_hidden_route in:f0291d95 content:cf05ee07 550:3aa3fc1d 60:c5a27b3b 120:0d7fbbd7 180:f30a5255 240:5ded3a2b 300:ea720dd3 360:3e73dc27 420:9d28e09e 480:5d71a250 540:7e7be38f
+zone1_05_control_no_kick in:ea8e0a33 content:73b40485 330:d3194c03 60:49a1842b 120:29ee61af 180:e0bee268 240:b568ed97 300:089a518e
+zone1_05_kick_climb in:baf3ea86 content:73b40485 413:ff9020fe 60:49a1842b 120:076ff0cb 180:b501a79d 240:7af3b0ad 300:d2b360d4 360:06f8ddb4
+zone1_05_wall_jump_dash_cycle in:3b1ab751 content:73b40485 334:6f3d6772 60:49a1842b 120:e1bfdcb2 180:099503f2 240:62639788 300:2985e9c0
+zone1_06_control_no_dash_crossing in:c011df5f content:069923b6 282:be97fb8c 60:6eaba5f7 120:82c3ac9c 180:636c1ccf 240:9c944a87
+zone1_06_control_no_dash_toss in:9cd9d63d content:069923b6 400:1eeb6418 60:6eaba5f7 120:82c3ac9c 180:636c1ccf 240:5ff2e060 300:46a44035 360:b3dedb1a
+zone1_06_wall_jump_dash_climb in:58cf2897 content:069923b6 488:6e954e00 60:6eaba5f7 120:82c3ac9c 180:cbfa252e 240:cb0541f8 300:0b31f1c5 360:f12987c0 420:e9cefce4 480:7468266f
+zone1_08_control_land_then_strike in:e9a9ae60 content:2c1b7d85 130:c062357c 60:2d98226b 120:7d71ceee
+zone1_08_control_no_strike in:6a1ed213 content:2c1b7d85 130:d4950529 60:2d98226b 120:7d71ceee
+zone1_08_control_one_dash in:f003196c content:2c1b7d85 175:afb800bf 60:2d98226b 120:375c3a00
+zone1_08_control_strike_after_landing in:6217df59 content:2c1b7d85 140:75509152 60:2d98226b 120:844c0d33
+zone1_08_control_wait in:c98fb1a0 content:2c1b7d85 170:e8013eee 60:27dcf120 120:c4661640
+zone1_08_gap_two_dashes in:b223310a content:2c1b7d85 180:5b11ac8d 60:2d98226b 120:62c04686 180:5b11ac8d
+zone1_08_strike_on_the_way_down in:a67abb59 content:2c1b7d85 230:0ae3aba1 60:cbc171ce 120:73a074e3 180:c4b18229
+zone1_09_control_forward_pogo in:43f6c12a content:c462e6cd 150:1f6321cf 60:1566f538 120:f79e6b5c
+zone1_09_control_hop_lands_in_front in:224ccc9f content:c462e6cd 160:4772c0b7 60:1566f538 120:913a84bc
+zone1_09_note_plain_jump_crosses in:0c9576e3 content:c462e6cd 300:c8485d03 60:1566f538 120:95526bcd 180:a0e9a60b 240:1ba83fb2 300:c8485d03
+zone1_09_reverse_pogo in:7dfa2771 content:c462e6cd 220:adc712ca 60:1566f538 120:8f25c0ce 180:a04ccdbe
+zone1_09_reverse_pogo_strike_88 in:4bbe969c content:c462e6cd 170:a4437f62 60:1566f538 120:29c7e621
+zone1_09_reverse_pogo_strike_93 in:3f73612a content:c462e6cd 170:4461904b 60:1566f538 120:227ab02d
+zone1_09_reverse_pogo_without_dash in:40cb4941 content:c462e6cd 260:3ab5a6e5 60:1566f538 120:2f782e0a 180:615549b7 240:f59c5ff1
+zone1_10_crouch_alone_does_not_enter_b in:d8273a12 content:f024f618 80:978ff6a3 60:a8509e30
+zone1_10_crouch_dash_under in:e56eec14 content:f024f618 210:e5c349a0 60:7fb6fb55 120:c033e207 180:3deddb5f
+zone1_10_dash_from_the_door_stops_short_of_a in:3672003f content:f024f618 80:ef1aaa10 60:17e744f2
+zone1_10_dash_then_crouch_then_jump_stops_in_a in:d85a79d4 content:f024f618 90:ed9dca6d 60:e346a3a2
+zone1_10_dash_window_a_edge in:826015e9 content:f024f618 60:1076940f 60:1076940f
+zone1_10_dash_window_edge in:446db7b8 content:f024f618 60:0d8690a4 60:0d8690a4
+zone1_10_dash_window_missed in:5c5a2750 content:f024f618 60:34313d58 60:34313d58
+zone1_10_one_toss_skips_one_gap in:87aa4a0a content:f024f618 130:19a074af 60:1156a04f 120:739273cd
+zone1_10_standing_dash_stops_at_the_gap in:4458ab40 content:f024f618 100:1cbc023d 60:856f97ab
+zone1_10_stranded_second_dash_lands in:ee47292d content:f024f618 120:1a899d84 60:3ad48f1b 120:1a899d84
+zone1_10_toss_from_the_face_late_lands_on_the_rim in:a029a7a8 content:f024f618 100:2abc1d05 60:b778f49c
+zone1_10_toss_from_the_face_skips_b in:b5830b2c content:f024f618 100:ebee05af 60:ab374d8a
+zone1_10_wall_stops_the_full_kit in:96c2be3c content:f024f618 140:6bbe838c 60:a5117047 120:208b4605
+zone1_11_control_dash_jump_only in:3adbb309 content:75d9b8a0 220:e367c082 60:12f18b95 120:a96c0824 180:b1721250
+zone1_11_control_plain_throw in:bb97771d content:75d9b8a0 200:ee7f8561 60:6635d8ca 120:e862b98c 180:6ce93278
+zone1_11_control_toss_spent_in_dip in:59fe6fe1 content:75d9b8a0 250:3f1fbe9c 60:38417e51 120:c771c833 180:e6783729 240:ca161335
+zone1_11_ember_toss_cancel in:7c94886d content:75d9b8a0 250:2ba89ab9 60:12f18b95 120:68c4425c 180:ae005e75 240:b64c7e8a
+zone1_12_kindle_dash_through_wax in:4136c673 content:a01ce3be 180:3ffa8e70 60:1fb2671b 120:a4bda7a3 180:3ffa8e70
+zone1_12_no_kindle_door_holds in:d47900b4 content:a01ce3be 140:3ab02011 60:f9dba1b5 120:20039dc4
+zone1_12_no_kindle_screen_holds in:9221d94f content:a01ce3be 90:1d62c62f 60:cb8f8a8a
+zone1_loop in:71a1240c content:18fc2c15 3584:2324f1c0 60:3da4d46f 120:af5e9d98 180:0e874f26 240:5fa3b052 300:6fd5b515 360:c25bec80 420:488f6715 480:0252295e 540:575c8323 600:fde842a2 660:12e0fae3 720:36298d8b 780:e4e224cc 840:c1000643 900:fe3f8ab8 960:ab3313c2 1020:f73c1634 1080:4a45ece9 1140:04255dd2 1200:0d4b3a9e 1260:42a96a09 1320:512bfb8b 1380:dfb99b97 1440:a0faa1d2 1500:e9aa645f 1560:ea08b5c2 1620:c1cb0fb5 1680:6b1df317 1740:a0a921d0 1800:9d01043a 1860:93b435f4 1920:eedd5dec 1980:2c06c627 2040:f22a1630 2100:a16d7e32 2160:1d7b205c 2220:cfd5981f 2280:f7a6f3aa 2340:32bc2d15 2400:0f7d2a90 2460:9fda37a4 2520:8c6707c4 2580:08a38007 2640:4a761021 2700:520e0da6 2760:c876022a 2820:ab18680e 2880:9381fc89 2940:687bcd4e 3000:6a89e10a 3060:08dd4166 3120:d120666d 3180:06e6f350 3240:dfdea582 3300:6783597c 3360:7cf267ae 3420:62f520b0 3480:6dc4719a 3540:3e11f42f

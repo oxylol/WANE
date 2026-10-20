@@ -124,7 +124,7 @@ func build() -> void:
 ## Lists every room file in the repository in the picker, and any room open but not yet saved.
 func refresh_rooms() -> void:
 	_paths.clear()
-	for root: String in [RoomData.CONTENT_ROOT, RoomData.TEST_ROOT]:
+	for root: String in [RoomData.CONTENT_ROOT, RoomData.TEST_ROOT, RoomData.PERF_ROOT]:
 		for p: String in FileWalk.find(root, [".room"]):
 			_paths.append(p)
 	for p: String in _docs:

@@ -1,0 +1,567 @@
+fixture stress_run
+doc BUILD.md s13 Testing and CI, "a stress room (200 enemies, 40 procs, Pitch lighting)": Ash sweeps perf/stress for 3840 ticks, striking, dashing, pogoing and casting, with the stress Votive set stacked (39 procs a Taper hit). Played and timed by tools/bench/stress_bench.gd; the pin of its first ticks is tests/replay/perf/stress_pin.fixture (docs/adr/0020).
+seed 1
+room perf/stress
+wick ash
+option votive_test_stress_arc_a 1
+option votive_test_stress_arc_b 1
+option votive_test_stress_arc_c 1
+option kindle 1
+frames 3840
+input
+  0 R attack
+  1..13 R
+  14 R spell
+  15..43 R
+  44..55 R jump
+  56..61 R
+  62..63 D
+  64 D attack
+  65..67 D
+  68..89 R
+  90 R attack
+  91..103 R
+  104 R attack
+  105..116 R
+  117 R attack
+  118..129 R
+  130 R attack
+  131..143 R
+  144 R attack
+  145..156 R
+  157 R attack
+  158..169 R
+  170 R attack
+  171..183 R
+  184 R dash
+  185..207 R
+  208 R attack
+  209..221 R
+  222 R attack
+  223..235 R
+  236..247 R jump
+  248..253 R
+  254..255 D
+  256 D attack
+  257..259 D
+  260..281 R
+  282 R attack
+  283..294 R
+  295 R attack
+  296..307 R
+  308 R attack
+  309..321 R
+  322..329 R jump
+  330..333 L jump
+  334..339 L
+  340..341 D
+  342 D attack
+  343..345 D
+  346..367 L
+  368 L attack
+  369..381 L
+  382 L attack
+  383..394 L
+  395 L attack
+  396..407 L
+  408 L attack
+  409..421 L
+  422..433 L jump
+  434..439 L
+  440..441 D
+  442 D attack
+  443..445 D
+  446..467 L
+  468 L attack
+  469..481 L
+  482..483 U
+  484 U attack
+  485 U
+  486..503 L
+  504 L spell
+  505..533 L
+  534 L attack
+  535..547 L
+  548 L attack
+  549..561 L
+  562 L dash
+  563..585 L
+  586 L attack
+  587..598 L
+  599 L attack
+  600..611 L
+  612 L attack
+  613..625 L
+  626 L attack
+  627..639 L
+  640 L attack
+  641..652 L
+  653 L attack
+  654..659 L
+  660..665 R
+  666 R attack
+  667..679 R
+  680 R attack
+  681..693 R
+  694 R attack
+  695..707 R
+  708 R attack
+  709..720 R
+  721 R attack
+  722..733 R
+  734 R attack
+  735..747 R
+  748 R attack
+  749..760 R
+  761 R attack
+  762..773 R
+  774 R attack
+  775..787 R
+  788 R attack
+  789..801 R
+  802 R attack
+  803..815 R
+  816 R attack
+  817..829 R
+  830 R attack
+  831..842 R
+  843 R attack
+  844..855 R
+  856 R attack
+  857..869 R
+  870 R attack
+  871..883 R
+  884 R attack
+  885..897 R
+  898..909 R jump
+  910..915 R
+  916..917 D
+  918 D attack
+  919..921 D
+  922..943 R
+  944 R dash
+  945..967 R
+  968 R attack
+  969..981 R
+  982..983 U
+  984 U attack
+  985 U
+  986..989 R
+  990..1003 L
+  1004 L spell
+  1005..1033 L
+  1034 L attack
+  1035..1047 L
+  1048 L attack
+  1049..1060 L
+  1061 L attack
+  1062..1073 L
+  1074 L attack
+  1075..1087 L
+  1088..1099 L jump
+  1100..1105 L
+  1106..1107 D
+  1108 D attack
+  1109..1111 D
+  1112..1133 L
+  1134..1145 L jump
+  1146..1151 L
+  1152..1153 D
+  1154 D attack
+  1155..1157 D
+  1158..1179 L
+  1180..1181 U
+  1182 U attack
+  1183 U
+  1184..1201 L
+  1202 L attack
+  1203..1214 L
+  1215 L attack
+  1216..1227 L
+  1228 L attack
+  1229..1241 L
+  1242..1253 L jump
+  1254..1259 L
+  1260..1261 D
+  1262 D attack
+  1263..1265 D
+  1266..1287 L
+  1288 L dash
+  1289..1293 L
+  1294 L attack
+  1295..1311 L
+  1312 L dash
+  1313..1319 L
+  1320..1335 R
+  1336 R spell
+  1337..1365 R
+  1366 R attack
+  1367..1378 R
+  1379 R attack
+  1380..1391 R
+  1392 R attack
+  1393..1405 R
+  1406 R dash
+  1407..1411 R
+  1412 R attack
+  1413..1429 R
+  1430 R attack
+  1431..1443 R
+  1444..1455 R jump
+  1456..1461 R
+  1462..1463 D
+  1464 D attack
+  1465..1467 D
+  1468..1489 R
+  1490 R attack
+  1491..1502 R
+  1503 R attack
+  1504..1515 R
+  1516 R attack
+  1517..1529 R
+  1530 R attack
+  1531..1543 R
+  1544 R dash
+  1545..1567 R
+  1568 R dash
+  1569..1573 R
+  1574 R attack
+  1575..1591 R
+  1592 R attack
+  1593..1604 R
+  1605 R attack
+  1606..1617 R
+  1618 R attack
+  1619..1631 R
+  1632 R attack
+  1633..1644 R
+  1645 R attack
+  1646..1649 R
+  1650..1657 L
+  1658 L attack
+  1659..1671 L
+  1672..1683 L jump
+  1684..1689 L
+  1690..1691 D
+  1692 D attack
+  1693..1695 D
+  1696..1717 L
+  1718 L attack
+  1719..1730 L
+  1731 L attack
+  1732..1743 L
+  1744 L attack
+  1745..1757 L
+  1758 L attack
+  1759..1770 L
+  1771 L attack
+  1772..1783 L
+  1784 L attack
+  1785..1797 L
+  1798 L attack
+  1799..1810 L
+  1811 L attack
+  1812..1823 L
+  1824 L attack
+  1825..1837 L
+  1838 L attack
+  1839..1851 L
+  1852 L attack
+  1853..1865 L
+  1866..1877 L jump
+  1878..1883 L
+  1884..1885 D
+  1886 D attack
+  1887..1889 D
+  1890..1911 L
+  1912..1913 U
+  1914 U attack
+  1915 U
+  1916..1933 L
+  1934 L dash
+  1935..1939 L
+  1940 L attack
+  1941..1957 L
+  1958 L attack
+  1959..1971 L
+  1972 L attack
+  1973..1979 L
+  1980..1984 R
+  1985 R attack
+  1986..1997 R
+  1998 R attack
+  1999..2011 R
+  2012..2013 U
+  2014 U attack
+  2015 U
+  2016..2033 R
+  2034..2045 R jump
+  2046..2051 R
+  2052..2053 D
+  2054 D attack
+  2055..2057 D
+  2058..2079 R
+  2080 R dash
+  2081..2103 R
+  2104 R attack
+  2105..2117 R
+  2118 R attack
+  2119..2130 R
+  2131 R attack
+  2132..2143 R
+  2144 R attack
+  2145..2157 R
+  2158..2159 U
+  2160 U attack
+  2161 U
+  2162..2179 R
+  2180 R dash
+  2181..2185 R
+  2186 R attack
+  2187..2203 R
+  2204 R attack
+  2205..2217 R
+  2218 R dash
+  2219..2241 R
+  2242 R attack
+  2243..2255 R
+  2256..2267 R jump
+  2268..2273 R
+  2274..2275 D
+  2276 D attack
+  2277..2279 D
+  2280..2301 R
+  2302..2309 R jump
+  2310..2313 L jump
+  2314..2319 L
+  2320..2321 D
+  2322 D attack
+  2323..2325 D
+  2326..2347 L
+  2348 L spell
+  2349..2377 L
+  2378..2389 L jump
+  2390..2395 L
+  2396..2397 D
+  2398 D attack
+  2399..2401 D
+  2402..2423 L
+  2424..2435 L jump
+  2436..2441 L
+  2442..2443 D
+  2444 D attack
+  2445..2447 D
+  2448..2469 L
+  2470 L attack
+  2471..2482 L
+  2483 L attack
+  2484..2495 L
+  2496 L attack
+  2497..2509 L
+  2510 L dash
+  2511..2515 L
+  2516 L attack
+  2517..2533 L
+  2534 L attack
+  2535..2547 L
+  2548 L spell
+  2549..2577 L
+  2578 L dash
+  2579..2583 L
+  2584 L attack
+  2585..2601 L
+  2602 L attack
+  2603..2614 L
+  2615 L attack
+  2616..2627 L
+  2628 L attack
+  2629..2639 L
+  2640..2641 R
+  2642 R attack
+  2643..2654 R
+  2655 R attack
+  2656..2667 R
+  2668 R attack
+  2669..2681 R
+  2682 R attack
+  2683..2694 R
+  2695 R attack
+  2696..2707 R
+  2708 R attack
+  2709..2721 R
+  2722 R attack
+  2723..2734 R
+  2735 R attack
+  2736..2747 R
+  2748 R attack
+  2749..2761 R
+  2762 R dash
+  2763..2785 R
+  2786 R dash
+  2787..2791 R
+  2792 R attack
+  2793..2809 R
+  2810 R attack
+  2811..2823 R
+  2824 R attack
+  2825..2837 R
+  2838 R attack
+  2839..2851 R
+  2852 R dash
+  2853..2875 R
+  2876..2887 R jump
+  2888..2893 R
+  2894..2895 D
+  2896 D attack
+  2897..2899 D
+  2900..2921 R
+  2922..2933 R jump
+  2934..2939 R
+  2940..2941 D
+  2942 D attack
+  2943..2945 D
+  2946..2967 R
+  2968..2969 R jump
+  2970..2979 L jump
+  2980..2985 L
+  2986..2987 D
+  2988 D attack
+  2989..2991 D
+  2992..3013 L
+  3014 L attack
+  3015..3027 L
+  3028..3039 L jump
+  3040..3045 L
+  3046..3047 D
+  3048 D attack
+  3049..3051 D
+  3052..3073 L
+  3074 L dash
+  3075..3079 L
+  3080 L attack
+  3081..3097 L
+  3098 L attack
+  3099..3111 L
+  3112 L attack
+  3113..3125 L
+  3126..3137 L jump
+  3138..3143 L
+  3144..3145 D
+  3146 D attack
+  3147..3149 D
+  3150..3171 L
+  3172 L attack
+  3173..3185 L
+  3186 L attack
+  3187..3199 L
+  3200 L dash
+  3201..3205 L
+  3206 L attack
+  3207..3223 L
+  3224 L attack
+  3225..3237 L
+  3238 L attack
+  3239..3251 L
+  3252 L attack
+  3253..3264 L
+  3265 L attack
+  3266..3277 L
+  3278 L attack
+  3279..3291 L
+  3292 L attack
+  3293..3299 L
+  3300..3305 R
+  3306 R attack
+  3307..3319 R
+  3320..3331 R jump
+  3332..3337 R
+  3338..3339 D
+  3340 D attack
+  3341..3343 D
+  3344..3365 R
+  3366 R attack
+  3367..3378 R
+  3379 R attack
+  3380..3391 R
+  3392 R attack
+  3393..3405 R
+  3406 R attack
+  3407..3418 R
+  3419 R attack
+  3420..3431 R
+  3432 R attack
+  3433..3445 R
+  3446 R attack
+  3447..3458 R
+  3459 R attack
+  3460..3471 R
+  3472 R attack
+  3473..3485 R
+  3486 R attack
+  3487..3499 R
+  3500 R attack
+  3501..3512 R
+  3513 R attack
+  3514..3525 R
+  3526 R attack
+  3527..3539 R
+  3540 R attack
+  3541..3552 R
+  3553 R attack
+  3554..3565 R
+  3566 R attack
+  3567..3579 R
+  3580 R attack
+  3581..3593 R
+  3594 R attack
+  3595..3607 R
+  3608 R spell
+  3609..3629 R
+  3630..3637 L
+  3638 L attack
+  3639..3650 L
+  3651 L attack
+  3652..3663 L
+  3664 L attack
+  3665..3677 L
+  3678 L attack
+  3679..3691 L
+  3692 L dash
+  3693..3715 L
+  3716 L attack
+  3717..3729 L
+  3730 L attack
+  3731..3743 L
+  3744 L attack
+  3745..3757 L
+  3758..3769 L jump
+  3770..3775 L
+  3776..3777 D
+  3778 D attack
+  3779..3781 D
+  3782..3803 L
+  3804 L attack
+  3805..3817 L
+  3818..3829 L jump
+  3830..3835 L
+  3836..3837 D
+  3838 D attack
+  3839 D
+end
+expect
+  # The first Taper hit lands on tick 2 on three dummies at once (three proc events, chained to depth 3: 117 procs);
+  # the second, on tick 6, on one (40 events, 39 procs: the stress set's burst).
+  at 2 procs=117 proc_events=120 proc_level=3
+  never 3..5 procs>0
+  at 6 procs=39 proc_events=40 proc_level=3
+  # A walker on the lower tier turns back at its platform's edge (enemy 102, x 1166 to 1164 u)...
+  at 3 enemy102.x=298496
+  at 4 enemy102.x=297984
+  at 19 enemy102.x=290304
+  # ...and one marked fall walks off the edge and falls to the ground below (enemy 100, 640 u to 736 u).
+  at 19 enemy100.y=163840
+  at 25 enemy100.y=168313
+  at 35 enemy100.y=188416
+  # Ash, a second in.
+  at 59 hearts=5 kindling=7 flame=11 enemy0.hp=157 enemy1.hp=112
+end

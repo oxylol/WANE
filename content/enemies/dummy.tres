@@ -43,3 +43,5 @@ terminal_ups = 1500
 attacks = Array[ExtResource("2")]([SubResource("swing"), SubResource("red")])
 respawn_frames = 60
 swing_period = 90
+patrol_speed_ups = 120
+patrol_drop_u = 16

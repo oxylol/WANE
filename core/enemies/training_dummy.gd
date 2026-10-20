@@ -17,6 +17,10 @@ extends Enemy
 ## it an ambusher: its rhythm runs only while the player is within that many units of it,
 ## horizontally, and starts over from zero whenever she is not, so its first swing lands a fixed
 ## time after she comes into range, whatever she did before (a boss that opens when you reach it).
+## `patrol=1` makes it walk (docs/adr/0020): at [member DummyDef.patrol_speed_ups] in the way it
+## faces, turning at a wall and at a ledge ([member DummyDef.patrol_drop_u]), or walking off the
+## ledge and falling with `fall=1`; it stands for a swing (facing the player as it starts) and
+## walks on after. A standing dummy is as it was.
 
 ## Ticks between the end of one swing and the start of the next ([member DummyDef.swing_period],
 ## or the marker's), and ticks a kill keeps it down ([member DummyDef.respawn_frames]).
@@ -28,7 +32,13 @@ var respawn_frames: int = 0
 var trigger_range: int = 0
 ## The body of a solid dummy (null for one the player walks through).
 var blocker: SolidBox
+## The way a walking dummy goes (-1 or 1; 0 = it stands), its speed in sub-pixels a tick, and
+## whether it walks off ledges instead of turning back.
+var patrol_dir: int = 0
+var patrol_step: int = 0
+var patrol_falls: bool = false
 var _idle: int = 0
+var patrol_drop: int = 0
 
 
 ## Builds a dummy from a room entity marker and its content.
@@ -51,6 +61,11 @@ static func from_entity(
 	d.hp = d.max_hp
 	d.poise = d.max_poise
 	d.facing = -1 if e.prop_int("facing", -1) < 0 else 1
+	if e.prop_int("patrol") != 0:
+		d.patrol_dir = d.facing
+		d.patrol_step = Fx.speed(p_def.patrol_speed_ups)
+		d.patrol_falls = e.prop_int("fall") != 0
+		d.patrol_drop = Fx.units(p_def.patrol_drop_u)
 	if e.prop_int("solid") != 0:
 		d.blocker = SolidBox.make(0, 0, 0, 0)
 		d.blocker.clingable = false
@@ -83,19 +98,55 @@ func sync_blocker(player_body: Body) -> void:
 
 
 func _think(player: Player) -> void:
-	if player != null:
+	if player != null and patrol_dir == 0:
 		facing = 1 if player.body.x > body.x else -1
-	if not attacks_on or def.attacks.is_empty():
-		return
-	if trigger_range > 0 and (player == null or absi(player.body.x - body.x) > trigger_range):
-		_idle = 0
-		return
-	_idle += 1
-	if _idle >= period:
-		_idle = 0
+	if attacks_on and not def.attacks.is_empty() and _swing_due(player):
+		if player != null:
+			facing = 1 if player.body.x > body.x else -1
 		var a: EnemyAttack = def.find_attack("red" if red else "swing")
 		if a != null:
 			start_attack(a)
+			return
+	if patrol_dir != 0:
+		_patrol()
+
+
+## Counts the rhythm by a tick; true on the tick a swing is due.
+func _swing_due(player: Player) -> bool:
+	if trigger_range > 0 and (player == null or absi(player.body.x - body.x) > trigger_range):
+		_idle = 0
+		return false
+	_idle += 1
+	if _idle >= period:
+		_idle = 0
+		return true
+	return false
+
+
+## One step of the walk: turn at a wall or at a ledge, then walk (a body in the air keeps its
+## way and falls; [method Enemy._move] lets it).
+func _patrol() -> void:
+	if body.on_ground and not patrol_falls and _ledge_ahead():
+		patrol_dir = -patrol_dir
+	facing = patrol_dir
+	body.clear_contacts()
+	if body.on_ground:
+		world.walk(body, patrol_dir * patrol_step)
+	else:
+		world.move_x(body, patrol_dir * patrol_step)
+	var wall: int = body.hit_wall
+	body.clear_contacts()
+	if wall != 0:
+		patrol_dir = -patrol_dir
+
+
+## True if there is no floor within [member patrol_drop] of the feet one step ahead.
+func _ledge_ahead() -> bool:
+	var front: int = body.x + patrol_dir * (body.half_w + patrol_step)
+	return (
+		world.floor_top_in(front, front + 1, body.y - patrol_drop, body.y + patrol_drop)
+		== CollisionQueries.NONE
+	)
 
 
 ## Comes back whole at its marker, at rest (task 6 review, H5: a dummy killed in the air came back
@@ -117,3 +168,5 @@ func _while_dead() -> void:
 func hash_into(h: StateHasher) -> void:
 	super.hash_into(h)
 	h.add_int(_idle)
+	if patrol_dir != 0:
+		h.add_int(patrol_dir)

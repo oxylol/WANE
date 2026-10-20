@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="PerfBudget" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tools/bench/perf_budget.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+sim_p99_us = 3000
+sim_max_us = 20000
+zone_max_us = 20000
+zone_passes = 5
+repeats = 3
+warmup_ticks = 120
+min_procs = 12000
+min_hits = 14000
+min_kills = 80
+min_walkers = 100
+sprite_us = 2000
+lighting_us = 3000
+vfx_us = 2000
+post_us = 1000
+audio_ui_us = 1000
+headroom_us = 4600
+reference_p99_us = 16000
+deck_p99_us = 15000

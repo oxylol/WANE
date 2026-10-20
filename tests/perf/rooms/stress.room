@@ -1,0 +1,255 @@
+room perf/stress
+# The stress room (BUILD.md s13: "200 enemies, 40 procs, Pitch lighting"; docs/adr/0020).
+# 200 training dummies over a ground of flats, 45-degree and 1:2 ramps, two tiers of one-way
+# platforms, curbs and hung solid boxes; 150 of them walk (turn at walls and ledges, or
+# fall), 60 swing, white and red. Written by tools/perf/make_stress.py.
+size 128 30
+spawn 100 832
+tiles
+################################################################################################################################
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#.......==========......========......============.....=========........============......==========.....============..........#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#..............................................................................................................................#
+#...========...==========....========....============....========....============....=========....==========....===========....#
+#..............................................................................................................................#
+#...................................................../#####\..................................................................#
+#........../########\................................/#######\............ab####cd.............................................#
+#........./##########\.........ab######cd.........../#########\.........ab########cd........./####\............................#
+#......../############\......ab##########cd......../###########\......ab############cd....../######\...........................#
+################################################################################################################################
+################################################################################################################################
+################################################################################################################################
+################################################################################################################################
+end
+solid 832 824 896 832
+solid 1504 824 1568 832
+solid 2112 824 2176 832
+solid 2464 728 2528 736
+solid 3296 824 3360 832
+solid 3776 824 3840 832
+solid 192 544 320 560
+solid 640 544 768 560
+solid 1088 544 1216 560
+solid 1600 544 1728 560
+solid 1984 544 2112 560
+solid 2432 544 2560 560
+solid 2816 544 2944 560
+solid 3232 544 3360 560
+solid 3520 544 3648 560
+solid 3840 544 3968 560
+entity dummy 123 829 patrol=1 attack=1 period=77 red=1 facing=1
+entity dummy 149 829 patrol=1 facing=-1
+entity dummy 143 829 patrol=1 facing=1
+entity dummy 210 829 patrol=1 facing=-1
+entity dummy 277 829 patrol=1 facing=1
+entity dummy 272 829 patrol=1 facing=-1
+entity dummy 306 811 patrol=1 facing=1
+entity dummy 366 751 facing=-1
+entity dummy 428 733 attack=1 period=123 facing=1
+entity dummy 431 733 facing=-1
+entity dummy 484 733 patrol=1 attack=1 period=95 facing=1
+entity dummy 531 733 patrol=1 facing=-1
+entity dummy 597 733 patrol=1 facing=1
+entity dummy 631 733 patrol=1 facing=-1
+entity dummy 627 733 patrol=1 attack=1 period=58 red=1 facing=1
+entity dummy 667 760 patrol=1 facing=-1
+entity dummy 719 812 patrol=1 facing=1
+entity dummy 741 829 facing=-1
+entity dummy 784 829 attack=1 period=82 facing=1
+entity dummy 985 801 patrol=1 facing=1
+entity dummy 970 808 patrol=1 attack=1 period=112 red=1 facing=1
+entity dummy 984 801 patrol=1 facing=1
+entity dummy 970 808 patrol=1 facing=1
+entity dummy 1004 791 patrol=1 attack=1 period=56 facing=-1
+entity dummy 1061 765 patrol=1 facing=1
+entity dummy 1109 765 patrol=1 attack=1 period=69 facing=-1
+entity dummy 1105 765 patrol=1 facing=1
+entity dummy 1162 765 facing=-1
+entity dummy 1227 765 facing=1
+entity dummy 1220 765 facing=-1
+entity dummy 1260 771 patrol=1 attack=1 period=82 facing=1
+entity dummy 1288 785 patrol=1 attack=1 period=76 facing=-1
+entity dummy 1402 829 patrol=1 facing=1
+entity dummy 1386 829 patrol=1 facing=-1
+entity dummy 1427 829 patrol=1 facing=1
+entity dummy 1463 829 patrol=1 facing=-1
+entity dummy 1615 829 facing=-1
+entity dummy 1607 829 facing=-1
+entity dummy 1621 829 attack=1 period=119 red=1 facing=-1
+entity dummy 1655 806 attack=1 period=117 facing=-1
+entity dummy 1708 753 patrol=1 attack=1 period=71 red=1 facing=1
+entity dummy 1738 723 patrol=1 facing=-1
+entity dummy 1769 701 patrol=1 facing=1
+entity dummy 1815 701 patrol=1 attack=1 period=62 red=1 facing=-1
+entity dummy 1833 701 patrol=1 facing=1
+entity dummy 1866 701 patrol=1 facing=-1
+entity dummy 1896 701 patrol=1 facing=1
+entity dummy 1943 724 facing=-1
+entity dummy 2000 781 facing=1
+entity dummy 2041 822 facing=-1
+entity dummy 2260 819 patrol=1 attack=1 period=71 red=1 facing=1
+entity dummy 2227 829 patrol=1 attack=1 period=82 facing=-1
+entity dummy 2263 817 patrol=1 facing=1
+entity dummy 2217 829 patrol=1 facing=-1
+entity dummy 2260 819 patrol=1 attack=1 period=128 red=1 facing=1
+entity dummy 2298 800 patrol=1 facing=-1
+entity dummy 2354 772 patrol=1 attack=1 period=70 facing=1
+entity dummy 2341 779 facing=-1
+entity dummy 2409 745 attack=1 period=116 facing=1
+entity dummy 2574 740 patrol=1 facing=1
+entity dummy 2606 756 patrol=1 attack=1 period=52 red=1 facing=-1
+entity dummy 2575 741 patrol=1 facing=-1
+entity dummy 2572 739 patrol=1 facing=1
+entity dummy 2612 759 patrol=1 facing=-1
+entity dummy 2634 770 patrol=1 attack=1 period=114 red=1 facing=1
+entity dummy 2682 794 patrol=1 attack=1 period=106 red=1 facing=-1
+entity dummy 2713 809 patrol=1 attack=1 period=87 red=1 facing=1
+entity dummy 2741 823 facing=-1
+entity dummy 2825 829 facing=1
+entity dummy 2874 829 attack=1 period=114 facing=-1
+entity dummy 2902 829 patrol=1 facing=1
+entity dummy 2924 829 patrol=1 attack=1 period=102 facing=-1
+entity dummy 2948 825 patrol=1 facing=1
+entity dummy 3023 765 patrol=1 facing=-1
+entity dummy 3024 765 patrol=1 facing=1
+entity dummy 3065 765 patrol=1 facing=-1
+entity dummy 3159 788 patrol=1 facing=1
+entity dummy 3147 776 facing=-1
+entity dummy 3220 829 facing=1
+entity dummy 3218 829 facing=-1
+entity dummy 3406 829 patrol=1 attack=1 period=117 facing=-1
+entity dummy 3404 829 patrol=1 attack=1 period=64 facing=-1
+entity dummy 3429 829 patrol=1 facing=1
+entity dummy 3477 829 patrol=1 facing=1
+entity dummy 3466 829 patrol=1 attack=1 period=77 facing=1
+entity dummy 3513 829 patrol=1 facing=-1
+entity dummy 3537 829 patrol=1 facing=1
+entity dummy 3540 829 facing=-1
+entity dummy 3608 829 facing=1
+entity dummy 3659 829 facing=-1
+entity dummy 3693 829 patrol=1 facing=1
+entity dummy 3695 829 patrol=1 attack=1 period=79 facing=-1
+entity dummy 3920 829 patrol=1 attack=1 period=96 facing=1
+entity dummy 3881 829 patrol=1 attack=1 period=103 red=1 facing=-1
+entity dummy 3894 829 patrol=1 facing=-1
+entity dummy 3909 829 patrol=1 attack=1 period=76 facing=1
+entity dummy 3945 829 patrol=1 attack=1 period=51 red=1 facing=1
+entity dummy 3974 829 attack=1 period=95 facing=-1
+entity dummy 3984 829 facing=1
+entity dummy 4014 829 attack=1 period=71 facing=-1
+entity dummy 358 636 patrol=1 fall=1 facing=1
+entity dummy 721 636 patrol=1 facing=-1
+entity dummy 1158 636 patrol=1 facing=1
+entity dummy 1461 636 patrol=1 attack=1 period=124 facing=-1
+entity dummy 1948 636 patrol=1 fall=1 facing=1
+entity dummy 2442 636 patrol=1 facing=-1
+entity dummy 2783 636 patrol=1 facing=1
+entity dummy 3396 636 patrol=1 facing=-1
+entity dummy 3843 636 patrol=1 fall=1 attack=1 period=57 facing=1
+entity dummy 228 636 patrol=1 attack=1 period=110 red=1 facing=-1
+entity dummy 719 636 patrol=1 facing=1
+entity dummy 1055 636 patrol=1 facing=-1
+entity dummy 1606 636 patrol=1 fall=1 attack=1 period=86 facing=1
+entity dummy 2015 636 patrol=1 facing=-1
+entity dummy 2309 636 patrol=1 facing=1
+entity dummy 2922 636 patrol=1 facing=-1
+entity dummy 3340 636 patrol=1 fall=1 facing=1
+entity dummy 3733 636 patrol=1 attack=1 period=121 red=1 facing=-1
+entity dummy 324 636 patrol=1 attack=1 period=53 facing=1
+entity dummy 592 636 patrol=1 facing=-1
+entity dummy 1137 636 patrol=1 fall=1 facing=1
+entity dummy 1505 636 patrol=1 facing=-1
+entity dummy 1956 636 patrol=1 facing=1
+entity dummy 2334 636 patrol=1 facing=-1
+entity dummy 2901 636 patrol=1 fall=1 facing=1
+entity dummy 3214 636 patrol=1 facing=-1
+entity dummy 3609 636 patrol=1 facing=1
+entity dummy 281 636 patrol=1 facing=-1
+entity dummy 735 636 patrol=1 fall=1 facing=1
+entity dummy 1158 636 patrol=1 facing=-1
+entity dummy 1359 636 patrol=1 attack=1 period=82 facing=1
+entity dummy 2016 636 patrol=1 attack=1 period=50 facing=-1
+entity dummy 2387 636 patrol=1 fall=1 facing=1
+entity dummy 2760 636 patrol=1 attack=1 period=77 facing=-1
+entity dummy 3207 636 patrol=1 facing=1
+entity dummy 3806 636 patrol=1 facing=-1
+entity dummy 341 636 patrol=1 fall=1 facing=1
+entity dummy 590 636 patrol=1 facing=-1
+entity dummy 1067 636 patrol=1 attack=1 period=65 facing=1
+entity dummy 1392 636 patrol=1 facing=-1
+entity dummy 1955 636 facing=1
+entity dummy 2306 636 facing=-1
+entity dummy 2973 636 facing=1
+entity dummy 3361 636 attack=1 period=68 facing=-1
+entity dummy 3898 636 attack=1 period=103 red=1 facing=1
+entity dummy 178 636 facing=-1
+entity dummy 538 636 facing=1
+entity dummy 1056 636 facing=-1
+entity dummy 1482 636 facing=1
+entity dummy 1954 636 attack=1 period=87 red=1 facing=-1
+entity dummy 544 476 patrol=1 fall=1 attack=1 period=122 red=1 facing=1
+entity dummy 851 476 patrol=1 facing=-1
+entity dummy 1406 476 patrol=1 attack=1 period=101 facing=1
+entity dummy 1952 476 patrol=1 facing=-1
+entity dummy 2366 476 patrol=1 fall=1 facing=1
+entity dummy 3116 476 patrol=1 facing=-1
+entity dummy 3632 476 patrol=1 facing=1
+entity dummy 390 476 patrol=1 facing=-1
+entity dummy 798 476 patrol=1 fall=1 facing=1
+entity dummy 1541 476 patrol=1 attack=1 period=64 facing=-1
+entity dummy 1863 476 patrol=1 facing=1
+entity dummy 2478 476 patrol=1 attack=1 period=62 red=1 facing=-1
+entity dummy 3035 476 patrol=1 fall=1 attack=1 period=82 red=1 facing=1
+entity dummy 3692 476 patrol=1 attack=1 period=80 facing=-1
+entity dummy 359 476 patrol=1 facing=1
+entity dummy 927 476 patrol=1 facing=-1
+entity dummy 1397 476 patrol=1 fall=1 facing=1
+entity dummy 1791 476 patrol=1 facing=-1
+entity dummy 2429 476 patrol=1 facing=1
+entity dummy 3058 476 patrol=1 facing=-1
+entity dummy 3452 476 patrol=1 fall=1 facing=1
+entity dummy 531 476 patrol=1 facing=-1
+entity dummy 993 476 patrol=1 facing=1
+entity dummy 1451 476 patrol=1 attack=1 period=59 red=1 facing=-1
+entity dummy 1982 476 attack=1 period=104 red=1 facing=1
+entity dummy 2405 476 facing=-1
+entity dummy 3073 476 facing=1
+entity dummy 3560 476 facing=-1
+entity dummy 495 476 attack=1 period=86 facing=1
+entity dummy 841 476 attack=1 period=114 red=1 facing=-1
+entity dummy 267 540 patrol=1 fall=1 facing=1
+entity dummy 724 540 patrol=1 attack=1 period=73 facing=-1
+entity dummy 1118 540 patrol=1 facing=1
+entity dummy 1697 540 patrol=1 fall=1 facing=-1
+entity dummy 2020 540 patrol=1 facing=1
+entity dummy 2523 540 patrol=1 facing=-1
+entity dummy 2917 540 patrol=1 fall=1 attack=1 period=64 red=1 facing=1
+entity dummy 3306 540 patrol=1 attack=1 period=67 facing=-1
+entity dummy 3568 540 patrol=1 attack=1 period=101 facing=1
+entity dummy 3930 540 patrol=1 fall=1 facing=-1
+entity dummy 265 540 patrol=1 attack=1 period=68 red=1 facing=1
+entity dummy 695 540 patrol=1 facing=-1
+entity dummy 1128 540 patrol=1 fall=1 attack=1 period=108 red=1 facing=1
+entity dummy 1698 540 patrol=1 attack=1 period=69 facing=-1
+entity dummy 2064 540 patrol=1 facing=1
+entity dummy 2488 540 patrol=1 fall=1 facing=-1
+entity dummy 2841 540 attack=1 period=82 facing=1
+entity dummy 3323 540 attack=1 period=65 facing=-1
+entity dummy 3612 540 facing=1
+entity dummy 3895 540 facing=-1

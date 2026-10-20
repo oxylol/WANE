@@ -11,6 +11,9 @@ enum { LEFT, RIGHT, TOP, BOTTOM }
 const CONTENT_ROOT: String = "res://content/rooms/"
 const TEST_ROOT: String = "res://tests/replay/rooms/"
 const TEST_PREFIX: String = "test/"
+## The performance rooms (the stress room; docs/adr/0020): id "perf/<name>" is <name>.room here.
+const PERF_ROOT: String = "res://tests/perf/rooms/"
+const PERF_PREFIX: String = "perf/"
 ## The names the text uses for a door's side, in the order of the enum.
 const SIDE_NAMES: Array[String] = ["left", "right", "top", "bottom"]
 ## How deep into the room a door's strip reaches, in tiles: the player goes through a door when
@@ -100,6 +103,8 @@ class Door:
 static func path_for(room_id: String) -> String:
 	if room_id.begins_with(TEST_PREFIX):
 		return TEST_ROOT + room_id.substr(TEST_PREFIX.length()) + ".room"
+	if room_id.begins_with(PERF_PREFIX):
+		return PERF_ROOT + room_id.substr(PERF_PREFIX.length()) + ".room"
 	return CONTENT_ROOT + room_id + ".room"
 
 

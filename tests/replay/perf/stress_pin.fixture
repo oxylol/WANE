@@ -1,0 +1,35 @@
+fixture stress_pin
+doc BUILD.md s13 Testing and CI, the stress room (200 enemies, 40 procs): the first 60 ticks of tests/perf/stress_run.fixture, in the fixture suite so that the scenario stays loadable and bit-exact (docs/adr/0020).
+seed 1
+room perf/stress
+wick ash
+option votive_test_stress_arc_a 1
+option votive_test_stress_arc_b 1
+option votive_test_stress_arc_c 1
+option kindle 1
+frames 60
+input
+  0 R attack
+  1..13 R
+  14 R spell
+  15..43 R
+  44..55 R jump
+  56..59 R
+end
+expect
+  # The first Taper hit lands on tick 2 on three dummies at once (three proc events, chained to depth 3: 117 procs);
+  # the second, on tick 6, on one (40 events, 39 procs: the stress set's burst).
+  at 2 procs=117 proc_events=120 proc_level=3
+  never 3..5 procs>0
+  at 6 procs=39 proc_events=40 proc_level=3
+  # A walker on the lower tier turns back at its platform's edge (enemy 102, x 1166 to 1164 u)...
+  at 3 enemy102.x=298496
+  at 4 enemy102.x=297984
+  at 19 enemy102.x=290304
+  # ...and one marked fall walks off the edge and falls to the ground below (enemy 100, 640 u to 736 u).
+  at 19 enemy100.y=163840
+  at 25 enemy100.y=168313
+  at 35 enemy100.y=188416
+  # Ash, a second in.
+  at 59 hearts=5 kindling=7 flame=11 enemy0.hp=157 enemy1.hp=112
+end
