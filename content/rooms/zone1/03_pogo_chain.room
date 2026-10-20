@@ -27,8 +27,15 @@
 # air dash-jump spent between bounces makes the link 26 frames and 520 u, so 6 bounces at 2.3 a
 # second cross (zone1_03_route_fewest_bounces; five fall short, zone1_03_control_five_slow), and
 # nine bounces at 4 a second cross if the last arc is that slow (zone1_03_route_slow_finisher).
-# The line counts bounces at 4 a second, so the room asks ten of a chain no link of which is
-# slower than 15 frames; slowing a link to 26 frames buys 220 u.
+# The opening link is just as slow-able and needs no air dash: the no-pogo controls' dash-jump
+# plus its air jump (dash 44, jump 49, air jump 61) land the first bounce on frame 72 at x 1027.5
+# u, 256 u farther in than the route's 771.5, and nine bounces at 4 a second then cross, the
+# ninth arc landing at x about 3745 u (zone1_03_route_slow_opener; eight fall in).
+# The line counts bounces at 4 a second, so the room asks ten of a chain whose links are all 15
+# frames from a first bounce on the dash-jump's own arc (frame 57), not of every chain: a
+# player who slows one link, the first or the last, buys 220 to 256 u with it. Geometry cannot
+# forbid that without taking the air jump or the air dash away (a pit long enough to need ten after
+# the slow opening, 3170 to 3195 u, leaves the route 25 u of slack).
 room zone1/03_pogo_chain
 size 128 34
 spawn 96 608

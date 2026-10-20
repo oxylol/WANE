@@ -57,7 +57,7 @@ expect
   at 40 event.dash=1
   at 45 event.jump=1 vx=5120
   never 0..56 event.pogo=1
-  at 57 event.pogo=1 vx=5120 vy=-3388
+  at 57 event.pogo=1 vx=5120 vy=-3388 x>771u x<772u
   never 58..71 event.pogo=1
   at 72 event.pogo=1 vx=5120 vy=-3388
   never 73..86 event.pogo=1
