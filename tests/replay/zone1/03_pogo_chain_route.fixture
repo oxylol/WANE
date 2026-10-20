@@ -1,8 +1,8 @@
 fixture zone1_03_pogo_chain_route
-doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards. Taught by a spike pit"; s15 "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; docs/adr/0010 (Pogo). The plain chain: a down-strike on every fall, no air jump or air dash between bounces: 20 bounces one every 13 frames (4.6 a second), each at the dash-jump full 20 u/f.
+doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards. Taught by a spike pit"; s15 "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; docs/adr/0010 (Pogo), docs/adr/0019 Decision 5. Ten bounces, one every 15 frames (4.0 a second: a down-strike on each fall and an air jump 5 frames after each bounce), each at the dash-jump's full 20 u/f (the pogo keeps the horizontal speed, s5 Pogo, Momentum), 300 u apart from x 771.5 to 3471.5; the last arc clears the tunnel's end (3584 u).
 room zone1/03_pogo_chain
 spawn 74 608
-frames 344
+frames 222
 input
   0..5 R
   6..8 R jump
@@ -12,94 +12,81 @@ input
   45..47 R jump
   48..54 R
   55 R D attack
-  56..67 R
-  68 R D attack
-  69..80 R
-  81 R D attack
-  82..93 R
-  94 R D attack
-  95..106 R
-  107 R D attack
-  108..119 R
-  120 R D attack
-  121..132 R
-  133 R D attack
-  134..145 R
-  146 R D attack
-  147..158 R
-  159 R D attack
-  160..171 R
-  172 R D attack
-  173..184 R
-  185 R D attack
-  186..197 R
-  198 R D attack
-  199..210 R
-  211 R D attack
-  212..223 R
-  224 R D attack
-  225..236 R
-  237 R D attack
-  238..249 R
-  250 R D attack
-  251..262 R
-  263 R D attack
-  264..275 R
-  276 R D attack
-  277..288 R
-  289 R D attack
-  290..301 R
-  302 R D attack
-  303..343 R
+  56..61 R
+  62 R jump
+  63..69 R
+  70 R D attack
+  71..76 R
+  77 R jump
+  78..84 R
+  85 R D attack
+  86..91 R
+  92 R jump
+  93..99 R
+  100 R D attack
+  101..106 R
+  107 R jump
+  108..114 R
+  115 R D attack
+  116..121 R
+  122 R jump
+  123..129 R
+  130 R D attack
+  131..136 R
+  137 R jump
+  138..144 R
+  145 R D attack
+  146..151 R
+  152 R jump
+  153..159 R
+  160 R D attack
+  161..166 R
+  167 R jump
+  168..174 R
+  175 R D attack
+  176..181 R
+  182 R jump
+  183..189 R
+  190 R D attack
+  191..196 R
+  197 R jump
+  198..221 R
 end
 expect
   # A hop over the 3-spike patch (frame 6), a ground dash-jump into the tunnel (dash on 40, jump on dash frame 6).
   at 40 event.dash=1
   at 45 event.jump=1 vx=5120
   never 0..56 event.pogo=1
-  # Twenty bounces, one every 13 frames (4.6 a second: 'at 4 bounces per second' or faster), each at the dash-jump's full 20 u/f (the pogo keeps the horizontal speed, BUILD.md s5 Pogo, Momentum).
   at 57 event.pogo=1 vx=5120 vy=-3388
-  never 58..69 event.pogo=1
-  at 70 event.pogo=1 vx=5120 vy=-3388
-  never 71..82 event.pogo=1
-  at 83 event.pogo=1 vx=5120 vy=-3388
-  never 84..95 event.pogo=1
-  at 96 event.pogo=1 vx=5120 vy=-3388
-  never 97..108 event.pogo=1
-  at 109 event.pogo=1 vx=5120 vy=-3388
-  never 110..121 event.pogo=1
-  at 122 event.pogo=1 vx=5120 vy=-3388
-  never 123..134 event.pogo=1
-  at 135 event.pogo=1 vx=5120 vy=-3388
-  never 136..147 event.pogo=1
-  at 148 event.pogo=1 vx=5120 vy=-3388
-  never 149..160 event.pogo=1
-  at 161 event.pogo=1 vx=5120 vy=-3388
-  never 162..173 event.pogo=1
-  at 174 event.pogo=1 vx=5120 vy=-3388
-  never 175..186 event.pogo=1
-  at 187 event.pogo=1 vx=5120 vy=-3388
-  never 188..199 event.pogo=1
-  at 200 event.pogo=1 vx=5120 vy=-3388
-  never 201..212 event.pogo=1
-  at 213 event.pogo=1 vx=5120 vy=-3388
-  never 214..225 event.pogo=1
-  at 226 event.pogo=1 vx=5120 vy=-3388
-  never 227..238 event.pogo=1
-  at 239 event.pogo=1 vx=5120 vy=-3388
-  never 240..251 event.pogo=1
-  at 252 event.pogo=1 vx=5120 vy=-3388
-  never 253..264 event.pogo=1
-  at 265 event.pogo=1 vx=5120 vy=-3388
-  never 266..277 event.pogo=1
-  at 278 event.pogo=1 vx=5120 vy=-3388
-  never 279..290 event.pogo=1
-  at 291 event.pogo=1 vx=5120 vy=-3388
-  never 292..303 event.pogo=1
-  at 304 event.pogo=1 vx=5120 vy=-3388
-  never 305..343 event.pogo=1
-  never 0..343 event.hazard=1
-  # Out of the tunnel (5760 u): the 20th bounce clears it and the arc ends at the east hall's wall and the door.
-  at 304 x>5700u
-  at 343 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  never 58..71 event.pogo=1
+  at 72 event.pogo=1 vx=5120 vy=-3388
+  never 73..86 event.pogo=1
+  at 87 event.pogo=1 vx=5120 vy=-3388
+  never 88..101 event.pogo=1
+  at 102 event.pogo=1 vx=5120 vy=-3388
+  never 103..116 event.pogo=1
+  at 117 event.pogo=1 vx=5120 vy=-3388
+  never 118..131 event.pogo=1
+  at 132 event.pogo=1 vx=5120 vy=-3388
+  never 133..146 event.pogo=1
+  at 147 event.pogo=1 vx=5120 vy=-3388
+  never 148..161 event.pogo=1
+  at 162 event.pogo=1 vx=5120 vy=-3388
+  never 163..176 event.pogo=1
+  at 177 event.pogo=1 vx=5120 vy=-3388
+  never 178..191 event.pogo=1
+  at 192 event.pogo=1 vx=5120 vy=-3388
+  never 193..221 event.pogo=1
+  at 63 event.air_jump=1
+  at 78 event.air_jump=1
+  at 93 event.air_jump=1
+  at 108 event.air_jump=1
+  at 123 event.air_jump=1
+  at 138 event.air_jump=1
+  at 153 event.air_jump=1
+  at 168 event.air_jump=1
+  at 183 event.air_jump=1
+  at 198 event.air_jump=1
+  never 0..221 event.hazard=1
+  at 221 event.room=1 room=zone1_04_pogo_dash_reset x=74u
 end

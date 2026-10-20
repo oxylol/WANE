@@ -1,9 +1,9 @@
 fixture zone1_loop
-doc The 60-second movement-only loop through zone 1 (the Immaculate Checklist): from room 01's west arrival with the Kindle Votive (option kindle 1), through all twelve rooms by their teaching routes (each room's route fixture, started on the tick after the previous room's door is crossed, so Ash arrives with the speed she left with) and out of room 12's east door back into room 01. 3584 ticks (59.7 s); per room: 359, 242, 344, 552, 412, 487, 161, 211, 214, 179, 247, 176. No hit is taken and no heart lost. Room 4 opens with 3 ticks of left, to give back the 11 u that the carried speed adds, and room 7 with 2 and room 11 with 1 (see docs/feel_log/2026-10-19-merge-zone1.md). Longer than the 600-frame guideline by design.
+doc The 60-second movement-only loop through zone 1 (the Immaculate Checklist): from room 01's west arrival with the Kindle Votive (option kindle 1), through all twelve rooms by their teaching routes (each room's route fixture, started on the tick after the previous room's door is crossed, so Ash arrives with the speed she left with) and out of room 12's east door back into room 01. 3461 ticks (57.7 s); per room: 359, 242, 221, 552, 412, 487, 161, 211, 214, 179, 247, 176. No hit is taken and no heart lost. Room 3 is the 4-a-second chain of 10 bounces over the 3008 u pit (zone1_03_pogo_chain_route; the carried speed puts Ash at the door a tick sooner, so 221 ticks, not 222). Room 4 opens with one tick of left, to give back the 13 u that the carried speed adds, and room 7 with 2 and room 11 with 1 (see docs/feel_log/2026-10-19-merge-zone1.md). Longer than the 600-frame guideline by design.
 room zone1/01_dash_slash
 spawn 74 832
 option kindle 1
-frames 3584
+frames 3461
 input
   # Room 1, Dash-slash (its route, tests/replay/zone1/01_*): from tick 0.
   0 R dash
@@ -84,216 +84,216 @@ input
   646..648 R jump
   649..655 R
   656 R D attack
-  657..668 R
-  669 R D attack
-  670..681 R
-  682 R D attack
-  683..694 R
-  695 R D attack
-  696..707 R
-  708 R D attack
-  709..720 R
-  721 R D attack
-  722..733 R
-  734 R D attack
-  735..746 R
-  747 R D attack
-  748..759 R
-  760 R D attack
-  761..772 R
-  773 R D attack
-  774..785 R
-  786 R D attack
-  787..798 R
-  799 R D attack
-  800..811 R
-  812 R D attack
-  813..824 R
-  825 R D attack
-  826..837 R
-  838 R D attack
-  839..850 R
-  851 R D attack
-  852..863 R
-  864 R D attack
-  865..876 R
-  877 R D attack
-  878..889 R
-  890 R D attack
-  891..902 R
-  903 R D attack
-  904..944 R
-  # Room 4, Pogo-dash reset (its route, tests/replay/zone1/04_*): from tick 945.
-  945..947 L
-  948 R !dash
-  949..972 R
-  973 R !dash
-  974..997 R
-  998 R !dash
-  999..1046 R
-  1051..1071 jump
-  1073..1087 jump
-  1088..1091 R jump
-  1092 R
-  1093 R D !attack
-  1094 L D
-  1095 R D
-  1096..1099 L D
-  1100..1111 R
-  1112..1118 L
-  1119 L jump
-  1120..1137 jump
-  1139 U !dash
-  1159..1163 R
-  1164..1166 L
-  1167 L D !attack
-  1168 L D
-  1169..1174 D
-  1175..1188 L
-  1189..1191 R
-  1192 L
-  1193 R
-  1194..1201 R jump
-  1202..1204 L jump
-  1205..1212 jump
-  1214 U !dash
-  1234..1238 L
+  657..662 R
+  663 R jump
+  664..670 R
+  671 R D attack
+  672..677 R
+  678 R jump
+  679..685 R
+  686 R D attack
+  687..692 R
+  693 R jump
+  694..700 R
+  701 R D attack
+  702..707 R
+  708 R jump
+  709..715 R
+  716 R D attack
+  717..722 R
+  723 R jump
+  724..730 R
+  731 R D attack
+  732..737 R
+  738 R jump
+  739..745 R
+  746 R D attack
+  747..752 R
+  753 R jump
+  754..760 R
+  761 R D attack
+  762..767 R
+  768 R jump
+  769..775 R
+  776 R D attack
+  777..782 R
+  783 R jump
+  784..790 R
+  791 R D attack
+  792..797 R
+  798 R jump
+  799..821 R
+  # Room 4, Pogo-dash reset (its route, tests/replay/zone1/04_*): from tick 822.
+  823 L
+  825 R !dash
+  826..849 R
+  850 R !dash
+  851..874 R
+  875 R !dash
+  876..923 R
+  928..948 jump
+  950..964 jump
+  965..968 R jump
+  969 R
+  970 R D !attack
+  971 L D
+  972 R D
+  973..976 L D
+  977..988 R
+  989..995 L
+  996 L jump
+  997..1014 jump
+  1016 U !dash
+  1036..1040 R
+  1041..1043 L
+  1044 L D !attack
+  1045 L D
+  1046..1051 D
+  1052..1065 L
+  1066..1068 R
+  1069 L
+  1070 R
+  1071..1078 R jump
+  1079..1081 L jump
+  1082..1089 jump
+  1091 U !dash
+  1111..1115 L
+  1116 R
+  1117 L
+  1118 R D !attack
+  1119..1125 R D
+  1126 L D
+  1127..1139 R
+  1140..1145 L
+  1146..1148 L jump
+  1149 R jump
+  1150..1164 jump
+  1166 U !dash
+  1186..1190 R
+  1191..1192 L
+  1193 L D !attack
+  1194..1195 L D
+  1196..1200 D
+  1201..1219 R
+  1220..1238 R jump
   1239 R
-  1240 L
-  1241 R D !attack
-  1242..1248 R D
-  1249 L D
-  1250..1262 R
-  1263..1268 L
-  1269..1271 L jump
-  1272 R jump
-  1273..1287 jump
-  1289 U !dash
-  1309..1313 R
-  1314..1315 L
-  1316 L D !attack
-  1317..1318 L D
-  1319..1323 D
-  1324..1342 R
-  1343..1361 R jump
-  1362 R
-  1363 U !dash
-  1364..1496 R
-  # Room 5, Wall-kick climb (its route, tests/replay/zone1/05_*): from tick 1497.
-  1497..1567 R
-  1568..1589 R jump
-  1590 R
-  1591..1612 R jump
-  1613..1614 R
-  1615..1636 R jump
-  1637..1638 R
-  1639..1660 R jump
-  1661..1662 R
-  1663..1684 R jump
-  1685..1686 R
-  1687..1708 R jump
-  1709..1710 R
-  1711..1732 R jump
-  1733..1734 R
-  1735..1756 R jump
-  1757..1758 R
-  1759..1780 R jump
-  1781..1782 R
-  1783..1804 R jump
-  1805..1806 R
-  1807..1828 R jump
-  1829..1830 R
-  1831..1852 R jump
-  1853..1854 R
-  1855..1869 R jump
-  1870..1908 R
-  # Room 6, Wall-jump-dash (its route, tests/replay/zone1/06_*): from tick 1909.
-  1909..2038 R
-  2039..2060 R jump
-  2061..2062 R
-  2063..2080 L jump
-  2081 L
-  2082 L U !dash
-  2083..2101 L
-  2102..2120 L jump
-  2121..2129 L
-  2130..2147 R jump
-  2148 R
-  2149 R U !dash
-  2150..2168 R
-  2169..2187 R jump
-  2188..2196 R
-  2197..2214 L jump
-  2215 L
-  2216 L U !dash
-  2217..2235 L
-  2236..2254 L jump
-  2255..2263 L
-  2264..2281 R jump
-  2282 R
-  2283 R U !dash
-  2284..2302 R
-  2303..2315 R jump
-  2316..2395 R
-  # Room 7, Coyote dash (its route, tests/replay/zone1/07_*): from tick 2396.
-  2396..2397 L
-  2398..2455 R
-  2456 R dash
-  2457..2494 R
-  2495 R dash
-  2496..2511 R
-  2512 R dash
-  2513..2519 R
-  2520..2556 R jump
-  # Room 8, Attack-cancel landing (its route, tests/replay/zone1/08_*): from tick 2557.
-  2557..2615 R
-  2616 R attack
-  2617..2678 R
-  2679 R attack
-  2680..2736 R
-  2737 R attack
-  2738..2767 R
-  # Room 9, Reverse pogo (its route, tests/replay/zone1/09_*): from tick 2768.
-  2768..2846 R
-  2847 R dash
-  2848..2852 R
-  2853..2854 R jump
-  2855..2858 R
-  2859 L D attack
-  2860..2903 
-  2904..2981 R
-  # Room 10, Crouch-dash under (its route, tests/replay/zone1/10_*): from tick 2982.
-  2982..3019 R
-  3020 D R dash
-  3021..3069 R
-  3070 D R dash
-  3071..3100 R
-  3101 R jump
-  3102..3160 R
-  # Room 11, Ember-toss cancel (its route, tests/replay/zone1/11_*): from tick 3161.
-  3161 L
-  3162..3167 R
-  3168..3173 R jump
-  3174..3208 R
-  3209 R dash
-  3210..3214 R
-  3215..3260 R jump
-  3261 R
-  3262..3306 R jump
-  3307 R U jump dash
-  3308..3311 R jump
-  3312 R U jump toss
-  3313..3347 R jump
-  3348 R jump toss
-  3349..3407 R
-  # Room 12, Kindle-dash (its route, tests/replay/zone1/12_*): from tick 3408.
-  3408..3461 R
-  3462 R dash
-  3463..3509 R
-  3510 R jump
-  3511..3516 R
-  3517 R dash
-  3518..3583 R
+  1240 U !dash
+  1241..1373 R
+  # Room 5, Wall-kick climb (its route, tests/replay/zone1/05_*): from tick 1374.
+  1374..1444 R
+  1445..1466 R jump
+  1467 R
+  1468..1489 R jump
+  1490..1491 R
+  1492..1513 R jump
+  1514..1515 R
+  1516..1537 R jump
+  1538..1539 R
+  1540..1561 R jump
+  1562..1563 R
+  1564..1585 R jump
+  1586..1587 R
+  1588..1609 R jump
+  1610..1611 R
+  1612..1633 R jump
+  1634..1635 R
+  1636..1657 R jump
+  1658..1659 R
+  1660..1681 R jump
+  1682..1683 R
+  1684..1705 R jump
+  1706..1707 R
+  1708..1729 R jump
+  1730..1731 R
+  1732..1746 R jump
+  1747..1785 R
+  # Room 6, Wall-jump-dash (its route, tests/replay/zone1/06_*): from tick 1786.
+  1786..1915 R
+  1916..1937 R jump
+  1938..1939 R
+  1940..1957 L jump
+  1958 L
+  1959 L U !dash
+  1960..1978 L
+  1979..1997 L jump
+  1998..2006 L
+  2007..2024 R jump
+  2025 R
+  2026 R U !dash
+  2027..2045 R
+  2046..2064 R jump
+  2065..2073 R
+  2074..2091 L jump
+  2092 L
+  2093 L U !dash
+  2094..2112 L
+  2113..2131 L jump
+  2132..2140 L
+  2141..2158 R jump
+  2159 R
+  2160 R U !dash
+  2161..2179 R
+  2180..2192 R jump
+  2193..2272 R
+  # Room 7, Coyote dash (its route, tests/replay/zone1/07_*): from tick 2273.
+  2273..2274 L
+  2275..2332 R
+  2333 R dash
+  2334..2371 R
+  2372 R dash
+  2373..2388 R
+  2389 R dash
+  2390..2396 R
+  2397..2433 R jump
+  # Room 8, Attack-cancel landing (its route, tests/replay/zone1/08_*): from tick 2434.
+  2434..2492 R
+  2493 R attack
+  2494..2555 R
+  2556 R attack
+  2557..2613 R
+  2614 R attack
+  2615..2644 R
+  # Room 9, Reverse pogo (its route, tests/replay/zone1/09_*): from tick 2645.
+  2645..2723 R
+  2724 R dash
+  2725..2729 R
+  2730..2731 R jump
+  2732..2735 R
+  2736 L D attack
+  2737..2780 
+  2781..2858 R
+  # Room 10, Crouch-dash under (its route, tests/replay/zone1/10_*): from tick 2859.
+  2859..2896 R
+  2897 D R dash
+  2898..2946 R
+  2947 D R dash
+  2948..2977 R
+  2978 R jump
+  2979..3037 R
+  # Room 11, Ember-toss cancel (its route, tests/replay/zone1/11_*): from tick 3038.
+  3038 L
+  3039..3044 R
+  3045..3050 R jump
+  3051..3085 R
+  3086 R dash
+  3087..3091 R
+  3092..3137 R jump
+  3138 R
+  3139..3183 R jump
+  3184 R U jump dash
+  3185..3188 R jump
+  3189 R U jump toss
+  3190..3224 R jump
+  3225 R jump toss
+  3226..3284 R
+  # Room 12, Kindle-dash (its route, tests/replay/zone1/12_*): from tick 3285.
+  3285..3338 R
+  3339 R dash
+  3340..3386 R
+  3387 R jump
+  3388..3393 R
+  3394 R dash
+  3395..3460 R
 end
 expect
   # Room 1: Dash-slash.
@@ -305,47 +305,47 @@ expect
   at 600 event.room=1 room=zone1_03_pogo_chain
   mark r2_air_jump 359..600 event.air_jump=1
   # Room 3: Pogo chain.
-  never 601..943 event.room=1
-  at 944 event.room=1 room=zone1_04_pogo_dash_reset
-  mark r3_pogo 601..944 event.pogo=1
+  never 601..820 event.room=1
+  at 821 event.room=1 room=zone1_04_pogo_dash_reset
+  mark r3_pogo 601..821 event.pogo=1
   # Room 4: Pogo-dash reset.
-  never 945..1495 event.room=1
-  at 1496 event.room=1 room=zone1_05_wall_kick_climb
-  mark r4_pogo 945..1496 event.pogo=1
-  mark r4_alcove 945..1496 y<300u
+  never 822..1372 event.room=1
+  at 1373 event.room=1 room=zone1_05_wall_kick_climb
+  mark r4_pogo 822..1373 event.pogo=1
+  mark r4_alcove 822..1373 y<300u
   # Room 5: Wall-kick climb.
-  never 1497..1907 event.room=1
-  at 1908 event.room=1 room=zone1_06_wall_jump_dash
-  mark r5_wall_kick 1497..1908 event.wall_kick=1
+  never 1374..1784 event.room=1
+  at 1785 event.room=1 room=zone1_06_wall_jump_dash
+  mark r5_wall_kick 1374..1785 event.wall_kick=1
   # Room 6: Wall-jump-dash.
-  never 1909..2394 event.room=1
-  at 2395 event.room=1 room=zone1_07_coyote_dash
-  mark r6_wall_jump 1909..2395 event.wall_jump=1
+  never 1786..2271 event.room=1
+  at 2272 event.room=1 room=zone1_07_coyote_dash
+  mark r6_wall_jump 1786..2272 event.wall_jump=1
   # Room 7: Coyote dash.
-  never 2396..2555 event.room=1
-  at 2556 event.room=1 room=zone1_08_attack_cancel_landing
-  mark r7_dash 2396..2556 event.dash=1
+  never 2273..2432 event.room=1
+  at 2433 event.room=1 room=zone1_08_attack_cancel_landing
+  mark r7_dash 2273..2433 event.dash=1
   # Room 8: Attack-cancel landing.
-  never 2557..2766 event.room=1
-  at 2767 event.room=1 room=zone1_09_reverse_pogo
-  mark r8_kill 2557..2767 event.kill=1
+  never 2434..2643 event.room=1
+  at 2644 event.room=1 room=zone1_09_reverse_pogo
+  mark r8_kill 2434..2644 event.kill=1
   # Room 9: Reverse pogo.
-  never 2768..2980 event.room=1
-  at 2981 event.room=1 room=zone1_10_crouch_dash_under
-  mark r9_pogo 2768..2981 event.pogo=1
+  never 2645..2857 event.room=1
+  at 2858 event.room=1 room=zone1_10_crouch_dash_under
+  mark r9_pogo 2645..2858 event.pogo=1
   # Room 10: Crouch-dash under.
-  never 2982..3159 event.room=1
-  at 3160 event.room=1 room=zone1_11_ember_toss_cancel
-  mark r10_dash 2982..3160 event.dash=1
+  never 2859..3036 event.room=1
+  at 3037 event.room=1 room=zone1_11_ember_toss_cancel
+  mark r10_dash 2859..3037 event.dash=1
   # Room 11: Ember-toss cancel.
-  never 3161..3406 event.room=1
-  at 3407 event.room=1 room=zone1_12_kindle_dash
-  mark r11_teleport 3161..3407 event.teleport=1
+  never 3038..3283 event.room=1
+  at 3284 event.room=1 room=zone1_12_kindle_dash
+  mark r11_teleport 3038..3284 event.teleport=1
   # Room 12: Kindle-dash.
-  never 3408..3582 event.room=1
-  at 3583 event.room=1 room=zone1_01_dash_slash x=74u
-  mark r12_ignite 3408..3583 event.ignite=1
-  never 0..3583 event.player_hit=1
-  never 0..3583 hearts<5
-  at 3583 hearts=5
+  never 3285..3459 event.room=1
+  at 3460 event.room=1 room=zone1_01_dash_slash x=74u
+  mark r12_ignite 3285..3460 event.ignite=1
+  never 0..3460 event.player_hit=1
+  never 0..3460 hearts<5
+  at 3460 hearts=5
 end
