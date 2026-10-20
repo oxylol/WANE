@@ -27,6 +27,11 @@ jobs:
       - run: ci/lint.sh
       - run: python3 tools/ci/test_gd_coverage.py
       - run: python3 tools/ci/test_codemap.py
+      # The art build (ADR-0023): CairoSVG needs libcairo2; the tests and the byte-identity check
+      # of the committed renders (a render that differs from a fresh build was hand-edited or stale).
+      - run: sudo apt-get install -y --no-install-recommends libcairo2
+      - run: python3 tools/ci/test_artbuild.py
+      - run: python3 tools/artbuild/build.py --check
 
   test:
     name: test (compile, content, fixtures, unit)

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" data-origin-u="32 61">
+  <title>probe: a Wick-like test figure for the art pipeline, not an asset</title>
+  <path id="back_arm" data-z="0" data-pivot="27 29" data-bevel-u="2.5"
+    d="M27 29 C23 33 21 38 21.5 43 L24 43.4 C24.5 39 26 35 29 31.5 Z"/>
+  <path id="body" data-z="1" data-pivot="32 26"
+    d="M26 25 C25 34 23 45 21 58 C21 60 23 61 26 61 L38 61 C41 61 43 60 43 58
+       C41 45 39 34 38 25 C35 23 29 23 26 25 Z"/>
+  <circle id="head" data-z="2" data-pivot="32 22" cx="32" cy="15.5" r="9"/>
+  <path id="wick" data-z="3" data-pivot="32 7" data-bevel-u="1.2"
+    d="M31.2 7.2 C30 4 31.5 2 33.5 1.2 C32.6 3.2 33 5 33 7.2 Z"/>
+  <path id="front_arm" data-z="4" data-pivot="35 28" data-bevel-u="2.5"
+    d="M35 28 C39 31 42 35 44.5 38.5 L42.6 40 C40 36.6 37 33.4 34 31 Z"/>
+  <circle id="hand" data-z="5" data-pivot="44 39.6" data-bevel-u="1.8" cx="44" cy="39.6" r="2.1"/>
+  <polygon id="blade" data-z="6" data-pivot="44 39" data-tags="blade smear" data-bevel-u="1"
+    points="43.2,38.2 45.4,40.2 61.5,23.2 60.8,22.4"/>
+  <circle id="ember" data-z="7" data-pivot="31 33" data-tags="emissive" data-bevel-u="1.5" cx="31" cy="33" r="2.3"/>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" data-origin-u="32 61">
+  <title>candle_stump: the art pipeline's test prop (not shipped art)</title>
+  <desc>
+    Silhouette first: a stump of wax that has burned down to a lopsided lip, one long drip that ran
+    out over the edge and set in a bulb, a lumpy pool at its foot, a bent wick and a small flame.
+    The drip breaks the outline, so it is a silhouette feature and not interior detail.
+  </desc>
+  <path id="pool" data-z="0" data-tags="wax" data-pivot="32 57" data-bevel-u="2.5"
+    d="M10 58.8 C9 55 15 53.2 21 54 L36 53.6 C42 52.8 50 53.6 54 56.4
+       C57 58.4 55 61 49 61.4 L18 61.6 C12 61.8 10.5 60.6 10 58.8 Z"/>
+  <path id="stump" data-z="1" data-tags="wax" data-pivot="32 40" data-bevel-u="3.5"
+    d="M21 27 C21 23.5 24 21.5 28 22.3 C31 22.9 33 25.5 36 23.2 C39.5 21 43.6 22.6 43.4 27
+       L44.6 52 C44.6 53.8 39 54.8 32 54.8 C25 54.8 19.6 53.8 19.6 52 Z
+       M41 24.4 C45.5 25.6 47 33 46.7 40 C46.5 44 49.2 44.7 48.5 47.2 C47.8 49.6 44.3 49.5 44.1 46.6
+       C43.9 41 43 34.5 41.4 30 Z"/>
+  <path id="wick" data-z="2" data-pivot="32 22" data-bevel-u="0.8" data-tilt-deg="50"
+    d="M31.2 23.4 C31 19.5 32.6 17 35.2 14.6 L36.2 15.4 C34 17.8 32.8 20 33 23.4 Z"/>
+  <path id="flame" data-z="3" data-tags="emissive" data-pivot="35.4 15" data-bevel-u="2"
+    d="M35.6 15.6 C32.4 14.2 32.2 10.2 34.6 7.4 C35.4 6.4 36 5.2 35.8 3.6
+       C38.2 5.6 39.6 8 39.2 11 C38.8 14 37.6 15.6 35.6 15.6 Z"/>
+</svg>

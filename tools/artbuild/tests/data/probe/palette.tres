@@ -1,0 +1,27 @@
+[gd_resource type="Resource" format=3]
+
+[resource]
+resource_name = "probe palette"
+metadata/palette = {
+"materials": {
+"cloak": {"lit": "#7a6c76", "shadow": "#302836", "rim": "#ffc896", "gloss": 0.15},
+"skin": {"lit": "#d6ccba", "shadow": "#625860", "rim": "#ffe2be", "gloss": 0.3},
+"ash": {"lit": "#a8a098", "shadow": "#4a424e", "rim": "#ffd6aa", "gloss": 0.2},
+"char": {"lit": "#28221e", "shadow": "#141010", "rim": "#ffa05a", "gloss": 0.05},
+"steel": {"lit": "#e2ded2", "shadow": "#5c5a62", "rim": "#fff0dc", "gloss": 0.9},
+"ember": {"lit": "#ffecc8", "shadow": "#ffc88c", "rim": "#ffffff", "gloss": 0.0, "emissive": "#ffbe78", "emissive_strength": 1.0}
+},
+"parts": {
+"back_arm": "cloak",
+"body": "cloak",
+"head": "skin",
+"wick": "char",
+"front_arm": "ash",
+"hand": "skin",
+"blade": "steel",
+"ember": "ember"
+},
+"variants": {
+"hurt": {"cloak": {"lit": "#a86a6e", "shadow": "#4a2a30"}}
+}
+}

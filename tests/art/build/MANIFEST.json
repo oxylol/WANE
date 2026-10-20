@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "tool": "1.0.0",
+ "files": {
+  "candle_stump/candle_stump.palette.png": "b3ac31d8998637c0bc0784d167730c198aa704b2198cb5242194dd619bf5b653",
+  "candle_stump/candle_stump.sheet.json": "04e5573f8d17cece44df4d49b7fd4ae2669ac8599c85762724b023203e7abd38",
+  "candle_stump/candle_stump@1x.normal.png": "3d0e122ff430036c8cbaaa30a93b68934fd2e7f71dff02b4c671ab2043b484ef",
+  "candle_stump/candle_stump@1x.parts.png": "88602f82b587e12aab798e499176c468f3692dd7d51cbe54d48f53822b00b4ee",
+  "candle_stump/candle_stump@1x.shape.png": "7880453237a3d644e21bfb9c4d27eddc6fe70398e93b565ed5e7ecc799bcaa70",
+  "candle_stump/candle_stump@2x.normal.png": "0e1b420ecd431ed927a5f465d3aee4a6251670c0589c245886d4678244251b9e",
+  "candle_stump/candle_stump@2x.parts.png": "2c9ec87201dd7454a8399268d1ae9b35a93f8c38e6786db8261a7b9c88dafa5c",
+  "candle_stump/candle_stump@2x.shape.png": "3f292b3de86bb7a7aaadd99e0b167f21933c65db3cc5d19ad2ef981c94cdc99c"
+ }
+}
