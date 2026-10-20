@@ -1,0 +1,15 @@
+fixture dash_jump_early_press_waits_for_frame_5
+doc BUILD.md s5 Dash-jump window "frames 5 to 9" and Jump buffer "8 f" (ADR-0010, Dash-jump, early press): a tap on dash frame 3 (tick 2), let go at once, is not eaten and does not fire early; it waits in the buffer and the dash-jump fires on dash frame 5 (tick 4), 2 frames after the press, keeping the full 20 u/f.
+room test/flat
+frames 30
+input
+  0 R dash
+  1 R
+  2 R jump
+  3..9 R
+end
+expect
+  at 3 state=dash dash_frame=4 event.jump=0
+  at 4 event.jump=1 vx=5120 state=air
+  never 0..3 event.jump=1
+end

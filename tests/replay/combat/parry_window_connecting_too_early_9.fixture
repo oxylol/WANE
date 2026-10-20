@@ -1,0 +1,11 @@
+fixture parry_window_connecting_too_early_9
+doc BUILD.md s6 Parry (see parry_window_connecting_first_frame): a press 9 frames before the landing, facing the dummy, hits too (the audit's second repro: the press on frame 44 used to parry).
+room test/dummy_swing
+frames 80
+input
+  44 R attack
+end
+expect
+  at 53 event.parry=0 event.player_hit=1 hearts=4
+  never 0..79 event.parry=1
+end

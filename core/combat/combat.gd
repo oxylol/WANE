@@ -509,7 +509,7 @@ func _enemy_attacks(pl: Player, ring: InputRing) -> void:
 		# The press is read before any parry this tick spends it: every swing landing on this
 		# tick sees the same answer.
 		if not press_read:
-			press = ring.any_press_age(InputFrame.ATTACK, _parry_age()) >= 0
+			press = ring.any_press_ticks(InputFrame.ATTACK, _parry_age()) >= 0
 			press_read = true
 		if e.attack.parryable and press:
 			_parry(pl, e, away, at)
@@ -520,8 +520,9 @@ func _enemy_attacks(pl: Player, ring: InputRing) -> void:
 		ring.spend_presses(InputFrame.ATTACK)
 
 
-## The oldest press, in player frames, that still parries: the window's frames end on the tick
-## the hit lands (age 0).
+## The oldest press, in world ticks, that still parries: the window's frames end on the tick
+## the hit lands (age 0). Ticks, not player frames: hitstop folds the ring's frames together, and a
+## press that connected must not get a longer window for it (docs/adr/0013).
 func _parry_age() -> int:
 	return params.parry_window_frames - 1
 

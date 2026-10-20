@@ -129,6 +129,41 @@ func test_frame_at_and_copy() -> void:
 	# The copy answers queries as the original does: its press mask came with it (movement
 	# review 6, L2).
 	assert_int(other.press_age(InputFrame.JUMP)).is_equal(1)
-	assert_int(other.any_press_age(InputFrame.JUMP)).is_equal(1)
+	assert_int(other.any_press_ticks(InputFrame.JUMP, 7)).is_equal(1)
 	other.push(_frame(0, 0))
 	assert_int(ring.depth()).is_equal(2)
+
+
+func test_a_parry_press_is_aged_in_ticks_through_hitstop() -> void:
+	# The player is frozen for two ticks after a press: the ring folds them into one slot, so the
+	# press is 0 frames old but 3 ticks old (ADR-0013, the parry window counts ticks).
+	var ring := InputRing.new()
+	ring.push(_frame(InputFrame.ATTACK, InputFrame.ATTACK))
+	ring.merge(_frame(0, 0))
+	ring.merge(_frame(0, 0))
+	ring.merge(_frame(0, 0))
+	assert_int(ring.press_age(InputFrame.ATTACK)).is_equal(0)
+	assert_int(ring.any_press_ticks(InputFrame.ATTACK, 7)).is_equal(3)
+	assert_int(ring.any_press_ticks(InputFrame.ATTACK, 2)).is_equal(-1)
+	# A press made during the freeze is as young as its own tick, and the older one is not
+	# resurrected by the slot it shares.
+	ring.merge(_frame(InputFrame.ATTACK, InputFrame.ATTACK))
+	assert_int(ring.any_press_ticks(InputFrame.ATTACK, 0)).is_equal(0)
+	ring.spend_presses(InputFrame.ATTACK)
+	assert_int(ring.any_press_ticks(InputFrame.ATTACK, 7)).is_equal(-1)
+
+
+func test_the_tick_clock_survives_a_copy_and_reaches_the_hash() -> void:
+	var ring := InputRing.new()
+	ring.push(_frame(InputFrame.ATTACK, InputFrame.ATTACK))
+	ring.merge(_frame(0, 0))
+	var other := InputRing.new()
+	other.copy_from(ring)
+	assert_int(other.any_press_ticks(InputFrame.ATTACK, 7)).is_equal(1)
+	# Same frames, one more folded tick: the press is a tick older, and the hash says so.
+	var h1 := StateHasher.new()
+	var h2 := StateHasher.new()
+	ring.hash_into(h1)
+	other.merge(_frame(0, 0))
+	other.hash_into(h2)
+	assert_int(h1.value()).is_not_equal(h2.value())

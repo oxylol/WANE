@@ -15,12 +15,19 @@ func _initialize() -> void:
 		quit(2)
 		return
 	var fx: Fixture = Fixture.parse_file(args[0])
-	for e: String in fx.errors:
-		printerr("parse: %s" % e)
+	# A fixture check.gd rejects is rejected here too, with the same lines: a table for a broken
+	# fixture (an input line lost to an overlap, say) would mislead whoever reads it.
+	var refusals: PackedStringArray = fx.refusals()
+	if not refusals.is_empty():
+		_refuse(refusals)
+		return
 	var sim := Simulation.new(fx.scenario)
-	for e: String in sim.load_errors:
-		printerr("load: %s" % e)
 	var keys: PackedStringArray = args.slice(1)
+	for e: String in sim.load_errors:
+		refusals.append("load: %s" % e)
+	if not refusals.is_empty():
+		_refuse(refusals)
+		return
 	print("frame  input        " + "  ".join(keys))
 	for i: int in range(fx.frame_total):
 		var frame: InputFrame = fx.input_frame(i)
@@ -35,3 +42,10 @@ func _initialize() -> void:
 				cells.append(str(v))
 		print("%5d  %-12s %s" % [i, frame.describe(), "  ".join(cells)])
 	quit(0)
+
+
+func _refuse(lines: PackedStringArray) -> void:
+	for line: String in lines:
+		printerr(line)
+	printerr("refused: %s" % lines[0])
+	quit(1)

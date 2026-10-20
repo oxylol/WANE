@@ -1,0 +1,15 @@
+fixture dash_jump_released_stick_decays
+doc BUILD.md s5 Dash-jump: "keeps 100% dash speed horizontally"; ADR-0010 (Air momentum and air control, Dash-jump): the jump keeps all of the dash's speed, and the speed holds while the stick holds that way (dash_jump_keeps_speed). With the stick released, ordinary air deceleration takes over from the jump's own tick, 288 sub-pixels a frame, as for any jump (BUILD.md s5 "Air control: full acceleration in air, 0 to max in 8 f"). Infinite glide on a released stick would make the fastest movement in the game free of any decision.
+room test/flat
+frames 50
+input
+  0 R dash
+  1..3 R
+  4..39 jump
+end
+expect
+  at 3 state=dash dash_frame=4 vx=5120
+  at 4 event.jump=1 vx=4832 state=air
+  at 5 vx=4544
+  at 20 vx=224
+end

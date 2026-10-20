@@ -1,0 +1,11 @@
+fixture parry_window_connecting_first_frame
+doc BUILD.md s6 Parry (ADR-0013, the window counts world ticks): a press on the window's first frame, 7 frames before the landing, parries even when the press itself connects with the telegraphing dummy. The press is attack facing the dummy, so its strike hits and its 2 f of hitstop must not stretch the 8 f window ("the 8 frames that end on the frame it lands"). The swing lands on frame 53.
+room test/dummy_swing
+frames 80
+input
+  46 R attack
+end
+expect
+  at 53 event.parry=1 event.player_hit=0 hearts=5
+  never 0..79 event.player_hit=1
+end
