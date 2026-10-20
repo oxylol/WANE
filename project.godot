@@ -84,6 +84,15 @@ settings/test/flaky_check_enable=false
 report/godot/push_error=true
 report/godot/script_error=true
 
+[importer_defaults]
+
+texture={
+"compress/mode": 0,
+"mipmaps/generate": false,
+"process/fix_alpha_border": false,
+"process/premult_alpha": false
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" format=3]
+
+[resource]
+resource_name = "candle_stump palette"
+metadata/palette = {
+"materials": {
+"wax": {"lit": "#e2d8ba", "shadow": "#5c5048", "rim": "#ffdcae", "gloss": 0.8},
+"soot": {"lit": "#2c2622", "shadow": "#14100e", "rim": "#ffa860", "gloss": 0.05},
+"flame": {"lit": "#fff2d2", "shadow": "#ffc486", "rim": "#ffffff", "gloss": 0.0, "emissive": "#ffbe78", "emissive_strength": 1.0}
+},
+"parts": {
+"pool": "wax",
+"stump": "wax",
+"wick": "soot",
+"flame": "flame"
+},
+"variants": {
+"dusk": {"wax": {"lit": "#b8a8b8", "shadow": "#3a3040"}}
+}
+}
