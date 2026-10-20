@@ -19,6 +19,9 @@ const PASSAGE := Color(0.07, 0.07, 0.08)
 ## How far past the room's edge the solid is drawn: more than the camera's margin can reveal.
 const BEYOND_U: float = 8192.0
 
+## The tuning the tiles' grey-box shapes come from, loaded once ([method _look]).
+static var _look_cache: FeedbackTuning
+
 var world: CollisionWorld
 var doors: Array[RoomData.Door] = []
 ## The solid boxes, redrawn every tick (a wax wall burns away).
@@ -72,9 +75,6 @@ func _draw() -> void:
 	for j: int in range(grid.height):
 		for i: int in range(grid.width):
 			draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)
-
-
-static var _look_cache: FeedbackTuning
 
 
 ## The tuning the tiles' grey-box shapes come from (content/feedback.tres), loaded once.
