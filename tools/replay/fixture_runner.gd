@@ -36,6 +36,11 @@ const MAX_SHARDS: int = 4
 const SHARD_SCRIPT: String = "res://tools/replay/fixture_shard.gd"
 ## A shard's output line carrying one fixture's result.
 const RESULT_PREFIX: String = "fixture-result "
+## A shard's last output line: the milliseconds of CPU time the process used ([method
+## process_cpu_msec]).
+const CPU_PREFIX: String = "fixture-cpu "
+## /proc/<pid>/stat counts CPU time in clock ticks; Linux's are 100 a second.
+const CLOCK_TICKS_PER_SECOND: int = 100
 ## A shard's output line naming the native mode it ran in ([method mode_line]).
 const MODE_PREFIX: String = "fixture-mode "
 
@@ -49,6 +54,10 @@ var shards: int = 0
 var shard_script: String = SHARD_SCRIPT
 ## The mode line each shard of the last [method run_sharded] reported, by shard (empty: none).
 var shard_modes: Array[String] = []
+## The CPU time each shard of the last [method run_sharded] used, in milliseconds (-1: not
+## known on this platform), and the wall time that call took.
+var shard_cpu_msec: Array[int] = []
+var sharded_msec: int = 0
 ## Quiet (tools/ci/run_tests.gd --quiet): [method run_all] prints nothing and leaves each failure
 ## in [member failure_blocks] instead, as lines for tools/ci/quiet_report.gd.
 var quiet: bool = false
@@ -120,6 +129,7 @@ func run_all(bless: bool = false) -> bool:
 	results.clear()
 	failure_blocks.clear()
 	var started: int = Time.get_ticks_msec()
+	var cpu_started: int = process_cpu_msec()
 	var golden: Dictionary[String, String] = load_golden()
 	var golden_version: int = load_golden_version()
 	var names: Dictionary[String, String] = {}
@@ -163,12 +173,72 @@ func run_all(bless: bool = false) -> bool:
 				% [results.size(), failed, elapsed, roundi(busy), count]
 			)
 		)
-	if budget_msec > 0 and elapsed > budget_msec:
+	var cpu: int = _cpu_equivalent_msec(count, elapsed, cpu_started)
+	if over_budget(elapsed, cpu, budget_msec):
 		_fail_line("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
 		failed += 1
+	elif budget_msec > 0 and elapsed > budget_msec and not quiet:
+		print(
+			(
+				(
+					"note: the suite took %d ms of wall time on a busy machine but %d ms of CPU time "
+					+ "on its slowest process, inside the %d ms budget"
+				)
+				% [elapsed, cpu, budget_msec]
+			)
+		)
 	if bless and failed == 0:
 		return _bless(golden, golden_version)
 	return failed == 0
+
+
+## True when a suite that took [param elapsed_msec] of wall time and [param cpu_msec] of CPU time
+## (on its slowest process, plus the runner's own; -1 if unknown) is over [param limit_msec]
+## (0: no budget). The same work costs the same CPU time on a loaded machine and more wall time,
+## so the suite fails only when both are over; where CPU time is not known, wall time decides.
+static func over_budget(elapsed_msec: int, cpu_msec: int, limit_msec: int) -> bool:
+	if limit_msec <= 0 or elapsed_msec <= limit_msec:
+		return false
+	return cpu_msec < 0 or cpu_msec > limit_msec
+
+
+## The milliseconds of CPU time (user and system, every thread) this process has used, or -1 where
+## /proc is not there (not Linux).
+static func process_cpu_msec() -> int:
+	if not FileAccess.file_exists("/proc/self/stat"):
+		return -1
+	# A /proc file reports length 0, so it is read line by line, not whole.
+	var file: FileAccess = FileAccess.open("/proc/self/stat", FileAccess.READ)
+	return cpu_msec_from_stat(file.get_line()) if file != null else -1
+
+
+## The CPU time in a /proc/<pid>/stat line: utime and stime, fields 14 and 15. The command name
+## (field 2) may hold spaces and brackets, so the fields are counted from the last ")". -1 if the
+## line is too short.
+static func cpu_msec_from_stat(text: String) -> int:
+	var close: int = text.rfind(")")
+	if close < 0:
+		return -1
+	# From field 3 (the state): utime is the 12th of these, stime the 13th.
+	var fields: PackedStringArray = text.substr(close + 1).strip_edges().split(" ", false)
+	if fields.size() < 13:
+		return -1
+	return (fields[11].to_int() + fields[12].to_int()) * 1000 / CLOCK_TICKS_PER_SECOND
+
+
+## What the suite cost in CPU time as one process at a time would see it: the slowest shard's CPU
+## time plus the runner's own work around the shards (all of its wall time but theirs). -1 if
+## any of it is unknown.
+func _cpu_equivalent_msec(count: int, elapsed: int, cpu_started: int) -> int:
+	if count <= 1:
+		var now: int = process_cpu_msec()
+		return now - cpu_started if now >= 0 and cpu_started >= 0 else -1
+	var slowest: int = -1
+	for ms: int in shard_cpu_msec:
+		if ms < 0:
+			return -1
+		slowest = maxi(slowest, ms)
+	return slowest + maxi(0, elapsed - sharded_msec) if slowest >= 0 else -1
 
 
 ## Runs the fixtures at [param paths] (the whole suite's, in path order) whose place in it is
@@ -192,6 +262,7 @@ static func mode_line() -> String:
 ## share, and returns their results in path order. A fixture whose result never came back (its
 ## process died) fails with what that process printed last.
 func run_sharded(paths: Array[String], count: int) -> Array[Result]:
+	var began: int = Time.get_ticks_msec()
 	var outputs: Array[Array] = []
 	var codes: Array[int] = []
 	var threads: Array[Thread] = []
@@ -205,9 +276,13 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 		threads.append(thread)
 	for thread: Thread in threads:
 		thread.wait_to_finish()
+	sharded_msec = Time.get_ticks_msec() - began
 	var by_path: Dictionary[String, Result] = {}
 	shard_modes.clear()
 	shard_modes.resize(count)
+	shard_cpu_msec.clear()
+	shard_cpu_msec.resize(count)
+	shard_cpu_msec.fill(-1)
 	for k: int in range(count):
 		var found: Array[Result] = []
 		for chunk: Variant in outputs[k]:
@@ -216,6 +291,8 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 				line = line.trim_suffix("\r")
 				if line.begins_with(MODE_PREFIX):
 					shard_modes[k] = line.trim_prefix(MODE_PREFIX)
+				elif line.begins_with(CPU_PREFIX):
+					shard_cpu_msec[k] = line.trim_prefix(CPU_PREFIX).to_int()
 				elif line.begins_with(RESULT_PREFIX):
 					found.append(Result.from_line(line.trim_prefix(RESULT_PREFIX)))
 		# A shard that ran on another path than this process proves nothing about this one.

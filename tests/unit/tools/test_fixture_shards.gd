@@ -27,8 +27,17 @@ func test_the_fixtures_named_here_exist() -> void:
 func test_sharded_results_are_the_same_as_in_one_process() -> void:
 	var paths: Array[String] = _paths()
 	var here: Array[FixtureRunner.Result] = FixtureRunner.new().run_paths(paths)
-	var there: Array[FixtureRunner.Result] = FixtureRunner.new().run_sharded(paths, 2)
+	var runner := FixtureRunner.new()
+	var there: Array[FixtureRunner.Result] = runner.run_sharded(paths, 2)
 	assert_int(there.size()).is_equal(here.size())
+	# Each shard also reports the CPU time it used, for the suite's budget (Linux only).
+	assert_int(runner.shard_cpu_msec.size()).is_equal(2)
+	for ms: int in runner.shard_cpu_msec:
+		if FileAccess.file_exists("/proc/self/stat"):
+			assert_int(ms).is_greater(0)
+		else:
+			assert_int(ms).is_equal(-1)
+	assert_int(runner.sharded_msec).is_greater(0)
 	for i: int in range(here.size()):
 		assert_str(there[i].path).is_equal(here[i].path)
 		assert_str(there[i].name).is_equal(here[i].name)
@@ -99,3 +108,29 @@ func test_a_shard_on_another_path_fails_its_fixtures() -> void:
 	for r: FixtureRunner.Result in results:
 		assert_bool(r.passed).is_false()
 		assert_str(r.messages[r.messages.size() - 1]).contains("ran native")
+
+
+func test_cpu_time_is_read_from_a_proc_stat_line() -> void:
+	# utime 250 and stime 30 clock ticks (field 14 and 15) at 100 a second: 2800 ms. The command
+	# name may hold spaces and brackets, so the fields count from the last one.
+	var line: String = (
+		"4242 (Godot (headless) x) S 1 4242 4242 0 -1 4194560 100 0 0 0 250 30 0 0 20 0 5 0 "
+		+ "9999 123456 789 18446744073709551615"
+	)
+	assert_int(FixtureRunner.cpu_msec_from_stat(line)).is_equal(2800)
+	assert_int(FixtureRunner.cpu_msec_from_stat("")).is_equal(-1)
+	assert_int(FixtureRunner.cpu_msec_from_stat("4242 (short) S 1 2")).is_equal(-1)
+
+
+func test_a_busy_machine_does_not_fail_a_suite_whose_cpu_time_is_within_the_budget() -> void:
+	# Fixed work costs the same CPU time on a loaded machine and more wall time (F3 of the
+	# stress-room review: 11 to 15 s of wall time at load 4 on 4 cores, every fixture passing).
+	assert_bool(FixtureRunner.over_budget(9000, 8000, 10000)).is_false()
+	assert_bool(FixtureRunner.over_budget(15000, 8000, 10000)).is_false()
+	# Both over: the suite itself got slower.
+	assert_bool(FixtureRunner.over_budget(15000, 12000, 10000)).is_true()
+	# Nothing known about CPU time (not Linux): wall time is the measure, as it always was.
+	assert_bool(FixtureRunner.over_budget(15000, -1, 10000)).is_true()
+	assert_bool(FixtureRunner.over_budget(9000, -1, 10000)).is_false()
+	# No budget (an instrumented coverage run).
+	assert_bool(FixtureRunner.over_budget(99999, 99999, 0)).is_false()
