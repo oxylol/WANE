@@ -37,6 +37,11 @@ var light_left: int = 0
 ## every question builds it afresh.
 var _cells: EnemyCells = EnemyCells.new()
 var _indexed: bool = false
+## Inside [method resolve]: nothing moves an enemy until it ends, so the cells built for one
+## question serve the rest.
+var _resolving: bool = false
+## Some enemy may hold a strike's serial in [member Enemy.trail_burned] (see [method _trails]).
+var _burned: bool = false
 
 
 func _init(p_params: CombatParams, p_events: SimEvents, p_procs: ProcBus) -> void:
@@ -64,6 +69,7 @@ func resolve(pl: Player, ring: InputRing) -> void:
 	_age_effects(pl)
 	if pl == null:
 		return
+	_resolving = true
 	var stop: int = 0
 	stop = maxi(stop, _strike(pl))
 	stop = maxi(stop, _kindle(pl))
@@ -72,6 +78,7 @@ func resolve(pl: Player, ring: InputRing) -> void:
 	_trails(pl)
 	procs.resolve(self, pl)
 	_indexed = false
+	_resolving = false
 	if stop > 0:
 		pl.freeze = maxi(pl.freeze, stop)
 	_enemy_attacks(pl, ring)
@@ -104,7 +111,7 @@ func _age_effects(pl: Player) -> void:
 		return
 	for k: int in range(enemies.size()):
 		var e: Enemy = enemies[k]
-		if e.burn_tick(pl.kit.burn_period):
+		if e.burn_left > 0 and e.burn_tick(pl.kit.burn_period):
 			# A burn tick is one of Kindle's ticks: a proc event (BUILD.md section 6, "Kindle 0.5
 			# per tick"; docs/adr/0015).
 			var tier: int = pl.vitals.kindling.tier()
@@ -128,11 +135,18 @@ func _strike(pl: Player) -> int:
 	if pl.vitals.kindling.tier() >= Kindling.BLAZE:
 		trails.append(FireTrail.new(box, params.blaze_trail_frames, pl.strike_serial))
 	var stop: int = 0
+	var serial: int = pl.strike_serial
+	var bl: int = box.position.x
+	var br: int = box.end.x
+	var bt: int = box.position.y
+	var bb: int = box.end.y
 	for i: int in range(enemies.size()):
 		var e: Enemy = enemies[i]
-		if not e.is_alive() or e.last_strike == pl.strike_serial:
+		if e.state == Enemy.DEAD or e.last_strike == serial:
 			continue
-		if not box.intersects(e.hurtbox()):
+		# The box against the hurtbox, [method Enemy.hurtbox], spelled out (no call, no rect).
+		var b: Body = e.body
+		if bl >= b.x + b.half_w or br <= b.x - b.half_w or bt >= b.y or bb <= b.y - b.height:
 			continue
 		if e.def.pogoable and pl.pogo_box().size != Vector2i.ZERO:
 			# The down-strike's box is its pogo box on these frames: a pogo-able enemy is
@@ -246,11 +260,16 @@ func _pogo(pl: Player, ring: InputRing) -> int:
 	var box: Rect2i = pl.pogo_box()
 	if box.size == Vector2i.ZERO:
 		return 0
+	var bl: int = box.position.x
+	var br: int = box.end.x
+	var bt: int = box.position.y
+	var bb: int = box.end.y
 	for i: int in range(enemies.size()):
 		var e: Enemy = enemies[i]
-		if not e.is_alive() or not e.def.pogoable or e.last_strike == pl.strike_serial:
+		if e.state == Enemy.DEAD or e.last_strike == pl.strike_serial or not e.def.pogoable:
 			continue
-		if not box.intersects(e.hurtbox()):
+		var b: Body = e.body
+		if bl >= b.x + b.half_w or br <= b.x - b.half_w or bt >= b.y or bb <= b.y - b.height:
 			continue
 		e.last_strike = pl.strike_serial
 		PlayerContacts.bounce(pl, ring, box)
@@ -282,6 +301,11 @@ func _trails(pl: Player) -> void:
 		else:
 			for i: int in range(enemies.size()):
 				_burn(pl, t, i)
+	# An enemy forgets a strike once its trails are all out; nothing to forget until a trail has
+	# burned someone, and nothing left to look for once a pass finds every list empty.
+	if not _burned:
+		return
+	_burned = false
 	for e: Enemy in enemies:
 		var k: int = 0
 		while k < e.trail_burned.size():
@@ -289,6 +313,8 @@ func _trails(pl: Player) -> void:
 				k += 1
 			else:
 				e.trail_burned.remove_at(k)
+		if k > 0:
+			_burned = true
 
 
 ## Trail [param t] burns enemy [param i] if it is alive, not burned by that strike's trails yet,
@@ -300,6 +326,7 @@ func _burn(pl: Player, t: FireTrail, i: int) -> void:
 	if not t.box.intersects(e.hurtbox()):
 		return
 	e.trail_burned.append(t.serial)
+	_burned = true
 	_damage(pl, i, params.blaze_trail_damage, HitKind.BURN, Vector2i.ZERO)
 
 
@@ -313,12 +340,21 @@ func _trail_lives(serial: int) -> bool:
 ## A finisher at Blaze: every other enemy near the one hit takes the AoE's damage.
 func _blaze_burst(pl: Player, hit: int, at: Vector2i) -> void:
 	var r: int = params.blaze_aoe_radius
-	for i: int in range(enemies.size()):
-		if i == hit or not enemies[i].is_alive():
-			continue
-		var d: Vector2i = enemies[i].centre() - at
-		if d.x * d.x + d.y * d.y <= r * r:
-			_damage(pl, i, params.blaze_aoe_damage, HitKind.BURN, Vector2i.ZERO)
+	if enemies.size() < CELL_QUERY_MIN:
+		for i: int in range(enemies.size()):
+			if i == hit or not enemies[i].is_alive():
+				continue
+			var d: Vector2i = enemies[i].centre() - at
+			if d.x * d.x + d.y * d.y <= r * r:
+				_damage(pl, i, params.blaze_aoe_damage, HitKind.BURN, Vector2i.ZERO)
+		return
+	# From many enemies up the query cells find the ones in reach, in the room's order. Nobody
+	# moves during a resolve and a burst kills no one but the enemy it damages, so the living
+	# found now are the living the loop above would meet.
+	var near: PackedInt32Array = _query(at, r, hit)
+	near.sort()
+	for i: int in near:
+		_damage(pl, i, params.blaze_aoe_damage, HitKind.BURN, Vector2i.ZERO)
 
 
 ## A hit that counts: damage with Kindling's bonus, knockback, a Kindling hit, hitstop on the
@@ -432,7 +468,7 @@ func nearest_enemy(at: Vector2i, radius: int, skip: int) -> int:
 func _query(at: Vector2i, radius: int, skip: int) -> PackedInt32Array:
 	if not _indexed:
 		_cells.build(enemies)
-		_indexed = procs.resolving()
+		_indexed = _resolving or procs.resolving()
 	return _cells.within(enemies, at, radius, skip)
 
 
@@ -465,7 +501,8 @@ func _enemy_attacks(pl: Player, ring: InputRing) -> void:
 	var press_read: bool = false
 	for i: int in range(enemies.size()):
 		var e: Enemy = enemies[i]
-		if e.attack_spent or pl.is_invulnerable():
+		# No attack under way has no box ([method Enemy.attack_box]): most enemies, most ticks.
+		if e.attack == null or e.attack_spent or pl.is_invulnerable():
 			continue
 		var box: Rect2i = e.attack_box()
 		if box.size == Vector2i.ZERO or not box.intersects(pl.hurtbox()):

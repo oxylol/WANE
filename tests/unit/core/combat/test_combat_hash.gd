@@ -16,6 +16,8 @@ const NOT_STATE: Array[String] = [
 	"procs",
 	"_cells",
 	"_indexed",
+	"_resolving",
+	"_burned",
 	"params",
 	"_params",
 	"world",
