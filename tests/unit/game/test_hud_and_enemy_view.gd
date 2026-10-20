@@ -122,7 +122,7 @@ func test_the_enemy_view_draws_every_state() -> void:
 	var room: RoomData = RoomData.parse(ROOM)
 	var world: CollisionWorld = room.build_world()
 	var events := SimEvents.new()
-	var def: DummyDef = load("res://content/enemies/dummy.tres") as DummyDef
+	var def: DummyDef = _dummy_def()
 	var list: Array[Enemy] = []
 	for state: int in range(Enemy.STATE_NAMES.size()):
 		var e := RoomData.RoomEntity.new()
@@ -153,6 +153,53 @@ func test_the_enemy_view_draws_every_state() -> void:
 	assert_bool(view.shown[Enemy.STRIKE].attack.size != Vector2.ZERO).is_true()
 	assert_bool(view.shown[Enemy.DEAD].alive).is_false()
 	assert_int(view.shown[Enemy.STUN].state).is_equal(Enemy.STUN)
+
+
+func test_a_new_capture_refills_every_field_of_the_reused_snapshots() -> void:
+	# The snapshots are reused from tick to tick: a field the enemy no longer has (a cue, a live
+	# swing, an unparryable attack) must go back to its resting value, not stay from the last one.
+	var room: RoomData = RoomData.parse(ROOM)
+	var world: CollisionWorld = room.build_world()
+	var events := SimEvents.new()
+	var def: DummyDef = _dummy_def()
+	var e := RoomData.RoomEntity.new()
+	e.kind = "dummy"
+	e.x_u = 400
+	e.y_u = 256
+	e.props = {"attack": "red"}
+	var dummy: Enemy = TrainingDummy.from_entity(e, def, _params, world, events)
+	var sc: Scenario = Scenario.make(1)
+	sc.room = "test/flat"
+	var sim := Simulation.new(sc)
+	sim.combat.enemies.assign([dummy])
+	var view: EnemyView = auto_free(EnemyView.new())
+	var red: EnemyAttack = def.attacks[1]
+	dummy.start_attack(red)
+	for _i: int in range(red.telegraph + 1):
+		dummy.step(null)
+	view.capture(sim)
+	var first: EnemyView.Shown = view.shown[0]
+	assert_bool(first.attack.size != Vector2.ZERO).is_true()
+	assert_bool(first.parryable).is_false()
+	# The attack ends: the same object comes back at rest.
+	dummy.attack = null
+	dummy.state = Enemy.IDLE
+	view.capture(sim)
+	assert_object(view.shown[0]).is_same(first)
+	assert_float(first.telegraph).is_equal(-1.0)
+	assert_bool(first.parryable).is_true()
+	assert_vector(first.attack.size).is_equal(Vector2.ZERO)
+	# A room with fewer enemies drops the extra snapshots, one with more grows them.
+	sim.combat.enemies.clear()
+	view.capture(sim)
+	assert_int(view.shown.size()).is_equal(0)
+	sim.combat.enemies.assign([dummy, dummy])
+	view.capture(sim)
+	assert_int(view.shown.size()).is_equal(2)
+
+
+func _dummy_def() -> DummyDef:
+	return load("res://content/enemies/dummy.tres") as DummyDef
 
 
 func _shown(since_hit: int) -> EnemyView.Shown:

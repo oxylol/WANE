@@ -90,44 +90,57 @@ func _ready() -> void:
 
 
 ## Reads the latest tick's enemies. (It takes the simulation rather than the enemy list: a typed
-## Array[Enemy] passed in as a parameter leaked the core's scripts at exit in Godot 4.7.)
+## Array[Enemy] passed in as a parameter leaked the core's scripts at exit in Godot 4.7.) The
+## snapshots are refilled in place: a stress room tick is 200 of them, and allocating that many
+## objects a tick was the largest single cost of this view.
 func capture(sim: Simulation) -> void:
 	var count: int = sim.combat.enemies.size()
 	var fresh: bool = count != shown.size()
-	_before.clear()
-	for s: Shown in shown:
-		_before.append(s.box)
-	shown.clear()
+	_before.resize(shown.size())
+	for i: int in range(shown.size()):
+		_before[i] = shown[i].box
+	while shown.size() < count:
+		shown.append(Shown.new())
+	shown.resize(count)
 	for i: int in range(count):
-		shown.append(_snapshot(sim.combat.enemies[i]))
+		_fill(shown[i], sim.combat.enemies[i])
 	if fresh:
-		_before.clear()
-		for s: Shown in shown:
-			_before.append(s.box)
+		_before.resize(count)
+		for i: int in range(count):
+			_before[i] = shown[i].box
 
 
-static func _snapshot(e: Enemy) -> Shown:
-	var s := Shown.new()
+## Sets every field of [param s] from [param e] as this tick left it. (The body's edges and the
+## state test are read as fields: 200 enemies a tick made the accessor calls a tenth of the
+## cost.)
+static func _fill(s: Shown, e: Enemy) -> void:
 	var b: Body = e.body
+	var left: int = b.x - b.half_w
+	var top: int = b.y - b.height
 	s.box = Rect2(
-		float(b.left()) / Fx.SUB,
-		float(b.top()) / Fx.SUB,
-		float(b.right() - b.left()) / Fx.SUB,
+		float(left) / Fx.SUB,
+		float(top) / Fx.SUB,
+		float(b.x + b.half_w - left) / Fx.SUB,
 		float(b.height) / Fx.SUB
 	)
-	s.alive = e.is_alive()
+	s.alive = e.state != Enemy.DEAD
 	s.state = e.state
 	s.facing = e.facing
 	s.since_hit = e.since_hit
+	s.hp = float(e.hp) / float(e.max_hp)
+	s.poise = float(e.poise) / float(e.max_poise)
+	if e.attack == null:
+		s.telegraph = -1.0
+		s.parryable = true
+		s.attack = Rect2()
+		return
 	s.telegraph = cue_progress(e)
-	if e.attack != null:
-		s.parryable = e.attack.parryable
+	s.parryable = e.attack.parryable
 	var hit: Rect2i = e.attack_box()
 	if hit.size != Vector2i.ZERO:
 		s.attack = Rect2(Vector2(hit.position) / Fx.SUB, Vector2(hit.size) / Fx.SUB)
-	s.hp = float(e.hp) / float(e.max_hp)
-	s.poise = float(e.poise) / float(e.max_poise)
-	return s
+	else:
+		s.attack = Rect2()
 
 
 ## How far the telegraph has risen, 0..1, while its cue shows: through the telegraph and on the
