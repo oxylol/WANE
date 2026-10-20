@@ -16,17 +16,29 @@ const CHEST: Vector2 = Vector2(0.0, -30.0)
 ## The room's key light, toward the upper left (ADR-0023 Decision 3.3), at full strength.
 const KEY: Vector4 = Vector4(-0.7071, -0.7071, 1.0, 0.0)
 
+static var _field: LightField
+static var _white: ImageTexture
 
-## Pushes the tuning, the boil step of [param tick] and the light for [param ember] at
-## [param dark_factor] (1.0 Dusk, 0.15 Pitch) to the global shader parameters.
+
+## Pushes the tuning, the light for [param ember] at [param dark_factor] (1.0 Dusk, 0.15 Pitch) and
+## the boil step of [param tick] (the only thing that changes with the tick: the ember's flicker is
+## held) to the global shader parameters, through the game's own
+## [LightField] (the real light table and ambient times the Dark, ADR-0024), with a shadow buffer
+## that sees nothing in the way (visibility 1): the figure and the stage are drawn without a room.
 static func set_globals(tuning: InkTuning, tick: int, ember: Vector2, dark_factor: float) -> void:
 	InkGlobals.apply(tuning)
-	InkGlobals.set_tick(tick, tuning.boil_hz)
-	RenderingServer.global_shader_parameter_set(&"wane_ambient", AMBIENT * dark_factor)
-	RenderingServer.global_shader_parameter_set(
-		&"wane_ember", Vector4(ember.x, ember.y, 420.0, 1.6)
-	)
-	RenderingServer.global_shader_parameter_set(&"wane_key", KEY)
+	if _field == null:
+		_field = LightField.new()
+		var white := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		white.fill(Color.WHITE)
+		_white = ImageTexture.create_from_image(white)
+	_field.ambient_colour = AMBIENT
+	_field.key = KEY
+	# The light's own flicker is held at tick 0: what a test compares across ticks is the boil.
+	_field.freeze(0, dark_factor)
+	_field.present(0, 0.0, ember)
+	InkGlobals.set_tick(tick, (load(LightingTuning.PATH) as LightingTuning).boil_hz)
+	RenderingServer.global_shader_parameter_set(&"wane_shadow", _white)
 
 
 ## A SubViewport of [param size] in HDR 2D, [param zoom] times magnified around [param centre].

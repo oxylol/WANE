@@ -87,9 +87,8 @@ const PATH: String = "res://content/art/ink.tres"
 ## Wavelength of the break mask, in u.
 @export var bg_mask_wave_u: float = 48.0
 
-@export_group("Boil")
-## How many times a second the line's wobble is reseeded (ADR-0023 Decision 2.2).
-@export var boil_hz: float = 12.0
+## The boil rate (how many times a second the line's wobble is reseeded, ADR-0023 Decision 2.2) is
+## `LightingTuning.boil_hz`: LightField writes `wane_boil` from it, so there is one number.
 
 
 ## wane_ink
@@ -167,6 +166,4 @@ func validate() -> PackedStringArray:
 		e.append("bg_break_lo must be below bg_break_hi, both within 0 to 1")
 	if bg_thin < 0.0 or bg_thin > 1.0 or bg_mask_wave_u < 4.0:
 		e.append("bg_thin must be 0 to 1 and bg_mask_wave_u at least 4")
-	if boil_hz <= 0.0 or boil_hz > 60.0:
-		e.append("boil_hz must be above 0 and at most 60")
 	return e

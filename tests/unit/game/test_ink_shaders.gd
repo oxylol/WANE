@@ -112,7 +112,6 @@ func test_the_tuning_validates_and_matches_the_sections_numbers() -> void:
 	assert_float(t.line_min_px).is_equal(0.8)
 	assert_float(t.wobble_u).is_equal(0.22)
 	assert_vector(Vector2(t.wave1_u, t.wave2_u)).is_equal(Vector2(10.0, 4.0))
-	assert_float(t.boil_hz).is_equal(12.0)
 	assert_float(t.lit_threshold).is_equal(0.20)
 	assert_float(t.edge_dark).is_equal(0.22)
 	assert_float(t.grain_strength).is_equal(0.07)
@@ -127,7 +126,7 @@ func test_a_bad_tuning_is_refused() -> void:
 	var t: InkTuning = InkTuning.new()
 	t.line_shadow_u = 0.1
 	t.terminator_soft = 0.5
-	t.boil_hz = 0.0
+	t.bg_thin = 2.0
 	assert_int(t.validate().size()).is_equal(3)
 
 
