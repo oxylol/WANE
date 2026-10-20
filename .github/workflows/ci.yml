@@ -118,7 +118,7 @@ jobs:
   # (200 enemies, 40 procs), no tick above 20 ms; budgets in content/perf/budget.tres. The gated
   # workload is the spec's (a 39-proc chain per Taper hit, ADR-0020 Decision 15); the proc storm is
   # reported by the same bench and not gated. With the physics sweep native (ADR-0022) this job
-  # measured p99 5.06 ms and worst 8.09 ms: the worst-tick gate is met, the p99 is not (the 200
+  # measured p99 5.01 ms and worst 7.64 ms: the worst-tick gate is met, the p99 is not (the 200
   # enemies' steps are 1.95 ms of the 2.70 ms median tick). continue-on-error stays, expiring
   # 2026-12-31 (PROGRESS.md, Feature flags with expiry), until the p99 is green on CI hardware;
   # the step's own log and the uploaded report still show FAIL lines.
