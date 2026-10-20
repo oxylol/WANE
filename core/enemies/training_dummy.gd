@@ -125,34 +125,25 @@ func _swing_due(player: Player) -> bool:
 
 
 ## One step of the walk: turn at a wall or at a ledge, then walk (a body in the air keeps its
-## way and falls; [method Enemy._move] lets it).
+## way and falls; [method Enemy._move] lets it). On the ground the whole step is
+## [method CollisionWorld.patrol_walk], one call to the native sweep.
 func _patrol() -> void:
-	if body.on_ground and not patrol_falls and _ledge_ahead():
-		patrol_dir = -patrol_dir
+	if body.on_ground:
+		var flags: int = world.patrol_walk(body, patrol_dir, patrol_step, patrol_drop, patrol_falls)
+		if (flags & CollisionWorld.PATROL_LEDGE) != 0:
+			patrol_dir = -patrol_dir
+		facing = patrol_dir
+		if (flags & CollisionWorld.PATROL_WALL) != 0:
+			patrol_dir = -patrol_dir
+		settled = true
+		return
 	facing = patrol_dir
 	body.clear_contacts()
-	if body.on_ground:
-		world.walk(body, patrol_dir * patrol_step)
-		settled = true
-	else:
-		world.move_x(body, patrol_dir * patrol_step)
+	world.move_x(body, patrol_dir * patrol_step)
 	var wall: int = body.hit_wall
 	body.clear_contacts()
 	if wall != 0:
 		patrol_dir = -patrol_dir
-
-
-## True if there is no floor within [member patrol_drop] of the feet under the leading edge
-## after the next step.
-func _ledge_ahead() -> bool:
-	if world.flat_ahead(body, patrol_dir * patrol_step):
-		return false
-	var front: int = body.x + patrol_dir * patrol_step
-	front += body.half_w - 1 if patrol_dir > 0 else -body.half_w
-	return (
-		world.floor_top_in(front, front + 1, body.y - patrol_drop, body.y + patrol_drop)
-		== CollisionQueries.NONE
-	)
 
 
 ## Comes back whole at its marker, at rest (task 6 review, H5: a dummy killed in the air came back

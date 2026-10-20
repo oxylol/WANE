@@ -22,6 +22,8 @@ class WaneSweep : public godot::RefCounted {
 	// The answer of a move, reused (see the moves below).
 	godot::PackedInt64Array result;
 	godot::PackedInt64Array walk_result;
+	godot::PackedInt64Array patrol_result;
+	godot::PackedInt64Array many_result;
 
 	godot::PackedInt64Array answer(int64_t moved, const Body &b);
 
@@ -64,6 +66,16 @@ public:
 	bool point_solid(int64_t x, int64_t y) const;
 	int64_t floor_top_in(int64_t l, int64_t r, int64_t y0, int64_t y1) const;
 	bool headroom(int64_t x, int64_t y, int64_t half_w, int64_t height, int64_t new_height) const;
+
+	// A patrolling walker's step (CollisionWorld.patrol_walk): [flags, x, y, contact], flags bit 0
+	// = turned at a ledge, bit 1 = ended against a wall; contact is on_ground | on_slope << 1 |
+	// (ground_tile + 1) << 2. The body's other contacts are clear after it.
+	godot::PackedInt64Array patrol_walk(int64_t x, int64_t y, int64_t half_w, int64_t height, int64_t dir, int64_t step, int64_t drop, bool falls);
+	// Many bodies in one call (CollisionWorld.patrol_many): PATROL_IN integers per body in
+	// order, [kind, x, y, half_w, height, dir, step, drop]; kind 0 refreshes the ground contact,
+	// kind 1 is a patrol step, kind 2 a patrol step of a walker that falls off ledges. The answer
+	// holds PATROL_OUT integers per body: [x, y, contact, flags] as patrol_walk (flags 0 for kind 0).
+	godot::PackedInt64Array patrol_many(const godot::PackedInt64Array &ops, int64_t count);
 };
 
 } // namespace wane

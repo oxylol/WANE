@@ -33,6 +33,7 @@ Body at_rest(int64_t x, int64_t y, int64_t half_w, int64_t height) {
 WaneSweep::WaneSweep() {
 	result.resize(10);
 	walk_result.resize(5);
+	patrol_result.resize(4);
 }
 
 void WaneSweep::_bind_methods() {
@@ -54,6 +55,8 @@ void WaneSweep::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("point_solid", "x", "y"), &WaneSweep::point_solid);
 	ClassDB::bind_method(D_METHOD("floor_top_in", "l", "r", "y0", "y1"), &WaneSweep::floor_top_in);
 	ClassDB::bind_method(D_METHOD("headroom", "x", "y", "half_w", "height", "new_height"), &WaneSweep::headroom);
+	ClassDB::bind_method(D_METHOD("patrol_walk", "x", "y", "half_w", "height", "dir", "step", "drop", "falls"), &WaneSweep::patrol_walk);
+	ClassDB::bind_method(D_METHOD("patrol_many", "ops", "count"), &WaneSweep::patrol_many);
 }
 
 void WaneSweep::set_grid(int64_t width, int64_t height, const PackedByteArray &tiles) {
@@ -167,6 +170,39 @@ int64_t WaneSweep::floor_top_in(int64_t l, int64_t r, int64_t y0, int64_t y1) co
 
 bool WaneSweep::headroom(int64_t x, int64_t y, int64_t half_w, int64_t height, int64_t new_height) const {
 	return sweep.headroom(at_rest(x, y, half_w, height), new_height);
+}
+
+PackedInt64Array WaneSweep::patrol_walk(int64_t x, int64_t y, int64_t half_w, int64_t height, int64_t dir, int64_t step, int64_t drop, bool falls) {
+	Body b = at_rest(x, y, half_w, height);
+	const int64_t flags = sweep.patrol_walk(b, dir, step, drop, falls);
+	int64_t *w = patrol_result.ptrw();
+	w[0] = flags;
+	w[1] = b.x;
+	w[2] = b.y;
+	w[3] = (b.on_ground ? 1 : 0) | (b.on_slope ? 2 : 0) | ((b.ground_tile + 1) << 2);
+	return patrol_result;
+}
+
+PackedInt64Array WaneSweep::patrol_many(const PackedInt64Array &ops, int64_t count) {
+	many_result.resize(4 * count);
+	int64_t *w = many_result.ptrw();
+	const int64_t *p = ops.ptr();
+	for (int64_t k = 0; k < count; k++) {
+		const int64_t *q = p + 8 * k;
+		Body b = at_rest(q[1], q[2], q[3], q[4]);
+		int64_t flags = 0;
+		if (q[0] == 0) {
+			sweep.refresh_ground(b);
+		} else {
+			flags = sweep.patrol_walk(b, q[5], q[6], q[7], q[0] == 2);
+		}
+		int64_t *o = w + 4 * k;
+		o[0] = b.x;
+		o[1] = b.y;
+		o[2] = (b.on_ground ? 1 : 0) | (b.on_slope ? 2 : 0) | ((b.ground_tile + 1) << 2);
+		o[3] = flags;
+	}
+	return many_result;
 }
 
 } // namespace wane

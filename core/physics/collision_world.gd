@@ -101,6 +101,79 @@ func flat_ahead(body: Body, dx: int) -> bool:
 	return use_flat_walk and _narrowed == 0 and flat.covers(body, dx, grid, solids)
 
 
+## What [method patrol_many] takes and gives per body (native/src/wane_sweep.h).
+const PATROL_IN: int = 8
+const PATROL_OUT: int = 4
+const PATROL_REFRESH: int = 0
+const PATROL_TURNS: int = 1
+const PATROL_FALLS: int = 2
+## [method patrol_walk]'s flags.
+const PATROL_LEDGE: int = 1
+const PATROL_WALL: int = 2
+
+
+## One step of a patrolling walker that stands on the ground (docs/adr/0020 Decision 2, the
+## walking dummy): unless [param falls], it turns back when no floor lies within [param drop] of
+## its feet under the leading edge after a step of [param step] in [param dir]; then it walks
+## [param step] in the way it faces, with the contacts clear before and after. Returns
+## [constant PATROL_LEDGE] if it turned and [constant PATROL_WALL] if the walk ended against a wall
+## (the caller turns the walker round then). The reference of the native call of the same name.
+func patrol_walk(body: Body, dir: int, step: int, drop: int, falls: bool) -> int:
+	if native != null:
+		return native.patrol_walk(self, body, dir, step, drop, falls)
+	var flags: int = 0
+	if not falls and _ledge_ahead(body, dir, step, drop):
+		flags = PATROL_LEDGE
+		dir = -dir
+	body.clear_contacts()
+	walk(body, dir * step)
+	if body.hit_wall != 0:
+		flags |= PATROL_WALL
+	body.clear_contacts()
+	return flags
+
+
+## True if there is no floor within [param drop] of the feet under the leading edge after the
+## next step.
+func _ledge_ahead(body: Body, dir: int, step: int, drop: int) -> bool:
+	if flat_ahead(body, dir * step):
+		return false
+	var front: int = body.x + dir * step
+	front += body.half_w - 1 if dir > 0 else -body.half_w
+	return floor_top_in(front, front + 1, body.y - drop, body.y + drop) == CollisionQueries.NONE
+
+
+## Many bodies in one call: [param count] records of [constant PATROL_IN] integers in [param ops],
+## [kind, x, y, half_w, height, dir, step, drop], kind being [constant PATROL_REFRESH]
+## ([method refresh_ground]), [constant PATROL_TURNS] or [constant PATROL_FALLS] (a
+## [method patrol_walk] of a walker that turns at ledges, or walks off them). Answers
+## [constant PATROL_OUT] integers per body: [x, y, contact, flags], contact being on_ground |
+## on_slope << 1 | (ground_tile + 1) << 2, flags as [method patrol_walk]'s (0 for a refresh).
+## Each body is moved on its own, as a body at rest with no contacts (a `Body` is not passed: a
+## batch is the cheap way to call the native sweep). The reference of the native call.
+func patrol_many(ops: PackedInt64Array, count: int) -> PackedInt64Array:
+	if native != null:
+		return native.patrol_many(self, ops, count)
+	var out: PackedInt64Array = PackedInt64Array()
+	out.resize(PATROL_OUT * count)
+	for k: int in range(count):
+		var at: int = PATROL_IN * k
+		var b: Body = Body.make(ops[at + 1], ops[at + 2], ops[at + 3], ops[at + 4])
+		var flags: int = 0
+		if ops[at] == PATROL_REFRESH:
+			refresh_ground(b)
+		else:
+			flags = patrol_walk(b, ops[at + 5], ops[at + 6], ops[at + 7], ops[at] == PATROL_FALLS)
+		var o: int = PATROL_OUT * k
+		out[o] = b.x
+		out[o + 1] = b.y
+		out[o + 2] = (
+			(1 if b.on_ground else 0) | (2 if b.on_slope else 0) | ((b.ground_tile + 1) << 2)
+		)
+		out[o + 3] = flags
+	return out
+
+
 ## Puts the full list [param all] back after a move that may have narrowed it.
 func _restore_solids(all: Array[SolidBox]) -> void:
 	if not is_same(solids, all):

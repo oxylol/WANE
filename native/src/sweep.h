@@ -116,6 +116,10 @@ public:
 	bool point_solid(int64_t x, int64_t y) const;
 	int64_t floor_top_in(int64_t l, int64_t r, int64_t y0, int64_t y1) const;
 	bool headroom(const Body &b, int64_t new_height) const;
+	// One step of a patrolling walker standing on the ground (CollisionWorld.patrol_walk): turn at a
+	// ledge unless it falls, walk with the contacts clear before and after. Returns bit 0 if it
+	// turned at a ledge, bit 1 if the walk ended against a wall.
+	int64_t patrol_walk(Body &b, int64_t dir, int64_t step, int64_t drop, bool falls);
 
 private:
 	int64_t width = 0;
