@@ -12,6 +12,8 @@ extends GdUnitTestSuite
 
 const U: int = Fx.SUB
 const SEED: int = 20261021
+## How many rooms the coverage test plays on its own.
+const COVERAGE_ROOMS: int = 36
 
 ## What the random play met, summed over the suite's rooms.
 static var met: Dictionary[String, int] = {}
@@ -300,9 +302,19 @@ func test_native_gives_the_references_answer_at_the_crest_of_a_ramp() -> void:
 
 
 func test_the_random_play_met_every_kind_of_move() -> void:
-	# Meaningful only after the other tests have played; gdUnit runs a suite's tests in order.
-	if met.is_empty():
-		return
+	# Plays its own rooms, so that it means the same run alone, filtered or in any order.
+	met.clear()
+	var rng: Rng = Rng.seeded(SEED, 9)
+	for room: int in range(COVERAGE_ROOMS):
+		var grid: TileGrid = null
+		match room % 3:
+			0:
+				grid = RandomWorlds.flat_grid(rng)
+			1:
+				grid = RandomWorlds.ramp_grid(rng)
+			_:
+				grid = RandomWorlds.soup_grid(rng)
+		_play_room(grid, rng, room % 6, "coverage room %d" % room)
 	for key: String in [
 		"walk",
 		"walk on slope",
