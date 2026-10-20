@@ -13,10 +13,16 @@
 # hall's floor), then the hall's edge (x 576 u) and an OPEN pit 2496 u wide (78 tiles) with spikes
 # along its floor and nothing above it for 320 u or more, where the longest bounce rises 131 u and
 # a bounce with its air jump 257 u (the upper level's floor is the only roof, 288 u over the hall's
-# floor). The entry lines itself up: the pit's first 8 tiles are 128 u deep, so a run off the edge
-# falls about 17 frames to the spikes and the down-strike has a 10-frame window (pressed 4 to 13
-# frames before the spikes touch; 03_main_route_early at 12 and 03_main_route_late at 4); the spike line then rises to 64 u
-# below the floor, and its last 4 tiles to 32 u, so the last bounce has a lip to land past. A chain
+# floor). The entry lines itself up: the pit's first 14 tiles (448 u) are 128 u deep, so a run off
+# the edge falls about 17 frames to the spikes and the down-strike has a 10-frame window (pressed 4
+# to 13 frames before the spikes touch; 03_main_route_early at 12 and 03_main_route_late at 4); the
+# spike line then rises to 64 u below the floor, and its last 4 tiles to 32 u, so the last bounce
+# has a lip to land past. The pocket is 14 tiles for the dash: room 02 teaches the ground dash just
+# before this room, and a ground dash carries Ash 20 u/f for 9 ticks and then 10 u/f over the
+# 17-tick fall, so a dash from the edge lands at x 918 u. A pocket of 8 tiles ended in a step at
+# x 832 u and no press from a dash 96 to 116 u before the edge missed its spikes (review F1);
+# every ground dash from 176 u before the edge to the edge has at least 8 bounce timings
+# (03_main_dash_entry; the unit test sweeps the starts). A chain
 # at the natural pace is 8 bounces, one every 36 frames (333 u at the run speed, 1.6 a second,
 # about 5 seconds): zone1_03_main_route. Every bounce lands where the spikes are, whatever the phase
 # of the run-up (checked from six start points and three press times); a missed bounce costs a
@@ -27,7 +33,12 @@
 # the edge at the floor's height (03_main_control_no_pogo_toss falls at x 3018 u, 54 u short of the
 # far wall); without the Toss 2243 u (03_main_control_no_pogo falls at x 2856 u); a carried jump
 # 1333 u, a running jump 1201 u. A crossing needs more than the width less half the body (10 u), so
-# 2496 u leaves the strongest route 54 u short; a shorter pit would be crossed by it. That fixes
+# 2496 u leaves the strongest route 54 u short; a shorter pit would be crossed by it.
+# The width is sized against the roof: on test/longchasm, the same drop with open air above, the
+# strongest route reaches 2505 u (ADR-0017), and the upper level's floor 288 u over the hall costs
+# it about 73 u (2432 u on test/longpit). Opening the roof (a skylight, a well, a lower floor)
+# would let that route cross a 2496 u pit (a crossing needs more than 2486 u), so the pit has to
+# be widened with it; the unit test holds the roof row solid over every pit column. That fixes
 # the length of the chain, not its pace: 8 bounces at the run speed, fewer at a dash-jump's.
 #
 # THE OPTIONAL PATH (the 10-bounce chain at 4 a second, s15): above the hall, a ladder of three
@@ -40,7 +51,9 @@
 # room teaches, it does not gate). The ladder stands 320 u
 # and more west of the pit's edge, so no platform is a launch pad for the main pit. Missing the
 # chain costs only a hazard (back to the upper hall's floor); nothing is behind it that the main
-# route needs. The tunnel is the old room's, moved up 11 tiles (fixtures: spawn y 608 became 320):
+# route needs. zone1_03_optional_ladder_chain plays the ladder and then the whole chain without a
+# pause (the exit at x 399 u, a dash at 435 u, the tenth arc landing 242 u past the tunnel's end).
+# The tunnel is the old room's, moved up 11 tiles (fixtures: spawn y 608 became 320):
 # the player (44 u) can rise 20 u above the spikes and no more, so a jump, a dash-jump or the air
 # jump cannot arc over them, and a bounce (794 u/s) rises to the ceiling and falls back in 13
 # frames.
@@ -96,9 +109,9 @@ tiles
 .........^^^........................................................................................................................
 ##################..............................................................................SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 ##################..........................................................................^^^^SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-##################........^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^####SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-##################........######################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-##################^^^^^^^^######################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################..............^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^####SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################..............################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################^^^^^^^^^^^^^^################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 ################################################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 ################################################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 end

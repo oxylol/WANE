@@ -1,0 +1,15 @@
+fixture zone1_03_main_dash_entry
+doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards"; docs/adr/0019 Decision 5 (the entry). Room 03's main route entered with a ground dash, the move room 02 teaches just before it: a dash that starts 96 u before the hall's edge (x 480) carries Ash 20 u/f for 9 ticks and then 10 u/f over a 17-tick fall, so he reaches the spikes about 250 u inside the pit. A pocket of 8 tiles ended in a step there and every press ended on its spikes (a hazard on tick 26 to 28); the pocket is 14 tiles (448 u), so the down-strike pressed on tick 19 bounces on the 128 u line on tick 25 and Ash arcs on to the 64 u line without a hazard.
+room zone1/03_pogo_chain
+spawn 480 672
+frames 50
+input
+  0 R dash
+  1..18 R
+  19 R D attack
+  20..49 R
+end
+expect
+  at 25 event.pogo=1 x>576u x<1024u y>780u
+  never 0..49 event.hazard=1
+end

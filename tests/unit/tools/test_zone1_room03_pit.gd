@@ -31,11 +31,19 @@ const FLOOR_ROW: int = 21
 const ROOF_ROW: int = 11
 const PIT_FIRST_COL: int = 18
 const PIT_COLS: int = 78
-const DEEP_COLS: int = 8
+const DEEP_COLS: int = 14
 const DEEP_ROW: int = 25
 const SHALLOW_ROW: int = 23
 const LIP_COLS: int = 4
 const LIP_ROW: int = 22
+## The ground-dash entry: starts from this far before the edge, every step, press ticks tried,
+## the ticks a bounce must live, and the timings a start must have (the dash's own window).
+const ENTRY_BEFORE_EDGE_U: int = 176
+const ENTRY_STEP_U: int = 16
+const ENTRY_PRESS_FIRST: int = 8
+const ENTRY_PRESS_LAST: int = 39
+const ENTRY_LIVE_TICKS: int = 20
+const ENTRY_MIN_PRESSES: int = 8
 ## The farthest reach of the strongest route without a pogo (a ground dash-jump, the air jump, the
 ## air dash and the Ember Toss), tools/replay/gap_reach.gd on test/longpit: units past the near
 ## edge, at the floor's height.
@@ -190,6 +198,58 @@ func test_the_main_chain_is_a_few_bounces_at_the_natural_pace() -> void:
 	assert_int(wall_u - pit_xs[pit_xs.size() - 1]).is_between(40, 160)
 
 
+## Presses (ticks after a ground dash on tick 0) that bounce on the pit's spikes and live 20 more
+## ticks without a hazard, for a ground dash that starts at x [param start_u] on the hall's floor.
+func _entry_presses(start_u: int) -> int:
+	var count: int = 0
+	for press: int in range(ENTRY_PRESS_FIRST, ENTRY_PRESS_LAST + 1):
+		var sc: Scenario = Scenario.make(1, ROOM)
+		sc.spawn_x = start_u
+		sc.spawn_y = FLOOR_ROW * TILE_U
+		var sim := Simulation.new(sc)
+		var bounced: int = -1
+		var hazard: int = -1
+		for t: int in range(press + ENTRY_PRESS_LAST + ENTRY_LIVE_TICKS):
+			var held: int = 0
+			var pressed: int = 0
+			var down: int = 0
+			if t == 0:
+				pressed |= InputFrame.DASH
+			if t == press:
+				pressed |= InputFrame.ATTACK
+				held |= InputFrame.ATTACK
+				down = 127
+			sim.step(InputFrame.make(held, pressed, 127, down))
+			if bounced < 0 and sim.events.has(SimEvents.POGO):
+				bounced = t
+			if hazard < 0 and sim.events.has(SimEvents.HAZARD):
+				hazard = t
+			if hazard >= 0 or (bounced >= 0 and t >= bounced + ENTRY_LIVE_TICKS):
+				break
+		if bounced >= 0 and (hazard < 0 or hazard > bounced + ENTRY_LIVE_TICKS):
+			count += 1
+	return count
+
+
+func test_a_ground_dash_before_the_edge_has_a_downstrike_window() -> void:
+	# Room 02 teaches the dash just before this room, so a ground dash off the edge is the likeliest
+	# entry after a run. It carries 20 u/f for the dash and 10 u/f for the 17 ticks of the fall, so
+	# the deep pocket has to be long enough to land it: a pocket that ends in a step touches the
+	# step's spikes whatever the player does (the review: 0 presses for a dash 96 to 116 u before
+	# the edge). Every start from 176 u before the edge to the edge has the dash's window.
+	var start_u: int = NEAR_EDGE_U - ENTRY_BEFORE_EDGE_U
+	while start_u <= NEAR_EDGE_U:
+		var presses: int = _entry_presses(start_u)
+		(
+			assert_int(presses)
+			. override_failure_message(
+				"ground dash from x %d u: %d bounce timings" % [start_u, presses]
+			)
+			. is_greater_equal(ENTRY_MIN_PRESSES)
+		)
+		start_u += ENTRY_STEP_U
+
+
 func test_the_ladder_is_no_launch_pad_for_the_pit() -> void:
 	var room: RoomData = _room()
 	var reach_col: int = 0
@@ -342,4 +402,11 @@ func test_the_room_header_and_the_adr_say_what_the_room_is() -> void:
 	]:
 		assert_bool(header.contains(word)).is_true()
 	assert_bool(adr.contains("03_route_slow_opener")).is_true()
+	# The width is sized against the roof, and the ladder joins the chain, said where it is held.
+	for word: String in [
+		"sized against the roof", "03_main_dash_entry", "03_optional_ladder_chain"
+	]:
+		assert_bool(header.contains(word) or adr.contains(word)).is_true()
+	assert_bool(adr.contains("sized against the roof")).is_true()
+	assert_bool(header.contains("sized against the roof")).is_true()
 	assert_bool(adr.contains("03_main_control_no_pogo_toss")).is_true()
