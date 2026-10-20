@@ -40,6 +40,7 @@ const NOT_STATE: Array[String] = [
 	"patrol_falls",
 	"patrol_drop",
 	"settled",
+	"_hash_words",
 ]
 
 
