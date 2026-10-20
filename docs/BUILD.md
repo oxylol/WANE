@@ -696,7 +696,26 @@ The HUD is the Wick. Health is the ember in their chest, Flame is the glow of th
 
 Godot 4.x, with a deterministic simulation core that owns every gameplay rule and a Godot scene tree that only draws it. The simulation runs at a fixed 60 Hz on integer sub-pixel positions, so a run is a seed plus an input stream, and every movement tech is a replay test in CI.
 
-&#91;embedded content: architecture · input, deterministic core, presentation, content, tooling\]
+**The simulation core owns every rule; Godot only draws it.**
+
+```
+Input · InputFrame every tick, 8-frame buffer
+   │
+   ▼
+Simulation core · deterministic, 60 Hz, integer sub-pixels      ◄── defines ── Content · .tres/.json
+   Physics sweep (slopes + corners) · State machines (player FSM, AI)           7 Wicks, 120 Votives
+   Combat and procs (hitboxes, proc bus) · Votives (stacking curves)            60+ enemies, 12 bosses
+   Wane Clock (D(t) and the Dark) · Seeded RNG (split streams)                  rooms, zones, 40 notes
+   │                                   │                                        art and audio from source
+   │ state snapshot,                   └── seed + inputs + hashes ──► Tooling and CI
+   │ interpolated for render                                           replay: seed + inputs
+   ▼                                                                   12 tech replay fixtures
+Presentation · Godot scene tree as a view                              boss phase fixtures
+   Animator (frame-indexed) · Lighting (ember, normals)                F3 debug overlay
+   VFX budget (cull by priority) · Camera (lead + dead zone)           perf gate: 60 fps stress
+   Audio (code-synthesized) · UI (diegetic HUD)                        screenshot regression
+                                                                       asset build + style gate
+```
 
 Input feeds the core once per tick; the core hands a state snapshot to the Godot view; content defines the core's numbers; tooling records the seed and inputs and replays them in CI.
 
@@ -781,7 +800,16 @@ Every non-obvious choice (sub-pixel integers, GDScript over C#, synthesized audi
 
 Thirty months in six phases, each closed by a gate that is a feel test, not a date. The calendar is a plan; the gates are the contract. A phase that fails its gate repeats; it does not slip its scope forward.
 
-&#91;embedded content: roadmap · 6 phases, 5 gates, 30 months\]
+**Six phases, five gates: nothing ships until the feel passes.**
+
+| Phase | Scope | Months | Gate to leave it |
+| --- | --- | --- | --- |
+| 1 · Feel prototype | Ash's movement and Taper in grey boxes; camera; F3 overlay; all 12 tech replay fixtures green | 0 to 3 | Gate 1: the Immaculate Checklist passes on grey boxes; three outside players call it tight |
+| 2 · Vertical slice | Guttering Fields art-complete from code sources, lighting, Vigil, the Gnawer, 30 Votives, synthesized audio | 3 to 9 | Gate 2: a stranger plays 20 minutes and asks to keep going; 60 fps on the Steam Deck profile |
+| 3 · Systems complete | 7 Wicks, 120 Votives, every enemy and boss in grey box, all 12 zones blocked out, the Hearth, saves | 9 to 15 | Gate 3: beatable start to finish with the starting kit and no art; zero desyncs across 500 CI replays |
+| 4 · Content complete (alpha) | Every sprite, background, VFX, cue and line of dialogue final; all three endings playable | 15 to 22 | Gate 4: zero placeholder assets; the style gate is green on 100% of imports |
+| 5 · Polish (beta) | A feel pass on every room, performance and memory to target, accessibility, localization, Deck verification | 22 to 27 | Gate 5: the GOTY bar in section 1 holds on every platform; certification passed |
+| 6 · Launch and beyond | 1.0 on Steam and Steam Deck; consoles through a porting partner; then co-op and a seventh zone | 27 to 30, then ongoing | |
 
 Each gate is a sentence a person can check by playing the build; a phase repeats until its sentence is true.
 

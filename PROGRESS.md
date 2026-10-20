@@ -1,7 +1,7 @@
 # WANE: progress
 
-- **Phase:** 1, feel in grey boxes (BUILD.md section 14; CLAUDE.md kickoff order). All ten kickoff tasks are built and merged; the Immaculate Checklist pass is done and its report is drafted below ("Phase 1 report"). **Not claimed signed off:** it waits on the director (play, and the questions under "For the director"), and CI has not yet run on this tree. Phase 2 does not start before that.
-- **Status:** Phase 1 report ready for review
+- **Phase:** 2, the vertical slice (BUILD.md section 14: Guttering Fields art-complete from code sources, lighting, Vigil, the Gnawer, 30 Votives, synthesized audio; Gate 2: a stranger plays 20 minutes and asks to keep going; 60 fps on the Steam Deck profile). Phase 1 was approved by the director on 2026-10-20 ("the rest looks good"), with two of the director's play notes in progress: zone 1 room 03 becomes an open pit with an optional 4-per-second path, and solid boxes are coloured by what they do. Gate 1's "three outside players call it tight" is the director's to run. CI run 25 was green on the Phase 1 tree.
+- **Status:** Phase 2 task 1 (the ink-line and gouache-fill shaders, the lighting pass, `tools/artbuild/`) starting; the director's room 03 and box-colour notes in progress
 - **Engine:** Godot 4.7.2-stable (ADR-0001); `Simulation.VERSION` 12; golden hashes blessed once at 12 (545 fixtures, 805 unit cases, 252 scripts, all passing on this container)
 
 ## Kickoff order
@@ -95,8 +95,8 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 
 ## Blocked
 
-1. **BUILD.md section 14's roadmap body and section 13's architecture diagram did not survive the export to Markdown** (`docs/BUILD.md` lines 692 and 777 read "[embedded content: ...]"). The Phase 1 gate sentence and the per-phase contents are therefore unknown; Phase 1 followed CLAUDE.md's kickoff order. **Director: please paste the roadmap table (phases, gates, months) and the architecture diagram's text.**
-2. **The frame gate needs hardware we do not have in CI.** BUILD.md: "a stress room ... on a GPU runner", "60 fps ... on reference PC settings, 15.0 ms on the Deck profile". GitHub-hosted runners have no GPU. The CPU budget is gated (`ci/perf.sh`); the GPU numbers need a self-hosted runner on the reference PC (RTX 4060-class) and a Steam Deck. **Director: can you provide either, or may the line close on the PC plus the CPU numbers?**
+1. Closed 2026-10-20: the director supplied the roadmap and the architecture diagram; both are restored in `docs/BUILD.md` sections 13 and 14.
+2. Closed 2026-10-20 by the director: the frame line closes on PC and CPU numbers (the CPU budget gated in CI, `ci/perf.sh`); a GPU runner and the Deck are not provided. The roadmap's Phase 5 carries Deck verification, and Gate 2 asks 60 fps on the Steam Deck profile, measured then on the hardware the director plays.
 3. **Tech 8 (attack-cancel landing) is taught, not enforced, in zone 1 room 8** (and tech 9, ADR-0016). A dash outruns a dummy's 24 f telegraph (`tests/replay/zone1/08_gap_two_dashes.fixture`, a known-gap fixture). Closes when a boss with a short window blocks the door (Phase 2); then the gap fixture becomes a control.
 
 (The old Blocked 3, the camera jolt on a pogo during a teleport glide, is closed: `2026-10-20-camera-glide-jolt.md`.)
@@ -116,10 +116,10 @@ What to play (Windows or Linux with a display; `godot --path .` boots zone 1 roo
 
 Decisions waiting on you:
 
-1. Roadmap and architecture diagram text (Blocked 1).
-2. A GPU runner and a Deck, or close the frame line on the PC plus CPU numbers (Blocked 2).
+1. Answered: roadmap and architecture restored (Blocked 1 closed).
+2. Answered: close the frame line on PC plus CPU numbers (Blocked 2 closed).
 3. A single-run gate: single runs of the step and the presentation read over their sub-budgets (see the report); gate the median or the single run on the reference PC, keeping the best of 3 only for shared CI?
-4. Proc storms: a Votive that chains on every proc event, from every source, costs about 22 us a proc and a swing on a bunched crowd is 300 to 550 procs (5 to 10 ms in one tick). Do the Votives carry internal cooldowns or the engine a per-tick proc budget (and BUILD.md section 6 says so), or does the engine pay (proc path in C++)? The storm stays in the bench.
+4. Proc storms: a Votive that chains on every proc event, from every source, costs about 22 us a proc and a swing on a bunched crowd is 300 to 550 procs (5 to 10 ms in one tick). Do the Votives carry internal cooldowns or the engine a per-tick proc budget (and BUILD.md section 6 says so), or does the engine pay (proc path in C++)? The storm stays in the bench. **Lead's decision (2026-10-20; the director left it to the lead):** a per-tick proc budget in content; procs past it carry over, first in first out, to the next ticks, so none is lost, the burst plays out over a few frames and the run stays deterministic. Built with the Phase 2 Votives (an ADR then).
 5. The stress workload's minimums (12,000 to 8,000 procs, 14,000 to 9,000 hits) were the lead's decision, recorded in ADR-0020 Decision 15: guards that the run did its work, not cost gates. Say if you want it otherwise.
 6. `Simulation.VERSION` was bumped per commit (9, 10, 11) and golden hashes were re-blessed once at 12: collapse to one per release?
 7. Content hash covers a Votive's tooltip text, so a wording change forces a re-bless: should it cover display text at all? The listener boundary check is regex-based, not a token check.
