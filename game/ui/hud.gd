@@ -28,13 +28,6 @@ const TIER_COLOURS: Array[Color] = [
 	Color(0.55, 0.55, 0.6), Color(1.0, 0.6, 0.2), Color(1.0, 0.35, 0.15), Color(1.0, 1.0, 1.0)
 ]
 const PIP_OFF := Color(0.2, 0.2, 0.22)
-const MARGIN_PX: float = 32.0
-const HEART_PX: float = 28.0
-const BAR_W_PX: float = 14.0
-const BAR_H_PX: float = 120.0
-const PIP_PX: float = 14.0
-const PIP_GAP_PX: float = 6.0
-const GAIN_OUTLINE_PX: float = 4.0
 
 var vitals: Vitals
 var tuning: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
@@ -79,47 +72,61 @@ func on_tick(events: SimEvents = null) -> void:
 func _draw_hud() -> void:
 	if vitals == null:
 		return
+	var t: FeedbackTuning = tuning
 	var h: Hearts = vitals.hearts
 	for i: int in range(h.max_hearts):
-		var at := Vector2(MARGIN_PX + i * (HEART_PX + 8.0), MARGIN_PX)
+		var at := Vector2(
+			t.hud_margin_px + i * (t.hud_heart_px + t.hud_heart_gap_px), t.hud_margin_px
+		)
 		var c: Color = HEART if i < h.current else HEART_EMPTY
-		_canvas.draw_colored_polygon(_heart(at, HEART_PX), c)
-	var bar_x: float = MARGIN_PX + h.max_hearts * (HEART_PX + 8.0) + 8.0
-	_draw_flame(Rect2(bar_x, MARGIN_PX, BAR_W_PX, BAR_H_PX))
+		_canvas.draw_colored_polygon(_heart(at, t.hud_heart_px), c)
+	var bar_x: float = (
+		t.hud_margin_px + h.max_hearts * (t.hud_heart_px + t.hud_heart_gap_px) + t.hud_bar_gap_px
+	)
+	_draw_flame(Rect2(bar_x, t.hud_margin_px, t.hud_bar_w_px, t.hud_bar_h_px))
 	var tier: int = vitals.kindling.tier()
-	for t: int in range(TIER_COLOURS.size()):
-		var at := Vector2(MARGIN_PX + t * (PIP_PX + PIP_GAP_PX), MARGIN_PX + HEART_PX + 14.0)
+	for n: int in range(TIER_COLOURS.size()):
+		var at := Vector2(
+			t.hud_margin_px + n * (t.hud_pip_px + t.hud_pip_gap_px),
+			t.hud_margin_px + t.hud_heart_px + t.hud_pip_drop_px
+		)
 		_canvas.draw_rect(
-			Rect2(at, Vector2(PIP_PX, PIP_PX)), TIER_COLOURS[t] if t <= tier else PIP_OFF
+			Rect2(at, Vector2(t.hud_pip_px, t.hud_pip_px)),
+			TIER_COLOURS[n] if n <= tier else PIP_OFF
 		)
 
 
 ## The Flame bar in [param bar]: the fill at the true value, the ghost, the cost marks, the frame.
 func _draw_flame(bar: Rect2) -> void:
+	var t: FeedbackTuning = tuning
 	var cap: float = float(vitals.flame.cap)
-	var value: float = BAR_H_PX * float(vitals.flame.value) / cap
-	var ghost: float = BAR_H_PX * ghost_flame / cap
+	var value: float = t.hud_bar_h_px * float(vitals.flame.value) / cap
+	var ghost: float = t.hud_bar_h_px * ghost_flame / cap
 	var flashing: bool = gain_flash > 0 and flash_scale > 0.0
 	var solid: Color = FLAME.lerp(FLAME_GAIN, flash_scale) if gain_flash > 0 else FLAME
 	var base: float = minf(value, ghost)
-	_canvas.draw_rect(Rect2(bar.position.x, bar.end.y - base, BAR_W_PX, base), solid)
+	_canvas.draw_rect(Rect2(bar.position.x, bar.end.y - base, t.hud_bar_w_px, base), solid)
 	if ghost > value:
 		# A spend: what was there, not what is.
 		_canvas.draw_rect(
-			Rect2(bar.position.x, bar.end.y - ghost, BAR_W_PX, ghost - value), FLAME_GHOST
+			Rect2(bar.position.x, bar.end.y - ghost, t.hud_bar_w_px, ghost - value), FLAME_GHOST
 		)
 	elif value > ghost:
 		# A gain: the part that is already there, shown brighter until it settles.
 		_canvas.draw_rect(
-			Rect2(bar.position.x, bar.end.y - value, BAR_W_PX, value - ghost), FLAME_GAIN
+			Rect2(bar.position.x, bar.end.y - value, t.hud_bar_w_px, value - ghost), FLAME_GAIN
 		)
 	for cost: int in spell_costs:
-		var y: float = bar.end.y - BAR_H_PX * float(cost) / cap
-		_canvas.draw_line(Vector2(bar.position.x, y), Vector2(bar.end.x, y), COST_MARK, 2.0)
-	_canvas.draw_rect(bar, FRAME, false, 2.0)
+		var y: float = bar.end.y - t.hud_bar_h_px * float(cost) / cap
+		_canvas.draw_line(
+			Vector2(bar.position.x, y), Vector2(bar.end.x, y), COST_MARK, t.hud_line_px
+		)
+	_canvas.draw_rect(bar, FRAME, false, t.hud_line_px)
 	if gain_flash > 0 and not flashing:
 		# Flashes at 0%: the bar is outlined, not lit.
-		_canvas.draw_rect(bar.grow(GAIN_OUTLINE_PX * 0.5), FRAME_GAIN, false, GAIN_OUTLINE_PX)
+		_canvas.draw_rect(
+			bar.grow(t.hud_gain_outline_px * 0.5), FRAME_GAIN, false, t.hud_gain_outline_px
+		)
 
 
 ## A heart shape [param s] pixels wide with its top-left at [param at].

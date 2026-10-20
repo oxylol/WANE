@@ -109,11 +109,12 @@ func test_the_hud_draws_every_heart_and_tier() -> void:
 
 func test_hearts_are_hearts() -> void:
 	# The polygon is closed-shape-sized: inside a box the heart's size, and wider than tall.
-	var pts: PackedVector2Array = Hud._heart(Vector2.ZERO, Hud.HEART_PX)
+	var heart_px: float = (load(FeedbackTuning.PATH) as FeedbackTuning).hud_heart_px
+	var pts: PackedVector2Array = Hud._heart(Vector2.ZERO, heart_px)
 	var r := Rect2(pts[0], Vector2.ZERO)
 	for p: Vector2 in pts:
 		r = r.expand(p)
-	assert_float(r.size.x).is_between(Hud.HEART_PX * 0.85, Hud.HEART_PX * 1.0)
+	assert_float(r.size.x).is_between(heart_px * 0.85, heart_px * 1.0)
 	assert_float(r.size.y).is_less(r.size.x)
 	assert_bool(Geometry2D.triangulate_polygon(pts).is_empty()).is_false()
 

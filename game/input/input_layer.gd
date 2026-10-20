@@ -56,7 +56,7 @@ static func install_actions(s: InputSettings) -> void:
 			InputMap.erase_action(action)
 		# Thresholds are applied by the layer itself (with hysteresis); the action's own dead zone
 		# only has to keep resting sticks from registering at all.
-		InputMap.add_action(action, 0.05)
+		InputMap.add_action(action, float(s.action_dead_zone_percent) / 100.0)
 		for token: String in line.substr(eq + 1).split(",", false):
 			var event: InputEvent = s.parse_event(token)
 			if event != null:

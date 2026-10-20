@@ -5,8 +5,11 @@ extends Node2D
 ## interpolates between the last two simulation states"). A corner-correction nudge is eased: on
 ## its tick the drawn player keeps moving as it was, then catches up with the collider, from rest
 ## over [member PlayerViewTuning.nudge_ease_frames] (BUILD.md section 15: "the corner-correction
-## nudge is invisible"). A placeholder until the rig (Phase 2); it reads the core and never writes
-## it.
+## nudge is invisible"). It squashes on a landing and stretches at the top of a jump (BUILD.md
+## section 10: squash on landing, 3 f, 110% wide; stretch at jump apex, 2 f, 94% wide; scaled by the
+## vertical speed), anchored at the feet and drawn only: the collider, the camera and the lighting
+## keep the true box ([method box_at]), and nothing waits for it. A placeholder until the rig
+## (Phase 2); it reads the core and never writes it.
 
 const STATE_COLOURS: Dictionary[String, Color] = {
 	"ground": Color(0.35, 0.70, 1.00),
@@ -16,6 +19,7 @@ const STATE_COLOURS: Dictionary[String, Color] = {
 }
 const EMBER := Color(1.00, 0.55, 0.15)
 const INVULNERABLE := Color(1.0, 1.0, 1.0, 0.5)
+const EYE := Color(0.1, 0.1, 0.12)
 
 var tuning: PlayerViewTuning = load(PlayerViewTuning.PATH) as PlayerViewTuning
 
@@ -38,6 +42,18 @@ var _catch: Vector2 = Vector2.ZERO
 ## The largest nudge on each axis since the drawn player last met the collider: the run's nudge,
 ## which sets how hard it may catch up and how far it may fall behind.
 var _run: Vector2 = Vector2.ZERO
+## Ticks captured, for the squash's and the stretch's ages.
+var _tick: int = 0
+## The tick the squash and the stretch began on (or a tick long past), and how strongly, 0..1.
+var _squash_tick: int = -1000
+var _squash_amount: float = 0.0
+var _stretch_tick: int = -1000
+var _stretch_amount: float = 0.0
+## The vertical speed after the tick before, whether the player was in the air then, and the
+## fastest rise (sub-pixels a tick) since it left the ground.
+var _vy_before: int = 0
+var _was_air: bool = false
+var _rise_peak: int = 0
 
 
 ## Starts from [param sim]'s state with nothing to interpolate from.
@@ -46,6 +62,7 @@ func begin(sim: Simulation) -> void:
 	_before = _after
 	_ember_before = _ember_after
 	_stop_ease()
+	_stop_shape()
 
 
 ## Takes the state after a tick.
@@ -71,6 +88,7 @@ func capture(sim: Simulation) -> void:
 	_facing = pl.facing
 	_invulnerable = pl.invuln > 0
 	_ease_nudge(Vector2(-b.nudge_x, -b.nudge_y) / Fx.SUB)
+	_note_shape(sim, pl)
 	# A teleport, a respawn (a hazard's, or a lethal hit's: the player is sent back to the room's
 	# spawn on that tick) or a door moves the player in one tick: draw it there, not sliding
 	# there (task 5 review 3, M2).
@@ -82,6 +100,41 @@ func capture(sim: Simulation) -> void:
 	):
 		_before = _after
 		_stop_ease()
+		_stop_shape()
+
+
+## Starts the squash on a land event and the stretch at the end of a rise, from this tick's events
+## and the player's vertical speed ([param sim] after the tick).
+func _note_shape(sim: Simulation, pl: Player) -> void:
+	_tick += 1
+	var vy: int = pl.body.vy
+	var in_air: bool = _state == "air"
+	var landed: int = sim.events.kinds.find(SimEvents.LAND)
+	if landed >= 0:
+		var impact_ups: float = float(absi(sim.events.values[landed])) * Fx.HZ / Fx.SUB
+		var span: float = float(tuning.landing_full_impact_ups - tuning.landing_min_impact_ups)
+		var amount: float = clampf((impact_ups - tuning.landing_min_impact_ups) / span, 0.0, 1.0)
+		if amount > 0.0:
+			_squash_tick = _tick
+			_squash_amount = amount
+	if in_air and vy < 0:
+		_rise_peak = maxi(_rise_peak, -vy)
+	if _was_air and in_air and _vy_before < 0 and vy >= 0 and not pl.body.hit_ceiling:
+		var rise_ups: float = float(_rise_peak) * Fx.HZ / Fx.SUB
+		_stretch_tick = _tick
+		_stretch_amount = clampf(rise_ups / float(tuning.apex_full_rise_ups), 0.0, 1.0)
+	if not in_air or vy >= 0:
+		_rise_peak = 0
+	_vy_before = vy
+	_was_air = in_air
+
+
+func _stop_shape() -> void:
+	_squash_amount = 0.0
+	_stretch_amount = 0.0
+	_squash_tick = -1000
+	_stretch_tick = -1000
+	_rise_peak = 0
 
 
 func _stop_ease() -> void:
@@ -164,13 +217,44 @@ func collider_at(alpha: float) -> Rect2:
 	return Rect2(feet - Vector2(size.x * 0.5, size.y), size)
 
 
+## The drawn width and height factors at [param alpha] between the last two ticks: 1 at rest,
+## wide and low through a landing's squash, narrow and tall through the apex's stretch, the area
+## kept either way. The core's boxes are never scaled by it.
+func scale_at(alpha: float) -> Vector2:
+	var wide: float = 1.0
+	var squash_t: float = (float(_tick - _squash_tick) - 1.0 + alpha) / tuning.landing_squash_frames
+	if squash_t >= 0.0 and squash_t < 1.0:
+		var drop: float = 1.0 - squash_t * squash_t * (3.0 - 2.0 * squash_t)
+		wide *= (
+			1.0 + (float(tuning.landing_squash_width_percent) / 100.0 - 1.0) * _squash_amount * drop
+		)
+	var stretch_t: float = (float(_tick - _stretch_tick) - 1.0 + alpha) / tuning.apex_stretch_frames
+	if stretch_t >= 0.0 and stretch_t < 1.0:
+		var swell: float = sin(PI * stretch_t)
+		wide *= (
+			1.0 - (1.0 - float(tuning.apex_stretch_width_percent) / 100.0) * _stretch_amount * swell
+		)
+	return Vector2(wide, 1.0 / wide)
+
+
+## The player as drawn at [param alpha]: [method box_at] scaled by [method scale_at] about the
+## middle of its feet.
+func drawn_box_at(alpha: float) -> Rect2:
+	var box: Rect2 = box_at(alpha)
+	var size: Vector2 = box.size * scale_at(alpha)
+	return Rect2(Vector2(box.get_center().x - size.x * 0.5, box.end.y - size.y), size)
+
+
 func _draw() -> void:
-	var box: Rect2 = box_at(_alpha)
+	var box: Rect2 = drawn_box_at(_alpha)
+	var k: Vector2 = scale_at(_alpha)
 	var colour: Color = STATE_COLOURS.get(_state, Color.GRAY)
 	draw_rect(box, colour)
-	var eye_x: float = box.end.x - 6.0 if _facing > 0 else box.position.x + 2.0
-	draw_rect(Rect2(eye_x, box.position.y + 6.0, 4.0, 4.0), Color(0.1, 0.1, 0.12))
+	var eye := Vector2(tuning.eye_size_u, tuning.eye_size_u) * k
+	var gap: float = tuning.eye_edge_gap_u * k.x
+	var eye_x: float = box.end.x - gap - eye.x if _facing > 0 else box.position.x + gap
+	draw_rect(Rect2(Vector2(eye_x, box.position.y + tuning.eye_drop_u * k.y), eye), EYE)
 	if _invulnerable:
-		draw_rect(box, INVULNERABLE, false, 2.0)
+		draw_rect(box, INVULNERABLE, false, tuning.invulnerable_outline_u)
 	if _ember_out:
-		draw_circle(_ember_before.lerp(_ember_after, _alpha), 6.0, EMBER)
+		draw_circle(_ember_before.lerp(_ember_after, _alpha), tuning.ember_radius_u, EMBER)

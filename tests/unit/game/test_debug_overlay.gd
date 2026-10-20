@@ -169,3 +169,33 @@ func test_drawing_records_the_boxes_and_never_changes_the_simulation() -> void:
 	assert_bool(kinds.has(DebugBoxes.HURTBOX)).is_true()
 	assert_bool(kinds.has(DebugBoxes.STRIKE)).is_true()
 	assert_int(_driver.sim.state_hash()).is_equal(hash_before)
+
+
+func test_a_crowds_labels_are_legible_nearest_first_and_never_overlap() -> void:
+	# The stress room's F3 sheet had 200 enemy labels printed over one another.
+	var font: Font = ThemeDB.fallback_font
+	var items: Array[DebugBoxes.Box] = []
+	for k: int in range(200):
+		var b := DebugBoxes.Box.new()
+		b.kind = DebugBoxes.ENEMY
+		b.rect = Rect2(Vector2(float(k % 20) * 40.0, float(k / 20) * 30.0), Vector2(20, 40))
+		b.label = "dummy idle  hp 200/200  poise 30"
+		items.append(b)
+	var focus := Vector2(400, 150)
+	var shown_labels: Array[DebugBoxes.Box] = DebugOverlay.readable_labels(items, focus, font, 18)
+	assert_int(shown_labels.size()).is_greater(0)
+	assert_int(shown_labels.size()).is_less(items.size())
+	var ascent: float = font.get_ascent(18)
+	var texts: Array[Rect2] = []
+	for b: DebugBoxes.Box in shown_labels:
+		var size: Vector2 = font.get_string_size(b.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+		texts.append(Rect2(b.rect.position + Vector2(0, -4 - ascent), size))
+	for i: int in range(texts.size()):
+		for j: int in range(i + 1, texts.size()):
+			assert_bool(texts[i].intersects(texts[j])).is_false()
+	# The nearest to the focus is always drawn.
+	var nearest: DebugBoxes.Box = items[0]
+	for b: DebugBoxes.Box in items:
+		if b.rect.get_center().distance_to(focus) < nearest.rect.get_center().distance_to(focus):
+			nearest = b
+	assert_bool(shown_labels.has(nearest)).is_true()

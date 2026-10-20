@@ -17,6 +17,10 @@ const FRAME_US: int = 16600
 ## The worst tick of the zone 1 loop, played [member zone_passes] times through.
 @export var zone_max_us: int = 20000
 @export var zone_passes: int = 6
+## The first crossing of a door into a room of zone 1 at Pitch (the room view's tiles and the
+## lighting's occluders, drawn on the tick of the room event): no more than an eighth of a frame, so
+## a door frame is no frame-time spike (`tools/bench/door_bench.gd`).
+@export var door_max_us: int = 2000
 ## Whole runs of the stress scenario; each tick's time is the least of them (the work of a tick is
 ## fixed, so the rest is the machine's noise).
 @export var repeats: int = 3
@@ -55,6 +59,8 @@ func validate() -> PackedStringArray:
 		if v <= 0:
 			e.append("every time in the perf budget must be positive")
 			break
+	if door_max_us <= 0 or door_max_us > sim_max_us:
+		e.append("the door crossing's budget must be positive and no more than the spike limit")
 	if sim_p99_us > sim_max_us:
 		e.append("the 99th percentile cannot be allowed to exceed the worst tick")
 	if repeats < 1 or zone_passes < 1 or warmup_ticks < 0:

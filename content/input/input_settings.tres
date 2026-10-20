@@ -7,6 +7,7 @@ script = ExtResource("1")
 dead_zone_inner_percent = 12
 dead_zone_outer_percent = 95
 dead_zone_release_percent = 10
+action_dead_zone_percent = 5
 trigger_press_percent = 50
 trigger_release_gap_percent = 10
 stick_axis_x = 0

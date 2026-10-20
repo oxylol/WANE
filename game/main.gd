@@ -64,6 +64,7 @@ func _ready() -> void:
 	debug_controls.overlay = debug_overlay
 	enemy_view.capture(driver.sim)
 	combat_view.player_view = player_view
+	combat_view.vfx = vfx
 	hit_feedback.attach(vfx, voices)
 	hit_feedback.slow_motion.connect(driver.slow)
 	hit_feedback.rumble.connect(_on_rumble)
@@ -97,22 +98,29 @@ func _scenario() -> Scenario:
 func _on_ticked() -> void:
 	var sim: Simulation = driver.sim
 	if sim.events.has(SimEvents.ROOM):
-		room_view.show_world(sim.world, sim.room.doors)
-		if lighting != null:
-			lighting.show_world(sim.world)
+		enter_room(sim)
 	player_view.capture(sim)
 	enemy_view.capture(sim)
-	combat_view.capture(sim)
 	game_camera.step(sim)
 	# The feedback ages the VFX budget before it starts this tick's effects, so each is drawn from
 	# its first frame.
 	hit_feedback.on_tick(sim)
+	# After the feedback has aged the budget: the combat view's objects are drawn from tick 0.
+	combat_view.capture(sim)
 	enemy_view.flash_scale = hit_feedback.flash_scale
 	hud.flash_scale = hit_feedback.flash_scale
 	hud.on_tick(sim.events)
 	if sim.player != null:
 		voices.listener = Vector2(sim.player.body.x, sim.player.body.y) / Fx.SUB
 	debug_overlay.capture()
+
+
+## Shows the room the player has come into ([param sim]'s current room): its tiles, and under
+## Pitch its occluders.
+func enter_room(sim: Simulation) -> void:
+	room_view.show_world(sim.world, sim.room.doors)
+	if lighting != null:
+		lighting.show_world(sim.world, sim.room.id)
 
 
 func _process(delta: float) -> void:
@@ -137,7 +145,14 @@ func _start_lighting() -> void:
 	if LightingRig.asks_for_pitch(word):
 		lighting = LightingRig.new()
 		$World.add_child(lighting)
-		lighting.show_world(driver.sim.world)
+		lighting.show_world(driver.sim.world, driver.sim.room.id)
+		# Every room of the zone's set is built now, hidden, so that a crossing builds nothing (a
+		# zone's rooms are all reached by doors; at 60 rooms a zone this becomes the neighbours
+		# of the room, docs/adr/0020 Decision 19). An edited grid is rebuilt by prebuild.
+		for id: String in driver.sim.rooms.rooms:
+			var beyond: RoomData = driver.sim.rooms.rooms[id]
+			if beyond.errors.is_empty():
+				lighting.prebuild(id, beyond.grid)
 
 
 func _on_rumble(strength: float, msec: int) -> void:

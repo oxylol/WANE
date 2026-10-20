@@ -175,22 +175,57 @@ func _draw() -> void:
 		draw_rect(
 			box.rect, colour, false, ENEMY_LINE_PX if box.kind == DebugBoxes.ENEMY else BOX_LINE_PX
 		)
-		if box.label != "":
-			draw_string(
-				font,
-				box.rect.position + Vector2(0, -4 - box.label_lift),
-				box.label,
-				HORIZONTAL_ALIGNMENT_LEFT,
-				-1,
-				FONT_SIZE,
-				colour
-			)
+	for box: DebugBoxes.Box in readable_labels(boxes, view.get_center(), font, FONT_SIZE):
+		draw_string(
+			font,
+			box.rect.position + Vector2(0, -4 - box.label_lift),
+			box.label,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			FONT_SIZE,
+			BOX_COLOURS[box.kind]
+		)
 	if camera != null:
 		var t: CameraTuning = camera.rig.tuning
 		draw_rect(view.grow(-t.edge_margin_u), MARGIN, false, 2.0)
 		var dead := Vector2(t.dead_zone_w_u, t.dead_zone_h_u)
 		draw_rect(Rect2(camera.rig.anchor() - dead * 0.5, dead), DEAD_ZONE, false, 2.0)
 		draw_circle(camera.rig.focus, 6.0, FOCUS)
+
+
+## The labels worth drawing from [param items]: those nearest [param focus] first, and none whose
+## text would overlap a nearer one's, so that a crowd of 200 enemies (the stress room) is a few
+## legible labels and not a smear. Every box keeps its outline.
+static func readable_labels(
+	items: Array[DebugBoxes.Box], focus: Vector2, font: Font, font_size: int
+) -> Array[DebugBoxes.Box]:
+	var labelled: Array[DebugBoxes.Box] = []
+	for b: DebugBoxes.Box in items:
+		if b.label != "":
+			labelled.append(b)
+	labelled.sort_custom(
+		func(a: DebugBoxes.Box, b: DebugBoxes.Box) -> bool:
+			return (
+				a.rect.get_center().distance_squared_to(focus)
+				< b.rect.get_center().distance_squared_to(focus)
+			)
+	)
+	var taken: Array[Rect2] = []
+	var shown_labels: Array[DebugBoxes.Box] = []
+	var ascent: float = font.get_ascent(font_size)
+	for b: DebugBoxes.Box in labelled:
+		var at: Vector2 = b.rect.position + Vector2(0, -4 - b.label_lift)
+		var size: Vector2 = font.get_string_size(b.label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
+		var text := Rect2(at - Vector2(0, ascent), size)
+		var clear: bool = true
+		for t: Rect2 in taken:
+			if t.intersects(text):
+				clear = false
+				break
+		if clear:
+			taken.append(text)
+			shown_labels.append(b)
+	return shown_labels
 
 
 ## The overlay's text, top to bottom. Frames are numbered as fixtures, trace.gd and film.gd number

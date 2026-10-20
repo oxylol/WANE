@@ -120,18 +120,36 @@ func on_tick(sim: Simulation) -> void:
 			SimEvents.RADIANCE:
 				_new_group(VfxBudget.SPELL)
 				_flash()
-				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 3.0, 0, _group_priority)
-				_spark(VfxBudget.RING, at, Vector2.UP, 0, 1.0, 0, _group_priority)
+				_spark(
+					VfxBudget.BURST,
+					at,
+					Vector2.UP,
+					0,
+					tuning.radiance_burst_size,
+					0,
+					_group_priority
+				)
+				_spark(
+					VfxBudget.RING, at, Vector2.UP, 0, tuning.radiance_ring_size, 0, _group_priority
+				)
 				_play("radiance", at, Voices.PLAYER)
 			SimEvents.HEAL:
 				_new_group(VfxBudget.PLAYER)
-				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 0.8)
+				_spark(VfxBudget.BURST, at, Vector2.UP, 0, tuning.heal_burst_size)
 				_play("heal", at, Voices.PLAYER)
 			SimEvents.STAGGER:
 				# Always comes with the hit that broke the poise: one group with its spark.
 				if _group == 0:
 					_new_group(VfxBudget.PLAYER)
-				_spark(VfxBudget.BURST, at, Vector2.UP, 0, 1.2, 0, _group_priority)
+				_spark(
+					VfxBudget.BURST,
+					at,
+					Vector2.UP,
+					0,
+					tuning.stagger_burst_size,
+					0,
+					_group_priority
+				)
 
 
 ## The view offset this tick (added to the drawn camera, never to the camera rig).
@@ -145,18 +163,24 @@ func _on_hit(at: Vector2, value: int) -> void:
 	var tier: int = HitKind.tier_of(value)
 	var variant: int = _rng.randi_range(0, tuning.spark_variants - 1)
 	_new_group(VfxBudget.BURN if kind == HitKind.BURN else VfxBudget.PLAYER)
-	_spark(VfxBudget.SPARK, at, dir, variant, 1.0, tier, _group_priority)
+	_spark(VfxBudget.SPARK, at, dir, variant, tuning.hit_spark_size, tier, _group_priority)
 	match kind:
 		HitKind.FINISHER:
 			# The slash arc: centred on the player, its radius the reach to the struck enemy,
 			# swept through the strike's direction (presentation review r2, L9: drawn on the
 			# enemy it read as a shockwave beyond it).
-			_spark(VfxBudget.SMEAR, _origin, dir, 0, maxf(at.distance_to(_origin), 1.0))
-			_spark(VfxBudget.BURST, at, dir, 0)
+			_spark(
+				VfxBudget.SMEAR,
+				_origin,
+				dir,
+				0,
+				maxf(at.distance_to(_origin), tuning.smear_min_radius_u)
+			)
+			_spark(VfxBudget.BURST, at, dir, 0, tuning.finisher_burst_size)
 			shake.add(dir, tuning.finisher_shake_u, tuning.finisher_shake_frames)
 			_play("thump", at, Voices.HIT)
 		HitKind.CHARGED:
-			_spark(VfxBudget.BURST, at, dir, 0, 1.5)
+			_spark(VfxBudget.BURST, at, dir, 0, tuning.charged_burst_size)
 			shake.add(dir, tuning.charged_shake_u, tuning.charged_shake_frames)
 			_split()
 			_play("thump", at, Voices.HIT)
@@ -205,7 +229,7 @@ func _on_parry(at: Vector2, value: int) -> void:
 	_new_group(VfxBudget.PLAYER)
 	_flash()
 	shake.add(dir, tuning.parry_shake_u, tuning.parry_shake_frames)
-	_spark(VfxBudget.BURST, at, dir, 0, 1.2)
+	_spark(VfxBudget.BURST, at, dir, 0, tuning.parry_burst_size)
 	_play("chime", at, Voices.PLAYER)
 	slow_motion.emit(tuning.parry_time_scale, tuning.parry_slow_frames)
 

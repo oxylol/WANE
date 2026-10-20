@@ -83,22 +83,92 @@ func test_the_overlay_text_carries_the_vitals_and_the_spell() -> void:
 	assert_str(text).contains("spell mend frame 1")
 
 
-func test_the_combat_view_follows_the_drawn_player() -> void:
+func _count(vfx: VfxBudget, kind: int) -> int:
+	var n: int = 0
+	for e: VfxBudget.Effect in vfx.effects:
+		n += 1 if e.kind == kind else 0
+	return n
+
+
+func _wired_view() -> Array[Node]:
 	var view: CombatView = auto_free(CombatView.new())
-	var pv: PlayerView = auto_free(PlayerView.new())
-	add_child(pv)
+	var vfx: VfxBudget = auto_free(VfxBudget.new())
 	add_child(view)
-	view.player_view = pv
+	add_child(vfx)
+	view.vfx = vfx
+	return [view, vfx]
+
+
+func test_kindles_cone_goes_through_the_vfx_budget() -> void:
+	# CLAUDE.md rule 7: nothing is drawn without the budget manager. The cone is spawned into it
+	# each tick it lasts, at the boxes the core hit with, and lives one tick.
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
 	var cone_sim: Simulation = _sim("test/dummy", {"flame": 33})
-	pv.begin(cone_sim)
 	cone_sim.step(_in(InputFrame.SPELL))
+	var seen: bool = false
 	for i: int in range(5):
 		cone_sim.step(_in())
-		pv.capture(cone_sim)
+		vfx.step()
 		view.capture(cone_sim)
-	assert_int(view._cone.size()).is_equal(3)
-	# Relative to the player's centre, so the cone moves with the drawn (interpolated) player.
-	assert_float(view._cone[0].position.x).is_equal_approx(0.0, 0.001)
+		var boxes: Array[Rect2i] = PlayerSpells.kindle_boxes(cone_sim.player)
+		assert_int(_count(vfx, VfxBudget.AREA)).is_equal(boxes.size())
+		seen = seen or not boxes.is_empty()
+		for e: VfxBudget.Effect in vfx.effects:
+			var matched: bool = false
+			for r: Rect2i in boxes:
+				matched = matched or DebugBoxes.units(r) == e.rect
+			assert_bool(matched).is_true()
+	assert_bool(seen).is_true()
+	vfx.step()
+	assert_int(vfx.effects.size()).is_equal(0)
+
+
+func test_a_crowd_of_kill_embers_cannot_overrun_the_budget() -> void:
+	# 200 enemies killed at once release 200 embers: the budget's capacity caps what is drawn, and
+	# an ember (the lowest priority) never displaces a hit's spark.
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat")
+	for k: int in range(vfx.tuning.vfx_capacity + 200):
+		sim.combat.embers.append(KillEmber.new(Vector2i(k * 256, 0), 20))
+	assert_bool(vfx.spawn(VfxBudget.SPARK, VfxBudget.HIT, Vector2(5000, 5000))).is_true()
+	view.capture(sim)
+	assert_int(vfx.effects.size()).is_equal(vfx.tuning.vfx_capacity)
+	assert_int(vfx.refused).is_greater(0)
+	assert_int(_count(vfx, VfxBudget.SPARK)).is_equal(1)
+
+
+func test_trails_and_the_charged_glow_go_through_the_budget() -> void:
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat")
+	sim.combat.trails.append(FireTrail.new(Rect2i(0, 0, 256 * 40, 256 * 10), 5, 1))
+	sim.step(_in())
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.AREA)).is_equal(1)
+	assert_int(vfx.effects[0].priority).is_equal(VfxBudget.BURN)
+	sim.player.charge_held = 1000
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.OUTLINE)).is_equal(1)
+	assert_float(vfx.effects.back().size).is_equal(view.tuning.charge_width_px)
+
+
+func test_mends_channel_goes_through_the_budget() -> void:
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var sim: Simulation = _sim("test/flat", {"flame": 33, "hearts": 3})
+	sim.step(_in(InputFrame.MEND))
+	assert_int(sim.player.spell).is_equal(PlayerSpells.MEND)
+	vfx.step()
+	view.capture(sim)
+	assert_int(_count(vfx, VfxBudget.AREA)).is_equal(1)
 
 
 func test_hazards_radiance_and_tiers_answer_in_the_feedback() -> void:
@@ -351,3 +421,74 @@ func test_sparks_are_tinted_by_the_tier_the_hit_used() -> void:
 		var tier: int = Kindling.EMBER if kindling == 7 else Kindling.FLAME
 		assert_int(dealt).is_equal(10 if kindling == 7 else 11)
 		assert_that(tint).is_equal(HitFeedback.SPARK_TINTS[tier])
+
+
+func test_the_cone_glow_and_channel_follow_the_interpolated_player() -> void:
+	# The player and the blade are drawn at the interpolated alpha; the objects that belong to the
+	# player (Kindle's cone, the Charged glow, Mend's channel) must sit on that body at every alpha,
+	# not at the tick's box (up to a tick of motion off at a display rate above 60 Hz). A trail is
+	# the world's and stays where it was lit.
+	var fx: Fixture = Fixture.parse_file("res://tests/replay/camera/cam_run_turn.fixture")
+	var sim := Simulation.new(fx.scenario)
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var pv: PlayerView = auto_free(PlayerView.new())
+	view.player_view = pv
+	pv.begin(sim)
+	for f: int in range(20):
+		sim.step(fx.input_frame(f))
+		sim.player.charge_held = 1000
+		sim.player.spell = PlayerSpells.MEND
+		sim.player.spell_frame = sim.player.kit.mend_frames
+		pv.capture(sim)
+		vfx.step()
+		view.capture(sim)
+	var moved: float = absf(pv.box_at(1.0).position.x - pv.box_at(0.0).position.x)
+	assert_float(moved).is_greater(1.0)
+	var checked: int = 0
+	for alpha: float in [0.0, 0.25, 0.5, 1.0]:
+		view.show_at(alpha)
+		var box: Rect2 = pv.box_at(alpha)
+		for e: VfxBudget.Effect in vfx.effects:
+			if e.kind == VfxBudget.OUTLINE:
+				var want: Rect2 = box.grow(view.tuning.charge_grow_u)
+				var got: Vector2 = view.drawn_rect(e).position
+				assert_vector(got).is_equal_approx(want.position, Vector2(0.01, 0.01))
+				checked += 1
+			elif e.kind == VfxBudget.AREA:
+				assert_float(view.drawn_rect(e).position.x).is_equal_approx(
+					box.position.x - view.tuning.mend_gap_u, 0.01
+				)
+				assert_float(view.drawn_rect(e).end.y).is_equal_approx(box.end.y, 0.01)
+				checked += 1
+	assert_int(checked).is_equal(8)
+
+
+func test_the_budgets_and_room_views_shape_numbers_are_content() -> void:
+	# CLAUDE.md rule 6: the smear's arc, the proc mark's spring and stars, the vignette's bands and
+	# the room tiles' one-way height, pit lip and spikes are tuned in content/feedback.tres.
+	var t: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	assert_float(t.vfx_smear_half_angle).is_equal(1.1)
+	assert_float(t.vfx_proc_spring_start).is_equal(0.4)
+	assert_float(t.vfx_proc_spring_rate).is_equal(1.8)
+	assert_float(t.vfx_proc_spokes_inner).is_equal(0.4)
+	assert_float(t.vfx_proc_star_inner).is_equal(0.45)
+	assert_int(t.vignette_bands).is_equal(4)
+	assert_float(t.tile_one_way_u).is_equal(4.0)
+	assert_float(t.tile_pit_lip_u).is_equal(2.0)
+	assert_float(t.tile_spike_peak).is_equal(0.4)
+	assert_int(t.tile_spike_teeth).is_equal(4)
+	assert_array(t.validate()).is_empty()
+	var bad: FeedbackTuning = t.duplicate() as FeedbackTuning
+	bad.vignette_bands = 0
+	assert_array(bad.validate()).is_not_empty()
+	bad = t.duplicate() as FeedbackTuning
+	bad.vfx_proc_star_inner = 1.5
+	assert_array(bad.validate()).is_not_empty()
+	for path: String in ["res://game/vfx/vfx_budget.gd", "res://game/rooms/room_view.gd"]:
+		var src: String = FileAccess.get_file_as_string(path)
+		assert_bool(src.contains("SMEAR_HALF_ANGLE")).is_false()
+		assert_bool(src.contains("0.4 + 1.8")).is_false()
+		assert_bool(src.contains("Vector2(t, 4.0)")).is_false()
+		assert_bool(src.contains("Vector2(t, 2.0)")).is_false()
