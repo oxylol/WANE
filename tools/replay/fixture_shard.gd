@@ -36,4 +36,5 @@ func _initialize() -> void:
 	var paths: Array[String] = FileWalk.find(FixtureRunner.FIXTURE_ROOT, [".fixture"])
 	for result: FixtureRunner.Result in FixtureRunner.new().run_paths(paths, shard, of):
 		print(FixtureRunner.RESULT_PREFIX + result.to_line())
+	print(FixtureRunner.CPU_PREFIX + str(FixtureRunner.process_cpu_msec()))
 	quit(0)

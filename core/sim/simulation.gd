@@ -45,6 +45,8 @@ var events: SimEvents = SimEvents.new()
 ## The combat rules, and the combat in this room: its enemies and effects (docs/adr/0013).
 var combat_params: CombatParams
 var combat: Combat
+## Steps the room's enemies, with one native call for the plain ones ([EnemyBatch]); not state.
+var enemy_batch: EnemyBatch = EnemyBatch.new()
 ## The run's Votives and the proc event bus (docs/adr/0015). A run starts with none; a scenario
 ## gives them with "votive_<id>" options.
 var procs: ProcBus
@@ -248,8 +250,7 @@ func step(frame: InputFrame) -> void:
 		input.push(frame)
 	if player != null:
 		player.step(input)
-	for e: Enemy in combat.enemies:
-		e.step(player)
+	enemy_batch.run(combat.enemies, player, world)
 	combat.resolve(player, input)
 	_take_door()
 	tick += 1

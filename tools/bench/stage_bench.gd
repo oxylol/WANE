@@ -115,8 +115,7 @@ func _play(fx: Fixture, procs: PackedInt32Array) -> Array[PackedInt32Array]:
 		if sim.player != null:
 			sim.player.step(sim.input)
 		var t1: int = Time.get_ticks_usec()
-		for e: Enemy in sim.combat.enemies:
-			e.step(sim.player)
+		sim.enemy_batch.run(sim.combat.enemies, sim.player, sim.world)
 		var t2: int = Time.get_ticks_usec()
 		sim.combat.resolve(sim.player, sim.input)
 		sim._take_door()

@@ -144,6 +144,29 @@ func refresh_ground(w: CollisionQueries, b: Body) -> void:
 	b.ground_tile = (r >> 2) - 1
 
 
+## A walker's step in one call (docs/adr/0020): the ledge test, the turn and the walk. Sets the
+## body's position and ground contact and clears its other contacts, as the reference does.
+func patrol_walk(w: CollisionQueries, b: Body, dir: int, step: int, drop: int, falls: bool) -> int:
+	_sync(w)
+	var r: PackedInt64Array = _sweep.call(
+		&"patrol_walk", b.x, b.y, b.half_w, b.height, dir, step, drop, falls
+	)
+	b.x = r[1]
+	b.y = r[2]
+	var contact: int = r[3]
+	b.on_ground = (contact & 1) != 0
+	b.on_slope = (contact & 2) != 0
+	b.ground_tile = (contact >> 2) - 1
+	b.clear_contacts()
+	return r[0]
+
+
+## Many bodies in one call (see [method CollisionWorld.patrol_many]).
+func patrol_many(w: CollisionQueries, ops: PackedInt64Array, count: int) -> PackedInt64Array:
+	_sync(w)
+	return _sweep.call(&"patrol_many", ops, count)
+
+
 func landing_contact(
 	w: CollisionQueries, b: Body, dx: int, dy: int, lift_sp: int, slide_sp: int
 ) -> int:

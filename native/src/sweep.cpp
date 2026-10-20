@@ -1267,4 +1267,29 @@ int64_t Sweep::swept_advance(int64_t b, int64_t ol, int64_t ot, int64_t o_r, int
 	return div_floor(lo_n, lo_d);
 }
 
+int64_t Sweep::patrol_walk(Body &b, int64_t dir, int64_t step, int64_t drop, bool falls) {
+	int64_t flags = 0;
+	if (!falls) {
+		int64_t front = b.x + dir * step;
+		front += dir > 0 ? b.half_w - 1 : -b.half_w;
+		if (floor_top_in(front, front + 1, b.y - drop, b.y + drop) == NONE) {
+			flags |= 1;
+			dir = -dir;
+		}
+	}
+	b.hit_ceiling = false;
+	b.hit_wall = 0;
+	b.nudge_x = 0;
+	b.nudge_y = 0;
+	walk(b, dir * step, 0);
+	if (b.hit_wall != 0) {
+		flags |= 2;
+	}
+	b.hit_ceiling = false;
+	b.hit_wall = 0;
+	b.nudge_x = 0;
+	b.nudge_y = 0;
+	return flags;
+}
+
 } // namespace wane

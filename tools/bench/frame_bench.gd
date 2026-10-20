@@ -10,14 +10,17 @@ extends SceneTree
 ## [method SimDriver.step_once]; the engine then runs the frame (the views' _process, every _draw).
 ##
 ## Per frame it records, in microseconds: the simulation step ([member SimDriver.last_step_us]),
-## the tick as a whole (input, step, replay record, and the views capturing it) and the frame's
-## wall time (the gap between one frame's start and the next's: the tick, the views' _process, every
-## _draw callback and the engine's own work). The presentation's script time is the wall time less
-## the simulation step: what the sprite, VFX, audio and UI stages cost in GDScript, plus the
-## engine's housekeeping (the dummy renderer's is a few tenths of a millisecond). Godot's
-## Performance.TIME_PROCESS is not used: it is sampled once a second, not per frame. As in
-## stress_bench.gd a frame's figure is the least over the repeated passes (the replay fixes the
-## work).
+## the tick as a whole (input, step, replay record, and the views capturing it), the time in the
+## nodes' _process and in the queued _draw callbacks ([FrameProbes]: two probe nodes bracket every
+## other node, the end of the frame's message queue closes the draw span) and the frame's wall time
+## (the gap between one frame's start and the next's). The presentation's script time is the tick
+## less the step (the views capturing it) plus the two probed spans: what the sprite, VFX, audio and
+## UI stages cost in GDScript, read directly. It is not the wall time less the step, which this
+## gate used before ADR-0020 Decision 18: wall time has a floor, so that figure rose by a
+## millisecond when a native step fell by three and a half. That difference is still reported, as
+## "frame less step", and not gated. Godot's Performance.TIME_PROCESS is not used: it is sampled
+## once a second, not per frame. As in stress_bench.gd a frame's figure is the least over the
+## repeated passes (the replay fixes the work).
 ##
 ## Headless (the dummy renderer) this is our script cost and is gated: the presentation's 99th
 ## percentile against sprite + VFX + audio and UI (5.0 ms, [method PerfBudget.presentation_us])
@@ -66,12 +69,19 @@ var _entered: int = 0
 var _sim: PackedInt32Array = PackedInt32Array()
 var _tick: PackedInt32Array = PackedInt32Array()
 var _wall: PackedInt32Array = PackedInt32Array()
+var _proc: PackedInt32Array = PackedInt32Array()
+var _draw: PackedInt32Array = PackedInt32Array()
+var _probes: FrameProbes = FrameProbes.new()
+var _unread: int = 0
 var _best_sim: PackedInt32Array = PackedInt32Array()
 var _best_tick: PackedInt32Array = PackedInt32Array()
 var _best_wall: PackedInt32Array = PackedInt32Array()
 var _best_present: PackedInt32Array = PackedInt32Array()
+var _runs_present: Array[PackedInt32Array] = []
+var _best_proc: PackedInt32Array = PackedInt32Array()
+var _best_draw: PackedInt32Array = PackedInt32Array()
+var _best_gap: PackedInt32Array = PackedInt32Array()
 var _best_capture: PackedInt32Array = PackedInt32Array()
-var _best_engine: PackedInt32Array = PackedInt32Array()
 var _facts: Facts = Facts.new()
 var _end_hash: int = 0
 var _vfx_capacity: int = 0
@@ -177,7 +187,8 @@ func _setup() -> void:
 		_facts.load_errors = _driver.sim.load_errors
 		_vfx_capacity = _vfx.tuning.vfx_capacity
 		_voice_cap = _vfx.tuning.voice_cap
-	for s: PackedInt32Array in [_sim, _tick, _wall]:
+	_probes.attach(root)
+	for s: PackedInt32Array in [_sim, _tick, _wall, _proc, _draw]:
 		s.resize(_total)
 	_frame = 0
 	_phase = RUN
@@ -187,6 +198,11 @@ func _setup() -> void:
 func _run(now: int) -> bool:
 	if _frame > 0:
 		_wall[_frame - 1] = now - _entered
+		if _probes.take():
+			_proc[_frame - 1] = _probes.process_us
+			_draw[_frame - 1] = _probes.draw_us
+		else:
+			_unread += 1
 	if _frame >= _total:
 		_end_pass()
 		return false
@@ -225,17 +241,20 @@ func _note(_i: int) -> void:
 func _end_pass() -> void:
 	var present := PackedInt32Array()
 	var capture := PackedInt32Array()
-	var engine := PackedInt32Array()
+	var gap := PackedInt32Array()
 	for i: int in range(_total):
-		present.append(maxi(0, _wall[i] - _sim[i]))
 		capture.append(maxi(0, _tick[i] - _sim[i]))
-		engine.append(maxi(0, _wall[i] - _tick[i]))
+		present.append(capture[i] + _proc[i] + _draw[i])
+		gap.append(maxi(0, _wall[i] - _sim[i]))
 	PerfStats.fold_min(_best_sim, _sim)
 	PerfStats.fold_min(_best_tick, _tick)
 	PerfStats.fold_min(_best_wall, _wall)
 	PerfStats.fold_min(_best_present, present)
+	_runs_present.append(present)
 	PerfStats.fold_min(_best_capture, capture)
-	PerfStats.fold_min(_best_engine, engine)
+	PerfStats.fold_min(_best_proc, _proc)
+	PerfStats.fold_min(_best_draw, _draw)
+	PerfStats.fold_min(_best_gap, gap)
 	if _pass == 0:
 		_facts.refused = _vfx.refused
 		_facts.displaced = _vfx.displaced
@@ -254,6 +273,7 @@ func _end_pass() -> void:
 
 
 func _finish() -> void:
+	_probes.detach()
 	if _total > 0 and not _best_wall.is_empty():
 		_report_run()
 	if _report != "":
@@ -288,13 +308,22 @@ func _report_run() -> void:
 	)
 	for e: String in _facts.load_errors:
 		_fail("frame run load error: %s" % e)
+	if _unread > 0:
+		_fail(
+			(
+				"frame run: the probes were not read on %d frames, the figures are not the run's"
+				% _unread
+			)
+		)
 	var present: PackedInt32Array = PerfStats.sorted_from(_best_present, from)
 	var series: Dictionary[String, PackedInt32Array] = {
 		"simulation step": _best_sim,
 		"tick (input, step, views capture it)": _best_tick,
 		"views capture a tick": _best_capture,
-		"views _process, _draw, engine": _best_engine,
-		"presentation script (frame less step)": _best_present,
+		"views _process (probed)": _best_proc,
+		"views _draw (probed)": _best_draw,
+		"presentation script (capture, _process, _draw)": _best_present,
+		"frame less step (engine included, not gated)": _best_gap,
 		"frame, wall time": _best_wall,
 	}
 	for label: String in series:
@@ -302,7 +331,7 @@ func _report_run() -> void:
 		var gate: bool = label.begins_with("presentation")
 		_say(
 			(
-				"  %-42s p50 %6s ms, p99 %6s ms, max %6s ms"
+				"  %-48s p50 %6s ms, p99 %6s ms, max %6s ms"
 				% [
 					label,
 					PerfStats.ms(PerfStats.percentile(s, 500)),
@@ -330,6 +359,16 @@ func _report_run() -> void:
 				PerfStats.ms(top),
 				PerfStats.ms(_budget.sim_max_us),
 			]
+		),
+		true
+	)
+	var singles: PackedStringArray = []
+	for us: int in PerfStats.p99_each(_runs_present, from):
+		singles.append(PerfStats.ms(us))
+	_say(
+		(
+			"  single passes (what a player gets; not gated): presentation p99 %s ms (gate %s)"
+			% [" / ".join(singles), PerfStats.ms(allowed)]
 		),
 		true
 	)

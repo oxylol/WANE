@@ -2,6 +2,7 @@
 #include <godot_cpp/godot.hpp>
 
 #include "native_probe.h"
+#include "wane_cells.h"
 #include "wane_sweep.h"
 
 using namespace godot;
@@ -14,6 +15,7 @@ void initialize_wane_module(ModuleInitializationLevel p_level) {
 	}
 	GDREGISTER_CLASS(wane::NativeProbe);
 	GDREGISTER_CLASS(wane::WaneSweep);
+	GDREGISTER_CLASS(wane::WaneCells);
 }
 
 void uninitialize_wane_module(ModuleInitializationLevel p_level) {

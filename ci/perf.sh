@@ -17,7 +17,7 @@
 # what happened on them. The full report goes to reports/perf.txt either way (CI uploads it).
 # The run must exit 0 AND print the marker: if the bench does not compile, Godot idles instead of
 # exiting, so a time limit and the marker are what keep that from looking green.
-# Usage: GODOT=/path/to/godot ci/perf.sh [--verbose] [--only stress|zone|frame] [--repeats N]
+# Usage: [PERF_LIB=release] GODOT=/path/to/godot ci/perf.sh [--verbose] [--only stress|zone|frame] [--repeats N]
 # --only stress: the stress room (and the storm) alone (the CI job that is red until the enemies'
 # steps and the proc path are native too, ADR-0020 Decision 15); --only zone: the 5-minute zone 1 run alone; --only frame: the presentation alone.
 # CI runs the stress room apart from the other two so that a red stress gate cannot hide the
@@ -34,6 +34,29 @@ for arg in "$@"; do
 	if [ "$arg" = "--verbose" ]; then args=(--report reports/perf.txt); else extra+=("$arg"); fi
 done
 mkdir -p reports
+# PERF_LIB=release: time the library an export ships (docs/adr/0022). The editor binary loads the
+# debug library, so the release build stands in under the debug file name for the run, as in
+# ci/native_release_check.sh; the debug library is put back afterwards, whatever happens.
+if [ "${PERF_LIB:-debug}" = "release" ]; then
+	case "$(uname -s)" in
+		Linux*) lib_pair=("native/bin/libwane.linux.template_release.x86_64.so" "native/bin/libwane.linux.template_debug.x86_64.so") ;;
+		MINGW*|MSYS*|CYGWIN*) lib_pair=("native/bin/libwane.windows.template_release.x86_64.dll" "native/bin/libwane.windows.template_debug.x86_64.dll") ;;
+		Darwin*) lib_pair=("native/bin/libwane.macos.template_release.framework" "native/bin/libwane.macos.template_debug.framework") ;;
+		*) echo "perf: unknown platform $(uname -s)" >&2; exit 2 ;;
+	esac
+	ci/build_native.sh template_release
+	if [ ! -e "${lib_pair[1]}" ]; then ci/build_native.sh template_debug; fi
+	lib_backup="$(mktemp -d)"
+	cp -R "${lib_pair[1]}" "$lib_backup/"
+	restore_lib() {
+		rm -rf "${lib_pair[1]}"
+		cp -R "$lib_backup/$(basename "${lib_pair[1]}")" "${lib_pair[1]}"
+		rm -rf "$lib_backup" "$log"
+	}
+	trap restore_lib EXIT
+	rm -rf "${lib_pair[1]}"
+	cp -R "${lib_pair[0]}" "${lib_pair[1]}"
+fi
 if ! "$godot" --headless --path . --import > "$log" 2>&1; then
 	tail -n 30 "$log" >&2
 	echo "perf: project import failed" >&2

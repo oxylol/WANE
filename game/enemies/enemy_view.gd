@@ -110,6 +110,13 @@ func capture(sim: Simulation) -> void:
 			_before[i] = shown[i].box
 
 
+## A new snapshot of [param e]: what [method capture] rewrites a kept one to.
+static func snapshot_of(e: Enemy) -> Shown:
+	var s := Shown.new()
+	_fill(s, e)
+	return s
+
+
 ## Sets every field of [param s] from [param e] as this tick left it. (The body's edges and the
 ## state test are read as fields: 200 enemies a tick made the accessor calls a tenth of the
 ## cost.)

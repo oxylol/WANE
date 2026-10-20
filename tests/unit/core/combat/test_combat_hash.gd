@@ -16,6 +16,8 @@ const NOT_STATE: Array[String] = [
 	"procs",
 	"_cells",
 	"_indexed",
+	"_resolving",
+	"_burned",
 	"params",
 	"_params",
 	"world",
@@ -38,6 +40,7 @@ const NOT_STATE: Array[String] = [
 	"patrol_falls",
 	"patrol_drop",
 	"settled",
+	"_hash_words",
 ]
 
 

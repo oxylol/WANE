@@ -12,7 +12,7 @@
 - `ReplayPlayer` needs hashes at every 60th tick plus the last; an older build or different content is reported, not a desync (see Verification).
 - `tools/replay/bless.gd` refuses to re-bless moved state hashes with unchanged inputs and content unless `Simulation.VERSION` is bumped (see Verification).
 - Every fixture is encoded and decoded; full playback runs for `tests/replay/core/` and every fourth fixture, `FixtureRunner.PLAYBACK_EVERY` (see Cost).
-- The suite runs in up to four processes (`FixtureRunner.MAX_SHARDS`) inside a 10 s wall-clock budget; fixture time is printed beside it (see Shards).
+- The suite runs in up to four processes (`FixtureRunner.MAX_SHARDS`) inside a 10 s wall-clock budget; fixture time is printed beside it (see Shards). CPU time is printed for information and never decides the budget (the director chose wall time on the native path, 2026-10-20).
 - The 10 s budget holds the shipped configuration, the native path on; the GDScript reference run is checked for hashes, not timed (the director's decision; see Budget).
 - `StateHasher` takes the first 32 bits of the native SHA-256 of a buffer of 64-bit words, 56 us a hash (see State hash).
 - `.fixture` is a text language (`input`, then `expect` with at, during, never, mark); anything undefined fails and nothing passes vacuously (see Fixtures).

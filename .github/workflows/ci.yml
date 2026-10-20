@@ -100,16 +100,15 @@ jobs:
   # BUILD.md section 13: input + simulation step 99th percentile <= 3.0 ms in the stress room
   # (200 enemies, 40 procs), no tick above 20 ms; budgets in content/perf/budget.tres. The gated
   # workload is the spec's (a 39-proc chain per Taper hit, ADR-0020 Decision 15); the proc storm is
-  # reported by the same bench and not gated. With the physics sweep native (ADR-0022) this job
-  # measured p99 5.01 ms and worst 7.64 ms: the worst-tick gate is met, the p99 is not (the 200
-  # enemies' steps are 1.95 ms of the 2.70 ms median tick). continue-on-error stays, expiring
-  # 2026-12-31 (PROGRESS.md, Feature flags with expiry), until the p99 is green on CI hardware;
-  # the step's own log and the uploaded report still show FAIL lines.
+  # reported by the same bench and not gated. Blocking since ADR-0020 Decision 17: with the physics
+  # sweep, the plain enemy ticks and the enemy query cells native this job measured p99 2.67 ms and
+  # worst 3.89 ms (5.01 and 7.64 before) on the reference machine, a margin of 11%. If the CI
+  # runner (slower than that machine) turns it red, Decision 17 says what to do next. The gate is the
+  # least of 3 runs per tick; the report also lists what each run read alone (Decision 18).
   perf-stress:
-    name: "perf-stress (stress room, known red: enemy steps and the proc path in GDScript)"
+    name: perf (stress room against the CPU budget)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Install Godot

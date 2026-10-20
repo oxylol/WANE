@@ -21,4 +21,12 @@ if [ "$got" != "$EXPECTED" ]; then
 	echo "sanitize_native: checksum $got, expected $EXPECTED" >&2
 	exit 1
 fi
-echo "sanitize_native: clean ($cxx, checksum $got)"
+# The query cells (docs/adr/0020 Decision 15): a self-checking harness against a brute force.
+"$cxx" -std=c++17 -O1 -g -Wall -Wextra -Werror -fsanitize=undefined,address -fno-sanitize-recover=all \
+	-Inative/src native/tests/cells_sanitize.cpp native/src/cells.cpp -o "$out/cells_harness"
+cells="$("$out/cells_harness")"
+if [ "$cells" != "OK" ]; then
+	echo "sanitize_native: the cells harness said: $cells" >&2
+	exit 1
+fi
+echo "sanitize_native: clean ($cxx, checksum $got, cells OK)"

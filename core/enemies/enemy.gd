@@ -15,6 +15,10 @@ const STATE_NAMES: Array[String] = [
 	"idle", "telegraph", "strike", "recover", "stagger", "dead", "stun"
 ]
 
+## The words of [method hash_into]: how many, and how many come before the strikes' serials.
+const HASH_WORDS: int = 25
+const HASH_HEAD: int = 16
+
 var def: EnemyDef
 var params: CombatParams
 var world: CollisionWorld
@@ -60,6 +64,7 @@ var settled: bool = false
 var _gravity: int = 0
 var _terminal: int = 0
 var _stagger_left: int = 0
+var _hash_words: PackedInt64Array = PackedInt64Array()
 
 
 func _init(
@@ -84,6 +89,7 @@ func _init(
 	light = def.light
 	_gravity = Fx.accel(def.gravity_ups2)
 	_terminal = Fx.speed(def.terminal_ups)
+	_hash_words.resize(HASH_WORDS)
 	world.refresh_ground(body)
 
 
@@ -121,6 +127,14 @@ func step(player: Player) -> void:
 			_think(player)
 	_send_cue()
 	_move()
+
+
+## The plain tick of this kind, if this is one: does what [method step] would, except that its
+## movement is queued in [param batch] ([EnemyBatch]) and lands when the batch is flushed. False
+## (and nothing done) when the tick is not plain; the caller then calls [method step]. The base
+## enemy has no plain tick.
+func fast_step(_player: Player, _batch: EnemyBatch) -> bool:
+	return false
 
 
 ## Starts [param a]: its telegraph begins this tick.
@@ -315,49 +329,40 @@ func _move() -> void:
 		world.refresh_ground(body)
 
 
+## The state's words in one buffer (kept, so a hash makes none): the first [constant HASH_HEAD]
+## fields, the strikes whose trails burned it (as many words as it holds), then the rest.
 func hash_into(h: StateHasher) -> void:
-	(
-		h
-		. add_ints(
-			PackedInt64Array(
-				[
-					body.x,
-					body.y,
-					body.vy,
-					hp,
-					poise,
-					max_hp,
-					max_poise,
-					facing,
-					state,
-					state_frame,
-					attack_frame,
-					def.attacks.find(attack) if attack != null else -1,
-					freeze,
-					since_hit,
-					last_strike,
-					trail_burned.size(),
-				]
-			)
-		)
-	)
+	var w: PackedInt64Array = _hash_words
+	var b: Body = body
+	w[0] = b.x
+	w[1] = b.y
+	w[2] = b.vy
+	w[3] = hp
+	w[4] = poise
+	w[5] = max_hp
+	w[6] = max_poise
+	w[7] = facing
+	w[8] = state
+	w[9] = state_frame
+	w[10] = attack_frame
+	w[11] = def.attacks.find(attack) if attack != null else -1
+	w[12] = freeze
+	w[13] = since_hit
+	w[14] = last_strike
+	w[15] = trail_burned.size()
+	w[16] = 1 if cue_sent else 0
+	w[17] = home_x
+	w[18] = home_y
+	w[19] = 1 if attack_spent else 0
+	w[20] = burn_left
+	w[21] = burn_next
+	w[22] = knock_vx
+	w[23] = _stagger_left
+	w[24] = 1 if light else 0
+	if trail_burned.is_empty():
+		h.add_ints(w)
+		return
+	h.add_ints(w.slice(0, HASH_HEAD))
 	for serial: int in trail_burned:
 		h.add_int(serial)
-	(
-		h
-		. add_ints(
-			PackedInt64Array(
-				[
-					1 if cue_sent else 0,
-					home_x,
-					home_y,
-					1 if attack_spent else 0,
-					burn_left,
-					burn_next,
-					knock_vx,
-					_stagger_left,
-					1 if light else 0,
-				]
-			)
-		)
-	)
+	h.add_ints(w.slice(HASH_HEAD))
