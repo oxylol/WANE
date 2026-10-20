@@ -352,8 +352,8 @@ side2_jump_waits in:a0007a62 content:b41cef64 50:b4d93889
 side3_startup_armor in:2413d4fd content:7cfa7edf 80:a7309c3a 60:c9b37614
 storm_pin in:97e032cf content:0eb6f39d 60:379f4d9a 60:379f4d9a
 stress_burst_fires_thirty_nine in:d9ec3a2e content:80b832ca 20:2a5f3d6e
-stress_pin in:83a62306 content:f0466722 60:1e9c2438 60:1e9c2438
-stress_taper_spell_starts_no_chain in:f976dc44 content:7a3441e4 80:dc38a7ed 60:2edf7c82
+stress_pin in:83a62306 content:77fa5ee6 60:1e9c2438 60:1e9c2438
+stress_taper_spell_starts_no_chain in:f976dc44 content:7183e4d0 80:dc38a7ed 60:2edf7c82
 strike_air_down_diagonal_pogo in:e4fd68e8 content:c2c91cf4 40:3038f6e9
 strike_on_cling_frame_goes_away in:99bbd89e content:d72485fc 30:633ee5b0
 strike_on_landing_tick_beside_step in:c438755d content:8d696f2c 20:857006ca
