@@ -231,11 +231,13 @@ jobs:
           key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
       - name: Build the native extension (ADR-0021)
         run: ci/build_native.sh
+      # Quiet: a failure prints only the failing fixtures and unit cases, so the end of the log says
+      # what broke (the full logs of a Windows run are thousands of lines).
       - name: Replay fixtures against the golden hashes, and the RNG and hash unit tests (native off)
         env:
           WANE_NATIVE: "off"
-        run: ci/test.sh --stage compile --stage fixtures --stage unit
+        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit
       - name: The same, with the native path on (a desync here is a P0, ADR-0021)
         env:
           WANE_NATIVE: "on"
-        run: ci/test.sh --stage compile --stage fixtures --stage unit
+        run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit
