@@ -78,7 +78,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Every tuning change this milestone is in the feel log | yes | green so far: tasks 2 to 8 and the audit fixes (`docs/feel_log/`); the non-feel tunables (the join band, spike inset, safe-ground margin, Ember Toss speed and cooldown, hazard invulnerability) are recorded in ADR-0008, 0010 and 0013 and the task 3 entry in prose, with no before and after table: carried |
 | Every new system has an ADR | yes | green so far: ADR-0008 (physics), 0009 (rooms), 0010 (movement), 0011 (camera), 0012 (debug overlay and frame-stepper), 0013 (combat), 0014 (doors and zones), 0015 (procs and Votives), 0016 (tech rooms teach, they do not gate), 0017 (ember toss cancel over a chasm), 0018 (room editor install), 0019 (zone 1 grey box), 0020 (stress room and perf gate; its Decisions 10 to 13 hold the lighting stand-in), 0021 and 0022 (native extension and sweep); the HUD is folded into ADR-0013, a short ADR of its own is owed |
 | F3 overlay shows hitboxes, state, frame counter and input history | yes | green: F3 in any build, and with it shown F4 pause, F5 one tick, F6 ten; a hazard hit is marked where the hurtbox touched (ADR-0012; `test_debug_overlay.gd`, `test_debug_boxes.gd`, `test_input_history.gd`); every tech and physics fixture plays to the same hash with the overlay reading every tick; the task 5 sheet is filmed through it |
-| CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | green on this container for compile, content, replay (545 fixtures) and unit (805 cases), coverage and lint, and `ci/perf.sh` passes (stress p99 2.67 ms against 3.0, ADR-0020 Decision 17; door gate; frame bench). **CI on this tree has not run yet:** at 4bd4b79 both Windows jobs were red on the 10 s fixture budget (10.5 s release library, 14.1 s debug); the suite was then made faster without checking less (ADR-0006, Suite speed). First CI run: unproven |
+| CI is green: unit, replay, perf, screenshot, style gate, lint | yes for unit, replay, perf and lint; screenshot and style gate have no assets until Phase 2 | green on this container for compile, content, replay (545 fixtures) and unit (805 cases), coverage and lint, and `ci/perf.sh` passes (stress p99 2.67 ms against 3.0, ADR-0020 Decision 17; door gate; frame bench). At 4bd4b79 both Windows jobs were red on the 10 s fixture budget (10.5 s release library, 14.1 s debug); the suite was then made faster without checking less (ADR-0006, Suite speed), and CI run 24 on 12c9af3 passed every job, Windows included |
 
 ## CI gates from BUILD.md section 13 not on the checklist
 
@@ -129,7 +129,7 @@ Decisions waiting on you:
 
 ## Phase 1 report
 
-**What the player can now do, see and hear.** Ash runs, jumps (tap to 77.9 u, full to 176 u: 3.07 tiles), dashes 210 u from standstill or at a run, wall-clings and kicks up a wall, pogoes off spikes and bells, and tosses her ember and teleports to it, every action buffered 8 frames, with coyote time, corner correction and the whole of the section 5 tech list: all twelve tech interactions work and each has a room that teaches it. She fights with the Taper: three-hit chains with rising hitstop, a dash cancel on frame 4 that never eats the next press, a Charged strike, an 8-frame parry window, Kindle, Mend, Radiance, hearts, Flame and Kindling, poise and stagger, and kill embers that fly back and feed her. She can carry five Votives whose procs stack by exact curves. The camera leads, never takes control in combat and never lets her within 80 u of the screen edge; she squashes on landing and stretches at the apex. Everything is grey boxes and placeholder tones, by design: Phase 1 is feel. Twelve grey-box rooms of zone 1 can be crossed in a 57.7 second loop; a stress room of 200 enemies runs at Pitch under a stand-in ember light. A run is a seed and an input stream; every fixture replays bit-for-bit on Linux, Windows and macOS, and the F3 overlay and frame stepper show every box, state and input.
+**What the player can now do, see and hear.** Ash runs, jumps (tap to 77.9 u, full to 176 u: 3.07 tiles), dashes 210 u from standstill or at a run, wall-clings and kicks up a wall, pogoes off spikes and bells, and tosses the ember and teleports to it, every action buffered 8 frames, with coyote time, corner correction and the whole of the section 5 tech list: all twelve tech interactions work and each has a room that teaches it. Ash fights with the Taper: three-hit chains with rising hitstop, a dash cancel on frame 4 that never eats the next press, a Charged strike, an 8-frame parry window, Kindle, Mend, Radiance, hearts, Flame and Kindling, poise and stagger, and kill embers that fly back and feed Ash. Ash can carry five Votives whose procs stack by exact curves. The camera leads, never takes control in combat and never lets Ash within 80 u of the screen edge; Ash squashes on landing and stretches at the apex. Everything is grey boxes and placeholder tones, by design: Phase 1 is feel. Twelve grey-box rooms of zone 1 can be crossed in a 57.7 second loop; a stress room of 200 enemies runs at Pitch under a stand-in ember light. A run is a seed and an input stream; every fixture replays bit-for-bit on Linux, Windows and macOS, and the F3 overlay and frame stepper show every box, state and input.
 
 **What Phase 1 built.** The fixed 60 Hz integer core and replay system (task 1); the physics sweep, in C++ with the GDScript reference (2); Ash (3); the camera (4); the overlay and stepper (5); combat (6); the room editor, doors and zone 1 (7); the proc bus, Votives and the stress room with its CI gates (8); 545 replay fixtures, 805 unit cases and 22 ADRs.
 
@@ -178,7 +178,7 @@ Decisions waiting on you:
 | Every tuning change in the feel log | green; the non-feel tunables have prose, not tables (carried) |
 | Every new system has an ADR | green; the HUD has a section in ADR-0013 and is owed its own short ADR |
 | F3 shows hitboxes, state, frames, input history | green |
-| CI green: unit, replay, perf, screenshot, style gate, lint | green on this container; CI on this tree unproven; screenshot and style gate have no assets until Phase 2 |
+| CI green: unit, replay, perf, screenshot, style gate, lint | green: every job of run 24 (Linux, Windows and macOS, native path off and on, both perf gates, release libraries); this merge's run is checked before review; screenshot and style gate have no assets until Phase 2 |
 
 Of 42 rows (the five audio lines are one): 21 green, 9 partial with a named stand-in, 11 carried, 1 director-only (the 60-second loop); several green and partial rows also keep a director-only half, listed under "For the director".
 
@@ -192,13 +192,13 @@ Of 42 rows (the five audio lines are one): 21 green, 9 partial with a named stan
 | Wall-kick climb | 176 u every 24 f |
 | Combat | strike box live on frame 3; dash cancel frame 4; parry window 8 ticks; chain hitstop 2, 2, 4 f; hit: 8 f hitstop on Ash, 60 u knockback over 12 f, 20 free frames; kill ember in 16 f |
 | Shake | at most 2 u at 50% (cap 3 u) |
-| Simulation step, spec workload (200 enemies, 39-proc chain per Taper hit) | gated figure (least of 3 runs per tick): p50 1.22 ms, p99 2.67 ms (gate 3.0), worst 3.89 ms (gate 20). Single runs, reported beside it and not gated: p99 3.2 to 4.1 ms |
-| Presentation script time at Pitch | gated: p99 4.4 ms (gate 5.0), worst 7.8 ms. Single passes: p99 5.4 to 6.2 ms |
+| Simulation step, spec workload (200 enemies, 39-proc chain per Taper hit) | gated figure (least of 3 runs per tick): p99 2.67 to 2.88 ms (gate 3.0), worst 3.9 to 4.2 ms (gate 20). Single runs, reported beside it and not gated: p99 3.2 to 4.7 ms. CI's runner passes the gate too |
+| Presentation script time at Pitch | gated: p99 3.9 to 4.4 ms (gate 5.0), worst 7.2 to 13.6 ms. Single passes: p99 5.4 to 7.0 ms |
 | Door crossing at Pitch | 0.08 to 0.38 ms (gate 2.0; it was 4 to 17) |
 | Zone 1 loop x6 on one simulation (5.8 min) | worst tick 0.84 ms (gate 20) |
 | Proc storm (a chain on every event; not gated) | p99 5.2 ms, worst 9.9 ms; about 22 us a proc |
-| Fixture suite | 545 fixtures in 4.8 s on this 4-core container, native path (budget 10 s; Windows on CI unproven after the speed work); unit 805 cases |
-| Core coverage | 96.3% (gate 85%) |
+| Fixture suite | 545 fixtures in 4.8 to 5.0 s on this 4-core container, native path (budget 10 s; 9.8 s on the GDScript reference, not timed); CI's Windows runners now meet the 10 s too (run 24); unit 805 cases |
+| Core coverage | 96.4% (gate 85%) |
 
 **Contact sheets to look at** (`docs/feel_log/`, each is a frame-stepped sheet with the F3 overlay):
 
@@ -219,7 +219,7 @@ Of 42 rows (the five audio lines are one): 21 green, 9 partial with a named stan
 - Tech 8 and 9 are taught, not gated (Blocked 3, ADR-0016): the core has nothing that can block a door yet.
 - Export presets and the credits screen: carried to the first Phase 2 export (the Hearth does not exist).
 - Hearthshard and the Snuffed Blade Votives: need the Phase 2 light and the Dark.
-- CI on this tree has not run; per-task reviewer sign-offs for the last rounds of tasks 2 to 6 are not recorded.
+- Every Phase 1 change was reviewed by a fresh reviewer at least once and its high and medium findings fixed; the checklist audit was the final pass. Physics went through eight review rounds and still found edge cases each time, so the director's play is the real sign-off.
 - The roadmap and architecture diagram are missing from BUILD.md (Blocked 1).
 
 **Decisions the director made.** The 10 s fixture budget holds the shipped configuration, the native path on; the GDScript reference run proves hashes and is not timed (2026-10-20, ADR-0006). Wall time, not CPU time, decides the budget.
