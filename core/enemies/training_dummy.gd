@@ -98,6 +98,74 @@ func sync_blocker(player_body: Body) -> void:
 		blocker.enabled = not blocker.overlaps(pb.left(), pb.right(), pb.top(), pb.y)
 
 
+## The plain tick: idle on the ground, nothing in the way of the walk or the refresh of the ground
+## contact that [method Enemy.step] would end in, and no swing due. It counts what the step counts
+## and queues the movement in [param batch] ([EnemyBatch]); [method land] finishes it. Anything
+## else (hitstop, a swing starting, an attack, a stagger, knockback, a fall, a dead dummy) is false
+## with nothing changed, and the caller steps it in full. A dummy that owns a solid box flushes the
+## batch first: its step moves a box the queued walks must see as the sequential loop leaves it.
+func fast_step(player: Player, batch: EnemyBatch) -> bool:
+	if blocker != null:
+		batch.flush()
+		return false
+	if freeze > 0 or state != IDLE or knock_vx != 0 or body.vy < 0 or not body.on_ground:
+		return false
+	if attacks_on and not def.attacks.is_empty():
+		if trigger_range > 0 or _idle + 1 >= period:
+			return false
+		_idle += 1
+	since_hit += 1
+	state_frame += 1
+	var ops: PackedInt64Array = batch.ops
+	var n: int = batch.count
+	var at: int = CollisionWorld.PATROL_IN * n
+	var b: Body = body
+	ops[at + 1] = b.x
+	ops[at + 2] = b.y
+	ops[at + 3] = b.half_w
+	ops[at + 4] = b.height
+	if patrol_dir == 0:
+		if player != null:
+			facing = 1 if player.body.x > b.x else -1
+		ops[at] = CollisionWorld.PATROL_REFRESH
+	else:
+		ops[at] = CollisionWorld.PATROL_FALLS if patrol_falls else CollisionWorld.PATROL_TURNS
+		ops[at + 5] = patrol_dir
+		ops[at + 6] = patrol_step
+		ops[at + 7] = patrol_drop
+	batch.queued[n] = self
+	batch.count = n + 1
+	return true
+
+
+## Takes the sweep's answer for the movement [method fast_step] queued: [param out] holds
+## [constant CollisionWorld.PATROL_OUT] integers from [param at] (x, y, contact, flags).
+func land(out: PackedInt64Array, at: int) -> void:
+	var b: Body = body
+	b.x = out[at]
+	b.y = out[at + 1]
+	var contact: int = out[at + 2]
+	b.on_ground = (contact & 1) != 0
+	b.on_slope = (contact & 2) != 0
+	b.ground_tile = (contact >> 2) - 1
+	if patrol_dir == 0:
+		return
+	var flags: int = out[at + 3]
+	if (flags & CollisionWorld.PATROL_LEDGE) != 0:
+		patrol_dir = -patrol_dir
+	facing = patrol_dir
+	if (flags & CollisionWorld.PATROL_WALL) != 0:
+		patrol_dir = -patrol_dir
+	b.hit_ceiling = false
+	b.hit_wall = 0
+	b.nudge_x = 0
+	b.nudge_y = 0
+	if not b.on_ground:
+		# Walked off a ledge: gravity takes it this tick, as the full step does.
+		settled = true
+		_move()
+
+
 func _think(player: Player) -> void:
 	if player != null and patrol_dir == 0:
 		facing = 1 if player.body.x > body.x else -1

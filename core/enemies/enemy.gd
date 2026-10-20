@@ -123,6 +123,14 @@ func step(player: Player) -> void:
 	_move()
 
 
+## The plain tick of this kind, if this is one: does what [method step] would, except that its
+## movement is queued in [param batch] ([EnemyBatch]) and lands when the batch is flushed. False
+## (and nothing done) when the tick is not plain; the caller then calls [method step]. The base
+## enemy has no plain tick.
+func fast_step(_player: Player, _batch: EnemyBatch) -> bool:
+	return false
+
+
 ## Starts [param a]: its telegraph begins this tick.
 func start_attack(a: EnemyAttack) -> void:
 	attack = a

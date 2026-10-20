@@ -1,0 +1,56 @@
+fixture batch_mix_runs
+doc BUILD.md s13 Frame budget and Determinism and replays, docs/adr/0020 Decision 15 (EnemyBatch): Ash runs east through walkers that turn at walls and ledges and fall off them, standers, swingers, a trigger dummy and solid dummies on a flat, a ramp, a plateau, a one-way and a hole, striking as she goes; the blessed hash is the reference loop's, so the batched enemies of the native path must reach it.
+seed 7
+room test/batch_mix
+wick ash
+frames 900
+input
+  0..19 R
+  20 R atk
+  21..59 R
+  60 R atk
+  61..89 R
+  90 R atk
+  91..119 R
+  120 R atk
+  121..149 R
+  150 R dash
+  151..179 R
+  180 R atk
+  181..200 R
+  201..230 R jump
+  231..239 R
+  240 R atk
+  241..299 R
+  300 R atk
+  301..329 R
+  330 R atk
+  331..359 R
+  360 R dash
+  361..400 R
+  401..419 L
+  420 L atk
+  421..469 L
+  470 L atk
+  471..500 L
+  501..519 R
+  520 R atk
+  521..559 R
+  560 R atk
+  561..599 R
+  600 R atk
+  601..639 R
+  640 R atk
+  641..699 R
+  700 R atk
+  701..759 R
+  760 R atk
+  761..799 R
+  800 R atk
+  801..849 R
+  850 R atk
+  851..899 R
+end
+expect
+  at 899 x>0
+end
