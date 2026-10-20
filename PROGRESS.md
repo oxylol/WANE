@@ -1,7 +1,7 @@
 # WANE: progress
 
 - **Phase:** 2, the vertical slice (BUILD.md section 14: Guttering Fields art-complete from code sources, lighting, Vigil, the Gnawer, 30 Votives, synthesized audio; Gate 2: a stranger plays 20 minutes and asks to keep going; 60 fps on the Steam Deck profile). Phase 1 was approved by the director on 2026-10-20 ("the rest looks good"), with two of the director's play notes in progress: zone 1 room 03 becomes an open pit with an optional 4-per-second path, and solid boxes are coloured by what they do. Gate 1's "three outside players call it tight" is the director's to run. CI run 25 was green on the Phase 1 tree.
-- **Status:** Phase 2 task 1 designed and spiked (ADR-0023: SVG parts baked to exact distance fields; ink, gouache and light drawn live in canvas shaders; shadows marched through a room SDF of our own, chosen over Godot's canvas SDF by measurement); three builders (artbuild, shaders, lighting) next; the director's room 03 and box-colour notes in progress
+- **Status:** Phase 2 task 1 designed and spiked (ADR-0023: SVG parts baked to exact distance fields; ink, gouache and light drawn live in canvas shaders; shadows marched through a room SDF of our own, chosen over Godot's canvas SDF by measurement); three builders (artbuild, shaders, lighting) in parallel; the lighting builder's part is in: the lighting pass replaces the Phase 1 stand-in (ember 420 u at 2400 K with its flicker, a baked room distance field, ray-marched soft shadows in a screen-space buffer, ambient times the Dark, emissives with bloom), judged at Dusk and Pitch in `docs/feel_log/2026-10-20-lighting-pass.md`; the director's room 03 and box-colour notes in progress
 - **Engine:** Godot 4.7.2-stable (ADR-0001); `Simulation.VERSION` 12; golden hashes blessed once at 12 (545 fixtures, 805 unit cases, 252 scripts, all passing on this container)
 
 ## Kickoff order
@@ -58,20 +58,20 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Kindling White reached by a skilled tester in zone 2, feels earned | no: zone 2 does not exist in Phase 1 | carried |
 | A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | green: the ember arrives 16 frames after the kill and grants 11 Flame (`kill_ember_reaches_the_player`); the HUD's bar eases up and flashes on a gain (`test_the_flame_bar_eases_to_a_gain_and_flashes_for_twelve_ticks`) |
 | *Graphics and feel* | | |
-| 60 fps in the stress room on the Deck profile with lighting on | partial: the Phase 1 stand-in lighting is on in the stress room; the frame gate needs Deck-class hardware (Blocked 2); the CPU budget is gated in CI: presentation script 3.8 to 4.1 ms p99 against 5.0, read directly from the views' own `_process` and `_draw` and the tick capture (met, ADR-0020 Decision 18), simulation step p99 2.67 ms against 3.0 on the spec's workload, least of 3 runs per tick (met, ADR-0020 Decision 17); **single runs read higher and are reported beside the gate, not gated: the step's p99 3.2 to 4.1 ms and the presentation's 5.4 to 6.2 ms in the audit's runs on a shared core, over their 3.0 and 5.0 sub-budgets, with the sum (about 9 to 10 ms) inside 16.0**; whether a single run should be a second gate on the reference PC is the director's question | partial: CPU half measured and met on the gated figure; GPU half blocked |
+| 60 fps in the stress room on the Deck profile with lighting on | partial: the lighting pass (ADR-0023) is on in the stress room at Pitch; the frame gate needs Deck-class hardware (Blocked 2); the CPU budget is gated in CI: presentation script 2.95 ms p99 against 5.0 with the new pass (3.48 without the native library) (3.8 to 4.1 with the stand-in), read directly from the views' own `_process` and `_draw` and the tick capture (met, ADR-0020 Decision 18), simulation step p99 2.67 ms against 3.0 on the spec's workload, least of 3 runs per tick (met, ADR-0020 Decision 17); **single runs read higher and are reported beside the gate, not gated: the step's p99 3.2 to 4.1 ms and the presentation's 5.4 to 6.2 ms in the audit's runs on a shared core, over their 3.0 and 5.0 sub-budgets, with the sum (about 9 to 10 ms) inside 16.0**; whether a single run should be a second gate on the reference PC is the director's question | partial: CPU half measured and met on the gated figure; GPU half blocked |
 | No frame-time spike above 20 ms in a 5-minute zone 1 run | partial: the 12-room grey-box zone, not the final 60-room zone | simulation side met: zone 1 loop x6 played as one continuous simulation, 20,766 ticks (5.8 minutes; six passes since room 3 shortened the loop to 3461 ticks, five would be 4.8), worst tick 0.84 ms native, 1.61 GDScript measured before the change (the route holds for three passes; Ash is hurt and dies in the later passes, when Kindling reaches White: ADR-0020 Decision 14); presentation side met in the stress room: worst frame's script time 5.44 ms (gate 20 ms); the stress room's worst simulation tick, 7.64 ms native on the spec's workload (11.2 ms GDScript), is met too (`ci/perf.sh`, ADR-0020 Decision 15; the proc storm's worst, 19.8 ms then, is reported, not gated); a door crossing at Pitch costs 0.08 to 0.38 ms since the occluders are prebuilt per room (it cost 4 to 17 ms before), gated at 2.0 ms by `tools/bench/door_bench.gd` (ADR-0020 Decision 19); the simulation-side loop includes passes where Ash dies at Kindling White (ADR-0020 Decision 14), so three passes are clean play |
-| At Pitch the ember reveals a Clinger 30 frames before it drops | no: neither the Clinger nor the ember light exists in Phase 1 | carried |
+| At Pitch the ember reveals a Clinger 30 frames before it drops | partial: the ember light and its marched shadows exist, and `ShadowTwin.revealed` (visibility times attenuation, at least `reveal_threshold` 0.1) holds a synthetic Clinger for the 30 ticks before a drop 96 u across; the Clinger enemy is a later task, which sets its own drop distance | partial: the mechanism is tested headless on the CPU twin, which `ci/lighting.sh` holds to the GPU buffer |
 | Every enemy identifiable by silhouette at 64 px | no: art is Phase 2 | carried |
 | Every attack has a smear frame | no: animation is Phase 2 | carried |
 | Landing squash and jump stretch visible and never block input | yes (grey box): `PlayerView` squashes 110% wide for 3 ticks on the core's land event (scaled by impact speed) and stretches to 94% wide for 2 ticks at the apex, feet anchored, drawn only; numbers in `content/player_view.tres`; `tests/unit/game/test_player_squash.gd`; sheet `docs/feel_log/2026-10-20-squash-stretch.png`, entry `docs/feel_log/2026-10-20-squash-stretch.md` (the stretch is 2 u narrower on a 20 u box: director to judge) | green for the grey box; the rig, smears and ink line are Phase 2 |
-| Ember flicker visible on nearby normal-mapped surfaces | no: normal maps are Phase 2 | carried |
+| Ember flicker visible on nearby normal-mapped surfaces | partial: the flicker (4% at 0.5 Hz, from the tick) shows on a lit surface at Pitch, crest over trough 1.07 in `ci/lighting.sh`, and tiles take a bevel normal from the room's distance field; sprites' own normal maps arrive with the art | partial: the mechanism is built and measured; judged on real normal maps when Ash is |
 | Screen shake at default 50% never moves the frame more than 3 units | yes | green: the largest shake (a player hit, 4 u) is 2 u at 50%, and the total is capped (`test_shake_at_the_default_fifty_percent_never_exceeds_three_units`; content validation refuses a default that would pass 3 u) |
 | Any boss-fight frame could be the store page | no: art is Phase 2 | carried |
 | *Audio* (all five lines) | no: audio is Phase 2 task 4 | carried |
 | *Run tension* | | |
 | Greedy 20-minute zone 1 noticeably harder than a 6-minute one | no: the Wane Clock's spawn scaling is not in the Phase 1 kickoff order | carried |
 | Vigil radius readable; kills refill it | no: the Vigil is not in Phase 1 | carried |
-| Dark thresholds distinguishable by sight | no: needs the Phase 2 lighting pass | carried |
+| Dark thresholds distinguishable by sight | partial: Dusk (1.0) and Pitch (0.15) are rendered and judged (`2026-10-20-lighting-pass.png`); Gloam's backgrounds fading and the eyes glowing need the zone's art; the Dark slope 0.53 waits on the director (ADR-0023 Decision 3.5) | partial |
 | Run beatable with the starting kit on Wane | no: needs a full run | carried |
 | Seeded replay reproduces bit-for-bit on Windows, Linux and Deck | partial: every fixture replays bit-for-bit against its golden hashes on Linux, Windows and macOS CI; a full run and the Deck come later | green in the audit's fuzz: random inputs, GDScript against native, 300 per-second hashes equal and replays verify bit-for-bit (2.6 KB a minute, the spec says about 2); the Deck and a full run do not exist yet; the five real Votives were not fuzzed |
 | *Process* | | |
@@ -103,7 +103,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 
 ## For the director
 
-What to play (Windows or Linux with a display; `godot --path .` boots zone 1 room 01 with the Kindle Votive (`-- --room=sandbox` for the sandbox's three dummies); add `-- --lighting=pitch` for the Pitch stand-in; F3 shows the overlay, F4 pauses, F5 steps one tick, F6 ten):
+What to play (Windows or Linux with a display; `godot --path .` boots zone 1 room 01 with the Kindle Votive (`-- --room=sandbox` for the sandbox's three dummies); add `-- --lighting=pitch` to hold the Dark at Pitch (the default is Dusk; `--lighting-profile=deck|min` shrinks the shadow buffer to 0.75 or 0.5); F3 shows the overlay, F4 pauses, F5 steps one tick, F6 ten):
 
 - **Movement.** Tap and hold jumps (is the release a decision or a cut? holds of 1 to 4 f are identical); the wall-kick climb in room 05 (held, tapped, mashed: any sticking, any press that does nothing?); a dash-jump with the jump pressed with the dash, or on its 2nd to 4th frame (it comes out up to 4 frames late: if that feels late the lever is `dash_jump_first`); releasing the stick on a dash-jump sheds the speed over about 22 frames (carry it?); lips and staircases (does the 3-frame ease of a corner nudge read as invisible? up a dashed staircase the body sits inside the steps for two frames); the ramp crest in `test/ramp45_crest_lip` (a 5 u step eased: step or bump?).
 - **Camera.** The questions in `docs/feel_log/2026-10-17-task4-camera.md`; a wall-jump off a long fall (the view should settle then follow the fall down); a death far from the spawn (the cut is instant, the fade is not built); toss up room 4's post column and bounce on the next post (no kick); a door at a run and at a dash (is a cut right, or a few frames of fade?).
@@ -163,17 +163,17 @@ Decisions waiting on you:
 | A kill's ember reaches the player in 20 f | green (16 f) |
 | 60 fps in the stress room, Deck profile, lit | partial: CPU half met on the gated figure; the GPU half is blocked on hardware |
 | No spike over 20 ms in a 5-minute zone 1 run | partial: simulation, presentation and door sides met on the grey box; the 60-room zone and a windowed GPU run are not |
-| Clinger revealed by the ember at Pitch | carried (Phase 2) |
+| Clinger revealed by the ember at Pitch | partial: the test is in (`test_the_ember_reveals_a_clinger_thirty_ticks_before_it_drops`, the CPU twin of the march, a synthetic drop 96 u across at 5 u a tick); the Clinger itself is a later task |
 | Every enemy identifiable at 64 px | carried (Phase 2 art) |
 | Every attack has a smear frame | carried (Phase 2 animator) |
 | Landing squash and jump stretch, never blocking input | green for the grey box (3 f at 110% wide, 2 f at 94%); the rig is Phase 2 |
-| Ember flicker on normal-mapped surfaces | carried (Phase 2 lighting) |
+| Ember flicker on normal-mapped surfaces | partial (see above) |
 | Screen shake at 50% never over 3 u | green (largest is 2 u) |
 | A boss-fight frame could be the store page | carried (Phase 2 and 3) |
 | Audio (five lines) | carried (Phase 2 task 4) |
 | Greedy 20-minute run harder than 6-minute | carried (the Wane Clock) |
 | Vigil radius readable | carried |
-| Dark thresholds distinguishable | carried (Phase 2 lighting) |
+| Dark thresholds distinguishable | partial (see above) |
 | Run beatable with the starting kit | carried (a full run) |
 | Seeded replay bit-for-bit on Windows, Linux, Deck | partial: green on Linux, Windows and macOS CI and in the audit's fuzz; the Deck and a full run do not exist |
 | Every tuning change in the feel log | green; the non-feel tunables have prose, not tables (carried) |

@@ -88,7 +88,6 @@ var _memory: DebugBoxes.Memory = DebugBoxes.Memory.new()
 func _ready() -> void:
 	# Above every world layer, the enemy cues' included (EnemyView.CUE_Z).
 	z_index = OVERLAY_Z
-	LightingRig.make_emissive(self)
 	var layer := CanvasLayer.new()
 	layer.name = "Hud"
 	layer.layer = 100

@@ -136,6 +136,26 @@ jobs:
           name: perf-stress-report
           path: reports/perf.txt
 
+  # The lighting pass's GPU half (docs/adr/0023): the baked room field and the shadow buffer against
+  # their CPU twin, the lit shader against its numbers, every shader compiling, on GL Compatibility
+  # under xvfb (llvmpipe). The renderer-free half is the unit suite (tests/unit/game/test_lighting.gd).
+  lighting:
+    name: lighting (GPU check under a virtual display)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          godot="$(ci/setup_godot.sh linux | tail -n 1)"
+          test -x "$godot"
+          echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Install a virtual display and a software GL driver
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
+      - uses: ./.github/actions/native-build
+      - name: Lighting GPU check
+        run: ci/lighting.sh
+
   native-release:
     name: native release library (${{ matrix.os }})
     # The exported game loads the release build of the extension; every other job uses the debug
