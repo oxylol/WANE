@@ -421,3 +421,45 @@ func test_sparks_are_tinted_by_the_tier_the_hit_used() -> void:
 		var tier: int = Kindling.EMBER if kindling == 7 else Kindling.FLAME
 		assert_int(dealt).is_equal(10 if kindling == 7 else 11)
 		assert_that(tint).is_equal(HitFeedback.SPARK_TINTS[tier])
+
+
+func test_the_cone_glow_and_channel_follow_the_interpolated_player() -> void:
+	# The player and the blade are drawn at the interpolated alpha; the objects that belong to the
+	# player (Kindle's cone, the Charged glow, Mend's channel) must sit on that body at every alpha,
+	# not at the tick's box (up to a tick of motion off at a display rate above 60 Hz). A trail is
+	# the world's and stays where it was lit.
+	var fx: Fixture = Fixture.parse_file("res://tests/replay/camera/cam_run_turn.fixture")
+	var sim := Simulation.new(fx.scenario)
+	var nodes: Array[Node] = _wired_view()
+	var view: CombatView = nodes[0] as CombatView
+	var vfx: VfxBudget = nodes[1] as VfxBudget
+	var pv: PlayerView = auto_free(PlayerView.new())
+	view.player_view = pv
+	pv.begin(sim)
+	for f: int in range(20):
+		sim.step(fx.input_frame(f))
+		sim.player.charge_held = 1000
+		sim.player.spell = PlayerSpells.MEND
+		sim.player.spell_frame = sim.player.kit.mend_frames
+		pv.capture(sim)
+		vfx.step()
+		view.capture(sim)
+	var moved: float = absf(pv.box_at(1.0).position.x - pv.box_at(0.0).position.x)
+	assert_float(moved).is_greater(1.0)
+	var checked: int = 0
+	for alpha: float in [0.0, 0.25, 0.5, 1.0]:
+		view.show_at(alpha)
+		var box: Rect2 = pv.box_at(alpha)
+		for e: VfxBudget.Effect in vfx.effects:
+			if e.kind == VfxBudget.OUTLINE:
+				var want: Rect2 = box.grow(view.tuning.charge_grow_u)
+				var got: Vector2 = view.drawn_rect(e).position
+				assert_vector(got).is_equal_approx(want.position, Vector2(0.01, 0.01))
+				checked += 1
+			elif e.kind == VfxBudget.AREA:
+				assert_float(view.drawn_rect(e).position.x).is_equal_approx(
+					box.position.x - view.tuning.mend_gap_u, 0.01
+				)
+				assert_float(view.drawn_rect(e).end.y).is_equal_approx(box.end.y, 0.01)
+				checked += 1
+	assert_int(checked).is_equal(8)
