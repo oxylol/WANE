@@ -1,9 +1,17 @@
 extends GdUnitTestSuite
+
 ## The grey-box views and the camera node: they draw the simulation between ticks and never
 ## change it (BUILD.md section 13, layer 4).
 
 ## Ticks the corner-correction test steps past a fixture's end, the stick let go.
 const TAIL_TICKS: int = 30
+
+## Legibility floors for the grey-box box colours (review F1, F2): the least colour distance between
+## two kinds, the least brightness gap to a box's wall, to the hazards' red, and of a mark to its bell.
+const MIN_KIND_GAP: float = 0.18
+const MIN_WALL_LUMA_GAP: float = 0.12
+const MIN_HAZARD_GAP: float = 0.5
+const MIN_MARK_LUMA_GAP: float = 0.3
 
 
 ## The boot scene, instanced and added to the tree.
@@ -311,3 +319,57 @@ func test_each_solid_box_kind_draws_its_own_colour() -> void:
 	var odd := SolidBox.new()
 	odd.tag = "mystery"
 	assert_object(RoomView.box_fills(odd, r)[0].colour).is_equal(look.box_solid_colour)
+
+
+func test_box_kinds_read_apart_from_each_other_and_from_hazards_and_walls() -> void:
+	# Legibility, not just distinctness (review F1, F2): no box kind is a near twin of another or of
+	# its wall, and a bell's strike mark is nothing like the spikes' or the pit's red.
+	var look: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	var kinds: Array[Color] = [
+		look.box_solid_colour, look.box_smooth_colour, look.box_wax_colour, look.box_pogo_colour
+	]
+	for i: int in range(kinds.size()):
+		for j: int in range(i + 1, kinds.size()):
+			assert_float(_colour_gap(kinds[i], kinds[j])).is_greater_equal(MIN_KIND_GAP)
+	# A box beside its wall is told from it by brightness (the walls are the tiles' own colours).
+	var plain_gap: float = absf(look.box_solid_colour.get_luminance() - RoomView.SOLID.get_luminance())
+	var smooth_gap: float = absf(
+		look.box_smooth_colour.get_luminance() - RoomView.SMOOTH.get_luminance()
+	)
+	assert_float(plain_gap).is_greater_equal(MIN_WALL_LUMA_GAP)
+	assert_float(smooth_gap).is_greater_equal(MIN_WALL_LUMA_GAP)
+	# The strike mark is not in the hazards' red family, and stands out from the bell's body.
+	var mark: Color = look.box_pogo_mark_colour
+	assert_float(_colour_gap(mark, RoomView.SPIKES)).is_greater_equal(MIN_HAZARD_GAP)
+	assert_float(_colour_gap(mark, RoomView.PIT_LIP)).is_greater_equal(MIN_HAZARD_GAP)
+	assert_float(mark.get_luminance() - look.box_pogo_colour.get_luminance()).is_greater_equal(
+		MIN_MARK_LUMA_GAP
+	)
+	# Thick enough to read at the screenshot scale: a quarter of a 32 u tile at least.
+	assert_float(look.box_mark_u).is_greater_equal(float(TileGrid.TILE) / 4.0)
+
+
+func test_a_wax_or_bell_box_that_cannot_be_clung_to_shows_it() -> void:
+	# Wax and bell paint over the cling flag, so cling=0 adds smooth-coloured side strips (review F2).
+	var look: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	var r := Rect2(100, 200, 64, 96)
+	for tag: String in ["wax", "pogo"]:
+		var clingy := SolidBox.new()
+		clingy.tag = tag
+		var slick := SolidBox.new()
+		slick.tag = tag
+		slick.clingable = false
+		var base: int = RoomView.box_fills(clingy, r).size()
+		var fills: Array[RoomView.BoxFill] = RoomView.box_fills(slick, r)
+		assert_int(fills.size()).is_equal(base + 2)
+		var left: RoomView.BoxFill = fills[base]
+		var right: RoomView.BoxFill = fills[base + 1]
+		assert_object(left.colour).is_equal(look.box_smooth_colour)
+		assert_object(right.colour).is_equal(look.box_smooth_colour)
+		assert_object(left.rect).is_equal(Rect2(r.position, Vector2(look.box_side_u, r.size.y)))
+		assert_float(right.rect.end.x).is_equal(r.end.x)
+		assert_float(right.rect.size.x).is_equal(look.box_side_u)
+
+
+func _colour_gap(a: Color, b: Color) -> float:
+	return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()

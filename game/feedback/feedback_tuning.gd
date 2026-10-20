@@ -106,16 +106,20 @@ const PATH: String = "res://content/feedback.tres"
 @export var tile_spike_teeth: int = 4
 
 @export_group("Room boxes")
-## The grey-box solid boxes (shared by the game and the room editor), coloured by function:
-## a plain box is near the tile wall of its kind (a textured one, or a smooth one for cling=0),
-## wax is amber, and a pogo-able box (a bell) is steel with a mark along its top edge in the
-## spikes' red family ("strike down here"), [member box_mark_u] thick.
-@export var box_solid_colour: Color = Color(0.34, 0.34, 0.38)
-@export var box_smooth_colour: Color = Color(0.40, 0.37, 0.33)
+## The grey-box solid boxes (shared by the game and the room editor), coloured by function and
+## kept clear of the tile walls and of the hazards' red: a plain box is a lighter blue-grey than
+## the textured wall, a smooth one (cling=0) a lighter tan than the smooth wall, wax is amber, and
+## a pogo-able box (a bell) is cyan steel with a pale mark along its top edge ("strike down
+## here"), [member box_mark_u] thick. A wax or bell box that cannot be clung to gets a
+## [member box_side_u] strip of the smooth colour down each side. The legibility floors are
+## tests/unit/game/test_views.gd's.
+@export var box_solid_colour: Color = Color(0.44, 0.46, 0.54)
+@export var box_smooth_colour: Color = Color(0.58, 0.50, 0.40)
 @export var box_wax_colour: Color = Color(0.82, 0.62, 0.22)
-@export var box_pogo_colour: Color = Color(0.46, 0.52, 0.60)
-@export var box_pogo_mark_colour: Color = Color(0.80, 0.30, 0.24)
-@export var box_mark_u: float = 6.0
+@export var box_pogo_colour: Color = Color(0.28, 0.58, 0.76)
+@export var box_pogo_mark_colour: Color = Color(0.95, 0.97, 1.0)
+@export var box_mark_u: float = 10.0
+@export var box_side_u: float = 4.0
 
 @export_group("HUD layout")
 ## The grey-box HUD's layout, in pixels: the margin from the screen's corner, a heart's width and
@@ -256,6 +260,7 @@ func validate() -> PackedStringArray:
 		tile_one_way_u,
 		tile_pit_lip_u,
 		box_mark_u,
+		box_side_u,
 		vfx_smear_half_angle,
 		vfx_proc_spring_rate,
 		hud_margin_px,

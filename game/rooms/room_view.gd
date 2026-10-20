@@ -140,8 +140,9 @@ class BoxFill:
 
 
 ## The fills that draw box [param s] over [param r] (the box in units), by function: wax is
-## amber, a pogo-able box is steel with a mark along its top edge, any other is near the wall
-## of its kind (smooth when it cannot be clung to). The colours are in content/feedback.tres.
+## amber, a pogo-able box is cyan steel with a pale mark along its top edge, any other is a lighter
+## shade of the wall of its kind (smooth when it cannot be clung to); a wax or bell box that cannot
+## be clung to also has smooth-coloured side strips. The colours are in content/feedback.tres.
 static func box_fills(s: SolidBox, r: Rect2) -> Array[BoxFill]:
 	var look: FeedbackTuning = _look()
 	var out: Array[BoxFill] = []
@@ -153,6 +154,14 @@ static func box_fills(s: SolidBox, r: Rect2) -> Array[BoxFill]:
 		out.append(BoxFill.new(mark, look.box_pogo_mark_colour))
 	else:
 		out.append(BoxFill.new(r, look.box_solid_colour if s.clingable else look.box_smooth_colour))
+		return out
+	if not s.clingable:
+		# Wax and a bell paint over the cling flag, so a strip of the smooth colour down each side
+		# shows the wall cannot be clung to.
+		var w: float = minf(look.box_side_u, r.size.x * 0.5)
+		out.append(BoxFill.new(Rect2(r.position, Vector2(w, r.size.y)), look.box_smooth_colour))
+		var right := Vector2(r.end.x - w, r.position.y)
+		out.append(BoxFill.new(Rect2(right, Vector2(w, r.size.y)), look.box_smooth_colour))
 	return out
 
 
