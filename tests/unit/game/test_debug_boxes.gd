@@ -186,3 +186,21 @@ func test_every_fixture_plays_the_same_with_the_overlay_reading() -> void:
 			)
 			played += 1
 	assert_int(played).is_greater(300)
+
+
+func test_a_crowd_of_idle_enemies_far_from_the_player_is_boxed_but_not_labelled() -> void:
+	# The stress room's 200 dummies drew a wall of overlapping text (task 8): an idle enemy past
+	# IDLE_LABEL_NEAR_U keeps its box and loses its label; the busy and the near keep both.
+	var sim: Simulation = _sim_at("res://tests/replay/perf/stress_pin.fixture", 10)
+	var enemies: Array[DebugBoxes.Box] = _of(DebugBoxes.collect(sim, WIDE_VIEW), DebugBoxes.ENEMY)
+	assert_int(enemies.size()).is_equal(200)
+	var labelled: int = 0
+	for b: DebugBoxes.Box in enemies:
+		labelled += 1 if b.label != "" else 0
+	assert_int(labelled).is_greater(0)
+	assert_int(labelled).is_less(100)
+	for i: int in range(sim.combat.enemies.size()):
+		var e: Enemy = sim.combat.enemies[i]
+		var d: float = Vector2(e.body.x - sim.player.body.x, e.body.y - sim.player.body.y).length()
+		if e.state != Enemy.IDLE or d / Fx.SUB <= DebugBoxes.IDLE_LABEL_NEAR_U:
+			assert_str(enemies[i].label).is_not_empty()

@@ -65,11 +65,22 @@ func test_the_budget_is_section_13s() -> void:
 	# "No frame-time spike above 20 ms".
 	assert_int(b.sim_max_us).is_equal(20000)
 	assert_int(b.zone_max_us).is_equal(20000)
+	# The presentation's script time is "Sprite and animation submit 2.0 + VFX 2.0 + Audio and UI
+	# 1.0": 5.0 ms (the lighting pass and post are the GPU's).
+	assert_int(b.presentation_us()).is_equal(5000)
+	assert_int(b.min_peak_procs).is_equal(39)
 
 
 func test_a_budget_that_breaks_a_rule_is_refused() -> void:
 	for change: String in [
-		"sim_p99_us", "sim_max_us", "repeats", "zone_passes", "headroom_us", "deck_p99_us"
+		"sim_p99_us",
+		"sim_max_us",
+		"repeats",
+		"zone_passes",
+		"headroom_us",
+		"deck_p99_us",
+		"burst_procs_max",
+		"min_frames",
 	]:
 		var b: PerfBudget = (load(PerfBudget.PATH) as PerfBudget).duplicate() as PerfBudget
 		match change:
@@ -85,4 +96,8 @@ func test_a_budget_that_breaks_a_rule_is_refused() -> void:
 				b.headroom_us += 1
 			"deck_p99_us":
 				b.deck_p99_us = b.reference_p99_us + 1
+			"burst_procs_max":
+				b.burst_procs_max = b.min_peak_procs - 1
+			"min_frames":
+				b.min_frames = 0
 		assert_array(Array(b.validate())).is_not_empty()

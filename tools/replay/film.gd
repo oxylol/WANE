@@ -21,7 +21,9 @@ extends SceneTree
 ## working: the frame-stepped contact sheet of CLAUDE.md's working method, step 5. With the overlay
 ## on, --zoom Z (default 1) magnifies the world Z times around the player so the boxes can be read
 ## against each other at sheet size; the overlay's text stays on the screen. --set changes a
-## tuning value for the fixtures after it, as in play.gd. Frame numbers are drawn top left, the
+## tuning value for the fixtures after it, as in play.gd. --lighting pitch|off films the fixtures
+## after it under the Phase 1 stand-in Pitch lighting (game/lighting) or unlit; by default a
+## fixture's own `lighting` word decides. Frame numbers are drawn top left, the
 ## fixture's number at the start of its row.
 ##
 ## Each row ends with the player's track on screen over every tick of the fixture: where the
@@ -41,6 +43,8 @@ const TRACK_Y := Color(1.0, 0.6, 0.25)
 const BAND := Color(0.5, 0.15, 0.15, 0.5)
 const TRACK_PX_PER_TICK: int = 2
 
+## --lighting's word for the fixtures after it; "" lets the fixture's own word decide.
+var _lighting: String = ""
 var _rows: Array[Image] = []
 ## Resources changed by --set, held so the resource cache keeps the changed copies.
 var _held: Array[Resource] = []
@@ -104,6 +108,9 @@ func _film() -> void:
 				quit(2)
 				return
 			i += 2
+		elif a == "--lighting" and has_value:
+			_lighting = args[i + 1]
+			i += 2
 		elif a == "--zoom" and has_value:
 			zoom = maxf(1.0, args[i + 1].to_float())
 			i += 2
@@ -156,9 +163,15 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		stage.add_child(n)
 	for n: Node in [feedback, hud, screen]:
 		stage.add_child(n)
+	var rig: LightingRig = null
+	if LightingRig.asks_for_pitch(_lighting if _lighting != "" else fx.lighting):
+		rig = LightingRig.new()
+		stage.add_child(rig)
 	root.add_child(stage)
 	camera.make_current()
 	room_view.show_world(sim.world, sim.room.doors)
+	if rig != null:
+		rig.show_world(sim.world)
 	combat_view.player_view = player_view
 	feedback.attach(vfx, null)
 	hud.vitals = sim.player.vitals
@@ -178,6 +191,8 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		sim.step(fx.input_frame(f))
 		if sim.events.has(SimEvents.ROOM):
 			room_view.show_world(sim.world, sim.room.doors)
+			if rig != null:
+				rig.show_world(sim.world)
 		player_view.capture(sim)
 		enemy_view.capture(sim)
 		combat_view.capture(sim)
@@ -197,6 +212,8 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		)
 		room_view.refresh()
 		player_view.show_at(1.0)
+		if rig != null:
+			rig.follow(player_view.box_at(1.0).get_center(), float(every) / 60.0)
 		enemy_view.show_at(1.0)
 		combat_view.show_at(1.0)
 		camera.show_at(1.0)

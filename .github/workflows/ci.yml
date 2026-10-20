@@ -54,9 +54,9 @@ jobs:
           path: reports/
 
   perf:
-    name: perf (stress room and zone 1 loop against the CPU budget)
+    name: perf (stress room, zone 1 loop and the presentation against the CPU budget)
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Install Godot
@@ -67,14 +67,18 @@ jobs:
       # BUILD.md section 13: input + simulation step 99th percentile <= 3.0 ms in the stress room
       # (200 enemies, 40 procs), no tick above 20 ms; budgets in content/perf/budget.tres. The GPU
       # half (lighting, sprites, 60 fps on reference PC and Deck) needs a GPU runner: PROGRESS.md.
-      - name: Stress room and zone 1 loop
+      # The frame bench gates the presentation's script time (sprites 2.0 + VFX 2.0 + audio and UI
+      # 1.0 = 5.0 ms at the 99th percentile) through game/main.tscn under Pitch lighting.
+      - name: Stress room, zone 1 loop and presentation
         run: ci/perf.sh
       - name: Upload the perf report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: perf-report
-          path: reports/perf.txt
+          path: |
+            reports/perf.txt
+            reports/frame.txt
 
   determinism:
     name: replay determinism (${{ matrix.os }})

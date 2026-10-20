@@ -176,3 +176,23 @@ func test_the_game_is_unlit_unless_it_is_asked() -> void:
 	add_child(main)
 	await get_tree().process_frame
 	assert_object(main.get("lighting")).is_null()
+
+
+func test_a_harness_can_start_the_stress_room_under_pitch_and_read_the_step_time() -> void:
+	# What tools/bench/frame_bench.gd does: the boot scene on the stress scenario, lit.
+	var run: Fixture = Fixture.parse_file("res://tests/perf/stress_run.fixture")
+	Main.scenario_override = run.scenario.copy()
+	Main.lighting_word = run.lighting
+	var made: Node = auto_free((load("res://game/main.tscn") as PackedScene).instantiate())
+	var main: Main = made as Main
+	main.save_on_exit = false
+	add_child(main)
+	Main.scenario_override = null
+	Main.lighting_word = ""
+	assert_object(main.lighting).is_not_null()
+	assert_array(Array(main.driver.sim.load_errors)).is_empty()
+	assert_int(main.driver.sim.combat.enemies.size()).is_equal(200)
+	main.driver.set_process(false)
+	main.driver.step_once()
+	assert_int(main.driver.last_step_us).is_greater(0)
+	assert_int(main.lighting.occluder_count).is_greater(0)

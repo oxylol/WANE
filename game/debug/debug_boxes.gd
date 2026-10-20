@@ -43,6 +43,10 @@ const PROC_LABEL_LINE_U: float = 22.0
 ## How far above the telegraph cue's highest point, or the health bar's (without a cue), an
 ## enemy's label is drawn.
 const LABEL_CLEAR_U: float = 4.0
+## An idle enemy is labelled only within this many units of the player (a crowd of 200 in the
+## stress room drew a wall of overlapping text; every enemy that is doing anything keeps its
+## label, and every enemy keeps its box).
+const IDLE_LABEL_NEAR_U: float = 240.0
 
 
 ## What the overlay remembers from the ticks before the one it shows, because the simulation
@@ -134,7 +138,7 @@ static func collect(sim: Simulation, view: Rect2, memory: Memory = null) -> Arra
 	var cone: Array[Rect2i] = PlayerSpells.kindle_boxes(pl)
 	for i: int in range(cone.size()):
 		out.append(_box(SPELL, units(cone[i]), "kindle" if i == 0 else ""))
-	_add_combat(sim.combat, out)
+	_add_combat(sim.combat, out, sim.player)
 	_add_contacts(sim, pl, memory, out)
 	_add_procs(sim, out)
 	return out
@@ -257,7 +261,7 @@ static func _hurtbox_at(pl: Player, x: int, y: int) -> Rect2i:
 
 
 ## Each enemy, its live attack, the fire trails and the kill embers.
-static func _add_combat(combat: Combat, out: Array[Box]) -> void:
+static func _add_combat(combat: Combat, out: Array[Box], pl: Player) -> void:
 	for e: Enemy in combat.enemies:
 		var b: Body = e.body
 		var r: Rect2i = Rect2i(b.left(), b.top(), b.right() - b.left(), b.height)
@@ -275,6 +279,8 @@ static func _add_combat(combat: Combat, out: Array[Box]) -> void:
 		if e.burn_left > 0:
 			label += "  burning %d" % e.burn_left
 		var box: Box = _box(ENEMY if e.is_alive() else ENEMY_DEAD, units(r), label)
+		if _is_quiet(e, pl):
+			box.label = ""
 		# Clear of the health and poise bars always, and of the telegraph's cue while it is up.
 		box.label_lift = EnemyView.BARS_GAP_PX + LABEL_CLEAR_U
 		if EnemyView.cue_progress(e) >= 0.0:
@@ -292,6 +298,14 @@ static func _add_combat(combat: Combat, out: Array[Box]) -> void:
 		var at := Vector2(ember.at) / Fx.SUB
 		var half := Vector2(EMBER_HALF_U, EMBER_HALF_U)
 		out.append(_box(KILL_EMBER, Rect2(at - half, half * 2.0)))
+
+
+## Whether [param e] is idle, unburnt and far from [param pl]: its label would only be noise.
+static func _is_quiet(e: Enemy, pl: Player) -> bool:
+	if e.state != Enemy.IDLE or e.burn_left > 0 or pl == null:
+		return false
+	var d: Vector2 = Vector2(e.body.x - pl.body.x, e.body.y - pl.body.y) / Fx.SUB
+	return d.length() > IDLE_LABEL_NEAR_U
 
 
 ## A sub-pixel rectangle in units.
