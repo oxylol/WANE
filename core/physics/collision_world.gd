@@ -41,6 +41,14 @@ func _init(p_grid: TileGrid = null) -> void:
 	native = NativeWorld.create()
 
 
+## Called at the start of every simulation tick: the native copy of the boxes is compared with
+## the list as it stands now ([method NativeWorld.recheck]), so a box put in place of another, or
+## two swapped, is seen.
+func begin_tick() -> void:
+	if native != null:
+		native.recheck()
+
+
 # --- horizontal, airborne ------------------------------------------------------------------
 
 

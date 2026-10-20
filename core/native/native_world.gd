@@ -8,11 +8,14 @@ extends RefCounted
 ##
 ## What is mirrored, and when. The grid is sent again when it is another grid or its revision has
 ## moved; the spike inset when it differs. The solid boxes are sent whole when the world's list is
-## another list or has another length, and after that one at a time, as they change: every box of a
-## synced list carries this link's [member SolidBox.sink] and its slot, and a changed edge or flag
-## puts its slot on [member _pending] (once; see [SolidBox]). A box belongs to one world: sharing a
-## box between two native worlds, or swapping a box in the list for another of the same count, is
-## not seen; [method invalidate] forgets the mirror for a caller that must.
+## another list or has another length; otherwise, when [member SolidBox.edits] has moved since the
+## last look (some box somewhere was changed) or [method recheck] was called, every box is compared
+## with what was sent and the ones that differ are sent again. Boxes hold no link to a mirror, so a
+## box may be in several worlds, and a box taken out of a list leaves nothing behind. The one
+## change the mirror cannot see by itself is a box put in place of another, or two swapped, in a
+## list that keeps its length: the simulation calls [method CollisionWorld.begin_tick], which
+## calls [method recheck], at the start of every tick, and [method invalidate] forgets the mirror
+## for any caller that must be seen at once.
 ##
 ## Nothing here is state: never hashed, rebuilt from the world at any time.
 
@@ -38,7 +41,10 @@ var _grid_rev: int = -1
 var _spike: int = -1
 var _list: Array[SolidBox] = []
 var _count: int = -1
-var _pending: Array[int] = []
+## What was sent for the boxes: six integers each (left, top, right, bottom, flags, spare).
+var _sent: PackedInt64Array = PackedInt64Array()
+var _edits: int = -1
+var _recheck: bool = true
 
 
 ## A link to a fresh native sweep, or null when the native path is not in use (the switch is off,
@@ -57,6 +63,11 @@ func invalidate() -> void:
 	_grid = null
 	_list = []
 	_count = -1
+
+
+## Makes the next call compare every box with what was sent (see the class comment).
+func recheck() -> void:
+	_recheck = true
 
 
 # --- moves ---------------------------------------------------------------------------------
@@ -217,12 +228,8 @@ func _sync(w: CollisionQueries) -> void:
 	var list: Array[SolidBox] = w.solids
 	if list.size() != _count or not is_same(list, _list):
 		_send_boxes(list)
-	elif not _pending.is_empty():
-		for slot: int in _pending:
-			var sb: SolidBox = list[slot]
-			sb.queued = false
-			_sweep.call(&"set_box", slot, sb.left, sb.top, sb.right, sb.bottom, _flags(sb))
-		_pending.clear()
+	elif _recheck or SolidBox.edits != _edits:
+		_resend_changed_boxes(list)
 
 
 func _send_grid(g: TileGrid) -> void:
@@ -234,20 +241,40 @@ func _send_grid(g: TileGrid) -> void:
 func _send_boxes(list: Array[SolidBox]) -> void:
 	_list = list
 	_count = list.size()
-	_pending.clear()
-	var flat := PackedInt64Array()
-	flat.resize(6 * _count)
+	_edits = SolidBox.edits
+	_recheck = false
+	_sent.resize(6 * _count)
+	for i: int in range(_count):
+		_write(list[i], 6 * i)
+	_sweep.call(&"set_boxes", _sent)
+
+
+## Sends the boxes that are not as they were sent.
+func _resend_changed_boxes(list: Array[SolidBox]) -> void:
+	_edits = SolidBox.edits
+	_recheck = false
 	for i: int in range(_count):
 		var sb: SolidBox = list[i]
-		sb.sink = _pending
-		sb.slot = i
-		sb.queued = false
-		flat[6 * i] = sb.left
-		flat[6 * i + 1] = sb.top
-		flat[6 * i + 2] = sb.right
-		flat[6 * i + 3] = sb.bottom
-		flat[6 * i + 4] = _flags(sb)
-	_sweep.call(&"set_boxes", flat)
+		var at: int = 6 * i
+		var flags: int = _flags(sb)
+		if (
+			_sent[at] != sb.left
+			or _sent[at + 1] != sb.top
+			or _sent[at + 2] != sb.right
+			or _sent[at + 3] != sb.bottom
+			or _sent[at + 4] != flags
+		):
+			_write(sb, at)
+			_sweep.call(&"set_box", i, sb.left, sb.top, sb.right, sb.bottom, flags)
+
+
+func _write(sb: SolidBox, at: int) -> void:
+	_sent[at] = sb.left
+	_sent[at + 1] = sb.top
+	_sent[at + 2] = sb.right
+	_sent[at + 3] = sb.bottom
+	_sent[at + 4] = _flags(sb)
+	_sent[at + 5] = 0
 
 
 func _flags(sb: SolidBox) -> int:

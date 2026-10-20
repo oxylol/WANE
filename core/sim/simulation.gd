@@ -239,6 +239,7 @@ func _load_content(path: String) -> Resource:
 ## Advances the world by one tick with [param frame] as player one's input.
 func step(frame: InputFrame) -> void:
 	events.clear()
+	world.begin_tick()
 	procs.begin_tick(tick)
 	last_input = frame
 	if player != null and player.freeze > 0:
