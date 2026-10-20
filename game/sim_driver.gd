@@ -56,6 +56,8 @@ var paused: bool = false
 ## share of real time each tick gets. The simulation and its replay are unchanged; only how fast
 ## the ticks come is.
 var time_scale: float = 1.0
+## Microseconds the last [method Simulation.step] took (the frame bench reads it: docs/adr/0020).
+var last_step_us: int = 0
 
 ## Real time owed to the simulation, in seconds; at most zero after stepping (a tick runs at the
 ## start of its period).
@@ -273,7 +275,9 @@ func step_once() -> void:
 		# A tick after the last slow one: its period runs at real speed.
 		time_scale = 1.0
 	var frame: InputFrame = input_layer.poll() if input_layer != null else InputFrame.new()
+	var began: int = Time.get_ticks_usec()
 	sim.step(frame)
+	last_step_us = Time.get_ticks_usec() - began
 	recorder.record(frame)
 	if _held_ticks > 0 and (sim.player == null or sim.player.freeze == 0):
 		_start_slow(_held_scale, _held_ticks)

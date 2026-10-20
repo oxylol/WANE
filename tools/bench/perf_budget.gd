@@ -28,6 +28,14 @@ const FRAME_US: int = 16600
 @export var min_hits: int = 14000
 @export var min_kills: int = 80
 @export var min_walkers: int = 100
+## What the frame bench's run must have shown, or it measured nothing: the most Votive procs
+## fired on one tick (the stress room's bursts are 39: "40 procs"), and how many frames the
+## presentation drew (`tools/bench/frame_bench.gd`).
+@export var min_peak_procs: int = 39
+## A tick that fires more procs than this is a crowd hit (an area hit on a pack), not one Taper
+## hit's burst; the report counts them apart.
+@export var burst_procs_max: int = 60
+@export var min_frames: int = 3000
 ## The rest of section 13's frame budget, for the report (the GPU stages are not measured here).
 @export var sprite_us: int = 2000
 @export var lighting_us: int = 3000
@@ -53,11 +61,21 @@ func validate() -> PackedStringArray:
 		e.append("repeats and zone_passes must be at least 1, warmup_ticks not negative")
 	if min_procs < 0 or min_hits < 0 or min_kills < 0 or min_walkers < 0:
 		e.append("the stress run's minimums must not be negative")
+	if min_peak_procs < 0 or min_frames < 1 or burst_procs_max < min_peak_procs:
+		e.append("the frame bench's minimums must not be negative, and it must draw frames")
 	if frame_total_us() != FRAME_US:
 		e.append("the frame budget stages add up to %d us, not %d" % [frame_total_us(), FRAME_US])
 	if deck_p99_us > reference_p99_us:
 		e.append("the Deck profile's frame cannot be longer than the reference PC's")
 	return e
+
+
+## What the presentation's script time may cost a frame at the 99th percentile: the stages of
+## section 13's frame budget that are our GDScript on the CPU, "Sprite and animation submit 2.0",
+## "VFX 2.0" and "Audio and UI 1.0" (5.0 ms). The lighting pass and post are the GPU's and are
+## not in it.
+func presentation_us() -> int:
+	return sprite_us + vfx_us + audio_ui_us
 
 
 ## The stages of the frame budget added up (section 13: 16.6 ms).

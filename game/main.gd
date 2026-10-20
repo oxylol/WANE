@@ -1,3 +1,4 @@
+class_name Main
 extends Node
 ## Boot scene: wires the input layer to the fixed-step driver, starts a session in the sandbox
 ## room, and attaches the views to the driver's ticks (the camera, the player, the enemies and
@@ -20,8 +21,16 @@ const VOTIVE_ARG: String = "--votive="
 ## and its shadows, ambient 0.15; game/lighting). The default is the unlit grey box.
 const LIGHTING_ARG: String = "--lighting="
 
-## Built only when the command line asks for Pitch.
+## Set by a harness (the frame bench) before the scene is added: the session to start in place of
+## the zone's, and the lighting word to use in place of the command line's ("" reads the command
+## line; "off" is the unlit grey box).
+static var scenario_override: Scenario = null
+static var lighting_word: String = ""
+
+## Built only when the command line, or a harness, asks for Pitch.
 var lighting: LightingRig = null
+## Whether the session's replay is written when the scene leaves the tree (a harness turns it off).
+var save_on_exit: bool = true
 
 @onready var input_layer: InputLayer = $InputLayer
 @onready var driver: SimDriver = $SimDriver
@@ -68,6 +77,8 @@ func _ready() -> void:
 ## The session to start: the room named on the command line, or zone 1's start room with the
 ## Kindle Votive.
 func _scenario() -> Scenario:
+	if scenario_override != null:
+		return scenario_override
 	var seed_value: int = int(Time.get_unix_time_from_system())
 	var zone: ZoneDef = load(START_ZONE) as ZoneDef
 	var scenario: Scenario = Scenario.make(seed_value, zone.start_room)
@@ -118,14 +129,15 @@ func _process(delta: float) -> void:
 
 
 func _start_lighting() -> void:
-	for arg: String in OS.get_cmdline_user_args():
-		if (
-			arg.begins_with(LIGHTING_ARG)
-			and LightingRig.asks_for_pitch(arg.trim_prefix(LIGHTING_ARG))
-		):
-			lighting = LightingRig.new()
-			$World.add_child(lighting)
-			lighting.show_world(driver.sim.world)
+	var word: String = lighting_word
+	if word == "":
+		for arg: String in OS.get_cmdline_user_args():
+			if arg.begins_with(LIGHTING_ARG):
+				word = arg.trim_prefix(LIGHTING_ARG)
+	if LightingRig.asks_for_pitch(word):
+		lighting = LightingRig.new()
+		$World.add_child(lighting)
+		lighting.show_world(driver.sim.world)
 
 
 func _on_rumble(strength: float, msec: int) -> void:
@@ -134,4 +146,5 @@ func _on_rumble(strength: float, msec: int) -> void:
 
 func _exit_tree() -> void:
 	# Every session leaves a replay behind, so any bug the director meets can be reproduced.
-	driver.save_replay(LAST_REPLAY_PATH)
+	if save_on_exit:
+		driver.save_replay(LAST_REPLAY_PATH)
