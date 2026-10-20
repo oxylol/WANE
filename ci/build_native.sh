@@ -46,7 +46,7 @@ log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
 start=$SECONDS
 for target in "${targets[@]}"; do
-	if ! (cd native && "${scons[@]}" -Q -j"$jobs" "platform=$platform" "target=$target" "${arch_args[@]}") > "$log" 2>&1; then
+	if ! (cd native && "${scons[@]}" -Q -j"$jobs" "platform=$platform" "target=$target" ${arch_args[@]+"${arch_args[@]}"}) > "$log" 2>&1; then
 		tail -n 40 "$log" >&2
 		echo "build_native: $target failed" >&2
 		exit 1

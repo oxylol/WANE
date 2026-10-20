@@ -10,11 +10,11 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning, FlatWalk (flat-floor fast path).
 - `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind.
-- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015).
-- `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/lighting/` LightingRig, OccluderBuilder (stand-in). `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `shaders/`, `assets/`.
+- `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/native/` NativeBackend (`use_native`, off/auto/on), NativeRef (GDScript twins of the C++ in `native/src/`; `game/native/native_boot.gd` reads `WANE_NATIVE`). `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015).
+- `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/lighting/` LightingRig, OccluderBuilder (stand-in). `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, and enemies, combat, rooms, ui beside it. Empty: `game/hub/`, `shaders/`.
 - `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless, probes; `tools/bench/` physics, proc, stress and frame benches (PerfStats, PerfBudget), `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below); `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty.
-- `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/` the stress room `tests/perf/rooms/stress.room` and its run `tests/perf/stress_run.fixture` (pin: `tests/replay/perf/stress_pin.fixture`); `tests/screenshot/` empty.
-- `ci/` `ci/test.sh`, `ci/unit.sh`, `ci/perf.sh`, `ci/lint.sh`, `ci/setup_godot.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
+- `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/` the stress room `tests/perf/rooms/stress.room` and run `tests/perf/stress_run.fixture`.
+- `ci/` `ci/test.sh`, `ci/unit.sh`, `ci/perf.sh`, `ci/lint.sh`, `ci/setup_godot.sh`, `ci/build_native.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
 
 ## Entry points
 
@@ -24,7 +24,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - Combat: `core/combat/combat.gd resolve`: effects age, player hits (strike, spells, pogo, trails), enemy hits (parry window).
 - Collision moves: `core/physics/collision_world.gd move_x`, `:367 move_y`, `:455 landing_contact`, `:520 walk`, `:853 drop_through`.
 - Rooms: `core/rooms/room_data.gd parse` (problems in `errors`), `:91 load_id`, `:348 build_world`; `core/rooms/room_set.gd reach` (rooms reachable by doors); `core/rooms/room_joins.gd errors`.
-- Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel`; `tools/room_editor/room_canvas.gd RoomCanvas`; `tools/room_editor/room_document.gd RoomDocument`, with `tools/room_editor/room_history.gd RoomHistory`, `tools/room_editor/room_door_edits.gd RoomDoorEdits` and `tools/room_editor/room_object_edits.gd RoomObjectEdits`; `tools/room_editor/entity_kinds.gd EntityKinds`.
+- Room editor: `addons/room_editor/plugin.cfg` shim to `tools/room_editor/room_editor_plugin.gd RoomEditorPlugin`; `tools/room_editor/room_editor_panel.gd RoomEditorPanel`; `tools/room_editor/room_document.gd RoomDocument`; in the same folder RoomCanvas, RoomHistory, RoomDoorEdits, RoomObjectEdits, EntityKinds.
 - Input: `core/sim/input_ring.gd push`, `:97 merge`, `:123 press_age`, `:170 consume`; ages 0 to 8.
 - Hashes: `core/sim/state_hasher.gd add_int` (stateful classes have `hash_into`); `core/sim/content_hash.gd add_resource`, `:21 add_room`. Replays: `core/sim/replay.gd encode`, `core/sim/replay_player.gd verify`.
 - Fixtures: `tools/replay/fixture.gd parse_file`; `tools/replay/fixture_runner.gd run_all` (sharded, 10 s budget), `:218 run_fixture`, `:489 _bless`.
@@ -56,7 +56,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd`; raw failures: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
-- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (stress bench incl. the 5-minute zone run via `tools/bench/bench_run.gd`, then frame bench; CI: `perf` = zone + frame, `perf-stress` = known red) against `content/perf/budget.tres`; windowed run in `tools/bench/frame_bench.gd`'s header.
+- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (stress, zone, frame benches; CI: `perf` = zone + frame, `perf-stress` = known red) against `content/perf/budget.tres`.
 
 ## Rules agents trip on
 
@@ -82,4 +82,5 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - `0017-ember-toss-cancel-over-a-chasm` Tech 11: the toss cancel over the chasm.
 - `0019-zone1-grey-box-gates-and-teaches` Which zone 1 rooms gate their tech, which teach.
 - `0020-stress-room-and-perf-gate` Stress room, perf gates, Pitch stand-in.
+- `0021-native-extension-toolchain` godot-cpp pin, `WANE_NATIVE`, parity rules.
 - `0018-room-editor-install` Plugin shim in `addons/room_editor/`, code in `tools/room_editor/`.

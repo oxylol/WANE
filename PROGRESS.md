@@ -21,7 +21,7 @@
 
 ## Next
 
-1. Task 8: the director's decision on the CPU budget (ADR-0020: C++ for `CollisionWorld` and the proc path, or a design change), then the perf job goes green; re-judge 30 Votives on screen with the Phase 2 lighting and art (judged for the grey boxes on `docs/feel_log/2026-10-19-task8-stress.png`).
+1. Task 8: the director's decision on the CPU budget (ADR-0020: C++ for `CollisionWorld` and the proc path, or a design change; the native toolchain is ready for it: ADR-0021, `ci/build_native.sh`, `NativeBackend`, `WANE_NATIVE`, first CI run of the Windows and macOS native builds unproven), then the perf job goes green; re-judge 30 Votives on screen with the Phase 2 lighting and art (judged for the grey boxes on `docs/feel_log/2026-10-19-task8-stress.png`).
 2. Re-review physics (round 8), movement (round 6), the camera (round 7), task 5 (round 3) and task 6 (round 2) on the merged engine, and fix what they find; review the procs (ADR-0015) and the room editor and zone 1 the same way.
 3. Open core fixes found in the last pass, to land with that re-review: the Ember Toss teleport clearing the side 1 recoil and the hazard's 20 free frames were fixed in `503c5b5`; remaining are the zone 1 findings below under Blocked and For the director.
 4. Then task 9: the Immaculate Checklist pass and the Phase 1 report.

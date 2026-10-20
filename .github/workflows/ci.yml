@@ -42,8 +42,27 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Headless tests
+      - name: Install SCons (pinned in tools/requirements.txt)
+        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+      - name: Cache godot-cpp and its build
+        uses: actions/cache@v4
+        with:
+          path: |
+            native/godot-cpp
+            native/.sconsign.dblite
+          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
+      - name: Build the native extension (ADR-0021)
+        run: ci/build_native.sh
+      - name: Headless tests, GDScript reference (native off)
+        env:
+          WANE_NATIVE: "off"
         run: ci/test.sh
+      - name: Fixtures and parity with the native path on (same goldens, same hashes)
+        env:
+          WANE_NATIVE: "on"
+        run: |
+          ci/test.sh --stage compile --stage fixtures
+          ci/unit.sh tests/unit/core/test_native_parity.gd
       - name: Core coverage (gate 85%)
         run: python3 tools/ci/gd_coverage.py --min 85
       - name: Upload unit test reports
@@ -134,5 +153,22 @@ jobs:
           godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      - name: Replay fixtures against the golden hashes, and the RNG and hash unit tests
+      - name: Install SCons (pinned in tools/requirements.txt)
+        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+      - name: Cache godot-cpp and its build
+        uses: actions/cache@v4
+        with:
+          path: |
+            native/godot-cpp
+            native/.sconsign.dblite
+          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
+      - name: Build the native extension (ADR-0021)
+        run: ci/build_native.sh
+      - name: Replay fixtures against the golden hashes, and the RNG and hash unit tests (native off)
+        env:
+          WANE_NATIVE: "off"
+        run: ci/test.sh --stage compile --stage fixtures --stage unit
+      - name: The same, with the native path on (a desync here is a P0, ADR-0021)
+        env:
+          WANE_NATIVE: "on"
         run: ci/test.sh --stage compile --stage fixtures --stage unit

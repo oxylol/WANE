@@ -7,6 +7,7 @@ CLAUDE.md rule 10: nothing enters the repo from outside it except what is listed
 | What | Version | License | Where | Why |
 | --- | --- | --- | --- | --- |
 | Godot Engine | 4.7.2-stable (`.godot-version`) | MIT (Expat), plus the third-party components below | not vendored; the pinned official binary and export templates | The engine (BUILD.md section 13, ADR-0001) |
+| godot-cpp | `godot-4.5-stable`, commit `e83fd0904c13356ed1d4c3d09f8bb9132bdc6b77` (`native/.godot-cpp-version`) | MIT (copyright Godot Engine contributors; includes the GDExtension interface header and API description, also MIT) | not vendored; cloned by `ci/setup_godot_cpp.sh` into the git-ignored `native/godot-cpp` and compiled into the native library `native/bin/libwane.*` | C++ bindings for the native extension (BUILD.md section 13, ADR-0021) |
 | Godot's embedded default font | as embedded in Godot 4.7.2 | SIL OFL 1.1 | inside the engine binary | Used only by the F3 debug overlay and tool output (contact-sheet labels). Never player-facing; the shipped UI font gets its own row and ADR in Phase 2 |
 
 ### Components inside the Godot binary
@@ -47,6 +48,7 @@ Godot 4.7.2 bundles 102 third-party components under 19 licenses (from `Engine.g
 | gdUnit4 | 6.2.2 (tag `v6.2.2`, 2026-10-07) | MIT, copyright (c) 2023 Mike Schulze | `addons/gdUnit4/`, vendored without its own `test/` folder and without the upstream agent guidance file `src/asserts/CLAUDE.md` (it contradicts this project's rules) | Unit test framework (CLAUDE.md, ADR-0001). Must be excluded from every export preset when presets are added |
 | gdtoolkit (gdlint, gdformat) | 4.5.0 | MIT | `tools/requirements.txt` | Lint and format gate |
 | gdtoolkit dependencies: lark, PyYAML, docopt-ng, radon, mando, colorama, six, regex, setuptools | see `tools/requirements.txt` | MIT (lark, PyYAML, docopt-ng, radon, mando, six, setuptools), BSD-3-Clause (colorama), Apache-2.0 (regex) | `tools/requirements.txt` | Lint toolchain |
+| SCons | 4.10.1 | MIT | `tools/requirements.txt` | Builds the native extension (`ci/build_native.sh`, ADR-0021) |
 | numpy | 2.5.3 | BSD-3-Clause | `tools/requirements.txt` | Art and audio builds, coverage maths |
 | Pillow | 12.3.0 | MIT-CMU (HPND) | `tools/requirements.txt` | Art build output, contact-sheet post-processing |
 | CairoSVG and its dependencies: cairocffi, cffi, pycparser, cssselect2, tinycss2, defusedxml, webencodings | see `tools/requirements.txt` | LGPL-3.0 (CairoSVG), BSD-3-Clause (cairocffi, pycparser, cssselect2, tinycss2, webencodings), MIT (cffi), PSF-2.0 (defusedxml) | `tools/requirements.txt` | Vector rasterisation in the art build (Phase 2); never linked into the game |
