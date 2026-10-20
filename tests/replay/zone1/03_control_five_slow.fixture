@@ -1,0 +1,70 @@
+fixture zone1_03_control_five_slow
+doc Control for room 03 (BUILD.md s5 tech 3; zone1_03_route_fewest_bounces): five bounces of the slow chain (an air dash 9 frames and an air dash-jump 17 frames after each bounce, 26-frame links, 520 u each, 20 u/f kept) fall into the spikes at x 3351 u, 233 u short of the tunnel's end (3584 u): six are the fewest at any rhythm.
+room zone1/03_pogo_chain
+spawn 74 608
+frames 227
+input
+  0..5 R
+  6..8 R jump
+  9..39 R
+  40 R dash
+  41..44 R
+  45..47 R jump
+  48..54 R
+  55 R D attack
+  56..65 R
+  66 R dash
+  67..73 R
+  74 R jump
+  75..80 R
+  81 R D attack
+  82..91 R
+  92 R dash
+  93..99 R
+  100 R jump
+  101..106 R
+  107 R D attack
+  108..117 R
+  118 R dash
+  119..125 R
+  126 R jump
+  127..132 R
+  133 R D attack
+  134..143 R
+  144 R dash
+  145..151 R
+  152 R jump
+  153..158 R
+  159 R D attack
+  160..169 R
+  170 R dash
+  171..177 R
+  178 R jump
+  179..226 R
+end
+expect
+  # A hop over the 3-spike patch (frame 6), a ground dash-jump into the tunnel (dash on 40, jump on dash frame 6).
+  at 40 event.dash=1
+  at 45 event.jump=1 vx=5120
+  never 0..56 event.pogo=1
+  at 57 event.pogo=1 vx=5120 vy=-3388
+  never 58..82 event.pogo=1
+  at 83 event.pogo=1 vx=5120 vy=-3388
+  never 84..108 event.pogo=1
+  at 109 event.pogo=1 vx=5120 vy=-3388
+  never 110..134 event.pogo=1
+  at 135 event.pogo=1 vx=5120 vy=-3388
+  never 136..160 event.pogo=1
+  at 161 event.pogo=1 vx=5120 vy=-3388
+  never 162..226 event.pogo=1
+  at 66 event.dash=1
+  at 92 event.dash=1
+  at 118 event.dash=1
+  at 144 event.dash=1
+  at 170 event.dash=1
+  never 0..186 event.hazard=1
+  mark hazard 187..187 event.hazard=1
+  at 186 x>3300u
+  at 186 x<3584u
+  never 0..226 event.room=1
+end

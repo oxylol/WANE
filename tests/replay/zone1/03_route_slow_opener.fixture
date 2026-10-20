@@ -1,0 +1,89 @@
+fixture zone1_03_route_slow_opener
+doc Room 03 (BUILD.md s5 tech 3, s15 "4 bounces per second"; ADR-0019 Decision 5): what a slow opening link buys. The no-pogo controls' dash-jump and its air jump (dash on 44, jump 49, air jump on 61) land the first bounce on frame 72 at x 1027.5 u instead of frame 57 at 771.5 u, 256 u farther in; the chain after it is the route's (a down-strike on each fall, an air jump 5 frames after each bounce, a bounce every 15 frames, 20 u/f kept) and nine bounces cross, the ninth arc landing on the east hall floor at x about 3745 u. Eight fall into the spikes (the opening link is 25 frames, one slow link of the kind zone1_03_route_slow_finisher shows at the other end). Nine bounces at 4 a second cross only after a slow opening link; with the dash-jump's own arc (zone1_03_control_nine_bounces) they do not.
+room zone1/03_pogo_chain
+spawn 74 608
+frames 241
+input
+  0..5 R
+  6..8 R jump
+  9..43 R
+  44 R dash
+  45..48 R
+  49..51 R jump
+  52..60 R
+  61 R jump
+  62..69 R
+  70 R D attack
+  71..76 R
+  77 R jump
+  78..84 R
+  85 R D attack
+  86..91 R
+  92 R jump
+  93..99 R
+  100 R D attack
+  101..106 R
+  107 R jump
+  108..114 R
+  115 R D attack
+  116..121 R
+  122 R jump
+  123..129 R
+  130 R D attack
+  131..136 R
+  137 R jump
+  138..144 R
+  145 R D attack
+  146..151 R
+  152 R jump
+  153..159 R
+  160 R D attack
+  161..166 R
+  167 R jump
+  168..174 R
+  175 R D attack
+  176..181 R
+  182 R jump
+  183..189 R
+  190 R D attack
+  191..196 R
+  197 R jump
+  198..204 R
+  205..240 R
+end
+expect
+  # A hop over the 3-spike patch (frame 6), a ground dash-jump into the tunnel (dash on 44, jump on dash frame 5), and the air jump on 61: the first link is 25 frames and the first bounce lands 256 u farther in than the route's.
+  at 44 event.dash=1
+  at 49 event.jump=1
+  at 61 event.air_jump=1
+  never 0..71 event.pogo=1
+  at 72 event.pogo=1 vx=5120 vy=-3388 x>1027u x<1028u
+  never 73..86 event.pogo=1
+  at 87 event.pogo=1 vx=5120 vy=-3388
+  never 88..101 event.pogo=1
+  at 102 event.pogo=1 vx=5120 vy=-3388
+  never 103..116 event.pogo=1
+  at 117 event.pogo=1 vx=5120 vy=-3388
+  never 118..131 event.pogo=1
+  at 132 event.pogo=1 vx=5120 vy=-3388
+  never 133..146 event.pogo=1
+  at 147 event.pogo=1 vx=5120 vy=-3388
+  never 148..161 event.pogo=1
+  at 162 event.pogo=1 vx=5120 vy=-3388
+  never 163..176 event.pogo=1
+  at 177 event.pogo=1 vx=5120 vy=-3388
+  never 178..191 event.pogo=1
+  at 192 event.pogo=1 vx=5120 vy=-3388
+  never 193..240 event.pogo=1
+  at 78 event.air_jump=1
+  at 93 event.air_jump=1
+  at 108 event.air_jump=1
+  at 123 event.air_jump=1
+  at 138 event.air_jump=1
+  at 153 event.air_jump=1
+  at 168 event.air_jump=1
+  at 183 event.air_jump=1
+  at 198 event.air_jump=1
+  never 0..240 event.hazard=1
+  at 240 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+end
