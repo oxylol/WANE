@@ -6,3 +6,15 @@
 script = ExtResource("1")
 nudge_ease_frames = 3
 nudge_lag_percent = 250
+landing_squash_frames = 3
+landing_squash_width_percent = 110
+landing_min_impact_ups = 300
+landing_full_impact_ups = 800
+apex_stretch_frames = 2
+apex_stretch_width_percent = 94
+apex_full_rise_ups = 900
+eye_size_u = 4.0
+eye_edge_gap_u = 2.0
+eye_drop_u = 6.0
+ember_radius_u = 6.0
+invulnerable_outline_u = 2.0
