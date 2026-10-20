@@ -332,7 +332,9 @@ func test_box_kinds_read_apart_from_each_other_and_from_hazards_and_walls() -> v
 		for j: int in range(i + 1, kinds.size()):
 			assert_float(_colour_gap(kinds[i], kinds[j])).is_greater_equal(MIN_KIND_GAP)
 	# A box beside its wall is told from it by brightness (the walls are the tiles' own colours).
-	var plain_gap: float = absf(look.box_solid_colour.get_luminance() - RoomView.SOLID.get_luminance())
+	var plain_gap: float = absf(
+		look.box_solid_colour.get_luminance() - RoomView.SOLID.get_luminance()
+	)
 	var smooth_gap: float = absf(
 		look.box_smooth_colour.get_luminance() - RoomView.SMOOTH.get_luminance()
 	)
