@@ -36,6 +36,8 @@ const MAX_SHARDS: int = 4
 const SHARD_SCRIPT: String = "res://tools/replay/fixture_shard.gd"
 ## A shard's output line carrying one fixture's result.
 const RESULT_PREFIX: String = "fixture-result "
+## A shard's output line naming the native mode it ran in ([method mode_line]).
+const MODE_PREFIX: String = "fixture-mode "
 
 var results: Array[Result] = []
 ## The suite's time limit in milliseconds; 0 for none (an instrumented coverage run).
@@ -45,6 +47,8 @@ var budget_msec: int = SUITE_BUDGET_MSEC
 var shards: int = 0
 ## The script each shard runs (a test points it elsewhere to see a shard die).
 var shard_script: String = SHARD_SCRIPT
+## The mode line each shard of the last [method run_sharded] reported, by shard (empty: none).
+var shard_modes: Array[String] = []
 ## Quiet (tools/ci/run_tests.gd --quiet): [method run_all] prints nothing and leaves each failure
 ## in [member failure_blocks] instead, as lines for tools/ci/quiet_report.gd.
 var quiet: bool = false
@@ -178,6 +182,12 @@ func run_paths(paths: Array[String], shard: int = 0, of: int = 1) -> Array[Resul
 	return out
 
 
+## The native mode and whether the native path is in use, as a shard reports it and the runner
+## expects it.
+static func mode_line() -> String:
+	return "%s native=%s" % [NativeBackend.mode_name(), NativeBackend.use_native()]
+
+
 ## Runs [param paths] in [param count] processes at once, each [constant SHARD_SCRIPT] with its
 ## share, and returns their results in path order. A fixture whose result never came back (its
 ## process died) fails with what that process printed last.
@@ -196,14 +206,29 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 	for thread: Thread in threads:
 		thread.wait_to_finish()
 	var by_path: Dictionary[String, Result] = {}
+	shard_modes.clear()
+	shard_modes.resize(count)
 	for k: int in range(count):
+		var found: Array[Result] = []
 		for chunk: Variant in outputs[k]:
 			for line: String in str(chunk).split("\n"):
-				if line.begins_with(RESULT_PREFIX):
-					# Windows ends the lines with "\r\n".
-					var fields: String = line.trim_prefix(RESULT_PREFIX).trim_suffix("\r")
-					var result: Result = Result.from_line(fields)
-					by_path[result.path] = result
+				# Windows ends the lines with "\r\n".
+				line = line.trim_suffix("\r")
+				if line.begins_with(MODE_PREFIX):
+					shard_modes[k] = line.trim_prefix(MODE_PREFIX)
+				elif line.begins_with(RESULT_PREFIX):
+					found.append(Result.from_line(line.trim_prefix(RESULT_PREFIX)))
+		# A shard that ran on another path than this process proves nothing about this one.
+		if not found.is_empty() and shard_modes[k] != mode_line():
+			for result: Result in found:
+				result.fail(
+					(
+						"shard %d ran native '%s', this process runs '%s' (ADR-0021)"
+						% [k, shard_modes[k], mode_line()]
+					)
+				)
+		for result: Result in found:
+			by_path[result.path] = result
 	var out: Array[Result] = []
 	for i: int in range(paths.size()):
 		if by_path.has(paths[i]):
@@ -231,6 +256,8 @@ func _run_shard(k: int, count: int, output: Array[String], codes: Array[int]) ->
 		str(k),
 		"--of",
 		str(count),
+		"--native",
+		NativeBackend.mode_name(),
 	]
 	codes[k] = OS.execute(OS.get_executable_path(), args, output, true)
 

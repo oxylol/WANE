@@ -7,6 +7,7 @@ extends SceneTree
 ## the new golden file in the same commit as the change (ADR-0006).
 
 
-func _init() -> void:
+# _initialize, not _init: the NativeBoot autoload (WANE_NATIVE) exists only from there on.
+func _initialize() -> void:
 	var ok: bool = FixtureRunner.new().run_all(true)
 	quit(0 if ok else 1)

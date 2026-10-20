@@ -32,6 +32,11 @@ static func mode() -> Mode:
 	return _mode
 
 
+## The name of the current mode ("off", "auto", "on"), as [method parse_mode] reads it.
+static func mode_name() -> String:
+	return MODE_NAMES.find_key(_mode)
+
+
 ## The mode named [param text] ("off", "auto", "on", any case), or -1 for anything else.
 static func parse_mode(text: String) -> int:
 	var key: String = text.strip_edges().to_lower()

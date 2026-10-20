@@ -66,3 +66,36 @@ func test_a_shard_that_dies_fails_its_fixtures() -> void:
 	for r: FixtureRunner.Result in results:
 		assert_bool(r.passed).is_false()
 		assert_str(r.messages[0]).contains("returned no result")
+
+
+func _run_in_mode(mode_value: NativeBackend.Mode) -> FixtureRunner:
+	var saved_mode: NativeBackend.Mode = NativeBackend.mode()
+	NativeBackend.configure(mode_value)
+	var runner := FixtureRunner.new()
+	var results: Array[FixtureRunner.Result] = runner.run_sharded(_paths(), 2)
+	NativeBackend.configure(saved_mode)
+	for r: FixtureRunner.Result in results:
+		assert_bool(r.passed).is_true()
+	return runner
+
+
+func test_a_shard_runs_in_the_mode_this_process_asked_for() -> void:
+	# The A/B of CI (WANE_NATIVE=off, then on) is only an A/B if the shards follow the switch.
+	var off: FixtureRunner = _run_in_mode(NativeBackend.Mode.OFF)
+	assert_array(off.shard_modes).is_equal(["off native=false", "off native=false"])
+	if NativeBackend.available():
+		var on: FixtureRunner = _run_in_mode(NativeBackend.Mode.ON)
+		assert_array(on.shard_modes).is_equal(["on native=true", "on native=true"])
+
+
+func test_a_shard_on_another_path_fails_its_fixtures() -> void:
+	var runner := FixtureRunner.new()
+	var saved_mode: NativeBackend.Mode = NativeBackend.mode()
+	runner.shard_script = "res://tests/unit/tools/shard_off_path.gd"
+	NativeBackend.configure(NativeBackend.Mode.AUTO)
+	var results: Array[FixtureRunner.Result] = runner.run_sharded(_paths(), 2)
+	NativeBackend.configure(saved_mode)
+	assert_int(results.size()).is_equal(SOME.size())
+	for r: FixtureRunner.Result in results:
+		assert_bool(r.passed).is_false()
+		assert_str(r.messages[r.messages.size() - 1]).contains("ran native")
