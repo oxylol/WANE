@@ -16,6 +16,8 @@ static func _walk(dir_path: String, suffixes: Array[String], found: Array[String
 	var dir: DirAccess = DirAccess.open(dir_path)
 	if dir == null:
 		return
+	if dir.file_exists(".gdignore"):
+		return
 	dir.include_hidden = false
 	for sub: String in dir.get_directories():
 		if sub.begins_with("."):

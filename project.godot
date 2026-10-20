@@ -10,6 +10,10 @@ config/description="A hand-drawn 2D action roguelike. You carry the last ember d
 run/main_scene="res://game/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
+[autoload]
+
+NativeBoot="*res://game/native/native_boot.gd"
+
 [debug]
 
 gdscript/warnings/directory_rules={
@@ -86,3 +90,7 @@ renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/canvas_textures/default_texture_filter=1
 environment/defaults/default_clear_color=Color(0.07, 0.07, 0.08, 1)
+
+[wane]
+
+native/mode="auto"

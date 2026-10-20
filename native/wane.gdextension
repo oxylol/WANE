@@ -1,0 +1,16 @@
+[configuration]
+
+entry_symbol = "wane_library_init"
+; Built against godot-cpp godot-4.5-stable (native/.godot-cpp-version): GDExtension is forward
+; compatible, so the 4.7.2 engine pinned in .godot-version loads it (ADR-0021 Decision 1).
+compatibility_minimum = "4.5"
+reloadable = false
+
+[libraries]
+
+linux.debug.x86_64 = "res://native/bin/libwane.linux.template_debug.x86_64.so"
+linux.release.x86_64 = "res://native/bin/libwane.linux.template_release.x86_64.so"
+windows.debug.x86_64 = "res://native/bin/libwane.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://native/bin/libwane.windows.template_release.x86_64.dll"
+macos.debug = "res://native/bin/libwane.macos.template_debug.framework"
+macos.release = "res://native/bin/libwane.macos.template_release.framework"

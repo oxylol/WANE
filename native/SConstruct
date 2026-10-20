@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+# WANE native extension (ADR-0021). Build with ci/build_native.sh, which fetches the pinned
+# godot-cpp (ci/setup_godot_cpp.sh) and runs scons here. Direct use, from native/:
+#   scons platform=linux|windows|macos target=template_debug|template_release [arch=...]
+# Output goes to native/bin/, named as wane.gdextension expects. Source order is sorted so that
+# the object order, and so the binary, does not depend on the file system.
+import os
+
+godot_cpp = os.environ.get("GODOT_CPP_DIR", "godot-cpp")
+env = SConscript(os.path.join(godot_cpp, "SConstruct"))
+
+env.Append(CPPPATH=["src/"])
+sources = sorted(Glob("src/*.cpp"), key=lambda node: str(node))
+
+if env["platform"] == "macos":
+    # A framework folder, as Godot's export for macOS expects (the name has no arch suffix; the
+    # binary inside is universal when built with arch=universal).
+    library = env.SharedLibrary(
+        "bin/libwane.{}.{}.framework/libwane.{}.{}".format(
+            env["platform"], env["target"], env["platform"], env["target"]
+        ),
+        source=sources,
+    )
+else:
+    library = env.SharedLibrary(
+        "bin/libwane{}{}".format(env["suffix"], env["SHLIBSUFFIX"]),
+        source=sources,
+    )
+
+env.NoCache(library)
+Default(library)

@@ -17,3 +17,16 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .godot-import.log
+
+# Native extension (ADR-0021): godot-cpp is fetched by ci/setup_godot_cpp.sh, never vendored
+/native/godot-cpp/
+/native/bin/
+/native/.sconsign*.dblite
+/native/.sconf_temp/
+/native/config.log
+*.o
+*.os
+*.obj
+*.exp
+*.pdb
+*.ilk
