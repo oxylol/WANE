@@ -16,7 +16,7 @@ const FRAME_US: int = 16600
 @export var sim_max_us: int = 20000
 ## The worst tick of the zone 1 loop, played [member zone_passes] times through.
 @export var zone_max_us: int = 20000
-@export var zone_passes: int = 5
+@export var zone_passes: int = 6
 ## Whole runs of the stress scenario; each tick's time is the least of them (the work of a tick is
 ## fixed, so the rest is the machine's noise).
 @export var repeats: int = 3

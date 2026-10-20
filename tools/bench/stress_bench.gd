@@ -5,7 +5,8 @@ extends SceneTree
 ## runs, dashes, strikes, pogoes and casts through 200 training dummies, 150 of them walking, with
 ## the stress Votive set stacked: 39 procs a Taper hit) and times every tick's input plus
 ## [method Simulation.step], then plays the zone 1 loop (tests/replay/zone1/zone1_loop.fixture)
-## five times through on one simulation, 17,920 ticks, for the checklist's 5-minute spike line.
+## six times through on one simulation, 20,766 ticks (5.8 minutes), for the checklist's
+## 5-minute spike line.
 ##
 ## A tick's time is the least over the repeated runs (the replay fixes a tick's work; the excess is
 ## the machine's); the first warm-up ticks are played and not counted. The gates are in
