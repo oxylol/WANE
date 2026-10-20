@@ -120,7 +120,8 @@ jobs:
   # reported by the same bench and not gated. Blocking since ADR-0020 Decision 16: with the physics
   # sweep, the plain enemy ticks and the enemy query cells native this job measured p99 2.67 ms and
   # worst 3.89 ms (5.01 and 7.64 before) on the reference machine, a margin of 11%. If the CI
-  # runner (slower than that machine) turns it red, Decision 16 says what to do next.
+  # runner (slower than that machine) turns it red, Decision 16 says what to do next. The gate is the
+  # least of 3 runs per tick; the report also lists what each run read alone (Decision 17).
   perf-stress:
     name: perf (stress room against the CPU budget)
     runs-on: ubuntu-24.04

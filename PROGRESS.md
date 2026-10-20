@@ -58,7 +58,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 | Kindling White reached by a skilled tester in zone 2, feels earned | no: zone 2 does not exist in Phase 1 | carried |
 | A kill releases an ember that reaches the player within 20 frames; Flame reacts | yes | green: the ember arrives 16 frames after the kill and grants 11 Flame (`kill_ember_reaches_the_player`); the HUD's bar eases up and flashes on a gain (`test_the_flame_bar_eases_to_a_gain_and_flashes_for_twelve_ticks`) |
 | *Graphics and feel* | | |
-| 60 fps in the stress room on the Deck profile with lighting on | partial: the Phase 1 stand-in lighting is on in the stress room; the frame gate needs Deck-class hardware (Blocked 2); the CPU budget is gated in CI: presentation script 4.44 ms p99 against 5.0 (met), simulation step p99 2.67 ms against 3.0 on the spec's workload (met, ADR-0020 Decision 16) | partial: CPU half measured and met; GPU half blocked |
+| 60 fps in the stress room on the Deck profile with lighting on | partial: the Phase 1 stand-in lighting is on in the stress room; the frame gate needs Deck-class hardware (Blocked 2); the CPU budget is gated in CI: presentation script 3.8 to 4.1 ms p99 against 5.0, read directly from the views' own `_process` and `_draw` and the tick capture (met, ADR-0020 Decision 17), simulation step p99 2.67 ms against 3.0 on the spec's workload, least of 3 runs per tick (met, ADR-0020 Decision 16; one run alone reads 3.6 to 4.5 ms on a shared core, reported beside it by `ci/perf.sh`, Decision 17) | partial: CPU half measured and met; GPU half blocked |
 | No frame-time spike above 20 ms in a 5-minute zone 1 run | partial: the 12-room grey-box zone, not the final 60-room zone | simulation side met: zone 1 loop x5 played as one continuous simulation, 17,920 ticks, worst tick 0.84 ms native, 1.61 GDScript (the route holds for three passes; Ash is hurt and dies in the 4th and 5th, when Kindling reaches White: ADR-0020 Decision 14); presentation side met in the stress room: worst frame's script time 5.44 ms (gate 20 ms); the stress room's worst simulation tick, 7.64 ms native on the spec's workload (11.2 ms GDScript), is met too (`ci/perf.sh`, ADR-0020 Decision 15; the proc storm's worst, 19.8 ms, is reported, not gated) |
 | At Pitch the ember reveals a Clinger 30 frames before it drops | no: neither the Clinger nor the ember light exists in Phase 1 | carried |
 | Every enemy identifiable by silhouette at 64 px | no: art is Phase 2 | carried |
@@ -91,7 +91,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 
 ## Feature flags with expiry
 
-- None open. The `perf-stress` CI job's `continue-on-error` (expiry 2026-12-31) was removed when the stress gate was met (ADR-0020 Decision 16); the job and `perf` are both blocking.
+- None open. The `perf-stress` CI job's `continue-on-error` (expiry 2026-12-31) was removed when the stress gate was met (ADR-0020 Decision 16); the job and `perf` are both blocking. Director: `perf-stress` is the job to watch on its first CI run (its margin is 11% on the best of 3, and a single run is over on a busy core); say whether a single-run ceiling should be a second gate (Decision 17, F2).
 
 ## Blocked
 

@@ -12,7 +12,7 @@
 - `ReplayPlayer` needs hashes at every 60th tick plus the last; an older build or different content is reported, not a desync (see Verification).
 - `tools/replay/bless.gd` refuses to re-bless moved state hashes with unchanged inputs and content unless `Simulation.VERSION` is bumped (see Verification).
 - Every fixture is encoded and decoded; full playback runs for `tests/replay/core/` and every fourth fixture, `FixtureRunner.PLAYBACK_EVERY` (see Cost).
-- The suite runs in up to four processes (`FixtureRunner.MAX_SHARDS`) inside a 10 s wall-clock budget; fixture time is printed beside it (see Shards).
+- The suite runs in up to four processes (`FixtureRunner.MAX_SHARDS`) inside a 10 s budget, judged on wall time and on CPU time together (a busy machine stretches the first, not the second; ADR-0020 Decision 17, F3); fixture time is printed beside it (see Shards).
 - `StateHasher` takes the first 32 bits of the native SHA-256 of a buffer of 64-bit words, 56 us a hash (see State hash).
 - `.fixture` is a text language (`input`, then `expect` with at, during, never, mark); anything undefined fails and nothing passes vacuously (see Fixtures).
 - CI runs fixtures on Linux, Windows and macOS against `tests/replay/golden_hashes.txt`; `bless.gd` rewrites it (see Determinism checks).
