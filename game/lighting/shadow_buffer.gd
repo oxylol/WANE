@@ -3,7 +3,8 @@ extends Node
 ## The shadow buffer (docs/adr/0023 Decision 4.3): a [SubViewport] covering the view at the
 ## profile's scale (1.0 on PC and consoles, 0.75 on Switch 2 and the Deck, 0.5 on the minimum PC),
 ## RGBA8, one visibility channel per shadow-casting light (R is the ember), marched once per buffer
-## texel by shaders/lighting/shadow_march.gdshader and bound as the global `wane_shadow`. Sprites and
+## texel by shaders/lighting/shadow_march.gdshader and bound as the global `wane_shadow`. Sprites
+## and
 ## tiles read it at their screen uv, so the march costs the same whatever the overdraw. Not built
 ## under the dummy renderer.
 
@@ -42,7 +43,9 @@ func _init(tuning: LightingTuning, p_scale: float) -> void:
 
 ## Sizes the buffer for a view of [param view_px] screen pixels.
 func resize(view_px: Vector2) -> void:
-	var s := Vector2i(maxi(1, roundi(view_px.x * buffer_scale)), maxi(1, roundi(view_px.y * buffer_scale)))
+	var s := Vector2i(
+		maxi(1, roundi(view_px.x * buffer_scale)), maxi(1, roundi(view_px.y * buffer_scale))
+	)
 	if s == _size_px:
 		return
 	_size_px = s

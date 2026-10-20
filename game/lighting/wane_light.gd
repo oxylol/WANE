@@ -14,7 +14,8 @@ var radius_u: float = 0.0
 var energy_scale: float = 1.0
 var phase: float = 0.0
 var enabled: bool = true
-## Overrides the kind's colour (an enemy's eye is the colour its sheet says), if its alpha is above 0.
+## Overrides the kind's colour (an enemy's eye is the colour its sheet says), if its alpha is above
+## 0.
 var colour_override: Color = Color(0, 0, 0, 0)
 
 

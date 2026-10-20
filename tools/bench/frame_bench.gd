@@ -36,7 +36,8 @@ extends SceneTree
 ##
 ## Options: --quiet (the gate lines only), --report <path> (the full report to a file too),
 ## --repeats N (passes; the budget's by default, 1 in a window), --ticks N (only the first N
-## ticks), --lighting pitch|dusk|off (default: the fixture's; off builds no lighting), --worst N (frames listed, default 8).
+## ticks), --lighting pitch|dusk|off (default: the fixture's; off builds no lighting), --worst N
+## (frames listed, default 8).
 
 ## Phases of a pass.
 enum { SETUP, RUN, TEARDOWN }

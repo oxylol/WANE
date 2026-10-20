@@ -353,7 +353,7 @@ func _header(words: PackedStringArray, line_number: int) -> void:
 		"frames":
 			frame_total = _int_word(words, 1, line_number)
 		"lighting":
-			if LightField.is_word(words[1]):
+			if LightWord.is_word(words[1]):
 				lighting = words[1]
 			else:
 				errors.append(

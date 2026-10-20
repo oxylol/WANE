@@ -6,12 +6,16 @@ extends RefCounted
 ##
 ## The room's [TileGrid] is partitioned into exact shapes: row runs of wall tiles and row runs of
 ## empty tiles (each merged downward while the next row's run matches), each slope tile as two solid
-## and up to two empty triangles (a half-slope tile has one of one kind), and the border as four solid bands. Outside the walls the field is the
+## and up to two empty triangles (a half-slope tile has one of one kind), and the border as four
+## solid bands. Outside the walls the field is the
 ## distance to the nearest solid shape; inside, minus the distance to the nearest empty one, so
 ## merged runs leave no inner seams. [method distance] evaluates it exactly in GDScript (the CPU
 ## twin of the bake, for tests); [method bake] draws it once on the GPU into a half-float texture
 ## at [member LightingTuning.sdf_texel_u] world units a texel and keeps the read-back as an [RH]
 ## texture. It is built at prebuild, cached by room, never on a door frame.
+
+## Emitted when a bake has finished (read back, or failed).
+signal finished
 
 ## Shape kinds (the shader's, in the shape texture's second row).
 const SOLID_RECT: int = 0
@@ -39,9 +43,6 @@ var size_px: Vector2i = Vector2i.ZERO
 var texture: ImageTexture = null
 var image: Image = null
 var baked: bool = false
-
-## Emitted when a bake has finished (read back, or failed).
-signal finished
 
 var _bake_viewport: SubViewport = null
 
@@ -121,7 +122,11 @@ func _row_runs(grid: TileGrid, j: int, walls: bool) -> Array[Vector2i]:
 		var on: bool = false
 		if i < grid.width:
 			var tile: int = grid.get_tile(i, j)
-			on = TileGrid.is_wall(tile) if walls else not (TileGrid.is_wall(tile) or TileGrid.is_slope(tile))
+			on = (
+				TileGrid.is_wall(tile)
+				if walls
+				else not (TileGrid.is_wall(tile) or TileGrid.is_slope(tile))
+			)
 		if on and start < 0:
 			start = i
 		elif not on and start >= 0:
@@ -165,7 +170,9 @@ func shape_image() -> Image:
 	var row1 := PackedFloat32Array()
 	for i: int in range(n):
 		var o: int = i * STRIDE
-		row0.append_array(PackedFloat32Array([shapes[o], shapes[o + 1], shapes[o + 2], shapes[o + 3]]))
+		row0.append_array(
+			PackedFloat32Array([shapes[o], shapes[o + 1], shapes[o + 2], shapes[o + 3]])
+		)
 		row1.append_array(PackedFloat32Array([shapes[o + 4], shapes[o + 5], shapes[o + 6], 0.0]))
 	row0.append_array(row1)
 	return Image.create_from_data(n, 2, false, Image.FORMAT_RGBAF, row0.to_byte_array())

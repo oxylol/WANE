@@ -197,10 +197,10 @@ static func _accel_share(frames: int) -> float:
 func _ready() -> void:
 	# Lit grey box until Ash's rig; the thrown ember is a light itself, drawn emissive on its own
 	# node.
-	LightField.make_lit(self, false)
+	LightSurfaces.make_lit(self, false)
 	_ember_node = Node2D.new()
 	_ember_node.name = "Ember"
-	LightField.make_emissive(_ember_node)
+	LightSurfaces.make_emissive(_ember_node)
 	add_child(_ember_node)
 	_ember_node.draw.connect(_draw_ember)
 

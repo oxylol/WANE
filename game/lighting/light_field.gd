@@ -1,10 +1,10 @@
 class_name LightField
 extends Node2D
 ## The lighting pass (docs/adr/0023 Decision 3; BUILD.md section 10, Lighting). It replaces the
-## Phase 1 stand-in. It owns the light table (at most 16 lights, culled to the view and ranked ember,
-## Beacons, fire, Gutter Ember, eyes), the room distance fields baked at prebuild, the shadow buffer
-## that marches the ember's soft shadows through them, and the post pass; every frame it writes
-## the `wane_*` global shader parameters that the lit shaders read (shaders/lighting/
+## Phase 1 stand-in. It owns the light table (at most 16 lights, culled to the view and ranked
+## ember, Beacons, fire, Gutter Ember, eyes), the room distance fields baked at prebuild, the shadow
+## buffer that marches the ember's soft shadows through them, and the post pass; every frame it
+## writes the `wane_*` global shader parameters that the lit shaders read (shaders/lighting/
 ## light_common.gdshaderinc). Nothing is lit by Godot's own lights; nothing is drawn lit except
 ## through those shaders.
 ##
@@ -18,15 +18,6 @@ extends Node2D
 ## runs, which is what the frame bench gates, but the bake, the buffer and the post pass are not
 ## built. The core knows nothing of any of it.
 
-## The words a fixture or the command line gives the lighting (docs/adr/0023 Decision 7.3): the
-## Dark factor the render is held at. "off" builds no field at all (the frame bench's baseline).
-const PITCH: String = "pitch"
-const DUSK: String = "dusk"
-const OFF: String = "off"
-## The Dark level a word stands for. Pitch begins at D = 2.6, where the factor reaches its floor; a
-## Pitch render is held a little past it, on the floor itself.
-const PITCH_LEVEL: float = 3.0
-const DUSK_LEVEL: float = 1.0
 ## Columns and rows of the light table, and the shader's cap.
 const TABLE_COLUMNS: int = 16
 const TABLE_ROWS: int = 4
@@ -35,23 +26,18 @@ const FLAG_UP_ONLY: int = 8
 ## Frames the bake queue waits for a bake before [method settle] gives up on it.
 const SETTLE_FRAMES: int = 600
 
-const LIT_SHADER: String = "res://shaders/lighting/lit_flat.gdshader"
-const EMISSIVE_SHADER: String = "res://shaders/lighting/emissive.gdshader"
 const POST_SHADER: String = "res://shaders/post/post.gdshader"
-
-static var _lit_material: ShaderMaterial
-static var _bevel_material: ShaderMaterial
-static var _emissive_material: ShaderMaterial
 
 var tuning: LightingTuning
 var profile: int = LightingTuning.PROFILE_PC
 ## The ember: light 0 of the table. [method present] moves it.
 var ember: WaneLight
-## The ambient colour before the Dark: the zone's, or the tuning's.
+## The ambient colour before the Dark: the zone's, or the tuning's. Assign the zone's on entering
+## it.
 var ambient_colour: Color
 ## The Dark factor now (1 at Dusk, 0.15 at Pitch).
 var dark_factor: float = 1.0
-## The key light of the room: x and y toward it, z its strength.
+## The key light of the room: x and y toward it, z its strength. Assign the room's own.
 var key: Vector4
 ## How many rooms' fields were built, how many are baked, how many lights the table holds now,
 ## and how many dynamic occluders the shadow march got.
@@ -59,6 +45,10 @@ var rooms_built: int = 0
 var lights_in_table: int = 0
 var occluders_in_march: int = 0
 
+## The light table as written this frame (RGBA32F, 16 x 4, row by row).
+var table: PackedFloat32Array = PackedFloat32Array()
+## The shadow-casting lights of the frame by channel: x, y, reach, penumbra radius.
+var casters: Array[Vector4] = []
 ## The globals as last written, by name (the dummy renderer cannot be asked), for tests and the
 ## debug overlay.
 var globals: Dictionary[String, Variant] = {}
@@ -66,7 +56,6 @@ var globals: Dictionary[String, Variant] = {}
 var _lights: Array[WaneLight] = []
 var _table_image: Image
 var _table_texture: ImageTexture
-var _table: PackedFloat32Array = PackedFloat32Array()
 var _fields: Dictionary[String, RoomSdf] = {}
 var _stamps: Dictionary[String, Vector3i] = {}
 var _shown: RoomSdf = null
@@ -94,14 +83,16 @@ func _init(p_tuning: LightingTuning = null, p_profile: int = LightingTuning.PROF
 	key = Vector4(tuning.key_dir.x, tuning.key_dir.y, tuning.key_strength, 0.0)
 	ember = _make_ember()
 	_lights.append(ember)
-	_table.resize(TABLE_COLUMNS * TABLE_ROWS * 4)
+	table.resize(TABLE_COLUMNS * TABLE_ROWS * 4)
 	_table_image = Image.create_from_data(
-		TABLE_COLUMNS, TABLE_ROWS, false, Image.FORMAT_RGBAF, _table.to_byte_array()
+		TABLE_COLUMNS, TABLE_ROWS, false, Image.FORMAT_RGBAF, table.to_byte_array()
 	)
 	_table_texture = ImageTexture.create_from_image(_table_image)
 	_set_global("wane_light_table", _table_texture)
 	# A world with no walls until a room is shown: a far-away distance and a unit rectangle.
-	var none: Image = Image.create_from_data(1, 1, false, Image.FORMAT_RF, PackedFloat32Array([100000.0]).to_byte_array())
+	var none: Image = Image.create_from_data(
+		1, 1, false, Image.FORMAT_RF, PackedFloat32Array([100000.0]).to_byte_array()
+	)
 	none.convert(Image.FORMAT_RH)
 	_set_global("wane_room_sdf", ImageTexture.create_from_image(none))
 	_set_global("wane_room_rect", Vector4(0, 0, 1, 1))
@@ -119,52 +110,6 @@ func _enter_tree() -> void:
 		_build_post()
 
 
-# --- Static helpers -----------------------------------------------------------------------------
-
-
-## The Dark level the lighting word asks for, or -1.0 if it is not a word ([constant PITCH],
-## [constant DUSK]); "off" and "" are not asks.
-static func level_for_word(word: String) -> float:
-	if word == PITCH:
-		return PITCH_LEVEL
-	if word == DUSK:
-		return DUSK_LEVEL
-	return -1.0
-
-
-## Whether [param word] is a lighting word a fixture may use.
-static func is_word(word: String) -> bool:
-	return level_for_word(word) >= 0.0
-
-
-## Whether [param word] asks for Pitch.
-static func asks_for_pitch(word: String) -> bool:
-	return word == PITCH
-
-
-## Makes [param item] emissive: unaffected by the ambient, brighter than 1.0 so the post pass blooms
-## it (docs/adr/0023 Decision 3.4). Fire, sparks, procs, telegraphs, the blade's heat.
-static func make_emissive(item: CanvasItem) -> void:
-	if _emissive_material == null:
-		var t := load(LightingTuning.PATH) as LightingTuning
-		_emissive_material = ShaderMaterial.new()
-		_emissive_material.shader = load(EMISSIVE_SHADER) as Shader
-		_emissive_material.set_shader_parameter("boost", t.emissive_boost)
-	item.material = _emissive_material
-
-
-## Makes [param item] a lit grey-box surface (Phase 1's stand-in for sprites with normal maps).
-## [param bevel] gives it a normal from the room's distance field (tiles); otherwise it is flat.
-static func make_lit(item: CanvasItem, bevel: bool = false) -> void:
-	if _lit_material == null:
-		_lit_material = ShaderMaterial.new()
-		_lit_material.shader = load(LIT_SHADER) as Shader
-		_bevel_material = ShaderMaterial.new()
-		_bevel_material.shader = _lit_material.shader
-		_bevel_material.set_shader_parameter("sdf_normals", true)
-	item.material = _bevel_material if bevel else _lit_material
-
-
 # --- The Dark and the zone ----------------------------------------------------------------------
 
 
@@ -176,16 +121,6 @@ func set_dark_level(d: float) -> void:
 ## Sets the Dark factor directly (a render at a chosen Dark).
 func set_dark_factor(f: float) -> void:
 	dark_factor = clampf(f, 0.0, 1.0)
-
-
-## Sets the ambient colour of the zone, before the Dark.
-func set_zone_ambient(c: Color) -> void:
-	ambient_colour = c
-
-
-## Sets the room's key light: x and y toward it, z its strength.
-func set_key(dir: Vector2, strength: float) -> void:
-	key = Vector4(dir.x, dir.y, strength, 0.0)
 
 
 ## Pins the tick and the Dark: [method present] then ignores its tick and fraction, so a render is
@@ -221,11 +156,6 @@ func spawn_light(kind: LightKind, at: Vector2) -> WaneLight:
 	l.phase = at.x * 0.013 + at.y * 0.007
 	add_light(l)
 	return l
-
-
-## All lights, the ember first.
-func lights() -> Array[WaneLight]:
-	return _lights
 
 
 ## Sets dynamic occluders beyond the room's solid boxes (enemies that cast shadows): boxes
@@ -384,7 +314,7 @@ func _refresh() -> void:
 		var vp: Viewport = get_viewport()
 		if vp != null:
 			_buffer.resize(vp.get_visible_rect().size)
-		_buffer.update(_view, _casters, occluders())
+		_buffer.update(_view, casters, occluders())
 
 
 ## The rect of the world on screen.
@@ -394,9 +324,6 @@ func view_rect() -> Rect2:
 	var vp: Viewport = get_viewport()
 	var vr: Rect2 = vp.get_visible_rect()
 	return vp.get_canvas_transform().affine_inverse() * vr
-
-
-var _casters: Array[Vector4] = []
 
 
 func _fill_table(seconds: float) -> void:
@@ -422,11 +349,13 @@ func _fill_table(seconds: float) -> void:
 		cand.resize(tuning.max_lights)
 	else:
 		# The ember stays first whatever the others' priorities.
-		cand.sort_custom(func(a: WaneLight, b: WaneLight) -> bool: return a.kind.priority < b.kind.priority)
+		cand.sort_custom(
+			func(a: WaneLight, b: WaneLight) -> bool: return a.kind.priority < b.kind.priority
+		)
 	var casters_n: int = tuning.casters(profile)
-	_casters.clear()
+	casters.clear()
 	for k: int in range(4):
-		_casters.append(Vector4(0, 0, 0, tuning.light_r_u))
+		casters.append(Vector4(0, 0, 0, tuning.light_r_u))
 	var taken: Array[bool] = [false, false, false, false]
 	var n: int = 0
 	for l: WaneLight in cand:
@@ -438,7 +367,7 @@ func _fill_table(seconds: float) -> void:
 		if ch >= 0 and ch < casters_n and not taken[ch]:
 			taken[ch] = true
 			flags |= FLAG_SHADOW | (ch << 1)
-			_casters[ch] = Vector4(l.position.x, l.position.y, l.radius_u, tuning.light_r_u)
+			casters[ch] = Vector4(l.position.x, l.position.y, l.radius_u, tuning.light_r_u)
 		if kind.up_only:
 			flags |= FLAG_UP_ONLY
 		var h: float = kind.height_u if kind.height_u > 0.0 else tuning.light_height_u
@@ -448,7 +377,7 @@ func _fill_table(seconds: float) -> void:
 		n += 1
 	lights_in_table = n
 	_table_image.set_data(
-		TABLE_COLUMNS, TABLE_ROWS, false, Image.FORMAT_RGBAF, _table.to_byte_array()
+		TABLE_COLUMNS, TABLE_ROWS, false, Image.FORMAT_RGBAF, table.to_byte_array()
 	)
 	_table_texture.update(_table_image)
 	_set_global("wane_light_count", n)
@@ -456,20 +385,10 @@ func _fill_table(seconds: float) -> void:
 
 func _put(row: int, col: int, a: float, b: float, c: float, d: float) -> void:
 	var o: int = (row * TABLE_COLUMNS + col) * 4
-	_table[o] = a
-	_table[o + 1] = b
-	_table[o + 2] = c
-	_table[o + 3] = d
-
-
-## The table as written this frame (RGBA32F, 16 x 4, row by row), for tests.
-func table() -> PackedFloat32Array:
-	return _table
-
-
-## The shadow-casting lights of the frame: x, y, reach, penumbra radius, by channel.
-func casters() -> Array[Vector4]:
-	return _casters
+	table[o] = a
+	table[o + 1] = b
+	table[o + 2] = c
+	table[o + 3] = d
 
 
 ## The dynamic occluders: the room's solid boxes that stand, then the extra ones, nearest the
@@ -490,7 +409,10 @@ func occluders() -> Array[Vector4]:
 		var e: Vector2 = ember.position
 		out.sort_custom(
 			func(a: Vector4, b: Vector4) -> bool:
-				return Vector2(a.x, a.y).distance_squared_to(e) < Vector2(b.x, b.y).distance_squared_to(e)
+				return (
+					Vector2(a.x, a.y).distance_squared_to(e)
+					< Vector2(b.x, b.y).distance_squared_to(e)
+				)
 		)
 		out.resize(ShadowBuffer.MAX_OCCLUDERS)
 	occluders_in_march = out.size()
@@ -515,9 +437,7 @@ func _write_globals(seconds: float) -> void:
 	if is_inside_tree():
 		var vr: Vector2 = get_viewport().get_visible_rect().size
 		per_px = Vector2(_view.size.x / maxf(vr.x, 1.0), _view.size.y / maxf(vr.y, 1.0))
-	_set_global(
-		"wane_view", Vector4(_view.position.x, _view.position.y, per_px.x, per_px.y)
-	)
+	_set_global("wane_view", Vector4(_view.position.x, _view.position.y, per_px.x, per_px.y))
 	_set_global("wane_boil", floorf(seconds * tuning.boil_hz))
 	_set_global("wane_time", seconds)
 

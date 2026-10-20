@@ -30,10 +30,7 @@ func scene(p: Vector2) -> float:
 			od = p.distance_to(Vector2(o.x, o.y)) - o.z
 		else:
 			var q := Vector2(absf(p.x - o.x) - o.z, absf(p.y - o.y) - o.w)
-			od = (
-				Vector2(maxf(q.x, 0.0), maxf(q.y, 0.0)).length()
-				+ minf(maxf(q.x, q.y), 0.0)
-			)
+			od = (Vector2(maxf(q.x, 0.0), maxf(q.y, 0.0)).length() + minf(maxf(q.x, q.y), 0.0))
 		d = minf(d, od)
 	return d
 

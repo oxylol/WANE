@@ -1,6 +1,7 @@
 class_name LightingTuning
 extends Resource
-## The numbers of the lighting pass (BUILD.md section 10, Lighting: "the player's ember (radius 420 u
+## The numbers of the lighting pass (BUILD.md section 10, Lighting: "the player's ember (radius 420
+## u
 ## at base, warm 2400 K, flicker at 0.5 Hz with ±4% amplitude)", "2D ray-marched soft shadows from
 ## the ember against the collision layer", "a per-zone ambient color multiplied by the Wane Clock's
 ## darkness factor ... At Pitch, ambient is 0.15 and the world is the ember"; docs/adr/0023
@@ -8,7 +9,8 @@ extends Resource
 ## [LightKind] sub-resources here; every number is in content/lighting.tres.
 
 const PATH: String = "res://content/lighting.tres"
-## The shadow profiles (BUILD.md section 12: "lighting pass at 0.75x / 0.5x"): the buffer's scale and
+## The shadow profiles (BUILD.md section 12: "lighting pass at 0.75x / 0.5x"): the buffer's scale
+## and
 ## how many lights cast.
 const PROFILE_PC: int = 0
 const PROFILE_DECK: int = 1

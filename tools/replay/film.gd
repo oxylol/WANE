@@ -23,8 +23,8 @@ extends SceneTree
 ## against each other at sheet size; the overlay's text stays on the screen. --set changes a
 ## tuning value for the fixtures after it, as in play.gd. --lighting pitch|dusk films the fixtures
 ## after it with the lighting pass (game/lighting) held at Pitch or at Dusk; by default a
-## fixture's own `lighting` word decides, and Dusk if it has none. Frame numbers are drawn top left, the
-## fixture's number at the start of its row.
+## fixture's own `lighting` word decides, and Dusk if it has none. Frame numbers are drawn top
+## left, the fixture's number at the start of its row.
 ##
 ## Each row ends with the player's track on screen over every tick of the fixture: where the
 ## centre of the player's box sat across the view (blue) and down it (orange), from the view's
@@ -165,8 +165,7 @@ func _film_one(path: String, every: int, from: int, count: int, opts: Vector2, f
 		stage.add_child(n)
 	var rig := LightField.new()
 	var word: String = _lighting if _lighting != "" else fx.lighting
-	var level: float = LightField.level_for_word(word)
-	rig.set_dark_level(level if level >= 0.0 else LightField.DUSK_LEVEL)
+	rig.set_dark_level(LightWord.level_or_dusk(word))
 	stage.add_child(rig)
 	root.add_child(stage)
 	camera.make_current()

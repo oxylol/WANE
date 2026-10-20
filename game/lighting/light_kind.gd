@@ -36,7 +36,8 @@ const NOISE: int = 2
 @export var falloff_power: float = 1.6
 ## Where it ranks when more lights than the table holds are in view: lower is kept first.
 @export var priority: int = 4
-## Height above the surface in world units; 0 uses the pass's [member LightingTuning.light_height_u].
+## Height above the surface in world units; 0 uses the pass's [member
+## LightingTuning.light_height_u].
 @export var height_u: float = 0.0
 
 

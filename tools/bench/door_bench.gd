@@ -45,7 +45,7 @@ func _initialize() -> void:
 
 func _boot() -> void:
 	# The boot scene reads these when it enters the tree, which is after this call.
-	Main.lighting_word = LightField.PITCH
+	Main.lighting_word = LightWord.PITCH
 	Main.scenario_override = Scenario.make(1, _rooms[0])
 	var started: int = Time.get_ticks_usec()
 	_main = (load(SCENE) as PackedScene).instantiate() as Main

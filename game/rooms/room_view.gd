@@ -35,16 +35,16 @@ var _backdrop: Node2D
 func _ready() -> void:
 	# Lit grey boxes until the tileset art: the tiles take a bevel normal from the room's distance
 	# field so the ember rakes across their edges, the solid boxes are flat (game/lighting).
-	LightField.make_lit(self, true)
+	LightSurfaces.make_lit(self, true)
 	_backdrop = Node2D.new()
 	_backdrop.name = "Backdrop"
 	_backdrop.show_behind_parent = true
-	LightField.make_lit(_backdrop, false)
+	LightSurfaces.make_lit(_backdrop, false)
 	add_child(_backdrop)
 	_backdrop.draw.connect(_draw_backdrop)
 	_solids = Node2D.new()
 	_solids.name = "Solids"
-	LightField.make_lit(_solids, false)
+	LightSurfaces.make_lit(_solids, false)
 	add_child(_solids)
 	_solids.draw.connect(_draw_solids)
 

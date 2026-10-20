@@ -51,10 +51,10 @@ func _initialize() -> void:
 	var dark: String = _arg(args, "--dark", "both")
 	var tuning := load(LightingTuning.PATH) as LightingTuning
 	if dark == "both" or dark == "dusk":
-		_factors.append(tuning.dark_factor(LightField.DUSK_LEVEL))
+		_factors.append(tuning.dark_factor(LightWord.DUSK_LEVEL))
 		_names.append("dusk")
 	if dark == "both" or dark == "pitch":
-		_factors.append(tuning.dark_factor(LightField.PITCH_LEVEL))
+		_factors.append(tuning.dark_factor(LightWord.PITCH_LEVEL))
 		_names.append("pitch")
 	if dark.is_valid_float():
 		_factors.append(dark.to_float())
@@ -67,7 +67,7 @@ func _initialize() -> void:
 		Main.scenario_override = fixture.scenario.copy()
 	else:
 		Main.scenario_override = Scenario.make(1, room)
-	Main.lighting_word = LightField.DUSK
+	Main.lighting_word = LightWord.DUSK
 	_run.call_deferred(fixture, tick)
 
 
@@ -99,7 +99,12 @@ func _run(fixture: Fixture, tick: int) -> void:
 				shot.get_width() / _scale, shot.get_height() / _scale, Image.INTERPOLATE_BILINEAR
 			)
 		var path: String = "%s_%s.png" % [_out, _names[k]]
-		print("wrote %s (%dx%d): %s" % [path, shot.get_width(), shot.get_height(), error_string(shot.save_png(path))])
+		print(
+			(
+				"wrote %s (%dx%d): %s"
+				% [path, shot.get_width(), shot.get_height(), error_string(shot.save_png(path))]
+			)
+		)
 	if _debug:
 		_dump(field)
 	quit(0)

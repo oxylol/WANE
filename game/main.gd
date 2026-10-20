@@ -145,11 +145,10 @@ func _start_lighting() -> void:
 		for arg: String in OS.get_cmdline_user_args():
 			if arg.begins_with(LIGHTING_ARG):
 				word = arg.trim_prefix(LIGHTING_ARG)
-	if word == LightField.OFF:
+	if word == LightWord.OFF:
 		return
 	lighting = LightField.new()
-	var level: float = LightField.level_for_word(word)
-	lighting.set_dark_level(level if level >= 0.0 else LightField.DUSK_LEVEL)
+	lighting.set_dark_level(LightWord.level_or_dusk(word))
 	$World.add_child(lighting)
 	lighting.show_world(driver.sim.world, driver.sim.room.id)
 	# Every room of the zone's set is built now, so that a crossing builds nothing (a zone's rooms
