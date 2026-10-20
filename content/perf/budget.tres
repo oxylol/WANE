@@ -8,6 +8,7 @@ sim_p99_us = 3000
 sim_max_us = 20000
 zone_max_us = 20000
 zone_passes = 5
+door_max_us = 2000
 repeats = 3
 warmup_ticks = 120
 min_procs = 8000

@@ -200,3 +200,78 @@ func test_a_harness_can_start_the_stress_room_under_pitch_and_read_the_step_time
 	main.driver.step_once()
 	assert_int(main.driver.last_step_us).is_greater(0)
 	assert_int(main.lighting.occluder_count).is_greater(0)
+
+
+func test_a_prebuilt_room_is_shown_without_building_anything() -> void:
+	# A door crossing must cost no rebuild (docs/adr/0020, the door spike): the walls of a room
+	# prebuilt ahead of the crossing are only made visible.
+	var rig := LightingRig.new()
+	auto_free(rig)
+	add_child(rig)
+	var a: TileGrid = _grid(["....", "####"])
+	var b: TileGrid = _grid(["....", "....", "#..#", "####"])
+	rig.prebuild("a", a)
+	rig.prebuild("b", b)
+	var built: int = rig.walls_built
+	assert_int(built).is_equal(2)
+	var nodes: int = rig.find_children("*", "LightOccluder2D", true, false).size()
+	rig.show_world(CollisionWorld.new(a), "a")
+	rig.show_world(CollisionWorld.new(b), "b")
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(rig.walls_built).is_equal(built)
+	assert_int(rig.find_children("*", "LightOccluder2D", true, false).size()).is_equal(nodes)
+
+
+func test_only_the_shown_rooms_walls_cast_shadows() -> void:
+	var rig := LightingRig.new()
+	auto_free(rig)
+	add_child(rig)
+	var a: TileGrid = _grid(["....", "####"])
+	var b: TileGrid = _grid(["....", "....", "#..#", "####"])
+	rig.prebuild("a", a)
+	rig.prebuild("b", b)
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(_casting(rig)).is_equal(rig.polygon_count)
+	var a_count: int = rig.polygon_count
+	rig.show_world(CollisionWorld.new(b), "b")
+	assert_int(_casting(rig)).is_equal(rig.polygon_count)
+	assert_bool(rig.polygon_count != a_count).is_true()
+	assert_int(rig.occluder_count).is_equal(rig.polygon_count)
+
+
+func test_an_unprepared_room_is_built_once_and_kept() -> void:
+	var rig := LightingRig.new()
+	auto_free(rig)
+	add_child(rig)
+	var a: TileGrid = _grid(["....", "####"])
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(rig.walls_built).is_equal(1)
+	rig.show_world(CollisionWorld.new(_grid(["...", "###"])), "b")
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(rig.walls_built).is_equal(2)
+
+
+func test_the_boot_scene_prebuilds_every_room_and_a_crossing_builds_nothing() -> void:
+	var made: Node = auto_free(_main_scene().instantiate())
+	var main: Main = made as Main
+	Main.scenario_override = Scenario.make(1, "zone1/01_dash_slash")
+	Main.lighting_word = "pitch"
+	main.save_on_exit = false
+	add_child(main)
+	Main.scenario_override = null
+	Main.lighting_word = ""
+	var zone: ZoneDef = load("res://content/zones/zone1.tres") as ZoneDef
+	assert_int(main.lighting.walls_built).is_greater_equal(zone.rooms.size())
+	var built: int = main.lighting.walls_built
+	for id: String in zone.rooms:
+		main.enter_room(Simulation.new(Scenario.make(1, id)))
+	assert_int(main.lighting.walls_built).is_equal(built)
+
+
+## The wall occluders that are on and would cast a shadow.
+func _casting(rig: LightingRig) -> int:
+	var n: int = 0
+	for o: Node in rig.find_children("*", "LightOccluder2D", true, false):
+		if (o as LightOccluder2D).is_visible_in_tree() and o.get_parent().name != "Boxes":
+			n += 1
+	return n
