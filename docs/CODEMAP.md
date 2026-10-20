@@ -11,8 +11,8 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
 - `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind.
 - `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy. `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods (docs/adr/0015).
-- `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `game/lighting/`, `shaders/`, `assets/`.
-- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless, probes; `tools/bench/` physics, proc and stress benches (PerfStats, PerfBudget), `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below); `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty.
+- `game/` root: SimDriver, Main (boot scene), ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget. `game/lighting/` LightingRig, OccluderBuilder (stand-in). `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Grey-box views: `game/player/`, `game/enemies/`, `game/combat/`, `game/rooms/`, `game/ui/`. Empty: `game/hub/`, `shaders/`, `assets/`.
+- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless, probes; `tools/bench/` physics, proc, stress and frame benches (PerfStats, PerfBudget), `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below); `tools/debug/`, `tools/importers/`, `tools/style_gate/` empty.
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/` the stress room `tests/perf/rooms/stress.room` and its run `tests/perf/stress_run.fixture` (pin: `tests/replay/perf/stress_pin.fixture`); `tests/screenshot/` empty.
 - `ci/` `ci/test.sh`, `ci/unit.sh`, `ci/perf.sh`, `ci/lint.sh`, `ci/setup_godot.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/` (one entry per tuning change).
 
@@ -31,6 +31,7 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 - Films: `tools/replay/film.gd _initialize` (the game's own views, F3 on); `tools/replay/play.gd _initialize` (headless).
 - Camera: `game/camera/camera_rig.gd step` (per tick), `game/camera/game_camera.gd show_at` (between ticks).
 - Feedback: `game/feedback/hit_feedback.gd on_tick` reads SimEvents; sparks via `game/vfx/vfx_budget.gd spawn` and `:134 claim_screen`, sounds via `game/audio/voices.gd play`.
+- Lighting, off unless a fixture says `lighting pitch` or `-- --lighting=pitch`: `game/lighting/lighting_rig.gd show_world`, `game/lighting/occluder_builder.gd tile_polygons`. Frame bench: `tools/bench/frame_bench.gd _run`.
 - F3: `game/debug/debug_overlay.gd toggle`; `game/debug/debug_controls.gd handle_key` (F3 overlay, F4 pause, F5 one tick, F6 ten).
 
 ## Fixture language (spec: `tests/replay/README.md`, ADR-0006)
@@ -42,7 +43,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 
 - `content/wicks/ash/movement.tres` (`core/fsm/movement_tuning.gd compile`), `content/wicks/ash/kit.tres` (`core/fsm/kit_tuning.gd compile`), `content/wicks/ash/taper.tres` (AttackSet); loaded by `Simulation._build_player`.
 - `content/combat/combat.tres` (`core/combat/combat_tuning.gd compile`); `content/physics/world.tres` (WorldTuning); `content/enemies/dummy.tres` (EnemyDef; kinds in `Simulation.ENEMY_KINDS`); `content/zones/zone1.tres` (ZoneDef); `content/perf/budget.tres` (PerfBudget).
-- Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`.
+- Presentation: `content/camera.tres`, `content/feedback.tres`, `content/player_view.tres`, `content/input/input_settings.tres`, `content/lighting.tres`.
 - Rooms: `content/rooms/zone1/` (12 tech rooms; routes, controls and `zone1_loop` in `tests/replay/zone1/`), `content/rooms/sandbox.room`. A tuning change needs a feel-log entry, a BUILD.md update, and a re-bless.
 
 ## Commands (repo root; `godot` on PATH or `GODOT`)
@@ -55,7 +56,7 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd`; raw failures: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
-- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `python3 tools/ci/test_gd_coverage.py`, `python3 tools/ci/test_codemap.py`. Bench: `tools/bench/physics_bench.gd`, `tools/bench/proc_bench.gd`. Perf gate: `ci/perf.sh` against `content/perf/budget.tres`.
+- Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh` (stress bench, then frame bench) against `content/perf/budget.tres`; windowed run in `tools/bench/frame_bench.gd`'s header.
 
 ## Rules agents trip on
 
@@ -63,29 +64,22 @@ A condition is `key op value`. The key is a `core/sim/simulation.gd probe` key: 
 - Typed collections only (`Array[T]`, `Dictionary[K, V]`); `ci/lint.sh` rejects bare ones.
 - No tunable literals in code: designer numbers live in `content/*.tres` with a `validate()` rule.
 - `core/` purity (`tools/ci/core_purity.gd`): no float, float literal, Vector2, Rect2, Color, float maths (`lerp`, `floor`, `round`, `sqrt`), `randi`, the word `seed`, Node, `Time`, `OS`, `Input`, `_process`, `await`, file writes. Use Vector2i, Rect2i, RngStreams.
-- `gdlintrc`: tabs, 100-character lines, 1000 lines per file (`core/fsm/player.gd` is near it), 20 public methods, 10 arguments.
+- `gdlintrc`: tabs, 100 columns, 1000 lines a file (`core/fsm/player.gd` is near it), 20 public methods, 10 arguments.
 - Fixture words are identifiers and a fixture needs a `doc` line. A change that moves a golden needs `Simulation.VERSION` + 1. The doc wins over code unless an ADR says otherwise.
 
 ## ADR index (files in `docs/adr/`)
 
-- `0001-pin-engine-and-toolchain` Godot 4.7.2, gdUnit4, gdtoolkit pinned.
-- `0002-gdscript-warning-policy` Type and safety warnings are errors.
-- `0003-integer-subpixel-units` Int sub-pixels, 256 per unit; content in design units.
-- `0004-input-frames-and-ring-buffer` Latched presses; 8-frame ring.
-- `0005-rng-split-streams` xoshiro128**, five streams.
+- `0001-pin-engine-and-toolchain`, `0002-gdscript-warning-policy` (warnings are errors), `0003-integer-subpixel-units` (256 per unit), `0004-input-frames-and-ring-buffer`, `0005-rng-split-streams`, `0000-template`: the foundations.
 - `0006-replays-and-fixtures` `.wrp`, fixture language, goldens, 10 s budget.
-- `0007-fixed-step-driver` Step at the start of each period.
-- `0008-physics-sweep` 32 u tiles, solid boxes, validated slopes.
-- `0009-room-format` Room text format: tiles, solids, markers, doors.
+- `0007-fixed-step-driver`, `0008-physics-sweep` (32 u tiles, validated slopes), `0009-room-format` (tiles, solids, markers, doors).
 - `0010-player-movement-rules` How Ash's layers read BUILD.md s5.
 - `0011-camera` Rest on support heights.
 - `0012-debug-overlay-and-frame-stepper` F3 overlay; F4 to F6 step.
 - `0013-combat` Combat resolves once per tick, after all movement.
 - `0014-doors-and-zones` Paired `door` lines.
 - `0015-procs-and-votives` Proc bus after the player's hits; Votives are content.
-- `0016-tech-rooms-teach-they-do-not-gate` A tech room makes its tech the cheapest route, not the only one.
-- `0017-ember-toss-cancel-over-a-chasm` Tech 11: throw in the dash-jump chain, teleport over the chasm.
+- `0016-tech-rooms-teach-they-do-not-gate` A tech room is the cheapest route, not the only one.
+- `0017-ember-toss-cancel-over-a-chasm` Tech 11: the toss cancel over the chasm.
 - `0019-zone1-grey-box-gates-and-teaches` Which zone 1 rooms gate their tech, which teach.
-- `0020-stress-room-and-perf-gate` Stress room, CPU gate, flat-floor fast path.
+- `0020-stress-room-and-perf-gate` Stress room, perf gates, Pitch stand-in.
 - `0018-room-editor-install` Plugin shim in `addons/room_editor/`, code in `tools/room_editor/`.
-- `0000-template` The ADR template.

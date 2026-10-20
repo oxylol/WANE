@@ -28,17 +28,19 @@ extends SceneTree
 ##
 ##   godot --headless --path . --script tools/bench/frame_bench.gd [-- options]
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 \
-##     --audio-driver Dummy --resolution 1920x1080 --script tools/bench/frame_bench.gd -- --ticks 900
+##     --audio-driver Dummy --resolution 1920x1080 \
+##     --script tools/bench/frame_bench.gd -- --ticks 900
 ##
 ## Options: --quiet (the gate lines only), --report <path> (the full report to a file too),
 ## --repeats N (passes; the budget's by default, 1 in a window), --ticks N (only the first N
 ## ticks), --lighting pitch|off (default: the fixture's), --worst N (frames listed, default 8).
 
+## Phases of a pass.
+enum { SETUP, RUN, TEARDOWN }
+
 const FIXTURE: String = "res://tests/perf/stress_run.fixture"
 const P99: int = 990
 const HEADLESS: String = "headless"
-## Frame-end phases of a pass.
-enum { SETUP, RUN, TEARDOWN }
 
 var _lines: PackedStringArray = PackedStringArray()
 var _quiet: bool = false
@@ -276,7 +278,10 @@ func _report_run() -> void:
 		)
 	_say(
 		(
-			"frame run: %d frames of the stress room through game/main.tscn, lighting %s, best of %d passes, first %d not counted; %s"
+			(
+				"frame run: %d frames of the stress room through game/main.tscn, lighting %s, "
+				+ "best of %d passes, first %d not counted; %s"
+			)
 			% [_total, _lighting if _lighting != "" else "off", _repeats, from, mode]
 		),
 		false
@@ -312,7 +317,10 @@ func _report_run() -> void:
 	var allowed: int = _budget.presentation_us()
 	_say(
 		(
-			"presentation script: p99 %s ms (gate %s = sprites %s + VFX %s + audio and UI %s), max %s ms (gate %s)"
+			(
+				"presentation script: p99 %s ms (gate %s = sprites %s + VFX %s + audio and UI %s), "
+				+ "max %s ms (gate %s)"
+			)
 			% [
 				PerfStats.ms(p99),
 				PerfStats.ms(allowed),
@@ -367,7 +375,10 @@ func _report_facts() -> void:
 	var f: Facts = _facts
 	_say(
 		(
-			"procs fired %d over the run, most %d on one tick; ticks with %d procs or more: %d bursts (up to %d), %d crowd hits"
+			(
+				"procs fired %d over the run, most %d on one tick; ticks with %d procs or more: "
+				+ "%d bursts (up to %d), %d crowd hits"
+			)
 			% [
 				f.procs_total,
 				f.most_procs,
@@ -403,7 +414,15 @@ func _report_facts() -> void:
 			true
 		)
 	_say("voices over the run: dropped %d, stolen %d" % [f.dropped, f.stolen], true)
-	if not _gated:
+	if _gated:
+		_say(
+			(
+				"(headless the dummy audio driver never finishes a stream, so voices stay occupied: "
+				+ "read the voice counts from a windowed run)"
+			),
+			false
+		)
+	else:
 		_say("draw calls in the busiest frame: %d" % f.draw_calls, false)
 
 

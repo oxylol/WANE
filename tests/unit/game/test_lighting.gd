@@ -5,6 +5,10 @@ extends GdUnitTestSuite
 const STRESS_ROOM: String = "perf/stress"
 
 
+func _main_scene() -> PackedScene:
+	return load("res://game/main.tscn") as PackedScene
+
+
 func _grid(rows: Array[String]) -> TileGrid:
 	return TileGrid.from_rows(PackedStringArray(rows))
 
@@ -172,7 +176,7 @@ func test_a_fixture_asks_for_pitch_and_the_stress_run_does() -> void:
 
 
 func test_the_game_is_unlit_unless_it_is_asked() -> void:
-	var main: Node = auto_free((load("res://game/main.tscn") as PackedScene).instantiate())
+	var main: Node = auto_free(_main_scene().instantiate())
 	add_child(main)
 	await get_tree().process_frame
 	assert_object(main.get("lighting")).is_null()
@@ -183,7 +187,7 @@ func test_a_harness_can_start_the_stress_room_under_pitch_and_read_the_step_time
 	var run: Fixture = Fixture.parse_file("res://tests/perf/stress_run.fixture")
 	Main.scenario_override = run.scenario.copy()
 	Main.lighting_word = run.lighting
-	var made: Node = auto_free((load("res://game/main.tscn") as PackedScene).instantiate())
+	var made: Node = auto_free(_main_scene().instantiate())
 	var main: Main = made as Main
 	main.save_on_exit = false
 	add_child(main)
