@@ -499,7 +499,7 @@ func _draw() -> void:
 	_draw_grid(grid, t)
 	for k: int in range(document.room.solids.size()):
 		var r: Rect2 = _solid_rect(document.room.solids[k])
-		draw_rect(r, RoomView.BOX)
+		RoomView.draw_box(self, document.room.solids[k], r)
 		draw_rect(r, SELECTED if k == selected_solid else Color.WHITE, false, 2.0 / zoom)
 		var tag: String = document.room.solids[k].tag
 		if tag != "":

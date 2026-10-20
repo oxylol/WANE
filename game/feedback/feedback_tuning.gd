@@ -105,6 +105,18 @@ const PATH: String = "res://content/feedback.tres"
 @export var tile_spike_peak: float = 0.4
 @export var tile_spike_teeth: int = 4
 
+@export_group("Room boxes")
+## The grey-box solid boxes (shared by the game and the room editor), coloured by function:
+## a plain box is near the tile wall of its kind (a textured one, or a smooth one for cling=0),
+## wax is amber, and a pogo-able box (a bell) is steel with a mark along its top edge in the
+## spikes' red family ("strike down here"), [member box_mark_u] thick.
+@export var box_solid_colour: Color = Color(0.34, 0.34, 0.38)
+@export var box_smooth_colour: Color = Color(0.40, 0.37, 0.33)
+@export var box_wax_colour: Color = Color(0.82, 0.62, 0.22)
+@export var box_pogo_colour: Color = Color(0.46, 0.52, 0.60)
+@export var box_pogo_mark_colour: Color = Color(0.80, 0.30, 0.24)
+@export var box_mark_u: float = 6.0
+
 @export_group("HUD layout")
 ## The grey-box HUD's layout, in pixels: the margin from the screen's corner, a heart's width and
 ## the gap after it, the Flame bar's width and height and the gap before it, a Kindling pip's
@@ -243,6 +255,7 @@ func validate() -> PackedStringArray:
 	for px: float in [
 		tile_one_way_u,
 		tile_pit_lip_u,
+		box_mark_u,
 		vfx_smear_half_angle,
 		vfx_proc_spring_rate,
 		hud_margin_px,

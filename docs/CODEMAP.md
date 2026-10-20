@@ -7,14 +7,14 @@ Entries read `path symbol`: grep the file for the symbol. `tools/ci/test_codemap
 ## Directories
 
 - `core/sim/` Simulation, Scenario, InputFrame, InputRing, Fx (fixed-point), StateHasher, ContentHash, SimCache, Replay, ReplayRecorder, ReplayPlayer, SimEvents.
-- `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning, FlatWalk (flat-floor fast path).
+- `core/physics/` TileGrid, SolidBox, Body, CollisionWorld (moves), CollisionQueries, WorldTuning, FlatWalk.
 - `core/fsm/` Player and its parts (PlayerStrikes, PlayerWall, PlayerContacts, PlayerSpeed, PlayerSpells, PlayerCombat, PlayerInput, PlayerState, PlayerProbe, EmberToss); MovementTuning to MovementParams; KitTuning to KitParams.
-- `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind, EnemyCells (query cells, native `WaneCells`).
+- `core/combat/` Combat, AttackSet and AttackDef (the Taper), CombatTuning to CombatParams, Flame, Kindling, Hearts, Vitals, KillEmber, FireTrail, HitKind, EnemyCells.
 - `core/enemies/` Enemy, EnemyDef, EnemyAttack, EnemyProbe, TrainingDummy, EnemyBatch (one native call). `core/rooms/` RoomData, RoomSet, RoomJoins, ZoneDef. `core/rng/` Rng, RngStreams. `core/native/` NativeBackend (`use_native`, off/auto/on), NativeWorld (box mirror), NativeRef (twins of `native/src/`: sweep.cpp is CollisionWorld, cells.cpp EnemyCells; `game/native/native_boot.gd` reads `WANE_NATIVE`). `core/items/` ProcBus, StackingCurve, Votive, VotiveListener, ProcSource, RunMods.
 - `game/` root: SimDriver, Main, ReplayFiles, EaseMath. `game/input/` InputLayer, InputSettings. `game/camera/` CameraRig, CameraSubject, GameCamera, CameraTuning. `game/feedback/` HitFeedback, ScreenShake, FeedbackOverlay, FeedbackTuning. `game/vfx/` VfxBudget (`spawn`, `spawn_rect`). `game/lighting/` LightingRig, OccluderBuilder. `game/audio/` Voices, Synth. `game/debug/` DebugOverlay, DebugBoxes, DebugControls, InputHistory. Views: `game/player/` and siblings.
-- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics, proc, stress, stage and frame benches (PerfStats, PerfBudget, FrameProbes), `tools/perf/make_stress.py`; `tools/room_editor/` the room editor (below).
+- `content/` see Tunable numbers. `tools/ci/` test gate (`tools/ci/quiet_report.gd`); `tools/replay/` fixtures, runner, play, film, trace, bless; `tools/bench/` physics, proc, stress, stage and frame benches (PerfStats, PerfBudget, FrameProbes); `tools/room_editor/` the room editor (below).
 - `tests/unit/` gdUnit4 suites. `tests/replay/` fixtures by folder (camera, combat, core, doors, movement, physics, procs, rooms, tech, zone1), test rooms `tests/replay/rooms/`, goldens `tests/replay/golden_hashes.txt`. `tests/support/` PhysicsKit, CameraRun, ShaftJumps. `tests/perf/` the stress room `tests/perf/rooms/stress.room` and run `tests/perf/stress_run.fixture`.
-- `ci/` `ci/test.sh`, `ci/unit.sh`, `ci/perf.sh`, `ci/lint.sh`, `ci/setup_godot.sh`, `ci/build_native.sh`, `ci/native_release_check.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/`.
+- `ci/` `ci/*.sh`; `.github/workflows/ci.yml`. `docs/adr/`, `docs/feel_log/`.
 
 ## Entry points
 
@@ -53,6 +53,7 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 - All: `ci/test.sh` (must print `ALL STAGES PASSED`). Stages in order: `compile` (every script, core purity), `content` (every .tres validates, every .room parses), `fixtures` (expectations, replay round trip, goldens), `unit` (gdUnit4).
 - One fixture, no golden check: `godot --headless --path . --script tools/replay/check.gd -- tests/replay/movement/jump_tap.fixture`. Probe table: `tools/replay/trace.gd -- <fixture> state x y`.
 - Bless: `godot --headless --path . --script tools/replay/bless.gd`. It refuses if a fixture's hash changed with the same inputs and content and `Simulation.VERSION` is unchanged: bump it in `core/sim/simulation.gd`, bless, commit `tests/replay/golden_hashes.txt`.
+- Grey-box colours (legend in PROGRESS.md "For the director"): tiles are `game/rooms/room_view.gd RoomView` consts, boxes by tag `content/feedback.tres` `box_*`. A room window to PNG: `tools/replay/room_shot.gd` (display, as below).
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd`; raw failures: `python3 tools/ci/unit_failures.py`.
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
@@ -64,7 +65,7 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 - Typed collections only (`Array[T]`, `Dictionary[K, V]`); `ci/lint.sh` rejects bare ones.
 - No tunable literals in code: designer numbers live in `content/*.tres` with a `validate()` rule.
 - `core/` purity (`tools/ci/core_purity.gd`): no float, float literal, Vector2, Rect2, Color, float maths (`lerp`, `floor`, `round`, `sqrt`), `randi`, the word `seed`, Node, `Time`, `OS`, `Input`, `_process`, `await`, file writes. Use Vector2i, Rect2i, RngStreams.
-- `gdlintrc`: tabs, 100 columns, 1000 lines a file (`core/fsm/player.gd` is near it), 20 public methods, 10 arguments.
+- `gdlintrc`: tabs, 100 columns, 1000 lines a file, 20 public methods, 10 arguments.
 - Fixture words are identifiers and a fixture needs a `doc` line. A change that moves a golden needs `Simulation.VERSION` + 1. The doc wins over code unless an ADR says otherwise.
 
 ## ADR index (files in `docs/adr/`)

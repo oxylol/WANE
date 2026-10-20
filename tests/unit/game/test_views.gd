@@ -266,3 +266,48 @@ func test_the_room_view_never_changes_the_world() -> void:
 	view.refresh()
 	await await_idle_frame()
 	assert_int(sim.state_hash()).is_equal(hash_before)
+
+
+func test_each_solid_box_kind_draws_its_own_colour() -> void:
+	# A wax wall, a bell, a smooth box and a plain box read apart (BUILD.md s10; the colours are
+	# content, CLAUDE.md rule 6).
+	var look: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	var r := Rect2(100, 200, 64, 96)
+	var plain := SolidBox.new()
+	var smooth := SolidBox.new()
+	smooth.clingable = false
+	var wax := SolidBox.new()
+	wax.tag = "wax"
+	var pogo := SolidBox.new()
+	pogo.tag = "pogo"
+	var fills: Array[RoomView.BoxFill] = RoomView.box_fills(plain, r)
+	assert_int(fills.size()).is_equal(1)
+	assert_object(fills[0].colour).is_equal(look.box_solid_colour)
+	assert_object(fills[0].colour).is_not_equal(look.box_smooth_colour)
+	fills = RoomView.box_fills(smooth, r)
+	assert_int(fills.size()).is_equal(1)
+	assert_object(fills[0].colour).is_equal(look.box_smooth_colour)
+	fills = RoomView.box_fills(wax, r)
+	assert_int(fills.size()).is_equal(1)
+	assert_object(fills[0].colour).is_equal(look.box_wax_colour)
+	assert_object(fills[0].rect).is_equal(r)
+	# A bell: steel, with the spikes' red along the top edge only.
+	fills = RoomView.box_fills(pogo, r)
+	assert_int(fills.size()).is_equal(2)
+	assert_object(fills[0].colour).is_equal(look.box_pogo_colour)
+	assert_object(fills[1].colour).is_equal(look.box_pogo_mark_colour)
+	assert_object(fills[1].rect).is_equal(Rect2(r.position, Vector2(r.size.x, look.box_mark_u)))
+	# Each kind has a colour of its own.
+	var seen: Array[Color] = [
+		look.box_solid_colour, look.box_smooth_colour, look.box_wax_colour, look.box_pogo_colour
+	]
+	for i: int in range(seen.size()):
+		for j: int in range(i + 1, seen.size()):
+			assert_bool(seen[i].is_equal_approx(seen[j])).is_false()
+	# A box thinner than the mark is marked all over, never beyond itself.
+	var thin := Rect2(0, 0, 32, 2)
+	assert_float(RoomView.box_fills(pogo, thin)[1].rect.size.y).is_equal(2.0)
+	# A tag the room format does not know draws as a plain box.
+	var odd := SolidBox.new()
+	odd.tag = "mystery"
+	assert_object(RoomView.box_fills(odd, r)[0].colour).is_equal(look.box_solid_colour)
