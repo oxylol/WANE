@@ -34,6 +34,7 @@ fi
 # The outer limit leaves room for the import and the compile stage; the unit stage's own limit
 # (which also kills the gdUnit4 child, as the outer one cannot) is the one that normally fires.
 export TEST_TIME_LIMIT=$((limit + 180))
+export WANE_TIMING_TOOL=ci/unit.sh
 if [ "$quiet" -eq 0 ]; then
 	exec ci/test.sh "${args[@]}"
 fi
@@ -41,6 +42,7 @@ out="$(mktemp)"
 trap 'rm -f "$out"' EXIT
 status=0
 ci/test.sh --quiet "${args[@]}" > "$out" || status=$?
-# On success the compile stage's line and the closing marker are noise: the unit line is the answer.
-grep -v -e '^compile PASS ' -e '^ALL STAGES PASSED' "$out" || true
+# On success the compile stage's line, the closing marker and the timing line (ci/test.sh's) are
+# noise: the unit line is the answer.
+grep -v -e '^compile PASS ' -e '^ALL STAGES PASSED' -e '^timing: ' "$out" || true
 exit "$status"

@@ -44,3 +44,41 @@ Read the quiet one instead; CI keeps the full logs.
 The extraction is `tools/ci/quiet_report.gd`, tested on recorded gdUnit4 output in
 `tests/unit/tools/test_quiet_report.gd` (samples in `tests/unit/tools/samples/`). Under `--quiet`
 every report line goes to stdout, so `2>/dev/null` drops the engine's own noise.
+
+## Timing log: what takes time
+
+Every run records what it measured, one JSON line per item, in `reports/timings.jsonl`
+(git-ignored; `WANE_TIMING_LOG=<path>` writes elsewhere, `WANE_TIMING_LOG=off` writes nothing; the
+file moves to `timings.jsonl.1` at 8 MiB and the report reads both). Who writes:
+
+| Tool | Items |
+| --- | --- |
+| `ci/test.sh`, `ci/unit.sh` (`tools/ci/run_tests.gd`, `ci/timing.sh`) | `import`, each stage, each unit suite and case (gdUnit4's `results.xml`), each fixture, the whole run |
+| `ci/perf.sh` | each bench script |
+| `ci/build_native.sh` | each target, as `built`, `cache` or `up-to-date` |
+| `tools/ci/gd_coverage.py` | the instrumented run (its inner stages are not logged: it is slow on purpose) |
+| `tools/replay/film.gd` | each fixture filmed, with the options as the variant |
+
+Only green runs are logged (a run that fails stops early and would teach the report that the
+suite got faster). A case under 0.05 s and a fixture under 0.02 s are left out (their suite and
+stage lines hold the time). The fields are `ts run commit tool stage kind item variant seconds
+processors load`: `load` is the 1-minute load average when the run started, so that a slow line on a
+busy machine can be told from a slow item; `variant` keeps series apart that must not be compared
+(`native=on` and `native=off`, `release`, `built` and `cache`).
+
+`python3 tools/ci/timing_report.py [--top N] [--run ID] [--markdown]` prints, from the log:
+
+- the slowest stages, suites, cases and fixtures (ten of each) with the latest time and the
+  median of the (up to) ten runs before it;
+- every item more than 25% and 0.1 s slower than that median (`REGRESSION`, with the load of
+  that run and of the median beside it; the second condition keeps a case from "regressing" from
+  7 ms to 9 ms), and every new item among the slowest (`NEW`);
+- the total: the latest run of each tool, stage by stage, and the time all logged runs took.
+
+`ci/test.sh --quiet` ends a green run with one more line, from the same log:
+`timing: slowest suites test_camera_rig.gd 113.0 s, test_debug_boxes.gd 66.0 s, ...; no regression`
+(or the slowest three of what that run measured when it ran no suites, and the regressions,
+three at most, with the rest counted). CI appends the full report to the job summary and uploads
+the log (`timings` artifact). The report only reads: it always exits 0, and a regression is for a
+person to look at, not a gate. Delete `reports/timings.jsonl` to start the history over.
+Tests: `python3 tools/ci/test_timing_report.py` and `tests/unit/tools/test_timing_log.gd`.

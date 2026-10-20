@@ -6,8 +6,9 @@ extends GdUnitTestSuite
 ## Ticks the corner-correction test steps past a fixture's end, the stick let go.
 const TAIL_TICKS: int = 30
 
-## Legibility floors for the grey-box box colours (review F1, F2): the least colour distance between
-## two kinds, the least brightness gap to a box's wall, to the hazards' red, and of a mark to its bell.
+## Legibility floors for the grey-box box colours (review F1, F2): the least colour distance
+## between two kinds, the least brightness gap to a box's wall, to the hazards' red, and of a mark
+## to its bell.
 const MIN_KIND_GAP: float = 0.18
 const MIN_WALL_LUMA_GAP: float = 0.12
 const MIN_HAZARD_GAP: float = 0.5

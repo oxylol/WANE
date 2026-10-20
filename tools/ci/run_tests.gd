@@ -23,6 +23,9 @@ const SKIP_DIRS: Array[String] = ["res://.godot", "res://addons/gdUnit4", "res:/
 const CONTENT_ROOT: String = "res://content"
 const UNIT_ROOT: String = "res://tests/unit"
 const REPORT_DIR: String = "res://reports"
+## gdUnit4 writes its reports here (reports/unit/report_N/results.xml); the rest of reports/
+## (timings.jsonl, perf.txt) is not the unit stage's to delete.
+const UNIT_REPORT_DIR: String = "res://reports/unit"
 const ALL_STAGES: Array[String] = ["compile", "content", "fixtures", "unit"]
 ## The unit run is stopped, with a diagnosis, once it has printed this many engine or script
 ## errors (a broken invariant asserting in a loop) or run this long; gdUnit4 slows down sharply
@@ -41,6 +44,8 @@ var _quiet: bool = false
 var _fail_fast: bool = false
 var _unit_paths: Array[String] = []
 var _unit_time_limit: int = UNIT_TIME_LIMIT_SECONDS
+## What this run measured (tools/ci/timing_log.gd): written when the run ends.
+var _timing: TimingLog = null
 ## A quiet run's report on the stage that is running: the summary after PASS or FAIL, and each
 ## failure as a block of lines.
 var _summary: String = ""
@@ -56,6 +61,10 @@ func _initialize() -> void:
 		return
 	var failed: Array[String] = []
 	var started_usec: int = Time.get_ticks_usec()
+	_timing = TimingLog.new("run_tests.gd", "native=" + NativeBackend.mode_name())
+	if not _time_budget:
+		# A run that is slow on purpose (the instrumented coverage copy) measures nothing.
+		_timing.path = ""
 	OS.add_logger(_errors)
 	for stage: String in stages:
 		if not _quiet:
@@ -73,13 +82,19 @@ func _initialize() -> void:
 				)
 			)
 			ok = false
-		_report_stage(stage, ok, float(Time.get_ticks_usec() - stage_usec) / 1000000.0)
+		var stage_seconds: float = float(Time.get_ticks_usec() - stage_usec) / 1000000.0
+		_report_stage(stage, ok, stage_seconds)
+		# A failed stage is not timed: it stops early or runs on error paths. A unit run of a few
+		# suites is not the stage (the suites and cases it ran are logged).
+		if ok and (stage != "unit" or _unit_paths.is_empty()):
+			_timing.add(stage, "stage", stage, stage_seconds)
 		if not ok:
 			failed.append(stage)
 			if _fail_fast:
 				break
 	var seconds: float = float(Time.get_ticks_usec() - started_usec) / 1000000.0
 	OS.remove_logger(_errors)
+	_timing.flush()
 	if failed.is_empty():
 		print("ALL STAGES PASSED (%s s)" % QuietReport.seconds_text(seconds))
 		quit(0)
@@ -285,6 +300,10 @@ func _stage_fixtures() -> bool:
 	var count: int = runner.call("result_count")
 	var failures: Array[PackedStringArray] = runner.get("failure_blocks")
 	_failures.append_array(failures)
+	if ok:
+		var times: Dictionary[String, float] = runner.call("timings")
+		for fixture_name: String in times:
+			_timing.add("fixtures", "fixture", fixture_name, times[fixture_name])
 	_summary = "%d fixtures" % count
 	if not ok:
 		_summary += ", %d failed" % maxi(failures.size(), 1)
@@ -304,10 +323,10 @@ func _stage_unit() -> bool:
 		_say("no unit suites")
 		_summary = "no suites"
 		return true
-	# Reports live in the project folder for CI artifacts (one run's worth: reports/report_1);
+	# Reports live in the project folder for CI artifacts (one run's worth: reports/unit/report_1);
 	# .gdignore keeps Godot from importing the report's images as project assets.
-	_remove_tree(ProjectSettings.globalize_path(REPORT_DIR))
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(REPORT_DIR))
+	_remove_tree(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
 	var ignore: FileAccess = FileAccess.open(REPORT_DIR.path_join(".gdignore"), FileAccess.WRITE)
 	ignore.close()
 	var args: PackedStringArray = [
@@ -325,7 +344,7 @@ func _stage_unit() -> bool:
 		"--ignoreHeadlessMode",
 		"-c",
 		"-rd",
-		REPORT_DIR,
+		UNIT_REPORT_DIR,
 	]
 	for target: String in targets:
 		args.append_array(["-a", target])
@@ -392,7 +411,20 @@ func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
 	if exit_code == 0 and not _unit_paths.is_empty() and result.cases == 0:
 		_complain("  no test cases found under %s" % ", ".join(_unit_paths))
 		return false
+	if exit_code == 0:
+		_log_unit_times()
 	return exit_code == 0
+
+
+## Notes each suite's and case's time from the report of the run that just passed.
+func _log_unit_times() -> void:
+	var results: String = UnitReport.newest_results(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
+	for suite: UnitReport.Suite in UnitReport.read(results):
+		_timing.add("unit", "suite", suite.path, suite.seconds)
+		for i: int in range(suite.case_names.size()):
+			_timing.add(
+				"unit", "case", "%s::%s" % [suite.path, suite.case_names[i]], suite.case_seconds[i]
+			)
 
 
 ## Prints the child's lines and keeps what a diagnosis needs.

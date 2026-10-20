@@ -43,6 +43,8 @@ const TRACK_Y := Color(1.0, 0.6, 0.25)
 const BAND := Color(0.5, 0.15, 0.15, 0.5)
 const TRACK_PX_PER_TICK: int = 2
 
+## What the run measured (tools/ci/timing_log.gd, docs/adr/0023).
+var timing: TimingLog = TimingLog.new("tools/replay/film.gd")
 ## --lighting's word for the fixtures after it; "" lets the fixture's own word decide.
 var _lighting: String = ""
 var _rows: Array[Image] = []
@@ -116,15 +118,25 @@ func _film() -> void:
 			i += 2
 		else:
 			var opts := Vector2(float(shrink), zoom if f3 else 1.0)
+			var began_usec: int = Time.get_ticks_usec()
 			var row: Image = await _film_one(a, every, from, count, opts, f3)
 			if row == null:
 				quit(1)
 				return
 			_rows.append(row)
+			# Filming time depends on what is filmed, so the options are part of the series.
+			var variant: String = (
+				"every=%d frames=%d scale=%d overlay=%s zoom=%s lighting=%s"
+				% [every, count, shrink, "on" if f3 else "off", opts.y, _lighting]
+			)
+			var seconds: float = float(Time.get_ticks_usec() - began_usec) / 1000000.0
+			timing.add("film", "film", a.get_file().get_basename(), seconds, variant)
 			i += 1
 	var img: Image = ContactSheet.sheet(_rows, 1)
 	var err: Error = img.save_png(args[0])
 	print("wrote %s (%dx%d): %s" % [args[0], img.get_width(), img.get_height(), error_string(err)])
+	if err == OK:
+		timing.flush()
 	quit(0 if err == OK else 1)
 
 

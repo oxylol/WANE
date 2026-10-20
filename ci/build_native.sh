@@ -9,6 +9,8 @@
 #   NATIVE_JOBS=<n>                      parallel jobs (default: all cores)
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. ci/timing.sh
+timing_init ci/build_native.sh
 which_target="${1:-template_debug}"
 case "$which_target" in
 	template_debug|template_release) targets=("$which_target") ;;
@@ -46,10 +48,16 @@ log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
 start=$SECONDS
 for target in "${targets[@]}"; do
+	target_started="$(timing_now)"
 	if ! (cd native && "${scons[@]}" -Q -j"$jobs" "platform=$platform" "target=$target" ${arch_args[@]+"${arch_args[@]}"}) > "$log" 2>&1; then
 		tail -n 40 "$log" >&2
 		echo "build_native: $target failed" >&2
 		exit 1
 	fi
+	# A build that compiled, one that took everything from the cache, one with nothing to do:
+	# their times are not comparable, so they are three series in the timing log.
+	how="up-to-date"
+	if grep -q "^Compiling " "$log"; then how="built"; elif grep -q "^Retrieved " "$log"; then how="cache"; fi
+	timing_log native build "$target" "$platform $how" "$(timing_since "$target_started")"
 done
 echo "native: built ${targets[*]} for $platform in $((SECONDS - start)) s -> native/bin/"

@@ -138,6 +138,15 @@ func result_count() -> int:
 	return results.size()
 
 
+## Each fixture's run time of the last [method run_all], in seconds, by name, in path order (the
+## timing log's fixture lines, docs/adr/0023).
+func timings() -> Dictionary[String, float]:
+	var out: Dictionary[String, float] = {}
+	for r: Result in results:
+		out[r.name] = r.msec / 1000.0
+	return out
+
+
 ## One failure that is not one fixture's: on stderr, or, quiet, a block of its own.
 func _fail_line(text: String) -> void:
 	if quiet:
