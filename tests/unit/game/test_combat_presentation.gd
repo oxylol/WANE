@@ -479,6 +479,8 @@ func test_the_budgets_and_room_views_shape_numbers_are_content() -> void:
 	assert_float(t.tile_pit_lip_u).is_equal(2.0)
 	assert_float(t.tile_spike_peak).is_equal(0.4)
 	assert_int(t.tile_spike_teeth).is_equal(4)
+	assert_float(t.box_mark_u).is_equal(10.0)
+	assert_float(t.box_side_u).is_equal(4.0)
 	assert_array(t.validate()).is_empty()
 	var bad: FeedbackTuning = t.duplicate() as FeedbackTuning
 	bad.vignette_bands = 0

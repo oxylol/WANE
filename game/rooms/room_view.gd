@@ -11,7 +11,6 @@ const SPIKES := Color(0.80, 0.30, 0.24)
 ## A pit: darker than the solid beyond the room, with a red lip, so a drop reads as a hazard.
 const PIT := Color(0.06, 0.04, 0.05)
 const PIT_LIP := Color(0.55, 0.18, 0.15)
-const BOX := Color(0.44, 0.40, 0.50)
 const BEYOND := Color(0.20, 0.20, 0.23)
 ## A door's way through the solid beyond the room: the room's own empty colour (the project's
 ## clear colour), so an opening reads as a passage on to the next room (docs/adr/0014).
@@ -19,7 +18,7 @@ const PASSAGE := Color(0.07, 0.07, 0.08)
 ## How far past the room's edge the solid is drawn: more than the camera's margin can reveal.
 const BEYOND_U: float = 8192.0
 
-## The tuning the tiles' grey-box shapes come from, loaded once ([method _look]).
+## The tuning the tiles' and boxes' grey-box shapes come from, loaded once ([method _look]).
 static var _look_cache: FeedbackTuning
 
 var world: CollisionWorld
@@ -77,7 +76,7 @@ func _draw() -> void:
 			draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)
 
 
-## The tuning the tiles' grey-box shapes come from (content/feedback.tres), loaded once.
+## The tuning the tiles' and boxes' grey-box shapes come from (content/feedback.tres), loaded once.
 static func _look() -> FeedbackTuning:
 	if _look_cache == null:
 		_look_cache = load(FeedbackTuning.PATH) as FeedbackTuning
@@ -129,6 +128,49 @@ static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> v
 		)
 
 
+## A filled rectangle of a solid box's grey-box drawing.
+class BoxFill:
+	extends RefCounted
+	var rect: Rect2
+	var colour: Color
+
+	func _init(p_rect: Rect2, p_colour: Color) -> void:
+		rect = p_rect
+		colour = p_colour
+
+
+## The fills that draw box [param s] over [param r] (the box in units), by function: wax is
+## amber, a pogo-able box is cyan steel with a pale mark along its top edge, any other is a lighter
+## shade of the wall of its kind (smooth when it cannot be clung to); a wax or bell box that cannot
+## be clung to also has smooth-coloured side strips. The colours are in content/feedback.tres.
+static func box_fills(s: SolidBox, r: Rect2) -> Array[BoxFill]:
+	var look: FeedbackTuning = _look()
+	var out: Array[BoxFill] = []
+	if s.tag == "wax":
+		out.append(BoxFill.new(r, look.box_wax_colour))
+	elif s.tag == "pogo":
+		out.append(BoxFill.new(r, look.box_pogo_colour))
+		var mark := Rect2(r.position, Vector2(r.size.x, minf(look.box_mark_u, r.size.y)))
+		out.append(BoxFill.new(mark, look.box_pogo_mark_colour))
+	else:
+		out.append(BoxFill.new(r, look.box_solid_colour if s.clingable else look.box_smooth_colour))
+		return out
+	if not s.clingable:
+		# Wax and a bell paint over the cling flag, so a strip of the smooth colour down each side
+		# shows the wall cannot be clung to.
+		var w: float = minf(look.box_side_u, r.size.x * 0.5)
+		out.append(BoxFill.new(Rect2(r.position, Vector2(w, r.size.y)), look.box_smooth_colour))
+		var right := Vector2(r.end.x - w, r.position.y)
+		out.append(BoxFill.new(Rect2(right, Vector2(w, r.size.y)), look.box_smooth_colour))
+	return out
+
+
+## Draws box [param s] over [param r] on [param canvas] (shared with the room editor).
+static func draw_box(canvas: CanvasItem, s: SolidBox, r: Rect2) -> void:
+	for f: BoxFill in box_fills(s, r):
+		canvas.draw_rect(f.rect, f.colour)
+
+
 func _draw_solids() -> void:
 	if world == null:
 		return
@@ -141,4 +183,4 @@ func _draw_solids() -> void:
 			float(s.right - s.left) / Fx.SUB,
 			float(s.bottom - s.top) / Fx.SUB
 		)
-		_solids.draw_rect(r, BOX)
+		draw_box(_solids, s, r)
