@@ -103,7 +103,7 @@ Applicability to Phase 1 is decided per line. "No" lines depend on systems that 
 
 ## For the director
 
-What to play (Windows or Linux with a display; `godot --path .` boots the sandbox; add `-- --lighting=pitch` for the Pitch stand-in; F3 shows the overlay, F4 pauses, F5 steps one tick, F6 ten):
+What to play (Windows or Linux with a display; `godot --path .` boots zone 1 room 01 with the Kindle Votive (`-- --room=sandbox` for the sandbox's three dummies); add `-- --lighting=pitch` for the Pitch stand-in; F3 shows the overlay, F4 pauses, F5 steps one tick, F6 ten):
 
 - **Movement.** Tap and hold jumps (is the release a decision or a cut? holds of 1 to 4 f are identical); the wall-kick climb in room 05 (held, tapped, mashed: any sticking, any press that does nothing?); a dash-jump with the jump pressed with the dash, or on its 2nd to 4th frame (it comes out up to 4 frames late: if that feels late the lever is `dash_jump_first`); releasing the stick on a dash-jump sheds the speed over about 22 frames (carry it?); lips and staircases (does the 3-frame ease of a corner nudge read as invisible? up a dashed staircase the body sits inside the steps for two frames); the ramp crest in `test/ramp45_crest_lip` (a 5 u step eased: step or bump?).
 - **Camera.** The questions in `docs/feel_log/2026-10-17-task4-camera.md`; a wall-jump off a long fall (the view should settle then follow the fall down); a death far from the spawn (the cut is instant, the fade is not built); toss up room 4's post column and bounce on the next post (no kick); a door at a run and at a dash (is a cut right, or a few frames of fade?).
@@ -178,7 +178,7 @@ Decisions waiting on you:
 | Every tuning change in the feel log | green; the non-feel tunables have prose, not tables (carried) |
 | Every new system has an ADR | green; the HUD has a section in ADR-0013 and is owed its own short ADR |
 | F3 shows hitboxes, state, frames, input history | green |
-| CI green: unit, replay, perf, screenshot, style gate, lint | green: every job of run 24 (Linux, Windows and macOS, native path off and on, both perf gates, release libraries); this merge's run is checked before review; screenshot and style gate have no assets until Phase 2 |
+| CI green: unit, replay, perf, screenshot, style gate, lint | green: every job of CI runs 24 and 25 (run 25 is this merged tree: Linux, Windows and macOS, native path off and on, both perf gates, release libraries); screenshot and style gate have no assets until Phase 2 |
 
 Of 42 rows (the five audio lines are one): 21 green, 9 partial with a named stand-in, 11 carried, 1 director-only (the 60-second loop); several green and partial rows also keep a director-only half, listed under "For the director".
 
