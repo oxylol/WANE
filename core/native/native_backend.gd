@@ -14,7 +14,7 @@ extends RefCounted
 enum Mode { OFF, AUTO, ON }
 
 ## The version the library must report: native/src/native_probe.h NATIVE_VERSION.
-const EXPECTED_VERSION: int = 3
+const EXPECTED_VERSION: int = 4
 const PROBE_CLASS: StringName = &"NativeProbe"
 const MODE_NAMES: Dictionary[String, Mode] = {"off": Mode.OFF, "auto": Mode.AUTO, "on": Mode.ON}
 

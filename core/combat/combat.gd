@@ -451,17 +451,10 @@ func stun_within(at: Vector2i, radius: int, frames: int) -> int:
 ## The living enemy whose centre is nearest [param at], within [param radius] sub-pixels, other
 ## than [param skip]; ties go to the lower index. -1 if none.
 func nearest_enemy(at: Vector2i, radius: int, skip: int) -> int:
-	var best: int = -1
-	var best_d: int = 0
-	var centres: PackedInt32Array = _cells.centres
-	for k: int in _query(at, radius, skip):
-		var dx: int = centres[2 * k] - at.x
-		var dy: int = centres[2 * k + 1] - at.y
-		var dd: int = dx * dx + dy * dy
-		if best < 0 or dd < best_d or (dd == best_d and k < best):
-			best = k
-			best_d = dd
-	return best
+	if not _indexed:
+		_cells.build(enemies)
+		_indexed = _resolving or procs.resolving()
+	return _cells.nearest(enemies, at, radius, skip)
 
 
 ## The living enemies other than [param skip] within [param radius] of [param at] ([EnemyCells]).
@@ -475,6 +468,7 @@ func _query(at: Vector2i, radius: int, skip: int) -> PackedInt32Array:
 ## Enemy [param i] died to a hit whose event value is [param value]: the kill event carries it, so
 ## presentation can tell a Charged kill (its slow motion) and shake along it.
 func _kill(i: int, value: int) -> void:
+	_cells.kill(i)
 	var c: Vector2i = enemies[i].centre()
 	events.add(SimEvents.KILL, c.x, c.y, value)
 	embers.append(KillEmber.new(c, params.kill_ember_frames))

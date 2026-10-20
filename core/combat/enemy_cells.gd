@@ -11,8 +11,17 @@ extends RefCounted
 ## reads three or four cells a side.
 const CELL: int = 128 * Fx.SUB
 
+## The native cells (docs/adr/0020 Decision 15, native/src/cells.cpp) or null. With it the cells
+## are built by [method build] from the centres and answered natively; this class is the reference
+## (test_native_cells.gd plays both on random rooms).
+const NATIVE_CLASS: StringName = &"WaneCells"
+
 ## Each enemy's centre, x then y, in sub-pixels.
 var centres: PackedInt32Array = PackedInt32Array()
+## 1 for a living enemy, 0 for a dead one, as of [method build] and [method kill] (kept only for
+## the native cells).
+var alive: PackedByteArray = PackedByteArray()
+var native: Object = null
 ## The widest half-width and the tallest height among the enemies: how far a collider can reach
 ## from its centre.
 var reach_x: int = 0
@@ -26,10 +35,18 @@ var _heads: PackedInt32Array = PackedInt32Array()
 var _next: PackedInt32Array = PackedInt32Array()
 
 
+func _init(use_native: bool = NativeBackend.use_native()) -> void:
+	if use_native:
+		native = ClassDB.instantiate(NATIVE_CLASS)
+
+
 ## Buckets [param enemies] by their centres.
 func build(enemies: Array[Enemy]) -> void:
 	var n: int = enemies.size()
 	centres.resize(2 * n)
+	if native != null:
+		_build_native(enemies, n)
+		return
 	_next.resize(n)
 	if n == 0:
 		_cols = 0
@@ -70,9 +87,55 @@ func build(enemies: Array[Enemy]) -> void:
 		_heads[cell] = k
 
 
+## The centres, the living and the reach go to the native cells, which bucket them.
+func _build_native(enemies: Array[Enemy], n: int) -> void:
+	alive.resize(n)
+	var rx: int = 0
+	var ry: int = 0
+	for k: int in range(n):
+		var e: Enemy = enemies[k]
+		var b: Body = e.body
+		centres[2 * k] = b.x
+		centres[2 * k + 1] = b.y - b.height / 2
+		alive[k] = 0 if e.state == Enemy.DEAD else 1
+		if b.half_w > rx:
+			rx = b.half_w
+		if b.height > ry:
+			ry = b.height
+	reach_x = rx
+	reach_y = ry
+	native.call(&"build_from", centres, alive, rx, ry)
+
+
+## Enemy [param k] died during the resolve the cells were built for: the questions stop finding
+## it. (The reference reads the enemy's state, which already says so.)
+func kill(k: int) -> void:
+	if native != null:
+		native.call(&"kill", k)
+
+
+## The living enemy of [param enemies] whose centre is nearest [param at], within [param radius],
+## other than [param skip]; ties go to the lower index; -1 if none.
+func nearest(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> int:
+	if native != null:
+		return native.call(&"nearest", at.x, at.y, radius, skip)
+	var best: int = -1
+	var best_d: int = 0
+	for k: int in within(enemies, at, radius, skip):
+		var dx: int = centres[2 * k] - at.x
+		var dy: int = centres[2 * k + 1] - at.y
+		var dd: int = dx * dx + dy * dy
+		if best < 0 or dd < best_d or (dd == best_d and k < best):
+			best = k
+			best_d = dd
+	return best
+
+
 ## The enemies of [param enemies] (the list built from), other than [param skip] and the dead,
 ## whose centres are within [param radius] sub-pixels of [param at], in no particular order.
 func within(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> PackedInt32Array:
+	if native != null:
+		return native.call(&"within", at.x, at.y, radius, skip)
 	var out := PackedInt32Array()
 	if _cols == 0:
 		return out
@@ -101,6 +164,8 @@ func within(enemies: Array[Enemy], at: Vector2i, radius: int, skip: int) -> Pack
 ## within the box grown by the colliders' reach, in no particular order. A superset of the ones
 ## whose hurtboxes meet it; the caller does the exact test.
 func touching(box: Rect2i) -> PackedInt32Array:
+	if native != null:
+		return native.call(&"touching", box.position.x, box.end.x, box.position.y, box.end.y)
 	var out := PackedInt32Array()
 	if _cols == 0:
 		return out

@@ -34,6 +34,8 @@ const FOLD_EXPECTED: Array[int] = [0, 2720193583, 3342073359, 1940800226]
 const NATIVE_ONLY: Array[String] = ["describe"]
 ## WaneSweep methods that feed the native copy of the world instead of porting a method of it.
 const SWEEP_SETUP: Array[String] = ["set_grid", "set_spike_inset", "set_boxes", "set_box"]
+## WaneCells methods that hand the enemies' centres over instead of answering a question.
+const CELLS_SETUP: Array[String] = ["build_from"]
 
 var _saved_mode: NativeBackend.Mode = NativeBackend.Mode.AUTO
 
@@ -155,6 +157,26 @@ func test_every_sweep_method_is_a_method_of_the_gdscript_world() -> void:
 	for i: int in range(native_list.size()):
 		var method_name: String = str(native_list[i]["name"])
 		if not SWEEP_SETUP.has(method_name) and not reference_methods.has(method_name):
+			missing.append(method_name)
+	assert_array(missing).is_empty()
+
+
+func test_every_cells_method_is_a_method_of_enemy_cells() -> void:
+	# The cells' reference is EnemyCells itself (docs/adr/0020 Decision 15), not a NativeRef twin:
+	# every native question keeps its name there, and test_native_cells.gd plays the two side by
+	# side.
+	if not ClassDB.class_exists(EnemyCells.NATIVE_CLASS):
+		assert_int(NativeBackend.mode()).is_not_equal(NativeBackend.Mode.ON)
+		return
+	var reference_methods: Array[String] = []
+	var reference_list: Array[Dictionary] = (EnemyCells as Script).get_script_method_list()
+	for i: int in range(reference_list.size()):
+		reference_methods.append(str(reference_list[i]["name"]))
+	var missing: Array[String] = []
+	var native_list: Array[Dictionary] = ClassDB.class_get_method_list(EnemyCells.NATIVE_CLASS, true)
+	for i: int in range(native_list.size()):
+		var method_name: String = str(native_list[i]["name"])
+		if not CELLS_SETUP.has(method_name) and not reference_methods.has(method_name):
 			missing.append(method_name)
 	assert_array(missing).is_empty()
 
