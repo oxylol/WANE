@@ -4,8 +4,8 @@ extends SceneTree
 ## ms"; docs/adr/0020). Plays the stress room's scripted run (tests/perf/stress_run.fixture: Ash
 ## runs, dashes, strikes, pogoes and casts through 200 training dummies, 150 of them walking, with
 ## the stress Votive set stacked: 39 procs a Taper hit) and times every tick's input plus
-## [method Simulation.step], then plays the zone 1 loop (tests/replay/zone1/zone1_loop.fixture) a
-## few times through for the checklist's spike line.
+## [method Simulation.step], then plays the zone 1 loop (tests/replay/zone1/zone1_loop.fixture)
+## five times through on one simulation, 17,920 ticks, for the checklist's 5-minute spike line.
 ##
 ## A tick's time is the least over the repeated runs (the replay fixes a tick's work; the excess is
 ## the machine's); the first warm-up ticks are played and not counted. The gates are in
@@ -36,7 +36,6 @@ const FLAG_NAMES: Dictionary[int, String] = {
 var _lines: PackedStringArray = PackedStringArray()
 var _quiet: bool = false
 var _failures: PackedStringArray = PackedStringArray()
-var _last_hash: int = 0
 
 
 ## What happened on each tick of one run, and its totals.
@@ -50,6 +49,8 @@ class Facts:
 	var total_hits: int = 0
 	var total_kills: int = 0
 	var deaths: int = 0
+	var hurt_ticks: int = 0
+	var door_ticks: int = 0
 	var end_hash: int = 0
 	var load_errors: PackedStringArray = PackedStringArray()
 	var enemies: int = 0
@@ -58,6 +59,14 @@ class Facts:
 	func _init(ticks: int) -> void:
 		for a: PackedInt32Array in [procs, kills, hits, flags]:
 			a.resize(ticks)
+
+	func begin(sim: Simulation) -> void:
+		load_errors = sim.load_errors
+		enemies = sim.combat.enemies.size()
+		for e: Enemy in sim.combat.enemies:
+			var d: TrainingDummy = e as TrainingDummy
+			if d != null and d.patrol_dir != 0:
+				walkers += 1
 
 	func add(i: int, sim: Simulation) -> void:
 		var f: int = 0
@@ -85,6 +94,10 @@ class Facts:
 		total_kills += kills[i]
 		if f & F_DEATH:
 			deaths += 1
+		if f & F_HURT:
+			hurt_ticks += 1
+		if f & F_DOOR:
+			door_ticks += 1
 
 
 func _initialize() -> void:
@@ -103,7 +116,7 @@ func _initialize() -> void:
 	if only != "zone":
 		_stress(budget, repeats, worst)
 	if only != "stress":
-		_zone(budget)
+		_zone(budget, repeats)
 	_say(_frame_budget_line(budget), false)
 	var report: String = _arg_str(args, "--report", "")
 	if report != "":
@@ -153,16 +166,16 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 	var hash_seen: int = 0
 	for r: int in range(repeats):
 		var run_facts: Facts = Facts.new(fx.frame_total) if r == 0 else null
-		var us: PackedInt32Array = _play(fx, run_facts)
-		PerfStats.fold_min(best, us)
+		var run: BenchRun = _play(fx, fx.frame_total, run_facts)
+		PerfStats.fold_min(best, run.us)
 		if r == 0:
 			facts = run_facts
-			hash_seen = facts.end_hash
-		elif _last_hash != hash_seen:
+			hash_seen = run.end_hash
+		elif run.end_hash != hash_seen:
 			_fail(
 				(
 					"stress run desync: run %d ended on hash %d, run 1 on %d"
-					% [r + 1, _last_hash, hash_seen]
+					% [r + 1, run.end_hash, hash_seen]
 				)
 			)
 	for e: String in facts.load_errors:
@@ -202,6 +215,7 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 		_fail("stress p99 %s ms over %s ms" % [PerfStats.ms(p99), PerfStats.ms(budget.sim_p99_us)])
 	if top > budget.sim_max_us:
 		_fail("stress max %s ms over %s ms" % [PerfStats.ms(top), PerfStats.ms(budget.sim_max_us)])
+	_warm_up(best, facts, budget.warmup_ticks)
 	_minimum("procs fired", facts.total_procs, budget.min_procs)
 	_minimum("hits", facts.total_hits, budget.min_hits)
 	_minimum("kills", facts.total_kills, budget.min_kills)
@@ -225,26 +239,63 @@ func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
 			)
 
 
-func _zone(budget: PerfBudget) -> void:
+## The warm-up ticks are played and left out of the percentile; the biggest early bursts are in
+## them (the stress pin's 117-proc hit on tick 2 and its 39-proc hit on tick 6), so their cost is
+## printed here, against the same worst-tick gate for the record (not gated: the first ticks of a
+## process pay for the engine's caches).
+func _warm_up(best: PackedInt32Array, facts: Facts, warmup: int) -> void:
+	var count: int = mini(warmup, best.size())
+	if count == 0:
+		return
+	var worst_tick: int = PerfStats.worst(best.slice(0, count), 0, 1)[0]
+	var peak_procs: int = 0
+	for i: int in range(count):
+		peak_procs = maxi(peak_procs, facts.procs[i])
+	_say(
+		(
+			"  warm-up (first %d ticks, not counted): worst %s ms at tick %d, most procs on a tick %d"
+			% [count, PerfStats.ms(best[worst_tick]), worst_tick, peak_procs]
+		),
+		false
+	)
+
+
+## The checklist's 5-minute zone 1 run: the 60-second loop played [member PerfBudget.zone_passes]
+## times through on one simulation (a fresh one each pass would hide state that builds up), the
+## whole run repeated [member PerfBudget.repeats] times and each tick's time the least of them.
+func _zone(budget: PerfBudget, repeats: int) -> void:
 	var fx: Fixture = Fixture.parse_file(ZONE_FIXTURE)
 	for e: String in fx.errors:
 		_fail("zone fixture: %s" % e)
+	var ticks: int = budget.zone_passes * fx.frame_total
 	var best: PackedInt32Array = PackedInt32Array()
-	var errors: PackedStringArray = PackedStringArray()
-	for _p: int in range(budget.zone_passes):
-		var facts: Facts = Facts.new(fx.frame_total)
-		PerfStats.fold_min(best, _play(fx, facts))
-		errors.append_array(facts.load_errors)
-	for e: String in errors:
+	var facts: Facts = null
+	var hash_seen: int = 0
+	for r: int in range(repeats):
+		var run_facts: Facts = Facts.new(ticks) if r == 0 else null
+		var run: BenchRun = _play(fx, ticks, run_facts)
+		PerfStats.fold_min(best, run.us)
+		if r == 0:
+			facts = run_facts
+			hash_seen = run.end_hash
+		elif run.end_hash != hash_seen:
+			_fail(
+				(
+					"zone run desync: run %d ended on hash %d, run 1 on %d"
+					% [r + 1, run.end_hash, hash_seen]
+				)
+			)
+	for e: String in facts.load_errors:
 		_fail("zone loop load error: %s" % e)
 	var sorted: PackedInt32Array = PerfStats.sorted_from(best, 0)
 	var top: int = sorted[sorted.size() - 1]
 	_say(
 		(
-			"zone 1 loop x%d (%d ticks): p50 %s ms, p99 %s ms, max %s ms (gate %s)"
+			"zone 1 loop x%d on one simulation (%d ticks), best of %d runs: p50 %s ms, p99 %s ms, max %s ms (gate %s)"
 			% [
 				budget.zone_passes,
-				budget.zone_passes * fx.frame_total,
+				best.size(),
+				repeats,
 				PerfStats.ms(PerfStats.percentile(sorted, 500)),
 				PerfStats.ms(PerfStats.percentile(sorted, P99)),
 				PerfStats.ms(top),
@@ -253,35 +304,43 @@ func _zone(budget: PerfBudget) -> void:
 		),
 		true
 	)
+	var by_pass: PackedStringArray = PackedStringArray()
+	var trouble: PackedStringArray = PackedStringArray()
+	for p: int in range(budget.zone_passes):
+		var from: int = p * fx.frame_total
+		var pass_sorted: PackedInt32Array = PerfStats.sorted_from(
+			best.slice(from, from + fx.frame_total), 0
+		)
+		by_pass.append(PerfStats.ms(pass_sorted[pass_sorted.size() - 1]))
+		var hurt: int = 0
+		var died: int = 0
+		for i: int in range(from, from + fx.frame_total):
+			hurt += 1 if facts.flags[i] & F_HURT else 0
+			died += 1 if facts.flags[i] & F_DEATH else 0
+		trouble.append("%d/%d" % [hurt, died])
+	_say("  worst tick by pass (ms): %s" % ", ".join(by_pass), false)
+	# The route holds while Kindling is below White; later passes are play, not the route (the
+	# 10th white hit, Combat._white_charges, adds hitstop the route does not allow for), so the
+	# hurt and death counts by pass say how far the loop held (ADR-0020 Decision 14).
+	_say(
+		(
+			"  ticks hurt/deaths by pass: %s; door crossings %d, end hash %d"
+			% [", ".join(trouble), facts.door_ticks, hash_seen]
+		),
+		false
+	)
 	if top > budget.zone_max_us:
 		_fail(
 			"zone loop max %s ms over %s ms" % [PerfStats.ms(top), PerfStats.ms(budget.zone_max_us)]
 		)
 
 
-## Plays [param fx] from a fresh simulation and returns each tick's input plus step, in
-## microseconds; with [param facts] it also records what happened (outside the timing).
-func _play(fx: Fixture, facts: Facts) -> PackedInt32Array:
-	var sim := Simulation.new(fx.scenario)
-	var us := PackedInt32Array()
-	us.resize(fx.frame_total)
-	if facts != null:
-		facts.load_errors = sim.load_errors
-		facts.enemies = sim.combat.enemies.size()
-		for e: Enemy in sim.combat.enemies:
-			var d: TrainingDummy = e as TrainingDummy
-			if d != null and d.patrol_dir != 0:
-				facts.walkers += 1
-	for i: int in range(fx.frame_total):
-		var t0: int = Time.get_ticks_usec()
-		sim.step(fx.input_frame(i))
-		us[i] = Time.get_ticks_usec() - t0
-		if facts != null:
-			facts.add(i, sim)
-	_last_hash = sim.state_hash()
-	if facts != null:
-		facts.end_hash = _last_hash
-	return us
+## Plays [param fx] for [param ticks] ticks on one simulation (see [BenchRun]); with
+## [param facts] it also records what happened (outside the timing).
+func _play(fx: Fixture, ticks: int, facts: Facts) -> BenchRun:
+	if facts == null:
+		return BenchRun.play(fx, ticks)
+	return BenchRun.play(fx, ticks, facts.begin, facts.add)
 
 
 func _minimum(what: String, got: int, wanted: int) -> void:

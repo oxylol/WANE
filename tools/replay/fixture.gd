@@ -128,6 +128,18 @@ func input_frame(i: int) -> InputFrame:
 	return InputFrame.make(held[i], pressed, stick_x[i], stick_y[i])
 
 
+## The input of tick [param i] of the fixture played over and over: the input starts again at its
+## first frame every [member frame_total] ticks, and the first frame of a pass sees the last frame
+## of the pass before as its previous one (so a key held across the seam is not pressed again).
+func looped_input_frame(i: int) -> InputFrame:
+	var at: int = i % frame_total
+	if at != 0 or i == 0:
+		return input_frame(at)
+	var last: int = frame_total - 1
+	var pressed: int = (held[0] & ~held[last]) | taps[0]
+	return InputFrame.make(held[0], pressed, stick_x[0], stick_y[0])
+
+
 ## Every probe key the expectations read.
 func probe_keys() -> Array[String]:
 	var keys: Array[String] = []

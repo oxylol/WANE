@@ -101,3 +101,57 @@ func test_a_budget_that_breaks_a_rule_is_refused() -> void:
 			"min_frames":
 				b.min_frames = 0
 		assert_array(Array(b.validate())).is_not_empty()
+
+
+const _LOOP: String = """fixture loop_probe
+doc A ten-frame loop for the bench run tests (BUILD.md s13).
+wick none
+seed 1
+frames 10
+input
+  2..3 R
+  4 R jump
+  5..9 R
+end
+expect
+end
+"""
+
+
+func test_a_looped_fixture_starts_its_input_again_and_remembers_the_seam() -> void:
+	var fx: Fixture = Fixture.parse_text(_LOOP)
+	assert_array(Array(fx.errors)).is_empty()
+	# Tick 12 is frame 2 of the second pass: right is pressed there, as in frame 2 of the first.
+	assert_int(fx.looped_input_frame(12).held).is_equal(fx.input_frame(2).held)
+	assert_int(fx.looped_input_frame(12).pressed).is_equal(fx.input_frame(2).pressed)
+	# Frame 9 holds right; frame 0 does not, so the seam releases it and presses nothing.
+	assert_int(fx.looped_input_frame(10).held).is_equal(fx.input_frame(0).held)
+	assert_int(fx.looped_input_frame(10).pressed).is_equal(0)
+	assert_int(fx.looped_input_frame(14).pressed).is_equal(fx.input_frame(4).pressed)
+
+
+func test_a_bench_run_is_one_simulation_over_all_its_passes() -> void:
+	var fx: Fixture = Fixture.parse_text(_LOOP)
+	var run: BenchRun = BenchRun.play(fx, fx.frame_total * 3)
+	# One simulation stepped 30 times, not three fresh ones stepped 10 times each.
+	assert_int(run.us.size()).is_equal(30)
+	assert_int(run.sim.tick).is_equal(30)
+	var again: BenchRun = BenchRun.play(fx, fx.frame_total * 3)
+	assert_int(again.end_hash).is_equal(run.end_hash)
+	var one_pass: BenchRun = BenchRun.play(fx, fx.frame_total)
+	assert_int(one_pass.end_hash).is_not_equal(run.end_hash)
+
+
+func test_a_bench_run_reports_each_tick_to_its_hooks() -> void:
+	var fx: Fixture = Fixture.parse_text(_LOOP)
+	var seen: Array[int] = []
+	var started: Array[int] = []
+	BenchRun.play(
+		fx,
+		25,
+		func(sim: Simulation) -> void: started.append(sim.tick),
+		func(i: int, sim: Simulation) -> void: seen.append(i * 100 + sim.tick)
+	)
+	assert_array(started).is_equal([0])
+	assert_int(seen.size()).is_equal(25)
+	assert_int(seen[24]).is_equal(24 * 100 + 25)
