@@ -99,7 +99,7 @@ jobs:
             native/godot-cpp
             native/.sconsign.dblite
           key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: Build the native extension (ADR-0021, ADR-0022: the sweep runs native)
+      - name: "Build the native extension (ADR-0021, ADR-0022: the sweep runs native)"
         run: ci/build_native.sh
       - name: Zone 1 5-minute run
         run: ci/perf.sh --only zone
@@ -123,7 +123,7 @@ jobs:
   # 2026-12-31 (PROGRESS.md, Feature flags with expiry), until the p99 is green on CI hardware;
   # the step's own log and the uploaded report still show FAIL lines.
   perf-stress:
-    name: perf-stress (stress room, known red: enemy steps and the proc path in GDScript)
+    name: "perf-stress (stress room, known red: enemy steps and the proc path in GDScript)"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     continue-on-error: true
@@ -143,7 +143,7 @@ jobs:
             native/godot-cpp
             native/.sconsign.dblite
           key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
-      - name: Build the native extension (ADR-0021, ADR-0022: the sweep runs native)
+      - name: "Build the native extension (ADR-0021, ADR-0022: the sweep runs native)"
         run: ci/build_native.sh
       - name: Stress room
         run: ci/perf.sh --only stress
@@ -153,6 +153,47 @@ jobs:
         with:
           name: perf-stress-report
           path: reports/perf.txt
+
+  native-release:
+    name: native release library (${{ matrix.os }})
+    # The exported game loads the release build of the extension; every other job uses the debug
+    # one. This builds the release one and runs the replay fixtures on it (ADR-0021).
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            platform: linux
+          - os: windows-2022
+            platform: windows
+          - os: macos-14
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install Godot
+        run: |
+          godot="$(ci/setup_godot.sh ${{ matrix.platform }} | tail -n 1)"
+          test -x "$godot"
+          echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Install SCons (pinned in tools/requirements.txt)
+        run: pip install "$(grep -i '^SCons==' tools/requirements.txt)"
+      - name: Cache godot-cpp and its build
+        uses: actions/cache@v4
+        with:
+          path: |
+            native/godot-cpp
+            native/.sconsign.dblite
+          key: godot-cpp-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('native/.godot-cpp-version', 'ci/build_native.sh') }}
+      - name: Build the release extension and run the fixtures on it
+        run: ci/native_release_check.sh
 
   determinism:
     name: replay determinism (${{ matrix.os }})
