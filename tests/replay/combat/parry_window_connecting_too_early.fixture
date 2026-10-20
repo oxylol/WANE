@@ -1,0 +1,11 @@
+fixture parry_window_connecting_too_early
+doc BUILD.md s6 Parry (see parry_window_connecting_first_frame): a press 8 frames before the landing is outside the window even when its strike connects and its hitstop stalls the input ring; the swing hits. The window was 10 frames here before ADR-0013 counted world ticks.
+room test/dummy_swing
+frames 80
+input
+  45 R attack
+end
+expect
+  at 53 event.parry=0 event.player_hit=1 hearts=4
+  never 0..79 event.parry=1
+end

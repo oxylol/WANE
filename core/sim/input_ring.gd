@@ -22,6 +22,8 @@ const HISTORY: int = 8
 const SIZE: int = HISTORY + 1
 ## Hold counters saturate here (about 4.6 hours) so they never grow without bound.
 const HOLD_CAP: int = 1000000
+## A button never pressed on a slot: older than any window.
+const NO_PRESS: int = -1000000
 
 var _held: PackedInt32Array = PackedInt32Array()
 var _pressed: PackedInt32Array = PackedInt32Array()
@@ -32,6 +34,12 @@ var _stick_x: PackedInt32Array = PackedInt32Array()
 var _stick_y: PackedInt32Array = PackedInt32Array()
 ## Consecutive held frames per button, in InputFrame.BUTTONS order.
 var _hold: PackedInt32Array = PackedInt32Array()
+## The tick each button was last pressed on, per slot (slot * button count + button index): the
+## parry window counts world ticks, which folded slots no longer show
+## ([method any_press_ticks]).
+var _press_tick: PackedInt32Array = PackedInt32Array()
+## Ticks seen by [method push] and [method merge] since [method clear].
+var _tick: int = 0
 ## Every button pressed in any slot (used or not): a query for a button with no press in the ring
 ## at all, the usual case, answers at once (the ring is read several times a tick).
 var _any_pressed: int = 0
@@ -46,6 +54,7 @@ func _init() -> void:
 	_pressed.resize(SIZE)
 	_consumed.resize(SIZE)
 	_spent.resize(SIZE)
+	_press_tick.resize(SIZE * InputFrame.BUTTONS.size())
 	_stick_x.resize(SIZE)
 	_stick_y.resize(SIZE)
 	_hold.resize(InputFrame.BUTTONS.size())
@@ -61,6 +70,8 @@ func clear() -> void:
 		_stick_x[i] = 0
 		_stick_y[i] = 0
 	_hold.fill(0)
+	_press_tick.fill(NO_PRESS)
+	_tick = 0
 	_any_pressed = 0
 	_head = 0
 	_count = 0
@@ -76,6 +87,8 @@ func push(frame: InputFrame) -> void:
 	_spent[_head] = 0
 	_stick_x[_head] = frame.stick_x
 	_stick_y[_head] = frame.stick_y
+	_tick += 1
+	_stamp_presses(frame.pressed, true)
 	_any_pressed = 0
 	for p: int in _pressed:
 		_any_pressed |= p
@@ -99,6 +112,8 @@ func merge(frame: InputFrame) -> void:
 		push(frame)
 		return
 	_held[_head] = frame.held
+	_tick += 1
+	_stamp_presses(frame.pressed, false)
 	# A new press during hitstop is a fresh press even if the same button's earlier press in this
 	# slot was already used: un-consume it.
 	_consumed[_head] &= ~frame.pressed
@@ -115,6 +130,18 @@ func merge(frame: InputFrame) -> void:
 			_hold[i] = 0
 	_stick_x[_head] = frame.stick_x
 	_stick_y[_head] = frame.stick_y
+
+
+## Records the tick of every button in [param pressed] on the newest slot; [param fresh] clears
+## the slot's other buttons first (a pushed slot starts empty).
+func _stamp_presses(pressed: int, fresh: bool) -> void:
+	var n: int = InputFrame.BUTTONS.size()
+	for i: int in range(n):
+		var at: int = _head * n + i
+		if (pressed & InputFrame.BUTTONS[i]) != 0:
+			_press_tick[at] = _tick
+		elif fresh:
+			_press_tick[at] = NO_PRESS
 
 
 ## Age in player frames (0 = pressed this frame) of the latest unconsumed press of [param bit]
@@ -134,20 +161,25 @@ func press_age(bit: int, max_age: int = HISTORY) -> int:
 	return -1
 
 
-## Age in player frames of the latest press of [param bit] no older than [param max_age], used or
-## not, but not spent by a parry ([method spend_presses]), or -1 if there is none. A parry counts
-## any attack press in its window, including one that also started a strike (docs/adr/0013).
-func any_press_age(bit: int, max_age: int = HISTORY) -> int:
-	if max_age > HISTORY:
-		assert(false, "input window %d exceeds the ring's %d frames" % [max_age, HISTORY])
+## Age in world ticks (0 = pressed this tick) of the latest press of [param bit] no older than
+## [param max_ticks], used or not, but not spent by a parry, or -1 if there is none. A tick is a
+## tick whether the player advanced or stood frozen in hitstop, so the parry's 8 frame window is 8
+## frames of the world even when the press itself connected and froze the player
+## (docs/adr/0013, "The window counts ticks").
+func any_press_ticks(bit: int, max_ticks: int) -> int:
+	if max_ticks >= SIZE:
+		assert(false, "input window %d exceeds the ring's %d frames" % [max_ticks, HISTORY])
 	if (_any_pressed & bit) == 0:
 		return -1
-	var span: int = mini(mini(max_age, HISTORY) + 1, _count)
-	var i: int = _head
-	for age: int in range(span):
-		if (_pressed[i] & ~_spent[i] & bit) != 0:
-			return age
-		i = i - 1 if i > 0 else SIZE - 1
+	var n: int = InputFrame.BUTTONS.size()
+	var b: int = InputFrame.BUTTONS.find(bit)
+	for age: int in range(_count):
+		var slot: int = _slot(age)
+		if (_pressed[slot] & ~_spent[slot] & bit) == 0:
+			continue
+		var ticks: int = _tick - _press_tick[slot * n + b]
+		# The newest eligible press is the youngest: an older slot only has older ticks.
+		return ticks if ticks <= max_ticks else -1
 	return -1
 
 
@@ -212,6 +244,7 @@ func depth() -> int:
 
 func hash_into(h: StateHasher) -> void:
 	h.add_int(_count)
+	var n: int = InputFrame.BUTTONS.size()
 	for age: int in range(_count):
 		var i: int = _slot(age)
 		h.add_int(_held[i])
@@ -220,6 +253,8 @@ func hash_into(h: StateHasher) -> void:
 		h.add_int(_spent[i])
 		h.add_int(_stick_x[i])
 		h.add_int(_stick_y[i])
+		for b: int in range(n):
+			h.add_int(mini(_tick - _press_tick[i * n + b], SIZE))
 	for hold: int in _hold:
 		h.add_int(hold)
 
@@ -232,6 +267,8 @@ func copy_from(other: InputRing) -> void:
 	_stick_x = other._stick_x.duplicate()
 	_stick_y = other._stick_y.duplicate()
 	_hold = other._hold.duplicate()
+	_press_tick = other._press_tick.duplicate()
+	_tick = other._tick
 	_head = other._head
 	_count = other._count
 	_any_pressed = other._any_pressed

@@ -339,8 +339,8 @@ func run_fixture(fx: Fixture, play_back: bool = true) -> Result:
 	result.name = fx.name
 	result.path = fx.path
 	result.frames = fx.frame_total
-	for e: String in fx.errors:
-		result.fail("parse: %s" % e)
+	for line: String in fx.refusals():
+		result.fail(line)
 	if not result.passed:
 		return result
 	var started: int = Time.get_ticks_usec()

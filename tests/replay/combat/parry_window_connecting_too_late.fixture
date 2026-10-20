@@ -1,0 +1,11 @@
+fixture parry_window_connecting_too_late
+doc BUILD.md s6 Parry (see parry_window_connecting_first_frame): a press the frame after the landing is too late; the swing already hit.
+room test/dummy_swing
+frames 80
+input
+  54 R attack
+end
+expect
+  at 53 event.parry=0 event.player_hit=1 hearts=4
+  never 0..53 event.parry=1
+end

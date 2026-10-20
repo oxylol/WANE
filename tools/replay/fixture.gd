@@ -121,6 +121,15 @@ static func parse_text(text: String, label: String = "<text>") -> Fixture:
 	return fx
 
 
+## One "parse: ..." line per parse error: what `check.gd` reports for a fixture it refuses and what
+## `trace.gd` prints before it refuses the same fixture (empty when the fixture parsed cleanly).
+func refusals() -> PackedStringArray:
+	var lines: PackedStringArray = PackedStringArray()
+	for e: String in errors:
+		lines.append("parse: %s" % e)
+	return lines
+
+
 ## The input frame the fixture feeds at [param i].
 func input_frame(i: int) -> InputFrame:
 	var prev_held: int = held[i - 1] if i > 0 else 0

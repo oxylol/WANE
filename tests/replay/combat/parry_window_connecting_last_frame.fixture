@@ -1,0 +1,11 @@
+fixture parry_window_connecting_last_frame
+doc BUILD.md s6 Parry (see parry_window_connecting_first_frame): a press on the landing frame, facing the dummy, still parries.
+room test/dummy_swing
+frames 80
+input
+  53 R attack
+end
+expect
+  at 53 event.parry=1 hearts=5
+  never 0..79 event.player_hit=1
+end

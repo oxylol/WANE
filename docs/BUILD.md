@@ -295,7 +295,7 @@ Consecutive hits without taking damage build **Kindling**, shown as the blade vi
 
 ### Parry
 
-- Press attack in the 8 f before an enemy's hit lands (any direction) to parry: the 8 frames that end on the frame it lands. The parry window is defined on the enemy's attack, not the player's input, so it is never a guess.
+- Press attack in the 8 f before an enemy's hit lands (any direction) to parry: the 8 frames that end on the frame it lands. Frames are the world's ticks, hitstop included: pressing at the enemy, so the strike connects and freezes Ash, does not lengthen the window (docs/adr/0013). The parry window is defined on the enemy's attack, not the player's input, so it is never a guess.
 - A parry: 0 damage, 12 f of hitstop on both, enemy knocked back 200 u/s and staggered for 40 f, player grants 33 Flame and +5 Kindling.
 - Parry is not a block. A failed parry is just an attack with a bad start. There is no block button.
 - Bosses have attacks marked **unparryable** (a red flash instead of white) that must be dodged or pogoed.
