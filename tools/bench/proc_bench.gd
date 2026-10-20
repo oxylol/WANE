@@ -27,10 +27,8 @@ const STRESS: Array[String] = [
 	"res://tests/votives/stress_arc_b.tres",
 	"res://tests/votives/stress_arc_c.tres",
 ]
-
-
-## The ticks the reps of a bench are apart: further than any Votive's internal cooldown, so every rep
-## fires what it measures.
+## The ticks the reps of a bench are apart: further than any Votive's internal cooldown, so every
+## rep fires what it measures.
 const TICK_GAP: int = 1000
 
 
