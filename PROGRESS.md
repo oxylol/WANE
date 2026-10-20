@@ -1,7 +1,7 @@
 # WANE: progress
 
 - **Phase:** 2, the vertical slice (BUILD.md section 14: Guttering Fields art-complete from code sources, lighting, Vigil, the Gnawer, 30 Votives, synthesized audio; Gate 2: a stranger plays 20 minutes and asks to keep going; 60 fps on the Steam Deck profile). Phase 1 was approved by the director on 2026-10-20 ("the rest looks good"), with two of the director's play notes in progress: zone 1 room 03 becomes an open pit with an optional 4-per-second path, and solid boxes are coloured by what they do. Gate 1's "three outside players call it tight" is the director's to run. CI run 25 was green on the Phase 1 tree.
-- **Status:** Phase 2 task 1 (the ink-line and gouache-fill shaders, the lighting pass, `tools/artbuild/`) starting; the director's room 03 and box-colour notes in progress
+- **Status:** Phase 2 task 1 designed and spiked (ADR-0023: SVG parts baked to exact distance fields; ink, gouache and light drawn live in canvas shaders; shadows marched through a room SDF of our own, chosen over Godot's canvas SDF by measurement); three builders (artbuild, shaders, lighting) next; the director's room 03 and box-colour notes in progress
 - **Engine:** Godot 4.7.2-stable (ADR-0001); `Simulation.VERSION` 12; golden hashes blessed once at 12 (545 fixtures, 805 unit cases, 252 scripts, all passing on this container)
 
 ## Kickoff order
@@ -23,7 +23,7 @@
 
 1. The director reads "Phase 1 report", plays the sandbox and `zone1_loop`, and answers "For the director". Phase 2 waits for that.
 2. First CI run on this tree: the Windows jobs (10 s fixture budget on the native path) and the blocking `perf-stress` job (margin 11% on the best of 3). If either is red, the suite is made faster or the cells and proc dispatch go native, never a gate lowered.
-3. Phase 2 opens with the ink-line and gouache shaders and the lighting pass (CLAUDE.md), which replace the stand-in lighting and let the carried checklist lines be judged.
+3. Phase 2 task 1 is built by three builders against ADR-0023 Decision 7: `tools/artbuild/` (Python), `shaders/ink/` and `game/art/` (the ink and gouache shaders), `game/lighting/` (light table, room SDF bake, shadow buffer, CPU twin, post), replacing the stand-in lighting so the carried checklist lines can be judged. The spike's sheet is `docs/feel_log/2026-10-20-art-pipeline-spike.png`.
 4. Owed small items: a short ADR for the HUD; before and after rows for the non-feel tunables; re-judge the 30 Votives lit with Phase 2 art.
 
 ## Immaculate Checklist (BUILD.md section 15)
@@ -126,6 +126,7 @@ Decisions waiting on you:
 8. The typeface for the shipped UI (open licenses only, `docs/LICENSES.md`).
 9. The parry window: decided and built as exactly 8 world ticks (hitstop does not stretch it); say if you wanted the other reading.
 10. The re-reviews of the last rounds of tasks 2 to 6 are not signed off by a reviewer subagent; the checklist audit stood in. Accept, or have them run?
+11. The Dark factor (ADR-0023 Decision 3.5): BUILD.md section 8's `max(0.15, 1 − 0.09 (D − 1))` gives 0.86 ambient when Pitch begins, against section 10's "At Pitch, ambient is 0.15". The lead uses a slope of 0.53 (Dusk 1.0 to 0.68, Gloam to 0.15, Pitch 0.15). Confirm, or give the curve; the Wane Clock task then updates section 8.
 
 ## Phase 1 report
 

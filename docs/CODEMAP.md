@@ -82,6 +82,7 @@ A condition is `key op value`, keys from `core/sim/simulation.gd probe`: player 
 - `0017-ember-toss-cancel-over-a-chasm`
 - `0019-zone1-grey-box-gates-and-teaches`
 - `0020-stress-room-and-perf-gate` Stress room, perf gates, the gate met (Decision 17).
-- `0022-native-physics-sweep` The C++ sweep and cells.
+- `0022-native-physics-sweep`
 - `0021-native-extension-toolchain` godot-cpp pin, `WANE_NATIVE`, parity rules.
-- `0018-room-editor-install` Plugin shim in `addons/room_editor/`, code in `tools/room_editor/`.
+- `0018-room-editor-install`
+- `0023-art-pipeline-and-lighting` Baked SDF channels, live ink shaders, room SDF shadows.
