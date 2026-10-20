@@ -25,6 +25,11 @@ extends RefCounted
 const TILE: int = TileGrid.TILE_SP
 const MASK: int = TileGrid.TILE_SP - 1
 
+## How many tile columns a run reaches past the body's own at most: a run is found again when the
+## body leaves it, so a short one costs a little more finding and a long one costs a long look
+## each time the world's solid boxes move and every body's run must be found anew.
+const REACH: int = 8
+
 ## Gives each picture of the world its own number, across worlds, so a body that crosses from one
 ## room's world into another's never takes its old run for a new one.
 static var _tokens: int = 0
@@ -144,10 +149,10 @@ func _scan(body: Body, solids: Array[SolidBox]) -> bool:
 		if not _column_ok(c, j0, top_row, kind):
 			return false
 	var ca: int = first
-	while _column_ok(ca - 1, j0, top_row, kind):
+	while ca > first - REACH and _column_ok(ca - 1, j0, top_row, kind):
 		ca -= 1
 	var cb: int = last
-	while _column_ok(cb + 1, j0, top_row, kind):
+	while cb < last + REACH and _column_ok(cb + 1, j0, top_row, kind):
 		cb += 1
 	# A solid box that could matter at this height keeps the run a column clear of it.
 	var low: int = body.y - body.height

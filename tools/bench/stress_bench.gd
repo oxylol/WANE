@@ -104,28 +104,7 @@ func _initialize() -> void:
 		_stress(budget, repeats, worst)
 	if only != "stress":
 		_zone(budget)
-	_say(
-		(
-			"frame budget (section 13): input + simulation %s ms is gated above; sprites %s, "
-			+ "lighting %s, VFX %s, post %s, audio and UI %s, headroom %s ms, and the %s ms "
-			+ "(reference PC) and %s ms (Deck) 99th-percentile frame need a GPU runner "
-			+ (
-				"(PROGRESS.md, Blocked 2)"
-				% [
-					PerfStats.ms(budget.sim_p99_us),
-					PerfStats.ms(budget.sprite_us),
-					PerfStats.ms(budget.lighting_us),
-					PerfStats.ms(budget.vfx_us),
-					PerfStats.ms(budget.post_us),
-					PerfStats.ms(budget.audio_ui_us),
-					PerfStats.ms(budget.headroom_us),
-					PerfStats.ms(budget.reference_p99_us),
-					PerfStats.ms(budget.deck_p99_us),
-				]
-			)
-		),
-		false
-	)
+	_say(_frame_budget_line(budget), false)
 	var report: String = _arg_str(args, "--report", "")
 	if report != "":
 		_write_report(report)
@@ -137,6 +116,32 @@ func _initialize() -> void:
 		for f: String in _failures:
 			print("  " + f)
 		quit(1)
+
+
+func _frame_budget_line(b: PerfBudget) -> String:
+	var stages: Dictionary[String, int] = {
+		"sprites": b.sprite_us,
+		"lighting": b.lighting_us,
+		"VFX": b.vfx_us,
+		"post": b.post_us,
+		"audio and UI": b.audio_ui_us,
+		"headroom": b.headroom_us,
+	}
+	var parts: PackedStringArray = []
+	for stage: String in stages:
+		parts.append("%s %s" % [stage, PerfStats.ms(stages[stage])])
+	var text: String = "frame budget (section 13): input + simulation %s ms is gated above; "
+	text += "%s ms; the %s ms (reference PC) and %s ms (Deck) 99th-percentile frame "
+	text += "need a GPU runner (PROGRESS.md, Blocked 2)"
+	return (
+		text
+		% [
+			PerfStats.ms(b.sim_p99_us),
+			", ".join(parts),
+			PerfStats.ms(b.reference_p99_us),
+			PerfStats.ms(b.deck_p99_us),
+		]
+	)
 
 
 func _stress(budget: PerfBudget, repeats: int, worst: int) -> void:
