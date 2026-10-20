@@ -38,6 +38,13 @@ func add_string(s: String) -> void:
 	_words.append_array(bytes.to_int64_array())
 
 
+## A copy of the words appended since the seed. A part of a hash that is the same every time (a
+## room's content) is hashed into a hasher of its own once, and these words are added to each
+## hasher that needs them with [method add_ints].
+func words_after_seed() -> PackedInt64Array:
+	return _words.slice(1)
+
+
 ## The finished hash, a non-negative integer below 2^32.
 func value() -> int:
 	var ctx := HashingContext.new()

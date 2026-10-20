@@ -10,12 +10,29 @@ static var _names: Dictionary[Script, PackedStringArray] = {}
 
 
 static func add_resource(h: StateHasher, res: Resource) -> void:
+	h.add_ints(resource_words(res))
+
+
+## The words [method add_resource] appends for [param res]: 0 for none, else the 32-bit words of
+## its digest. They depend only on the resource's values, so a batch of simulations that does not
+## edit content between builds digests each resource once ([SimCache]).
+static func resource_words(res: Resource) -> PackedInt64Array:
+	var out: PackedInt64Array = PackedInt64Array()
 	if res == null:
-		h.add_int(0)
-		return
+		out.append(0)
+		return out
 	var digest: PackedByteArray = _digest(res)
 	for k: int in range(0, digest.size(), 4):
-		h.add_int(digest.decode_u32(k))
+		out.append(digest.decode_u32(k))
+	return out
+
+
+## The words [method add_room] appends for [param room], without the seed word of a hasher of its
+## own.
+static func room_words(room: RoomData) -> PackedInt64Array:
+	var own := StateHasher.new()
+	add_room(own, room)
+	return own.words_after_seed()
 
 
 static func add_room(h: StateHasher, room: RoomData) -> void:

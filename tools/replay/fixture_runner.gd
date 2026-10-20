@@ -43,6 +43,15 @@ const CPU_PREFIX: String = "fixture-cpu "
 const CLOCK_TICKS_PER_SECOND: int = 100
 ## A shard's output line naming the native mode it ran in ([method mode_line]).
 const MODE_PREFIX: String = "fixture-mode "
+## The ticks of simulation one fixture's own work is taken to cost when the shards are balanced
+## ([method shard_weight]).
+const FIXTURE_OVERHEAD_TICKS: int = 20
+
+## The snapshot of a frame no expectation looks at ([method Fixture.probe_plan]).
+const NOT_PROBED: Dictionary[String, Variant] = {}
+## What [method _first_failure] says when an expectation reads a value the plan did not probe: a
+## fault in the plan or the evaluation, never a verdict on the simulation.
+const PLAN_MISS: String = "internal error: not probed"
 
 var results: Array[Result] = []
 ## The suite's time limit in milliseconds; 0 for none (an instrumented coverage run).
@@ -237,11 +246,19 @@ func _cpu_equivalent_msec(count: int, elapsed: int, cpu_started: int) -> int:
 ## Runs the fixtures at [param paths] (the whole suite's, in path order) whose place in it is
 ## [param shard] modulo [param of], in this process: one shard's share, or all of them.
 func run_paths(paths: Array[String], shard: int = 0, of: int = 1) -> Array[Result]:
-	var out: Array[Result] = []
+	var places: PackedInt32Array = PackedInt32Array()
 	for i: int in range(shard, paths.size(), of):
-		var path: String = paths[i]
-		var play_back: bool = path.begins_with(CORE_FIXTURES) or i % PLAYBACK_EVERY == 0
-		out.append(run_fixture(Fixture.parse_file(path), play_back))
+		places.append(i)
+	return run_places(paths, places)
+
+
+## Runs the fixtures at [param places] in [param paths] (the whole suite's, in path order), in this
+## process and in that order. The fixtures share what their simulations read ([SimCache]).
+func run_places(paths: Array[String], places: PackedInt32Array) -> Array[Result]:
+	var cache := SimCache.new()
+	var out: Array[Result] = []
+	for i: int in places:
+		out.append(run_fixture(Fixture.parse_file(paths[i]), plays_back(paths[i], i), cache))
 	return out
 
 
@@ -252,10 +269,24 @@ static func mode_line() -> String:
 
 
 ## Runs [param paths] in [param count] processes at once, each [constant SHARD_SCRIPT] with its
-## share, and returns their results in path order. A fixture whose result never came back (its
-## process died) fails with what that process printed last.
+## share ([method plan_shards]), and returns their results in path order. A fixture whose result
+## never came back (its process died) fails with what that process printed last.
 func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 	var began: int = Time.get_ticks_msec()
+	# A shard finds its fixtures by their place in the suite, which it walks as this process does.
+	var suite: Array[String] = FileWalk.find(FIXTURE_ROOT, [".fixture"])
+	var place_of: Dictionary[String, int] = {}
+	for i: int in range(suite.size()):
+		place_of[suite[i]] = i
+	var wanted: PackedInt32Array = PackedInt32Array()
+	var weights: PackedInt64Array = PackedInt64Array()
+	for path: String in paths:
+		if place_of.has(path):
+			var place: int = place_of[path]
+			wanted.append(place)
+			weights.append(shard_weight(path, place))
+	var shares: Array[PackedInt32Array] = plan_shards(wanted, weights, count)
+	var shard_of: Dictionary[int, int] = {}
 	var outputs: Array[Array] = []
 	var codes: Array[int] = []
 	var threads: Array[Thread] = []
@@ -264,8 +295,12 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 	for k: int in range(count):
 		var output: Array[String] = []
 		outputs[k] = output
+		for place: int in shares[k]:
+			shard_of[place] = k
+		if shares[k].is_empty():
+			continue
 		var thread := Thread.new()
-		thread.start(_run_shard.bind(k, count, output, codes))
+		thread.start(_run_shard.bind(k, count, shares[k], output, codes))
 		threads.append(thread)
 	for thread: Thread in threads:
 		thread.wait_to_finish()
@@ -300,21 +335,75 @@ func run_sharded(paths: Array[String], count: int) -> Array[Result]:
 		for result: Result in found:
 			by_path[result.path] = result
 	var out: Array[Result] = []
-	for i: int in range(paths.size()):
-		if by_path.has(paths[i]):
-			out.append(by_path[paths[i]])
+	for path: String in paths:
+		if by_path.has(path):
+			out.append(by_path[path])
 			continue
 		var lost := Result.new()
-		lost.name = paths[i].get_file().get_basename()
-		lost.path = paths[i]
-		var k: int = i % count
+		lost.name = path.get_file().get_basename()
+		lost.path = path
+		if not place_of.has(path):
+			lost.fail("not a fixture of the suite under %s" % FIXTURE_ROOT)
+			out.append(lost)
+			continue
+		var k: int = shard_of[place_of[path]]
 		var tail: String = str(outputs[k][0]).right(400) if not outputs[k].is_empty() else ""
 		lost.fail("shard %d of %d (exit %d) returned no result: %s" % [k, count, codes[k], tail])
 		out.append(lost)
 	return out
 
 
-func _run_shard(k: int, count: int, output: Array[String], codes: Array[int]) -> void:
+## What the fixture at [param path], [param place] in the suite, costs the shard that runs it, in
+## ticks of simulation: its frames (read from its header, not parsed) for the run, and again for
+## the playback if it is played back, and the ticks one fixture's own work comes to
+## ([constant FIXTURE_OVERHEAD_TICKS]: parsing it, recording and checking its replay, building its
+## simulations). A guess, good enough to balance the shards; a poor one costs time, never a result.
+static func shard_weight(path: String, place: int) -> int:
+	var ticks: int = Fixture.peek_frames(path) + FIXTURE_OVERHEAD_TICKS
+	return ticks * (2 if plays_back(path, place) else 1)
+
+
+## Whether the fixture at [param path], [param place] in the suite, is also played back in full.
+static func plays_back(path: String, place: int) -> bool:
+	return path.begins_with(CORE_FIXTURES) or place % PLAYBACK_EVERY == 0
+
+
+## Splits the fixtures at [param places] over [param count] shards so that each has about the same
+## [param weights]: the heaviest fixture not yet placed goes to the shard with the least so far
+## (ties to the lower shard), and each shard runs its fixtures in suite order. The plan is a
+## function of its arguments alone. It replaces the interleave (shard k ran every n-th fixture),
+## which put every playback (every fourth fixture) on the same shard whenever n was 2 or 4, and
+## left the slowest shard a third over the mean.
+static func plan_shards(
+	places: PackedInt32Array, weights: PackedInt64Array, count: int
+) -> Array[PackedInt32Array]:
+	var order: Array[int] = []
+	for i: int in range(places.size()):
+		order.append(i)
+	order.sort_custom(
+		func(a: int, b: int) -> bool:
+			return weights[a] > weights[b] or (weights[a] == weights[b] and places[a] < places[b])
+	)
+	var shares: Array[PackedInt32Array] = []
+	var loads: PackedInt64Array = PackedInt64Array()
+	for k: int in range(count):
+		shares.append(PackedInt32Array())
+		loads.append(0)
+	for i: int in order:
+		var lightest: int = 0
+		for k: int in range(1, count):
+			if loads[k] < loads[lightest]:
+				lightest = k
+		shares[lightest].append(places[i])
+		loads[lightest] += weights[i]
+	for share: PackedInt32Array in shares:
+		share.sort()
+	return shares
+
+
+func _run_shard(
+	k: int, count: int, places: PackedInt32Array, output: Array[String], codes: Array[int]
+) -> void:
 	var args: PackedStringArray = [
 		"--headless",
 		"--path",
@@ -326,15 +415,25 @@ func _run_shard(k: int, count: int, output: Array[String], codes: Array[int]) ->
 		str(k),
 		"--of",
 		str(count),
+		"--places",
+		_join_places(places),
 		"--native",
 		NativeBackend.mode_name(),
 	]
 	codes[k] = OS.execute(OS.get_executable_path(), args, output, true)
 
 
+static func _join_places(places: PackedInt32Array) -> String:
+	var words: PackedStringArray = PackedStringArray()
+	for place: int in places:
+		words.append(str(place))
+	return ",".join(words)
+
+
 ## Runs one parsed fixture and checks its expectations and replay round-trip; with
-## [param play_back] the replay is also played back in full.
-func run_fixture(fx: Fixture, play_back: bool = true) -> Result:
+## [param play_back] the replay is also played back in full. Builds its simulations with
+## [param cache] if given ([SimCache]); the result is the same without.
+func run_fixture(fx: Fixture, play_back: bool = true, cache: SimCache = null) -> Result:
 	var result := Result.new()
 	result.name = fx.name
 	result.path = fx.path
@@ -344,16 +443,21 @@ func run_fixture(fx: Fixture, play_back: bool = true) -> Result:
 	if not result.passed:
 		return result
 	var started: int = Time.get_ticks_usec()
-	var sim := Simulation.new(fx.scenario)
+	var sim := Simulation.new(fx.scenario, cache)
 	var recorder := ReplayRecorder.new(fx.scenario)
 	var keys: Array[String] = fx.probe_keys()
+	var plan: Array[PackedStringArray] = fx.probe_plan()
 	var snaps: Array[Dictionary] = []
 	for i: int in range(fx.frame_total):
 		var frame: InputFrame = fx.input_frame(i)
 		sim.step(frame)
 		recorder.record(frame)
+		var wanted: PackedStringArray = plan[i]
+		if wanted.is_empty():
+			snaps.append(NOT_PROBED)
+			continue
 		var snap: Dictionary[String, Variant] = {}
-		for key: String in keys:
+		for key: String in wanted:
 			snap[key] = sim.probe(key)
 		snaps.append(snap)
 	for key: String in keys:
@@ -362,7 +466,7 @@ func run_fixture(fx: Fixture, play_back: bool = true) -> Result:
 	if result.passed:
 		_evaluate(fx, snaps, sim, result)
 	var replay: Replay = recorder.finish(sim)
-	_check_round_trip(replay, result, play_back)
+	_check_round_trip(replay, result, play_back, cache)
 	for e: String in sim.load_errors:
 		result.fail("load: %s" % e)
 	result.hash_line = _hash_line(replay, sim)
@@ -417,13 +521,21 @@ func _evaluate(fx: Fixture, snaps: Array[Dictionary], sim: Simulation, result: R
 						break
 			"never":
 				for f: int in range(a, b + 1):
-					if _first_failure(e, f, snaps, expected) == "":
+					var why: String = _first_failure(e, f, snaps, expected)
+					if why == "":
 						result.fail("%s: all conditions held at frame %d" % [where, f])
+						break
+					if why.begins_with(PLAN_MISS):
+						result.fail("%s: frame %d: %s" % [where, f, why])
 						break
 			"mark":
 				for f: int in range(a, b + 1):
-					if _first_failure(e, f, snaps, expected) == "":
+					var why: String = _first_failure(e, f, snaps, expected)
+					if why == "":
 						marks[e.mark_name] = f
+						break
+					if why.begins_with(PLAN_MISS):
+						result.fail("%s: frame %d: %s" % [where, f, why])
 						break
 				if not marks.has(e.mark_name):
 					result.fail("%s: no frame in %d..%d satisfied it" % [where, a, b])
@@ -464,6 +576,8 @@ func _expected_values(
 				var at: int = _resolve(t.at, marks, snaps.size())
 				if at < 0:
 					return "'%s': %s@%s is outside the run" % [c.text, t.key, t.at.describe()]
+				if not snaps[at].has(t.key):
+					return "%s: '%s' at frame %d" % [PLAN_MISS, t.key, at]
 				if typeof(snaps[at][t.key]) != TYPE_INT:
 					return "'%s': key '%s' holds names, not numbers" % [c.text, t.key]
 				v = snaps[at][t.key]
@@ -490,6 +604,8 @@ func _first_failure(
 ) -> String:
 	for i: int in range(e.conditions.size()):
 		var c: Fixture.Condition = e.conditions[i]
+		if not snaps[f].has(c.key):
+			return "%s: '%s' at frame %d" % [PLAN_MISS, c.key, f]
 		var actual: Variant = snaps[f][c.key]
 		if not _compare(actual, c.op, expected[i]):
 			return "%s (actual %s=%s, expected %s %s)" % [c.text, c.key, actual, c.op, expected[i]]
@@ -521,7 +637,9 @@ func _compare(actual: Variant, op: String, expected: Variant) -> bool:
 	return result
 
 
-func _check_round_trip(replay: Replay, result: Result, play_back: bool) -> void:
+func _check_round_trip(
+	replay: Replay, result: Result, play_back: bool, cache: SimCache = null
+) -> void:
 	var decoded: Replay = Replay.decode(replay.encode())
 	if decoded == null:
 		result.fail("replay did not decode")
@@ -538,7 +656,7 @@ func _check_round_trip(replay: Replay, result: Result, play_back: bool) -> void:
 		return
 	if not play_back:
 		return
-	var player := ReplayPlayer.new(decoded)
+	var player := ReplayPlayer.new(decoded, cache)
 	if not player.run_to_end():
 		result.fail("replay: %s" % player.describe())
 

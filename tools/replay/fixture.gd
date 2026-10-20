@@ -114,6 +114,19 @@ static func parse_file(file_path: String) -> Fixture:
 	return fx
 
 
+## The 'frames <N>' of the fixture file at [param file_path], read from its header without parsing
+## the rest; 0 if the file has none or cannot be read.
+static func peek_frames(file_path: String) -> int:
+	var file: FileAccess = FileAccess.open(file_path, FileAccess.READ)
+	if file == null:
+		return 0
+	while not file.eof_reached():
+		var words: PackedStringArray = file.get_line().strip_edges().split(" ", false)
+		if words.size() >= 2 and words[0] == "frames":
+			return words[1].to_int()
+	return 0
+
+
 static func parse_text(text: String, label: String = "<text>") -> Fixture:
 	var fx := Fixture.new()
 	fx.path = label
@@ -151,6 +164,70 @@ func probe_keys() -> Array[String]:
 				if t.key != "" and not keys.has(t.key):
 					keys.append(t.key)
 	return keys
+
+
+## The probe keys to read after each frame, so that every expectation finds what it looks at and
+## nothing else is read: a key is read at the frames an expectation can look at it, and at frame 0,
+## where the runner learns whether a key exists and what kind of value it takes. A frame an
+## expectation reaches through a mark is any frame the mark can be at, so a mark's reach is the
+## range of the line that sets it, and the plan is a superset of what is evaluated; the runner
+## fails a fixture whose expectation reads a value the plan left out. Entry [code]f[/code] holds
+## the keys to read after frame [code]f[/code].
+func probe_plan() -> Array[PackedStringArray]:
+	var last: int = frame_total - 1
+	# Each key's frame ranges as pairs (first, last, first, last ...), ends included.
+	var wanted: Dictionary[String, PackedInt32Array] = {}
+	var marks: Dictionary[String, Vector2i] = {}
+	for e: Expectation in expectations:
+		var from: Vector2i = _reach(e.from, marks, last)
+		var to: Vector2i = _reach(e.to, marks, last)
+		if from.x > from.y or to.x > to.y or from.x > to.y:
+			continue
+		var span := Vector2i(from.x, to.y)
+		if e.kind == "mark":
+			marks[e.mark_name] = span
+		for c: Condition in e.conditions:
+			_want(wanted, c.key, span)
+			for t: Term in c.terms:
+				if t.key == "":
+					continue
+				var at: Vector2i = _reach(t.at, marks, last)
+				if at.x <= at.y:
+					_want(wanted, t.key, at)
+	var plan: Array[PackedStringArray] = []
+	plan.resize(frame_total)
+	if frame_total == 0:
+		return plan
+	for key: String in probe_keys():
+		plan[0].append(key)
+		var seen: PackedByteArray = PackedByteArray()
+		seen.resize(frame_total)
+		seen[0] = 1
+		var ranges: PackedInt32Array = wanted.get(key, PackedInt32Array())
+		for k: int in range(0, ranges.size(), 2):
+			for f: int in range(ranges[k], ranges[k + 1] + 1):
+				if seen[f] == 0:
+					seen[f] = 1
+					plan[f].append(key)
+	return plan
+
+
+## The frames a reference can resolve to: its literal frame, or the span of its mark, shifted by its
+## offset, within the run. Empty (x > y) if none is in the run.
+func _reach(ref: FrameRef, marks: Dictionary[String, Vector2i], last: int) -> Vector2i:
+	if ref == null:
+		return Vector2i(1, 0)
+	var base := Vector2i(ref.frame, ref.frame)
+	if ref.mark != "":
+		base = marks.get(ref.mark, Vector2i(0, last))
+	return Vector2i(maxi(base.x + ref.offset, 0), mini(base.y + ref.offset, last))
+
+
+func _want(wanted: Dictionary[String, PackedInt32Array], key: String, span: Vector2i) -> void:
+	if not wanted.has(key):
+		wanted[key] = PackedInt32Array()
+	wanted[key].append(span.x)
+	wanted[key].append(span.y)
 
 
 func _parse(text: String) -> void:

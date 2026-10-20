@@ -16,10 +16,11 @@ var order: Array[String] = []
 var errors: PackedStringArray = PackedStringArray()
 
 
-## The rooms reachable from [param start_id].
-static func reach(start_id: String) -> RoomSet:
+## The rooms reachable from [param start_id]. Each is loaded from its file, or, with a
+## [param cache], taken from it: a batch of runs that share rooms parses each once.
+static func reach(start_id: String, cache: SimCache = null) -> RoomSet:
 	var found := RoomSet.new()
-	found._add(start_id)
+	found._add(start_id, cache)
 	var at: int = 0
 	while at < found.order.size():
 		var room: RoomData = found.rooms[found.order[at]]
@@ -28,7 +29,7 @@ static func reach(start_id: String) -> RoomSet:
 				found.errors.append("%s: %s" % [room.id, problem])
 		for d: RoomData.Door in room.doors:
 			if not found.rooms.has(d.target_room):
-				found._add(d.target_room)
+				found._add(d.target_room, cache)
 		at += 1
 	for room_id: String in found.order:
 		found._check_pairs(found.rooms[room_id])
@@ -52,8 +53,8 @@ static func check_doors(room: RoomData) -> PackedStringArray:
 	return found.errors
 
 
-func _add(room_id: String) -> void:
-	rooms[room_id] = RoomData.load_id(room_id)
+func _add(room_id: String, cache: SimCache = null) -> void:
+	rooms[room_id] = cache.room(room_id) if cache != null else RoomData.load_id(room_id)
 	order.append(room_id)
 
 

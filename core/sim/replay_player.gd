@@ -21,11 +21,11 @@ var _next_frame: int = 0
 var _next_hash: int = 0
 
 
-## Builds a simulation from the replay's scenario. Advance it with [method step_frame] (for a
-## viewer) or [method run_to_end] (for verification).
-func _init(replay: Replay) -> void:
+## Builds a simulation from the replay's scenario (with [param cache], if given: [SimCache]).
+## Advance it with [method step_frame] (for a viewer) or [method run_to_end] (for verification).
+func _init(replay: Replay, cache: SimCache = null) -> void:
 	_replay = replay
-	sim = Simulation.new(replay.scenario)
+	sim = Simulation.new(replay.scenario, cache)
 	if replay.sim_version != Simulation.VERSION:
 		status = Status.VERSION_MISMATCH
 	elif replay.content_hash != sim.content_hash:

@@ -58,6 +58,9 @@ var last_input: InputFrame = InputFrame.new()
 ## with load errors still runs, but tools must treat it as a failure.
 var load_errors: PackedStringArray = PackedStringArray()
 
+## What this build shares with the others of its batch ([SimCache]); one of its own if the
+## caller gave none.
+var _cache: SimCache
 var _world_tuning: WorldTuning
 ## The Wick's movement as authored, recompiled when a Votive changes its run speed.
 var _movement: MovementTuning
@@ -65,45 +68,48 @@ var _movement: MovementTuning
 var _enemy_defs: Dictionary[String, EnemyDef] = {}
 
 
-func _init(p_scenario: Scenario) -> void:
+## [param p_cache] is optional: builds in a row from the same rooms and content (the fixture
+## suite's) pass one and share what they read; the simulation is the same with or without it.
+func _init(p_scenario: Scenario, p_cache: SimCache = null) -> void:
+	_cache = p_cache if p_cache != null else SimCache.new()
 	scenario = p_scenario.copy()
 	rng = RngStreams.new(scenario.seed_value)
 	input = InputRing.new()
 	room = RoomData.new()
 	if scenario.room != "":
-		rooms = RoomSet.reach(scenario.room)
+		rooms = _cache.room_set(scenario.room)
 		room = rooms.rooms[scenario.room]
 		load_errors.append_array(room.errors)
 		load_errors.append_array(rooms.errors)
 	world = room.build_world()
 	var content := StateHasher.new()
-	ContentHash.add_room(content, room)
+	_cache.add_room(content, room)
 	for room_id: String in rooms.order.slice(1):
-		ContentHash.add_room(content, rooms.rooms[room_id])
+		_cache.add_room(content, rooms.rooms[room_id])
 	var tuning: WorldTuning = _load_content(WorldTuning.PATH) as WorldTuning
 	if tuning == null:
 		load_errors.append("missing world tuning at %s" % WorldTuning.PATH)
 	else:
 		_world_tuning = tuning
 		tuning.apply(world)
-		ContentHash.add_resource(content, tuning)
+		_cache.add_resource(content, tuning)
 		var band: int = Fx.units(tuning.join_band_u)
 		var reach_sp: int = Fx.units(tuning.join_reach_u)
-		load_errors.append_array(RoomJoins.errors(room, band, reach_sp))
+		load_errors.append_array(_cache.joins_errors(room, band, reach_sp))
 		for room_id: String in rooms.order.slice(1):
-			for problem: String in RoomJoins.errors(rooms.rooms[room_id], band, reach_sp):
+			for problem: String in _cache.joins_errors(rooms.rooms[room_id], band, reach_sp):
 				load_errors.append("%s: %s" % [room_id, problem])
 	var combat_tuning: CombatTuning = _load_content(CombatTuning.PATH) as CombatTuning
 	if combat_tuning == null:
 		load_errors.append("missing combat tuning at %s" % CombatTuning.PATH)
 		combat_tuning = CombatTuning.new()
-	ContentHash.add_resource(content, combat_tuning)
+	_cache.add_resource(content, combat_tuning)
 	combat_params = combat_tuning.compile()
 	var proc_tuning: ProcTuning = _load_content(ProcTuning.PATH) as ProcTuning
 	if proc_tuning == null:
 		load_errors.append("missing proc tuning at %s" % ProcTuning.PATH)
 		proc_tuning = ProcTuning.new()
-	ContentHash.add_resource(content, proc_tuning)
+	_cache.add_resource(content, proc_tuning)
 	procs = ProcBus.new(proc_tuning, events, rng.procs())
 	combat = Combat.new(combat_params, events, procs)
 	_load_votives(content)
@@ -144,7 +150,7 @@ func _load_votives(content: StateHasher) -> void:
 		if votive == null:
 			load_errors.append("option %s: no Votive at %s" % [key, path])
 			continue
-		ContentHash.add_resource(content, votive)
+		_cache.add_resource(content, votive)
 		if count < 1 or not procs.give(votive, count):
 			load_errors.append("option %s: cannot give %d stacks of %s" % [key, count, path])
 
@@ -185,7 +191,7 @@ func _load_enemy_defs(content: StateHasher) -> void:
 			if def == null:
 				load_errors.append("missing dummy content (a DummyDef) at %s" % path)
 				continue
-			ContentHash.add_resource(content, def)
+			_cache.add_resource(content, def)
 			_enemy_defs[e.kind] = def
 
 
@@ -219,7 +225,7 @@ func _build_player(content: StateHasher) -> Player:
 	var kit_tuning: KitTuning = _load_content(dir + "kit.tres") as KitTuning
 	var taper: AttackSet = _load_content(dir + "taper.tres") as AttackSet
 	for res: Resource in [movement, kit_tuning, taper]:
-		ContentHash.add_resource(content, res)
+		_cache.add_resource(content, res)
 	if movement == null or kit_tuning == null or taper == null:
 		load_errors.append("wick '%s' has incomplete content in %s" % [scenario.wick, dir])
 		return null
@@ -228,14 +234,10 @@ func _build_player(content: StateHasher) -> Player:
 
 
 func _load_content(path: String) -> Resource:
-	if not ResourceLoader.exists(path):
-		return null
-	var res: Resource = load(path)
-	if res != null and res.has_method("validate"):
-		var problems: PackedStringArray = res.call("validate")
-		for problem: String in problems:
-			load_errors.append("%s: %s" % [path, problem])
-	return res
+	var loaded: SimCache.Loaded = _cache.load_content(path)
+	for problem: String in loaded.problems:
+		load_errors.append("%s: %s" % [path, problem])
+	return loaded.res
 
 
 ## Advances the world by one tick with [param frame] as player one's input.

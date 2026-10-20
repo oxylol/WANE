@@ -4,7 +4,12 @@ extends SceneTree
 ## for the runner to read (docs/adr/0006).
 ##
 ##   godot --headless --path . --script tools/replay/fixture_shard.gd -- --shard <k> --of <n>
-##       [--native off|auto|on]
+##       [--places <i>,<j>,...] [--native off|auto|on]
+##
+## With --places the shard runs the fixtures at those places in the suite (the order of the
+## sorted paths under tests/replay), the share the runner planned for it
+## ([method FixtureRunner.plan_shards]); without, the places whose number is the shard modulo the
+## shard count.
 ##
 ## The work is in _initialize(), not _init(): the NativeBoot autoload (which reads WANE_NATIVE)
 ## exists only from there on, and a shard must run on the path the suite was asked to prove
@@ -16,11 +21,17 @@ func _initialize() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var shard: int = 0
 	var of: int = 1
+	var places: PackedInt32Array = PackedInt32Array()
+	var planned: bool = false
 	for i: int in range(args.size() - 1):
 		if args[i] == "--shard":
 			shard = args[i + 1].to_int()
 		elif args[i] == "--of":
 			of = maxi(args[i + 1].to_int(), 1)
+		elif args[i] == "--places":
+			planned = true
+			for place: String in args[i + 1].split(",", false):
+				places.append(place.to_int())
 		elif args[i] == "--native":
 			var parsed: int = NativeBackend.parse_mode(args[i + 1])
 			if parsed < 0:
@@ -34,7 +45,11 @@ func _initialize() -> void:
 		return
 	print(FixtureRunner.MODE_PREFIX + FixtureRunner.mode_line())
 	var paths: Array[String] = FileWalk.find(FixtureRunner.FIXTURE_ROOT, [".fixture"])
-	for result: FixtureRunner.Result in FixtureRunner.new().run_paths(paths, shard, of):
+	var runner := FixtureRunner.new()
+	var results: Array[FixtureRunner.Result] = (
+		runner.run_places(paths, places) if planned else runner.run_paths(paths, shard, of)
+	)
+	for result: FixtureRunner.Result in results:
 		print(FixtureRunner.RESULT_PREFIX + result.to_line())
 	print(FixtureRunner.CPU_PREFIX + str(FixtureRunner.process_cpu_msec()))
 	quit(0)
