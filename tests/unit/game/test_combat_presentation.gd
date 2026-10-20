@@ -463,3 +463,32 @@ func test_the_cone_glow_and_channel_follow_the_interpolated_player() -> void:
 				assert_float(view.drawn_rect(e).end.y).is_equal_approx(box.end.y, 0.01)
 				checked += 1
 	assert_int(checked).is_equal(8)
+
+
+func test_the_budgets_and_room_views_shape_numbers_are_content() -> void:
+	# CLAUDE.md rule 6: the smear's arc, the proc mark's spring and stars, the vignette's bands and
+	# the room tiles' one-way height, pit lip and spikes are tuned in content/feedback.tres.
+	var t: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	assert_float(t.vfx_smear_half_angle).is_equal(1.1)
+	assert_float(t.vfx_proc_spring_start).is_equal(0.4)
+	assert_float(t.vfx_proc_spring_rate).is_equal(1.8)
+	assert_float(t.vfx_proc_spokes_inner).is_equal(0.4)
+	assert_float(t.vfx_proc_star_inner).is_equal(0.45)
+	assert_int(t.vignette_bands).is_equal(4)
+	assert_float(t.tile_one_way_u).is_equal(4.0)
+	assert_float(t.tile_pit_lip_u).is_equal(2.0)
+	assert_float(t.tile_spike_peak).is_equal(0.4)
+	assert_int(t.tile_spike_teeth).is_equal(4)
+	assert_array(t.validate()).is_empty()
+	var bad: FeedbackTuning = t.duplicate() as FeedbackTuning
+	bad.vignette_bands = 0
+	assert_array(bad.validate()).is_not_empty()
+	bad = t.duplicate() as FeedbackTuning
+	bad.vfx_proc_star_inner = 1.5
+	assert_array(bad.validate()).is_not_empty()
+	for path: String in ["res://game/vfx/vfx_budget.gd", "res://game/rooms/room_view.gd"]:
+		var src: String = FileAccess.get_file_as_string(path)
+		assert_bool(src.contains("SMEAR_HALF_ANGLE")).is_false()
+		assert_bool(src.contains("0.4 + 1.8")).is_false()
+		assert_bool(src.contains("Vector2(t, 4.0)")).is_false()
+		assert_bool(src.contains("Vector2(t, 2.0)")).is_false()

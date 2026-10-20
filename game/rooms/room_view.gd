@@ -74,17 +74,28 @@ func _draw() -> void:
 			draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)
 
 
+static var _look_cache: FeedbackTuning
+
+
+## The tuning the tiles' grey-box shapes come from (content/feedback.tres), loaded once.
+static func _look() -> FeedbackTuning:
+	if _look_cache == null:
+		_look_cache = load(FeedbackTuning.PATH) as FeedbackTuning
+	return _look_cache
+
+
 ## Draws [param tile] on [param canvas] with its top-left at [param at], [param t] units square
 ## (shared with the room editor, so a room looks the same in both).
 static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> void:
+	var look: FeedbackTuning = _look()
 	if tile == TileGrid.SOLID:
 		canvas.draw_rect(Rect2(at, Vector2(t, t)), SOLID)
 	elif tile == TileGrid.SMOOTH:
 		canvas.draw_rect(Rect2(at, Vector2(t, t)), SMOOTH)
 	elif tile == TileGrid.ONE_WAY:
-		canvas.draw_rect(Rect2(at, Vector2(t, 4.0)), ONE_WAY)
+		canvas.draw_rect(Rect2(at, Vector2(t, look.tile_one_way_u)), ONE_WAY)
 	elif tile == TileGrid.SPIKES:
-		var teeth: int = 4
+		var teeth: int = look.tile_spike_teeth
 		var w: float = t / teeth
 		for k: int in range(teeth):
 			var x0: float = at.x + k * w
@@ -93,14 +104,14 @@ static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> v
 					[
 						Vector2(x0, at.y + t),
 						Vector2(x0 + w, at.y + t),
-						Vector2(x0 + w * 0.5, at.y + t * 0.4)
+						Vector2(x0 + w * 0.5, at.y + t * look.tile_spike_peak)
 					]
 				),
 				SPIKES
 			)
 	elif tile == TileGrid.PIT:
 		canvas.draw_rect(Rect2(at, Vector2(t, t)), PIT)
-		canvas.draw_rect(Rect2(at, Vector2(t, 2.0)), PIT_LIP)
+		canvas.draw_rect(Rect2(at, Vector2(t, look.tile_pit_lip_u)), PIT_LIP)
 	elif TileGrid.is_slope(tile):
 		var edges: Vector2i = TileGrid.slope_edge_heights(tile)
 		var hl: float = float(edges.x) / Fx.SUB

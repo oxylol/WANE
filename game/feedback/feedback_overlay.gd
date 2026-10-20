@@ -36,10 +36,13 @@ func _draw_effects() -> void:
 	if feedback.vignette_ticks > 0:
 		var a: float = float(feedback.vignette_ticks) / float(feedback.tuning.vignette_frames)
 		var d: float = minf(size.x, size.y) * feedback.tuning.vignette_depth
-		for k: int in range(4):
-			var c := Color(VIGNETTE, feedback.tuning.vignette_alpha * a * (1.0 - float(k) / 4.0))
-			var inset: float = d * float(k) / 4.0
-			var band: float = d / 4.0
+		var bands: int = feedback.tuning.vignette_bands
+		for k: int in range(bands):
+			var c := Color(
+				VIGNETTE, feedback.tuning.vignette_alpha * a * (1.0 - float(k) / float(bands))
+			)
+			var inset: float = d * float(k) / float(bands)
+			var band: float = d / float(bands)
 			_canvas.draw_rect(Rect2(0, inset, size.x, band), c)
 			_canvas.draw_rect(Rect2(0, size.y - inset - band, size.x, band), c)
 			_canvas.draw_rect(Rect2(inset, 0, band, size.y), c)

@@ -53,7 +53,6 @@ const COLOURS: Dictionary[int, Color] = {
 	OUTLINE: Color(1.0, 1.0, 0.95),
 }
 ## Half the angle a smear's arc sweeps, in radians.
-const SMEAR_HALF_ANGLE: float = 1.1
 ## Ticks a one-tick mark (an ember, a telegraph) lives.
 const MARK_FRAMES: int = 1
 
@@ -278,8 +277,8 @@ func _draw() -> void:
 				draw_arc(
 					e.at,
 					e.size,
-					mid - SMEAR_HALF_ANGLE,
-					mid + SMEAR_HALF_ANGLE,
+					mid - tuning.vfx_smear_half_angle,
+					mid + tuning.vfx_smear_half_angle,
 					16,
 					c,
 					tuning.vfx_smear_width_px * (1.0 - t)
@@ -306,7 +305,9 @@ func _draw() -> void:
 ## A proc's mark ([ProcLook.Shape] in [member Effect.variant]), [member Effect.size] units across
 ## at full size: it springs out over its first third and fades as it holds.
 func _draw_proc(e: Effect, t: float, c: Color) -> void:
-	var r: float = e.size * minf(1.0, 0.4 + 1.8 * t)
+	var r: float = (
+		e.size * minf(1.0, tuning.vfx_proc_spring_start + tuning.vfx_proc_spring_rate * t)
+	)
 	var w: float = tuning.vfx_proc_width_px
 	match e.variant:
 		ProcLook.Shape.RING:
@@ -319,7 +320,7 @@ func _draw_proc(e: Effect, t: float, c: Color) -> void:
 		ProcLook.Shape.SPOKES:
 			for k: int in range(6):
 				var d := Vector2.from_angle(TAU * k / 6.0)
-				draw_line(e.at + d * r * 0.4, e.at + d * r, c, w)
+				draw_line(e.at + d * r * tuning.vfx_proc_spokes_inner, e.at + d * r, c, w)
 		ProcLook.Shape.SQUARE:
 			_draw_polygon_line(e.at, r, 4, PI / 4.0, c, w)
 		ProcLook.Shape.TRIANGLE:
@@ -340,7 +341,7 @@ func _draw_proc(e: Effect, t: float, c: Color) -> void:
 					w
 				)
 		_:
-			_draw_polygon_line(e.at, r, 10, -PI / 2.0, c, w, 0.45)
+			_draw_polygon_line(e.at, r, 10, -PI / 2.0, c, w, tuning.vfx_proc_star_inner)
 
 
 ## A closed outline of [param n] points round [param at], [param r] out, turned [param turn]; with

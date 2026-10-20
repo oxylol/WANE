@@ -94,6 +94,16 @@ const PATH: String = "res://content/feedback.tres"
 @export var split_alpha: float = 0.18
 @export var vignette_depth: float = 0.12
 @export var vignette_alpha: float = 0.5
+## The vignette is this many bands, fading inward.
+@export var vignette_bands: int = 4
+
+@export_group("Room tiles")
+## The grey-box tiles (shared by the game and the room editor): a one-way platform's thickness, a
+## pit's lip, and the spikes (teeth across a tile, their points this share of the tile down).
+@export var tile_one_way_u: float = 4.0
+@export var tile_pit_lip_u: float = 2.0
+@export var tile_spike_peak: float = 0.4
+@export var tile_spike_teeth: int = 4
 
 @export_group("HUD layout")
 ## The grey-box HUD's layout, in pixels: the margin from the screen's corner, a heart's width and
@@ -130,6 +140,15 @@ const PATH: String = "res://content/feedback.tres"
 @export var vfx_mark_size_u: float = 8.0
 @export var vfx_ring_width_px: float = 6.0
 @export var vfx_proc_width_px: float = 3.0
+## A smear's arc reaches this many radians either side of the swing's direction.
+@export var vfx_smear_half_angle: float = 1.1
+## A proc's mark springs from this share of its size to full over its first third (start plus
+## rate times its age share), its spokes begin at [member vfx_proc_spokes_inner] of the radius and
+## its star's inner points sit at [member vfx_proc_star_inner].
+@export var vfx_proc_spring_start: float = 0.4
+@export var vfx_proc_spring_rate: float = 1.8
+@export var vfx_proc_spokes_inner: float = 0.4
+@export var vfx_proc_star_inner: float = 0.45
 
 @export_group("Effect sizes")
 ## The size each feedback asks of its effect (the spark's, the burst's and the ring's scale; a
@@ -213,7 +232,19 @@ func validate() -> PackedStringArray:
 		e.append("the Flame bar's ghost needs a speed and a gain flash a length")
 	if split_offset_px < 0.0 or split_alpha < 0.0 or vignette_depth < 0.0 or vignette_alpha < 0.0:
 		e.append("the split and the vignette must not be negative")
+	if vignette_bands < 1 or tile_spike_teeth < 1:
+		e.append("the vignette needs a band and the spikes a tooth")
+	for share: float in [
+		vfx_proc_spring_start, vfx_proc_spokes_inner, vfx_proc_star_inner, tile_spike_peak
+	]:
+		if share < 0.0 or share > 1.0:
+			e.append("the proc spring, spokes, star and spike peak are shares of 0 to 1")
+			break
 	for px: float in [
+		tile_one_way_u,
+		tile_pit_lip_u,
+		vfx_smear_half_angle,
+		vfx_proc_spring_rate,
 		hud_margin_px,
 		hud_heart_px,
 		hud_bar_w_px,

@@ -70,14 +70,17 @@ func test_the_landing_squashes_for_three_frames_from_the_landing_tick() -> void:
 	var sim := Simulation.new(fx.scenario)
 	view.begin(sim)
 	var wide: float = float(tuning.landing_squash_width_percent) / 100.0
+	var stretch_min: float = 1.0
 	for f: int in range(land + tuning.landing_squash_frames + 2):
 		sim.step(fx.input_frame(f))
 		view.capture(sim)
 		var age: int = f - land
 		if age < 0:
-			if view.scale_at(1.0).x < 1.0:
-				continue
-			assert_float(view.scale_at(1.0).x).is_equal(1.0)
+			# Nothing squashes before the landing tick: the player may narrow (the apex stretch)
+			# but is never wider than at rest.
+			for alpha: float in [0.0, 0.25, 0.5, 0.75, 1.0]:
+				assert_float(view.scale_at(alpha).x).is_less_equal(1.0)
+				stretch_min = minf(stretch_min, view.scale_at(alpha).x)
 		elif age == 0:
 			# The drawn player is not squashed before the landing tick is reached; at its end it is
 			# squashed all the way: wide and, the area kept, low.
@@ -90,6 +93,10 @@ func test_the_landing_squashes_for_three_frames_from_the_landing_tick() -> void:
 		else:
 			assert_float(view.scale_at(1.0).x).is_equal(1.0)
 			assert_float(view.scale_at(1.0).y).is_equal(1.0)
+	# The jump's apex did stretch it, to the tuned width (BUILD.md section 10: 94% over 2 frames).
+	var narrow: float = float(tuning.apex_stretch_width_percent) / 100.0
+	assert_float(stretch_min).is_less(1.0)
+	assert_float(stretch_min).is_greater_equal(narrow - 0.0001)
 
 
 func test_a_small_step_down_does_not_squash() -> void:
