@@ -150,6 +150,9 @@ func step(s: CameraSubject, room: Rect2) -> void:
 	var follow_vy: float = _vy
 	if s.teleported:
 		_start_glide(s, room)
+		# The follow starts afresh on the ember; the view's stop is the teleport's own cut, not
+		# a change of the follow for the glide to give back.
+		follow_vy = _vy
 	else:
 		_track(s, room)
 	var c: Vector2 = _base
@@ -167,8 +170,7 @@ func step(s: CameraSubject, room: Rect2) -> void:
 		# the margin) takes the view along, as the rigid follow across would (camera review 5, M3).
 		var margin: float = float(tuning.edge_margin_u)
 		c.x = _keep_player_clear(c, s.box, margin).x
-		var budget: float = float(tuning.glide_accel_milli_u) / 1000.0 - absf(_vy - follow_vy)
-		c.y += _glide_offset_y(s, _glide_from.y * (1.0 - eased), budget)
+		c.y += _glide_offset_y(s, _glide_from.y * (1.0 - eased), _vy - follow_vy)
 	center = _clear_player(c, s.box)
 	_after_glide = _glide_applied and not _glide_pending()
 	_glide_exit_vy = center.y - previous.y
@@ -178,11 +180,19 @@ func step(s: CameraSubject, room: Rect2) -> void:
 ## until the player comes nearer than [member CameraTuning.glide_cut_u] to the edge the view is
 ## gliding toward (a dash, an up-dash or a fall on, the way the view has yet to go: a borderless
 ## top or a ceiling holds the follow, and the glide's offset held the view behind it, needing the
-## backstop; camera review 6, M1). From then on the rest of the offset is closed as fast as
-## [param budget] allows (what the glide's acceleration leaves after the follow's own change this
-## tick, up to the glide's peak speed) and met at rest: the view gains on the player smoothly, and
-## the glide ends early.
-func _glide_offset_y(s: CameraSubject, nominal: float, budget: float) -> float:
+## backstop; camera review 6, M1), or until the smootherstep's pace would change the view's speed
+## by more than the glide's acceleration given the follow's own change this tick,
+## [param follow_dv] (the follow turns with the player at once, on a bounce or a cling, and the
+## glide must give back what that adds: ADR-0011, camera review 8). From then on the rest of the
+## offset is closed as fast as the view's speed may change (the glide's acceleration, counting the
+## follow's change, up to the glide's peak speed) and met at rest: the view gains on the player
+## smoothly, and the glide ends early.
+func _glide_offset_y(s: CameraSubject, nominal: float, follow_dv: float) -> float:
+	var accel: float = float(tuning.glide_accel_milli_u) / 1000.0
+	# The glide's own change of rate that keeps the view's speed (follow plus glide) within the
+	# acceleration this tick.
+	var rate_lo: float = _glide_rate_y - accel - follow_dv
+	var rate_hi: float = _glide_rate_y + accel - follow_dv
 	if not _catching:
 		var view_y: float = _base.y + nominal
 		var gap: float = (
@@ -190,20 +200,25 @@ func _glide_offset_y(s: CameraSubject, nominal: float, budget: float) -> float:
 			if nominal > 0.0
 			else view_y + half_view().y - s.box.end.y
 		)
-		if nominal == 0.0 or gap >= float(tuning.glide_cut_u):
-			_glide_rate_y = nominal - _glide_y
+		var rate: float = nominal - _glide_y
+		var paced: bool = rate >= rate_lo - 0.001 and rate <= rate_hi + 0.001
+		if nominal == 0.0 or (gap >= float(tuning.glide_cut_u) and paced):
+			_glide_rate_y = rate
 			_glide_y = nominal
 			return nominal
 		_catching = true
 	var left: float = absf(_glide_y)
 	var dir: float = -signf(_glide_y)
-	var speed: float = maxf(_glide_rate_y * dir, 0.0)
 	# The plan brakes with what the glide's acceleration leaves after the follow's most, so it
 	# can always be kept.
 	var brake: float = float(tuning.glide_accel_milli_u - tuning.vertical_accel_milli_u) / 1000.0
-	var change: float = maxf(budget, 0.0)
-	var slowest: float = maxf(speed - change, 0.0)
-	var fastest: float = maxf(minf(speed + change, float(tuning.glide_peak_u)), slowest)
+	# The closing speeds the view's speed allows, from the rate bounds (closing is toward rest,
+	# so a bound on the rate is a bound on the speed in the closing direction).
+	var slowest: float = minf(rate_lo * dir, rate_hi * dir)
+	var fastest: float = maxf(rate_lo * dir, rate_hi * dir)
+	if fastest >= 0.0:
+		slowest = maxf(slowest, 0.0)
+	fastest = maxf(minf(fastest, float(tuning.glide_peak_u)), slowest)
 	var move: float = clampf(EaseMath.braking_speed(left, brake), slowest, fastest)
 	move = minf(move, left)
 	_glide_rate_y = move * dir

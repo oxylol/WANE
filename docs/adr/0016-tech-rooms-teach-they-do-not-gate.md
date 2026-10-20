@@ -8,20 +8,20 @@
 ## Summary
 
 - A zone 1 tech room makes its tech the cheapest route and a control fixture proves what the single-use alternatives cannot do; it does not claim to be the only route.
-- Room 4: the Ember Toss's 12 s cooldown can be waited out on a spike post, four tosses reach the alcove in 2516 ticks (`tests/replay/zone1/bypass/04_bypass_toss_wait`), costed and recorded, not closed.
+- Room 4: the Ember Toss's 12 s cooldown can be waited out on a spike post, four tosses reach the alcove in 2516 ticks (`tests/replay/zone1/04_bypass_toss_wait`), costed and recorded, not closed.
 - Rooms 5 and 6: the fresh-cling rule of ADR-0010 lets other moves climb; each room's controls show what the tech saves.
 
 ## Context
 
 Zone 1's rooms 4 to 6 were written to make their tech "the only way", with control fixtures that try the strongest alternatives. The review of those rooms found two routes the controls did not model:
 
-- **Room 4.** A control tried one Ember Toss plus its landing trick, because the toss has a 12 s (720 tick) cooldown and the author assumed it could not be waited out. A spike post is a place to wait: each down-strike on it costs nothing and restores the air jump and the air dash, so a player bounces on post k until the toss is back, throws the ember (up and across, from the air jump's top) to land above post k+1, falls back onto post k, teleports once the ember has flown, and repeats from post k+1. Four tosses take the player to the alcove in 2516 ticks (42 s) with no air dash after the approach and no hazard touched (`tests/replay/zone1/bypass/04_bypass_toss_wait`).
+- **Room 4.** A control tried one Ember Toss plus its landing trick, because the toss has a 12 s (720 tick) cooldown and the author assumed it could not be waited out. A spike post is a place to wait: each down-strike on it costs nothing and restores the air jump and the air dash, so a player bounces on post k until the toss is back, throws the ember (up and across, from the air jump's top) to land above post k+1, falls back onto post k, teleports once the ember has flown, and repeats from post k+1. Four tosses take the player to the alcove in 2516 ticks (42 s) with no air dash after the approach and no hazard touched (`tests/replay/zone1/04_bypass_toss_wait`).
 - **Room 5.** A wall-jump gives back the air dash and the next cling is fresh (ADR-0010), so a wall-jump and an up-dash from every cling climb the well faster than the kicks (`05_wall_jump_dash_cycle`: over the top on tick 301, kicks 386).
 
 ## Decision
 
 1. **A tech room's contract is "the cheapest route by far, and the one it teaches", not "the only route".** The controls prove what each single-use alternative cannot do (one toss, no second dash, no kick); the room header says so in those words and says what is not modelled.
-2. **Known bypasses are pinned, with their cost, as fixtures**, so a change that closes or widens one is seen: `bypass/04_bypass_toss_wait` (expects the alcove reached only after tick 2400, no dash after the approach) and `05_wall_jump_dash_cycle`. A fixture under `tests/replay/zone1/bypass/` is a bypass record, not a teaching route, and the camera sweep does not play it (see Consequences).
+2. **Known bypasses are pinned, with their cost, as fixtures**, so a change that closes or widens one is seen: `04_bypass_toss_wait` (expects the alcove reached only after tick 2400, no dash after the approach) and `05_wall_jump_dash_cycle`. A bypass fixture is a record, not a teaching route (its name says `bypass`), and the camera sweep plays it with the rest of `tests/replay/zone1`.
 3. **The rewards behind tech rooms are not progress gates.** BUILD.md section 3 puts a Lantern-tier Votive or a Lamplighter note in a hidden room; a player who waits out a cooldown for it has paid for it. Nothing a bypass reaches opens a way a run needs.
 4. **No core rule changes.** BUILD.md's wall-jump row and the toss's cooldown stand.
 
@@ -43,6 +43,6 @@ Movement is the first pillar. A player who has put pogo, dash and the toss toget
 
 - Every future "only way" claim in a room header is read against this ADR. A control that says "no toss" must also run the waiting route; one that models a single toss says "one toss".
 - The toss's 12 s cooldown can be waited out on any perch that restores nothing it spends (a post, a wall band with a wall-jump, the floor). A room that needs a toss to be unavailable must make it unavailable by its content, not by its geometry.
-- **Camera.** `tests/unit/game/test_camera_rig.gd` now plays `tests/replay/zone1` at four screen shapes; the nine room fixtures hold its rules. The bypass fixture is kept out because it exposes a camera jolt: a pogo bounce during a teleport's glide changes the view's vertical speed by 13.7 u in one tick at 1920x1440 (the follow turns with the player at once, and the glide's own offset keeps its rate), against the 5 u limit. Tracked in PROGRESS.md.
+- **Camera.** `tests/unit/game/test_camera_rig.gd` plays `tests/replay/zone1` at four screen shapes, the bypass fixture included. It exposed a camera jolt (a pogo bounce during a teleport's glide changed the view's vertical speed by 13.7 u in one tick at 1920x1440, against the 5 u limit); fixed at the root in the camera (ADR-0011, the glide gives back what the follow's turn adds), and the fixture moved up out of `bypass/` into the sweep.
 - **Length.** BUILD.md has no length guide for a tech room's teaching route; the measured times (room 4's hidden route 9.2 s, room 5 6.9 s, room 6 8.1 s, each with about 2 s of running to and from the tech) are in the feel log.
 - Revisit when Votives and hidden-room rewards exist (Phase 1 task 8 and later): if a bypass makes a reward trivially cheap, the cost, not the geometry, is what to tune.

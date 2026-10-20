@@ -39,7 +39,7 @@
 # waited out on it: a toss from post k puts the ember over post k+1, the player falls back onto
 # post k, bounces until the ember has flown, teleports, and bounces on post k+1 until the toss is
 # back. Four tosses climb the whole tower with no air dash after the approach, in 2516 ticks (42 s)
-# against the teaching route's 450 (tests/replay/zone1/bypass/04_bypass_toss_wait). Whatever a
+# against the teaching route's 450 (tests/replay/zone1/04_bypass_toss_wait). Whatever a
 # dash does from a point, the toss's 400 u flight does from the same point at least as far, so a
 # step the dash crosses the toss crosses: the posts could only be made unwaitable-on, and a
 # bounce is a bounce. The room teaches the tech by making it the climb that takes a fifth of the
