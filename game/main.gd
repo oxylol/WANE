@@ -21,12 +21,23 @@ const VOTIVE_ARG: String = "--votive="
 ## (the ember and its shadows, ambient 0.15) and `--lighting=dusk` at Dusk, the default; the Wane
 ## Clock will drive it in play.
 const LIGHTING_ARG: String = "--lighting="
+## `--lighting-profile=pc|deck|min` picks the shadow buffer's scale (BUILD.md section 12: the
+## lighting pass at 0.75x on the Deck and Switch 2, 0.5x on the minimum PC).
+const PROFILE_ARG: String = "--lighting-profile="
+const PROFILES: Dictionary[String, int] = {
+	"pc": LightingTuning.PROFILE_PC,
+	"deck": LightingTuning.PROFILE_DECK,
+	"min": LightingTuning.PROFILE_MIN,
+}
 
 ## Set by a harness (the frame bench) before the scene is added: the session to start in place of
 ## the zone's, and the lighting word to use in place of the command line's ("" reads the command
 ## line; "off" builds no lighting field, for the frame bench's baseline).
 static var scenario_override: Scenario = null
 static var lighting_word: String = ""
+## The lighting profile a harness asks for in place of the command line's (-1 reads the command
+## line).
+static var lighting_profile: int = -1
 
 ## The lighting pass; null only for the word "off".
 var lighting: LightField = null
@@ -147,7 +158,13 @@ func _start_lighting() -> void:
 				word = arg.trim_prefix(LIGHTING_ARG)
 	if word == LightWord.OFF:
 		return
-	lighting = LightField.new()
+	var profile: int = lighting_profile
+	if profile < 0:
+		profile = LightingTuning.PROFILE_PC
+		for arg: String in OS.get_cmdline_user_args():
+			if arg.begins_with(PROFILE_ARG):
+				profile = PROFILES.get(arg.trim_prefix(PROFILE_ARG), LightingTuning.PROFILE_PC)
+	lighting = LightField.new(null, profile)
 	lighting.set_dark_level(LightWord.level_or_dusk(word))
 	$World.add_child(lighting)
 	lighting.show_world(driver.sim.world, driver.sim.room.id)

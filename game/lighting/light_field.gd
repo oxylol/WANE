@@ -60,7 +60,6 @@ var _fields: Dictionary[String, RoomSdf] = {}
 var _stamps: Dictionary[String, Vector3i] = {}
 var _shown: RoomSdf = null
 var _bound: RoomSdf = null
-var _shown_loose: bool = false
 var _queue: Array[RoomSdf] = []
 var _baking: int = 0
 var _world: CollisionWorld = null
@@ -207,12 +206,11 @@ func show_world(world: CollisionWorld, room_id: String = "") -> void:
 	if room_id != "":
 		prebuild(room_id, world.grid)
 		_shown = _fields[room_id]
-		_shown_loose = false
 	else:
 		_shown = _build(world.grid)
-		_shown_loose = true
 		_enqueue(_shown)
-	if not _shown.baked:
+	if RoomSdf.can_render() and not _shown.baked and _queue.has(_shown):
+		# The room on show bakes first.
 		_queue.erase(_shown)
 		_queue.push_front(_shown)
 	_bind_room()

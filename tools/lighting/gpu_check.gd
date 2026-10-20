@@ -34,6 +34,13 @@ const BAKE_RIDGE_TEXELS: float = 0.7
 const BUFFER_MEAN_MAX: float = 0.01
 const BUFFER_OFF_SHARE_MAX: float = 0.02
 
+## The flicker is 4% either way, so crest over trough is about 1.08 of the ember's light.
+const FLICKER_RATIO_MIN: float = 1.03
+const FLICKER_RATIO_MAX: float = 1.2
+## A door crossing, pointing the lighting at a room already built and baked, must cost under this
+## (content/perf/budget.tres door_max_us).
+const CROSSING_MAX_USEC: int = 2000
+
 var _failures: PackedStringArray = PackedStringArray()
 
 
@@ -59,6 +66,7 @@ func _run() -> void:
 		_finish()
 		return
 	_check_bake(sdf)
+	await _check_crossing(field)
 	await _check_buffer(field, sdf)
 	await _check_surfaces(field)
 	_finish()
@@ -97,6 +105,31 @@ func _check_bake(sdf: RoomSdf) -> void:
 				% [mean, worst, wrong_sign]
 			)
 		)
+
+
+## A door crossing costs no bake: rooms prebuilt and baked ahead are only pointed at.
+func _check_crossing(field: LightField) -> void:
+	var a := TileGrid.from_rows(PackedStringArray(["....", "####"]))
+	var b := TileGrid.from_rows(PackedStringArray(["....", "....", "#..#", "####"]))
+	field.prebuild("crossing_a", a)
+	field.prebuild("crossing_b", b)
+	await field.settle()
+	var worst: int = 0
+	for i: int in range(20):
+		var t: int = Time.get_ticks_usec()
+		field.show_world(
+			CollisionWorld.new(a if i % 2 == 0 else b), "crossing_a" if i % 2 == 0 else "crossing_b"
+		)
+		worst = maxi(worst, Time.get_ticks_usec() - t)
+	print(
+		(
+			"crossing: worst %.3f ms of 20 (gate %.1f ms)"
+			% [float(worst) / 1000.0, float(CROSSING_MAX_USEC) / 1000.0]
+		)
+	)
+	if worst > CROSSING_MAX_USEC:
+		_fail("a door crossing into a baked room costs %.2f ms" % [float(worst) / 1000.0])
+	field.show_world(CollisionWorld.new(TileGrid.from_rows(PackedStringArray(ROOM_ROWS))), "check")
 
 
 ## 2. The shadow buffer against the twin.
@@ -170,9 +203,15 @@ func _surface(at: Vector2) -> ColorRect:
 	return r
 
 
-func _pixel(at: Vector2) -> Color:
+## The mean luminance of the 8 x 8 pixels around [param at] on the screen (the post's grain averages
+## out).
+func _lum(at: Vector2) -> float:
 	var shot: Image = root.get_viewport().get_texture().get_image()
-	return shot.get_pixel(int(at.x), int(at.y))
+	var total: float = 0.0
+	for dy: int in range(-4, 4):
+		for dx: int in range(-4, 4):
+			total += shot.get_pixel(int(at.x) + dx, int(at.y) + dy).get_luminance()
+	return total / 64.0
 
 
 ## 3. The lit surface shader against its numbers.
@@ -199,11 +238,11 @@ func _check_surfaces(field: LightField) -> void:
 		for _f: int in range(3):
 			await RenderingServer.frame_post_draw
 		if pass_i == 0:
-			dusk_far = _pixel(far_at).get_luminance()
-			dusk_near = _pixel(near_at).get_luminance()
+			dusk_far = _lum(far_at)
+			dusk_near = _lum(near_at)
 		else:
-			pitch_far = _pixel(far_at).get_luminance()
-			pitch_near = _pixel(near_at).get_luminance()
+			pitch_far = _lum(far_at)
+			pitch_near = _lum(near_at)
 	print(
 		(
 			"surfaces: far %.3f (Dusk) %.3f (Pitch), near %.3f (Dusk) %.3f (Pitch)"
@@ -231,6 +270,23 @@ func _check_surfaces(field: LightField) -> void:
 				% [pitch_near, dusk_near]
 			)
 		)
+	# The flicker shows on a surface: the ember's crest (tick 30) against its trough (tick 90), at
+	# Pitch, where the ember is nearly all the light there is.
+	var lum_crest: float = 0.0
+	var lum_trough: float = 0.0
+	for tick: int in [30, 90]:
+		field.freeze(tick, 0.15)
+		field.present(tick, 0.0, ember)
+		for _f: int in range(3):
+			await RenderingServer.frame_post_draw
+		if tick == 30:
+			lum_crest = _lum(near_at)
+		else:
+			lum_trough = _lum(near_at)
+	var swing: float = lum_crest / maxf(lum_trough, 0.0001)
+	print("flicker: crest %.4f, trough %.4f, ratio %.3f" % [lum_crest, lum_trough, swing])
+	if not (swing > FLICKER_RATIO_MIN and swing < FLICKER_RATIO_MAX):
+		_fail("the ember's flicker does not show on a surface at Pitch (ratio %.3f)" % swing)
 	# A wall between the ember and a surface shadows it.
 	var walled := TileGrid.from_rows(
 		PackedStringArray(
@@ -256,8 +312,8 @@ func _check_surfaces(field: LightField) -> void:
 	field.present(0, 0.0, side_ember)
 	for _f: int in range(3):
 		await RenderingServer.frame_post_draw
-	var shadowed: float = _pixel(behind).get_luminance()
-	var open_lum: float = _pixel(beside).get_luminance()
+	var shadowed: float = _lum(behind)
+	var open_lum: float = _lum(beside)
 	print("walled: behind the wall %.3f, in sight %.3f" % [shadowed, open_lum])
 	if not (shadowed < open_lum * 0.6):
 		_fail(

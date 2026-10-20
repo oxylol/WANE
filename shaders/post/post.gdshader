@@ -30,13 +30,13 @@ void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec3 c = textureLod(screen_tex, uv, 0.0).rgb;
 	vec2 px = SCREEN_PIXEL_SIZE;
-	vec3 glow = bright(uv, 2.0) * 0.25;
-	// Two rings of eight taps, at the bloom's reach and half of it.
+	// One tap at the pixel and a ring of eight at the bloom's reach, from the screen's mip levels so
+	// that each tap already averages a block: nine fetches a pixel.
+	vec3 glow = bright(uv, 2.0) * 0.2;
 	for (int i = 0; i < 8; i++) {
 		float a = 0.785398 * float(i);
 		vec2 dir = vec2(cos(a), sin(a));
-		glow += bright(uv + dir * px * bloom_radius_px * 0.5, 2.0) * 0.0625;
-		glow += bright(uv + dir * px * bloom_radius_px, 3.0) * 0.0625;
+		glow += bright(uv + dir * px * bloom_radius_px, 3.0) * 0.1;
 	}
 	c += glow * bloom_strength;
 	// A soft shoulder above 0.8: the top of the range rolls off instead of clipping.
