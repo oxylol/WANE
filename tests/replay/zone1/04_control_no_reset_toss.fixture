@@ -1,5 +1,5 @@
 fixture zone1_04_control_no_reset_toss
-doc BUILD.md s5 tech 4 "pogo resets the air dash"; s6 Ember Toss; zone 1 room 4's control: the strongest climb with ONE Ember Toss that never uses a dash a bounce gave back, the toss's landing trick included, reaches post 4 and falls short of the alcove (it does not wait the toss's 12 s cooldown out on a post: that bypass is bypass/04_bypass_toss_wait, docs/adr/0016); docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
+doc BUILD.md s5 tech 4 "pogo resets the air dash"; s6 Ember Toss; zone 1 room 4's control: the strongest climb with ONE Ember Toss that never uses a dash a bounce gave back, the toss's landing trick included, reaches post 4 and falls short of the alcove (it does not wait the toss's 12 s cooldown out on a post: that bypass is 04_bypass_toss_wait, docs/adr/0016); docs/adr/0010 (the Ember Toss), docs/feel_log/2026-10-19-zone1-b.md
 room zone1/04_pogo_dash_reset
 spawn 74 2336
 frames 430
