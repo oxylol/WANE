@@ -163,12 +163,22 @@ func run_all(bless: bool = false) -> bool:
 				% [results.size(), failed, elapsed, roundi(busy), count]
 			)
 		)
-	if budget_msec > 0 and elapsed > budget_msec:
+	var native: bool = NativeBackend.use_native()
+	if over_budget(elapsed, budget_msec, native):
 		_fail_line("FAIL fixture suite took %d ms, budget %d ms" % [elapsed, budget_msec])
 		failed += 1
+	elif budget_msec > 0 and not native and not quiet:
+		print("budget not applied: the GDScript reference path (ADR-0006, Budget)")
 	if bless and failed == 0:
 		return _bless(golden, golden_version)
 	return failed == 0
+
+
+## Whether a suite that took [param elapsed_msec] fails [param limit_msec] (0: none). The budget is
+## the shipped configuration's, the native path's ([param native]); the GDScript reference run
+## proves the same hashes and is not timed against it (ADR-0006, Budget; the director's decision).
+static func over_budget(elapsed_msec: int, limit_msec: int, native: bool) -> bool:
+	return native and limit_msec > 0 and elapsed_msec > limit_msec
 
 
 ## Runs the fixtures at [param paths] (the whole suite's, in path order) whose place in it is

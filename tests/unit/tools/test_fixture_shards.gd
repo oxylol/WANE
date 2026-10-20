@@ -99,3 +99,12 @@ func test_a_shard_on_another_path_fails_its_fixtures() -> void:
 	for r: FixtureRunner.Result in results:
 		assert_bool(r.passed).is_false()
 		assert_str(r.messages[r.messages.size() - 1]).contains("ran native")
+
+
+func test_the_budget_holds_the_native_path_and_not_the_reference() -> void:
+	# The director's decision (ADR-0006, Budget): 10 s on the shipped configuration.
+	var budget: int = FixtureRunner.SUITE_BUDGET_MSEC
+	assert_bool(FixtureRunner.over_budget(budget + 1, budget, true)).is_true()
+	assert_bool(FixtureRunner.over_budget(budget, budget, true)).is_false()
+	assert_bool(FixtureRunner.over_budget(budget + 1, budget, false)).is_false()
+	assert_bool(FixtureRunner.over_budget(budget + 1, 0, true)).is_false()
