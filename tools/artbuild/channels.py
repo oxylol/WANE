@@ -101,11 +101,12 @@ def render_scale(
 ):
     """The shape, parts and (at the master scale) normal channels for one grid.
 
-    Returns (shape, parts, extra) with shape and parts as (ny, nx, 4) uint8 and `extra` None, or
-    at the master scale the float normal planes and emissive coverage the reductions start from.
+    Returns (shape, parts, extra): shape and parts are (ny, nx, 4) uint8. `extra` is None, except at
+    the master scale, where it is the float planes the reductions start from: normal x, y, z,
+    gloss, silhouette coverage and emissive coverage. The shape's emissive channel is filled in
+    here only at the master scale; the other scales average the master's (see frame.bake).
     """
     n = grid.nx * grid.ny
-    pts = grid.points()
     # Which parts cover each pixel centre; the top part is the highest z among them.
     ins = np.zeros((len(lib.parts), n), dtype=bool)
     for k, polys_seg in enumerate(geom.part_segments):
