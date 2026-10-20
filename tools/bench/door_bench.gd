@@ -7,7 +7,9 @@ extends SceneTree
 ## [method Main.enter_room], the call the room event makes. The first crossing into each room is
 ## what is timed (a second would find anything cached), the least over [member PerfBudget.repeats]
 ## fresh boots; the worst room is gated against [member PerfBudget.door_max_us]. Headless (the
-## dummy renderer) this is the script and scene-tree cost, as in frame_bench.gd.
+## dummy renderer) this is the script and scene-tree cost, as in frame_bench.gd: it excludes the
+## renderer's occluder and shadow-map update when a hidden node becomes visible, so the gate is a
+## script-side gate and the GPU half is measured windowed on hardware (PROGRESS.md, Blocked 2).
 ##
 ##   godot --headless --path . --script tools/bench/door_bench.gd [-- --quiet --report <path>]
 

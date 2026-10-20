@@ -222,6 +222,33 @@ func test_a_prebuilt_room_is_shown_without_building_anything() -> void:
 	assert_int(rig.find_children("*", "LightOccluder2D", true, false).size()).is_equal(nodes)
 
 
+func test_a_prebuilt_room_whose_grid_was_edited_is_rebuilt_not_shown_stale() -> void:
+	# The prebuilt walls assume the grid never changes; nothing enforces that, so an edit (the room
+	# editor's, or any later runtime change) must show up in the walls instead of casting shadows
+	# from tiles that are gone.
+	var rig := LightingRig.new()
+	auto_free(rig)
+	add_child(rig)
+	var a: TileGrid = _grid(["....", "####"])
+	rig.prebuild("a", a)
+	var built0: int = rig.walls_built
+	rig.show_world(CollisionWorld.new(a), "a")
+	var polys: int = rig.polygon_count
+	assert_int(rig.walls_built).is_equal(built0)
+	a.set_tile(1, 0, TileGrid.SOLID)
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(rig.walls_built).is_equal(built0 + 1)
+	assert_int(rig.polygon_count).is_not_equal(polys)
+	assert_int(_casting(rig)).is_equal(rig.polygon_count)
+	# One built walls node per room: the stale one is gone, not left hidden in the tree.
+	assert_int(rig.find_children("*", "LightOccluder2D", true, false).size()).is_equal(
+		rig.polygon_count
+	)
+	var again: int = rig.walls_built
+	rig.show_world(CollisionWorld.new(a), "a")
+	assert_int(rig.walls_built).is_equal(again)
+
+
 func test_only_the_shown_rooms_walls_cast_shadows() -> void:
 	var rig := LightingRig.new()
 	auto_free(rig)

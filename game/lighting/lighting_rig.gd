@@ -33,6 +33,7 @@ var _boxes: Node2D
 ## and the polygon count of each; the one on show, and whether it has an id to be kept under.
 var _room_walls: Dictionary[String, Node2D] = {}
 var _room_polygons: Dictionary[String, int] = {}
+var _room_stamps: Dictionary[String, Vector3i] = {}
 var _shown_walls: Node2D = null
 var _shown_kept: bool = false
 var _solids: Array[SolidBox] = []
@@ -76,11 +77,24 @@ static func make_emissive(item: CanvasItem) -> void:
 
 ## Builds the walls of room [param room_id] ahead of its being shown, hidden, so that crossing into
 ## it builds nothing (docs/adr/0020: a door frame is no spike). Nothing happens if the room is
-## already built. A room's walls are built once and kept, so the id must always mean the same
-## [param grid].
+## already built from this [param grid] as it is: a room's walls are built once and kept, but a
+## grid edited since (its [member TileGrid.revision], or its size, changed) is built afresh, so a
+## cached wall never casts a shadow from a tile that is gone.
 func prebuild(room_id: String, grid: TileGrid) -> void:
-	if not _room_walls.has(room_id):
+	if _room_walls.has(room_id):
+		if _room_stamps[room_id] == _stamp(grid):
+			return
+		var old: Node2D = _room_walls[room_id]
+		var was_shown: bool = old == _shown_walls
+		_walls.remove_child(old)
+		old.free()
 		_keep(room_id, grid)
+		if was_shown:
+			_shown_walls = _room_walls[room_id]
+			_shown_walls.visible = true
+			polygon_count = _room_polygons[room_id]
+		return
+	_keep(room_id, grid)
 
 
 ## Shows [param world]'s room: its walls (from the build kept under [param room_id], or built now
@@ -122,6 +136,12 @@ func _keep(room_id: String, grid: TileGrid) -> void:
 	node.name = room_id.replace("/", "_")
 	_room_walls[room_id] = node
 	_room_polygons[room_id] = node.get_child_count()
+	_room_stamps[room_id] = _stamp(grid)
+
+
+## What a grid's walls were built from: its edit count and its size.
+func _stamp(grid: TileGrid) -> Vector3i:
+	return Vector3i(grid.revision, grid.width, grid.height)
 
 
 ## A hidden node, in the tree, with an occluder for each wall polygon of [param grid].

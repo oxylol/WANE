@@ -146,7 +146,9 @@ func _start_lighting() -> void:
 		lighting = LightingRig.new()
 		$World.add_child(lighting)
 		lighting.show_world(driver.sim.world, driver.sim.room.id)
-		# Every room a door leads to is built now, hidden, so that a crossing builds nothing.
+		# Every room of the zone's set is built now, hidden, so that a crossing builds nothing (a
+		# zone's rooms are all reached by doors; at 60 rooms a zone this becomes the neighbours of
+		# the room, docs/adr/0020 Decision 19). An edited grid is rebuilt by [method LightingRig.prebuild].
 		for id: String in driver.sim.rooms.rooms:
 			var beyond: RoomData = driver.sim.rooms.rooms[id]
 			if beyond.errors.is_empty():
