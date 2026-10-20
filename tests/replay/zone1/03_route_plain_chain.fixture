@@ -1,7 +1,7 @@
 fixture zone1_03_route_plain_chain
 doc Room 03 (BUILD.md s5 tech 3; s15 "4 bounces per second"): the plain chain, a down-strike on every fall and nothing else between bounces: one bounce every 13 frames (4.6 a second, faster than s15's 4), 260 u apart at the dash-jump's 20 u/f. A shorter link is a shorter hop, so it takes eleven bounces to cross where the 4-a-second route takes ten (zone1_03_control_plain_ten).
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 245
 input
   0..5 R
@@ -62,5 +62,6 @@ expect
   at 187 event.pogo=1 vx=5120 vy=-3388
   never 188..244 event.pogo=1
   never 0..244 event.hazard=1
-  at 244 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  # Down on the upper level (320 u) past the tunnel's end (3584 u): the chain has crossed.
+  at 202 event.land=1 x>3584u y=320u
 end

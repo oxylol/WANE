@@ -1,0 +1,77 @@
+fixture zone1_03_optional_ladder_chain
+doc BUILD.md s15 "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; docs/adr/0019 Decision 5. The optional path stitched end to end, with no pause between its two halves: the ladder up from the main hall (03_optional_ladder, ticks 0 to 122), landing on the upper level at x 399 u with the run held, then 4 more ticks of run, a ground dash on tick 127 (x 435 u, as 03_pogo_chain_route dashes at x 434 u from the spawn), the hop into the dash-jump and ten bounces at 4 a second, 15 ticks apart, each at the dash-jump's full 20 u/f, from x 786 u to x 3486 u. The tenth arc lands on the low hall (tick 296, x 3826 u, 242 u past the tunnel's end at 3584 u). Until this fixture nothing proved that a player arriving from the ladder has the run-up for the chain: the exit at x 399 u leaves 36 u of floor-run before the dash at 435 u.
+room zone1/03_pogo_chain
+frames 309
+input
+  0..13 R
+  14 R jump
+  15..38 jump
+  53..75 jump
+  76..77 R jump
+  78 R
+  92..98 jump
+  99..116 R jump
+  117..122 R
+  123..126 R
+  127 R dash
+  128..131 R
+  132..134 R jump
+  135..141 R
+  142 R D attack
+  143..148 R
+  149 R jump
+  150..156 R
+  157 R D attack
+  158..163 R
+  164 R jump
+  165..171 R
+  172 R D attack
+  173..178 R
+  179 R jump
+  180..186 R
+  187 R D attack
+  188..193 R
+  194 R jump
+  195..201 R
+  202 R D attack
+  203..208 R
+  209 R jump
+  210..216 R
+  217 R D attack
+  218..223 R
+  224 R jump
+  225..231 R
+  232 R D attack
+  233..238 R
+  239 R jump
+  240..246 R
+  247 R D attack
+  248..253 R
+  254 R jump
+  255..261 R
+  262 R D attack
+  263..268 R
+  269 R jump
+  270..276 R
+  277 R D attack
+  278..283 R
+  284 R jump
+  285..308 R
+end
+expect
+  at 144 event.pogo=1 vx=5120
+  at 159 event.pogo=1 vx=5120
+  at 174 event.pogo=1 vx=5120
+  at 189 event.pogo=1 vx=5120
+  at 204 event.pogo=1 vx=5120
+  at 219 event.pogo=1 vx=5120
+  at 234 event.pogo=1 vx=5120
+  at 249 event.pogo=1 vx=5120
+  at 264 event.pogo=1 vx=5120
+  at 279 event.pogo=1 vx=5120
+  never 124..143 event.pogo=1
+  never 280..308 event.pogo=1
+  never 0..308 event.hazard=1
+  at 123 event.land=1 y=320u x>256u
+  at 296 event.land=1 x>3584u y=320u
+end

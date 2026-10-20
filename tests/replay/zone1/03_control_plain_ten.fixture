@@ -1,7 +1,7 @@
 fixture zone1_03_control_plain_ten
 doc Control for room 03 (BUILD.md s5 tech 3): ten plain bounces, one every 13 frames (4.6 a second, 260 u apart): the tenth arc falls into the spikes at x 3351 u, 233 u short of the tunnel's end (3584 u). A rhythm faster than 4 a second needs more bounces, not fewer (zone1_03_route_plain_chain).
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 227
 input
   0..5 R

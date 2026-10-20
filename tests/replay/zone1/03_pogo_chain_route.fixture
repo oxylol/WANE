@@ -1,7 +1,7 @@
 fixture zone1_03_pogo_chain_route
 doc BUILD.md s5 tech 3 "Pogo chain: bounce off a line of enemies or hazards. Taught by a spike pit"; s15 "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second"; docs/adr/0010 (Pogo), docs/adr/0019 Decision 5. Ten bounces, one every 15 frames (4.0 a second: a down-strike on each fall and an air jump 5 frames after each bounce), each at the dash-jump's full 20 u/f (the pogo keeps the horizontal speed, s5 Pogo, Momentum), 300 u apart from x 771.5 to 3471.5; the last arc clears the tunnel's end (3584 u).
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 222
 input
   0..5 R
@@ -88,5 +88,6 @@ expect
   at 183 event.air_jump=1
   at 198 event.air_jump=1
   never 0..221 event.hazard=1
-  at 221 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  # Down on the upper level (320 u) past the tunnel's end (3584 u): the chain has crossed.
+  at 209 event.land=1 x>3584u y=320u
 end

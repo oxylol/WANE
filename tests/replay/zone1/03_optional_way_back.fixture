@@ -1,0 +1,17 @@
+fixture zone1_03_optional_way_back
+doc Room 03's optional path ends in the low hall past the tunnel (BUILD.md s3 hidden rooms hold a Lantern-tier Votive; s5 tech 3); the way back is a walk: east along the hall, off its end into the 3-tile shaft, a 352 u drop to the main east hall's floor (no fall damage, no hazard), and 70 u on to the east door. Missing the chain costs only a hazard; nothing here is a gate.
+room zone1/03_pogo_chain
+spawn 3700 320
+frames 120
+input
+  0..39 R
+  75..119 R
+end
+expect
+  # Off the upper hall's end (4000 u) into the shaft, down to the main level (672 u).
+  mark floor 0..119 event.land=1
+  at floor x>4000u y=672u
+  never 0..119 event.hazard=1
+  mark door 0..119 event.room=1
+  at door room=zone1_04_pogo_dash_reset
+end

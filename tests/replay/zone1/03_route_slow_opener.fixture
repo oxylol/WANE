@@ -1,7 +1,7 @@
 fixture zone1_03_route_slow_opener
 doc Room 03 (BUILD.md s5 tech 3, s15 "4 bounces per second"; ADR-0019 Decision 5): what a slow opening link buys. The no-pogo controls' dash-jump and its air jump (dash on 44, jump 49, air jump on 61) land the first bounce on frame 72 at x 1027.5 u instead of frame 57 at 771.5 u, 256 u farther in; the chain after it is the route's (a down-strike on each fall, an air jump 5 frames after each bounce, a bounce every 15 frames, 20 u/f kept) and nine bounces cross, the ninth arc landing on the east hall floor at x about 3745 u. Eight fall into the spikes (the opening link is 25 frames, one slow link of the kind zone1_03_route_slow_finisher shows at the other end). Nine bounces at 4 a second cross only after a slow opening link; with the dash-jump's own arc (zone1_03_control_nine_bounces) they do not.
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 241
 input
   0..5 R
@@ -85,5 +85,6 @@ expect
   at 183 event.air_jump=1
   at 198 event.air_jump=1
   never 0..240 event.hazard=1
-  at 240 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  # Down on the upper level (320 u) past the tunnel's end (3584 u): the chain has crossed.
+  at 209 event.land=1 x>3584u y=320u
 end

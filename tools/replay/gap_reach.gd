@@ -10,7 +10,11 @@ extends SceneTree
 ## stops on it below the lip, and the teleport's fit puts the body beside the face, not on the
 ## ledge, so a toss counts only through where the body goes after it.
 ##
-##   godot --headless --path . --script tools/replay/gap_reach.gd -- [route]...
+##   godot --headless --path . --script tools/replay/gap_reach.gd -- [--room=<id> --edge=<u>
+##       --ledge=<u>] [route]...
+##
+## The room, its ledge's edge (x) and its ledge's height (y), in units, default to test/longchasm
+## (480, 384); another room names its own (zone 1 room 03's main pit: test/longpit, 576, 672).
 ##
 ## Routes (all of them by default):
 ##   plain       a dash-jump (the jump on dash frames 5 to 9) and nothing else
@@ -36,6 +40,12 @@ const FRAMES: int = 330
 ## Ticks 4 to 8 are dash frames 5 to 9 (the dash is pressed on tick 0).
 const DASH_JUMP_TICKS: Array[int] = [4, 5, 6, 7, 8]
 const NEVER: int = 100000
+
+## The room measured and its ledge (edge x and height y, in units): the constants above, or what
+## --room, --edge and --ledge name.
+var room_id: String = ROOM
+var edge_u: int = EDGE_U
+var ledge_u: int = LEDGE_U
 
 
 ## One way through the gap: the spawn x, the jump, air jump and air dash ticks (NEVER for none),
@@ -91,7 +101,16 @@ class Plan:
 
 
 func _initialize() -> void:
-	var routes: PackedStringArray = OS.get_cmdline_user_args()
+	var routes: PackedStringArray = []
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--room="):
+			room_id = arg.trim_prefix("--room=")
+		elif arg.begins_with("--edge="):
+			edge_u = int(arg.trim_prefix("--edge="))
+		elif arg.begins_with("--ledge="):
+			ledge_u = int(arg.trim_prefix("--ledge="))
+		else:
+			routes.append(arg)
 	if routes.is_empty():
 		routes = ["plain", "dash_air", "dash_jump", "carry", "run", "carry_toss", "run_toss"]
 	for route: String in routes:
@@ -106,7 +125,7 @@ func _initialize() -> void:
 		if route != base:
 			best = _with_toss(best, route)
 		print(
-			"%-9s %5d u past the edge: %s" % [route, _reach(best, route) - EDGE_U, best.describe()]
+			"%-9s %5d u past the edge: %s" % [route, _reach(best, route) - edge_u, best.describe()]
 		)
 	quit(0)
 
@@ -117,13 +136,13 @@ func _coarse(route: String) -> Array[Plan]:
 	var spawns: Array[int] = []
 	var jumps: Array[int] = []
 	if dash_jump:
-		spawns.assign(range(300, EDGE_U + 1, 12))
+		spawns.assign(range(edge_u - 180, edge_u + 1, 12))
 		jumps.assign(DASH_JUMP_TICKS)
 	elif route == "carry":
-		spawns.assign(range(330, EDGE_U, 12))
+		spawns.assign(range(edge_u - 150, edge_u, 12))
 		jumps.assign([9, 10, 11, 12, 14, 16])
 	elif route == "run":
-		spawns.assign(range(60, 330, 30))
+		spawns.assign(range(edge_u - 420, edge_u - 150, 30))
 		jumps.assign(range(10, 50, 4))
 	else:
 		return plans
@@ -243,11 +262,11 @@ func _best(plans: Array[Plan], route: String) -> Plan:
 ## if the plan is not the route it claims to be (a jump fired during any dash in a route without a
 ## dash-jump).
 func _reach(p: Plan, route: String) -> int:
-	var sc: Scenario = Scenario.make(1, ROOM)
+	var sc: Scenario = Scenario.make(1, room_id)
 	sc.spawn_x = p.x0
-	sc.spawn_y = LEDGE_U
+	sc.spawn_y = ledge_u
 	var sim := Simulation.new(sc)
-	var ledge: int = Fx.units(LEDGE_U) + sim.player.p.ledge_grab
+	var ledge: int = Fx.units(ledge_u) + sim.player.p.ledge_grab
 	var best: int = 0
 	var no_dash_jump: bool = route.begins_with("carry") or route.begins_with("run")
 	for t: int in range(FRAMES):

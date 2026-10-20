@@ -1,7 +1,7 @@
 fixture zone1_03_route_slow_finisher
 doc Room 03 (BUILD.md s5 tech 3, s15 "4 bounces per second"; ADR-0019 Decision 5): what slowing the last link buys. Nine bounces at 4 a second, then an air dash 9 frames and an air dash-jump 17 frames after the ninth: the last arc is 26 frames and 520 u instead of 15 and 300, and it clears the tunnel's end. Nine bounces cross only if the chain ends slower than 4 a second (zone1_03_control_nine_bounces).
 room zone1/03_pogo_chain
-spawn 74 608
+spawn 74 320
 frames 241
 input
   0..5 R
@@ -74,5 +74,6 @@ expect
   at 177 event.pogo=1 vx=5120 vy=-3388
   never 178..240 event.pogo=1
   never 0..240 event.hazard=1
-  at 240 event.room=1 room=zone1_04_pogo_dash_reset x=74u
+  # Down on the upper level (320 u) past the tunnel's end (3584 u): the chain has crossed.
+  at 205 event.land=1 x>3584u y=320u
 end

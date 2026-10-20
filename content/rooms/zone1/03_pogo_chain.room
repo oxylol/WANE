@@ -1,19 +1,65 @@
-# Zone 1, room 3 (grey box, Phase 1 task 7): tech 3, pogo chain.
+# Zone 1, room 3 (grey box, Phase 1 task 7): tech 3, pogo chain. Rebuilt 2026-10-20 after the
+# director's play ("The low roof is way too difficult and the lineup is almost impossible.").
 # BUILD.md s5, tech 3: "Bounce off a line of enemies or hazards. Taught by a spike pit with Snuffed
-# in it"; s15: "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second".
-#
-# Layout: a hall (18 tiles), a short patch of 3 spikes that a jump or one pogo clears (the safe
-# first encounter: a hazard only sends Ash back to the hall's floor), then a tunnel 94 tiles
-# (3008 u) long with spikes on its whole floor, then the east hall. The tunnel's ceiling is 64 u
-# above the spikes: the player (44 u) can rise 20 u above them and no more, so a jump, a
-# dash-jump or the air jump cannot arc over them, and a bounce (794 u/s) rises to the ceiling and
-# falls back in 13 frames.
+# in it"; s15: "a 10-bounce chain across the zone 1 spike pit is possible at 4 bounces per second";
+# s3: a hidden or optional place holds "a guaranteed Lantern-tier Votive or a Lamplighter note".
 # Stand-ins: the spikes are the line of Snuffed (a hazard is pogo-able as an enemy is); no enemy
-# stands in the pit yet.
+# stands in the pit yet; the reward is an entity marker (Phase 1 has no pickups), as in room 04.
 #
-# Why the pit needs pogo: the farthest non-pogo route found (a ground dash-jump, its air jump,
-# the air dash and the Ember Toss, searched over every tick that matters) ends 672 u into the
-# tunnel, 2336 u short of its far end (tests/replay/zone1/03_control_no_pogo.fixture).
+# Two routes, one hall to start. West door at the foot of the hall (x 0), floor 672 u.
+#
+# THE MAIN ROUTE (the door to the east door): a short patch of 3 spikes (tiles 9 to 11; a hop over
+# it, or one down-strike on it, is the safe first encounter: a hazard only sends Ash back to the
+# hall's floor), then the hall's edge (x 576 u) and an OPEN pit 2496 u wide (78 tiles) with spikes
+# along its floor and nothing above it for 320 u or more, where the longest bounce rises 131 u and
+# a bounce with its air jump 257 u (the upper level's floor is the only roof, 288 u over the hall's
+# floor). The entry lines itself up: the pit's first 14 tiles (448 u) are 128 u deep, so a run off
+# the edge falls about 17 frames to the spikes and the down-strike has a 10-frame window (pressed 4
+# to 13 frames before the spikes touch; 03_main_route_early at 12 and 03_main_route_late at 4); the
+# spike line then rises to 64 u below the floor, and its last 4 tiles to 32 u, so the last bounce
+# has a lip to land past. The pocket is 14 tiles for the dash: room 02 teaches the ground dash just
+# before this room, and a ground dash carries Ash 20 u/f for 9 ticks and then 10 u/f over the
+# 17-tick fall, so a dash from the edge lands at x 918 u. A pocket of 8 tiles ended in a step at
+# x 832 u and no press from a dash 96 to 116 u before the edge missed its spikes (review F1);
+# every ground dash from 176 u before the edge to the edge has at least 8 bounce timings
+# (03_main_dash_entry; the unit test sweeps the starts). A chain
+# at the natural pace is 8 bounces, one every 36 frames (333 u at the run speed, 1.6 a second,
+# about 5 seconds): zone1_03_main_route. Every bounce lands where the spikes are, whatever the phase
+# of the run-up (checked from six start points and three press times); a missed bounce costs a
+# heart and the run back from where Ash last stood (03_main_control_missed_bounce).
+# Why 2496 u: with open air above, the width is the only thing that can stop a route without the
+# pogo. tools/replay/gap_reach.gd on test/longpit (this pit with no far side) finds the strongest
+# such route: a ground dash-jump, the air jump, the air dash and the Ember Toss reach 2432 u past
+# the edge at the floor's height (03_main_control_no_pogo_toss falls at x 3018 u, 54 u short of the
+# far wall); without the Toss 2243 u (03_main_control_no_pogo falls at x 2856 u); a carried jump
+# 1333 u, a running jump 1201 u. A crossing needs more than the width less half the body (10 u), so
+# 2496 u leaves the strongest route 54 u short; a shorter pit would be crossed by it.
+# The width is sized against the roof: on test/longchasm, the same drop with open air above, the
+# strongest route reaches 2505 u (ADR-0017), and the upper level's floor 288 u over the hall costs
+# it about 73 u (2432 u on test/longpit). Opening the roof (a skylight, a well, a lower floor)
+# would let that route cross a 2496 u pit (a crossing needs more than 2486 u), so the pit has to
+# be widened with it; the unit test holds the roof row solid over every pit column. That fixes
+# the length of the chain, not its pace: 8 bounces at the run speed, fewer at a dash-jump's.
+#
+# THE OPTIONAL PATH (the 10-bounce chain at 4 a second, s15): above the hall, a ladder of three
+# one-way platforms in a 96 u well (tiles 5 to 7; tops 576, 480 and 384 u; the upper level's floor
+# is 320 u) leads to the upper level: a hall, then the low tunnel (94 tiles, 3008 u, x 576 to 3584
+# u) with spikes on its whole floor and its ceiling 64 u above them, then a low hall with the
+# reward (a Lantern-tier Votive at x 4160 u) past a 3-tile shaft that is the way back: it drops 352
+# u to the main east hall, beside the east door (03_optional_way_back). It is also a way in: a jump,
+# the air jump and an up air dash lift the feet 404 u, so the whole kit climbs it (ADR-0016: the
+# room teaches, it does not gate). The ladder stands 320 u
+# and more west of the pit's edge, so no platform is a launch pad for the main pit. Missing the
+# chain costs only a hazard (back to the upper hall's floor); nothing is behind it that the main
+# route needs. zone1_03_optional_ladder_chain plays the ladder and then the whole chain without a
+# pause (the exit at x 399 u, a dash at 435 u, the tenth arc landing 242 u past the tunnel's end).
+# The tunnel is the old room's, moved up 11 tiles (fixtures: spawn y 608 became 320):
+# the player (44 u) can rise 20 u above the spikes and no more, so a jump, a dash-jump or the air
+# jump cannot arc over them, and a bounce (794 u/s) rises to the ceiling and falls back in 13
+# frames.
+# Why the tunnel needs pogo: the farthest non-pogo route found (a ground dash-jump, its air jump, the
+# air dash and the Ember Toss, searched over every tick that matters) ends 672 u into the tunnel,
+# 2336 u short of its far end (tests/replay/zone1/03_control_no_pogo.fixture).
 # Why the tunnel is 3008 u (the s15 line, ADR-0019 Decision 5): 20 u/f is the most speed Ash has
 # (the dash-jump's, kept by every bounce), so a bounce every 15 frames, 4 a second, carries 300 u
 # a bounce. The first bounce lands at x 771 u. Ten bounces at 4 a second reach x 3471 u and the
@@ -31,49 +77,44 @@
 # plus its air jump (dash 44, jump 49, air jump 61) land the first bounce on frame 72 at x 1027.5
 # u, 256 u farther in than the route's 771.5, and nine bounces at 4 a second then cross, the
 # ninth arc landing at x about 3745 u (zone1_03_route_slow_opener; eight fall in).
-# The line counts bounces at 4 a second, so the room asks ten of a chain whose links are all 15
-# frames from a first bounce on the dash-jump's own arc (frame 57), not of every chain: a
+# The line counts bounces at 4 a second, so the optional path asks ten of a chain whose links are
+# all 15 frames from a first bounce on the dash-jump's own arc (frame 57), not of every chain: a
 # player who slows one link, the first or the last, buys 220 to 256 u with it. Geometry cannot
 # forbid that without taking the air jump or the air dash away (a pit long enough to need ten after
 # the slow opening, 3170 to 3195 u, leaves the route 25 u of slack).
 room zone1/03_pogo_chain
-size 128 34
-spawn 96 608
+size 132 28
+spawn 96 672
 tiles
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-#.................##############################################################################################...............#
-..................##############################################################################################................
-................................................................................................................................
-................................................................................................................................
-.....^^^..........^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^................
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
-################################################################################################################################
+####################################################################################################################################
+#.................##################################################################################################################
+#.................##################################################################################################################
+#.................##################################################################################################################
+#.................##################################################################################################################
+#.................##################################################################################################################
+#.................##################################################################################################################
+#...................................................................................................................................
+#...................................................................................................................................
+#.................^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^....................
+#####...#####################################################################################################################...####
+#####...#####################################################################################################################...####
+#....===............................................................................................................................
+#...................................................................................................................................
+#...................................................................................................................................
+#....===............................................................................................................................
+#...................................................................................................................................
+....................................................................................................................................
+.....===............................................................................................................................
+....................................................................................................................................
+.........^^^........................................................................................................................
+##################..............................................................................SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################..........................................................................^^^^SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################..............^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^####SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################..............################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+##################^^^^^^^^^^^^^^################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+################################################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+################################################################################################SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 end
-door west left 480 608 zone1/02_dash_jump east
-door east right 480 608 zone1/04_pogo_dash_reset west
+door west left 544 672 zone1/02_dash_jump east
+door east right 544 672 zone1/04_pogo_dash_reset west
+entity votive 4160 320 tier=lantern
