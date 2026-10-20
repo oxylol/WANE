@@ -24,27 +24,27 @@ tiles
 ############################################################....################
 ############################################################....################
 end
-entity dummy 300 544 patrol=1 facing=1
-entity dummy 340 544 patrol=1 facing=-1
-entity dummy 420 544 patrol=1 attack=1 period=37 facing=1
+entity dummy 300 544 facing=1 patrol=1
+entity dummy 340 544 facing=-1 patrol=1
+entity dummy 420 544 attack=1 facing=1 patrol=1 period=37
 entity dummy 520 544 attack=1 period=29
 entity dummy 560 544 attack=1 period=41 red=1
 entity dummy 600 544 attack=1 period=33 trigger=160
 entity dummy 700 544
-entity dummy 760 544 hp=40 poise=20 light=1
-entity dummy 900 512 patrol=1 facing=1
-entity dummy 1000 512 patrol=1 fall=1 facing=1
-entity dummy 1100 512 patrol=1 attack=1 period=50 facing=-1
-entity dummy 1400 352 patrol=1 facing=1
-entity dummy 1460 352 patrol=1 fall=1 facing=-1
-entity dummy 1700 544 patrol=1 facing=1
-entity dummy 1800 544 patrol=1 fall=1 facing=1
-entity dummy 1900 544 patrol=1 facing=1 solid=1
+entity dummy 760 544 hp=40 light=1 poise=20
+entity dummy 900 512 facing=1 patrol=1
+entity dummy 1000 512 facing=1 fall=1 patrol=1
+entity dummy 1100 512 attack=1 facing=-1 patrol=1 period=50
+entity dummy 1400 352 facing=1 patrol=1
+entity dummy 1460 352 facing=-1 fall=1 patrol=1
+entity dummy 1700 544 facing=1 patrol=1
+entity dummy 1800 544 facing=1 fall=1 patrol=1
+entity dummy 1900 544 facing=1 patrol=1 solid=1
 entity dummy 1960 544 solid=1
-entity dummy 2050 544 patrol=1 attack=1 period=44 facing=-1 solid=1
-entity dummy 2150 544 patrol=1 facing=-1
-entity dummy 2200 544 patrol=1 facing=1 hp=30
-entity dummy 2400 544 patrol=1 facing=-1
-entity dummy 2000 544 patrol=1 facing=1
-entity dummy 200 544 patrol=1 facing=1
-entity dummy 240 544 patrol=1 facing=1
+entity dummy 2050 544 attack=1 facing=-1 patrol=1 period=44 solid=1
+entity dummy 2150 544 facing=-1 patrol=1
+entity dummy 2200 544 facing=1 hp=30 patrol=1
+entity dummy 2400 544 facing=-1 patrol=1
+entity dummy 2000 544 facing=1 patrol=1
+entity dummy 200 544 facing=1 patrol=1
+entity dummy 240 544 facing=1 patrol=1
