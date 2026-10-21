@@ -6,13 +6,26 @@ extends GdUnitTestSuite
 ## Ticks the corner-correction test steps past a fixture's end, the stick let go.
 const TAIL_TICKS: int = 30
 
-## Legibility floors for the grey-box box colours (review F1, F2): the least colour distance
-## between two kinds, the least brightness gap to a box's wall, to the hazards' red, and of a mark
-## to its bell.
+## Legibility floors for the grey-box colours (review F1, F2), held unlit (the room editor) and lit
+## as the game draws them (second art review I2; BUILD.md section 10: judge it lit, at Dusk and at
+## Pitch): the least colour distance between two box kinds, the least brightness a box stands above
+## its wall and a wall above the air, the least distance of a bell's mark from the hazards' red,
+## the least brightness of a mark above its bell, and of a pogo-able surface's light above a wall
+## where the ember does not reach at Pitch.
 const MIN_KIND_GAP: float = 0.18
 const MIN_WALL_LUMA_GAP: float = 0.12
+const MIN_AIR_LUMA_GAP: float = 0.12
 const MIN_HAZARD_GAP: float = 0.5
 const MIN_MARK_LUMA_GAP: float = 0.3
+const MIN_GLOW_LUMA_GAP: float = 0.3
+## Where a box is judged lit, in shares of the ember's reach from it: Dusk out of its reach (the
+## ambient alone, which is also what lights a solid's face inside its own shadow, all but a skin
+## turned to the ember: docs/adr/0023) and at half of it; Pitch at a fifth of it, where the ember
+## reaches a face in its pool (BUILD.md section 10: "At Pitch, ambient is 0.15 and the world is
+## the ember").
+const DUSK_FAR: float = 1.0
+const DUSK_NEAR: float = 0.5
+const PITCH_NEAR: float = 0.2
 
 
 ## The boot scene, instanced and added to the tree.
@@ -323,33 +336,104 @@ func test_each_solid_box_kind_draws_its_own_colour() -> void:
 
 
 func test_box_kinds_read_apart_from_each_other_and_from_hazards_and_walls() -> void:
-	# Legibility, not just distinctness (review F1, F2): no box kind is a near twin of another or of
-	# its wall, and a bell's strike mark is nothing like the spikes' or the pit's red.
-	var look: FeedbackTuning = load(FeedbackTuning.PATH) as FeedbackTuning
+	# Legibility, not just distinctness (review F1, F2), as the player sees it (second art review
+	# I2): no box kind is a near twin of another, every box stands above its wall and every wall
+	# above the air, unlit (the room editor) and in each light the game is judged in.
+	var look: FeedbackTuning = RoomView.look()
+	var view: RoomView = auto_free(RoomView.new())
+	add_child(view)
+	# The boxes keep their hue in the light (their colour says what they do); the tiles and the air
+	# take the light's colour.
+	assert_bool(_keeps_hue(view.get_node("Solids") as CanvasItem)).is_true()
+	assert_bool(_keeps_hue(view)).is_false()
+	assert_bool(_keeps_hue(view.get_node("Backdrop") as CanvasItem)).is_false()
+	var knee: float = (load(LightingTuning.PATH) as LightingTuning).shoulder_knee
 	var kinds: Array[Color] = [
 		look.box_solid_colour, look.box_smooth_colour, look.box_wax_colour, look.box_pogo_colour
 	]
-	for i: int in range(kinds.size()):
-		for j: int in range(i + 1, kinds.size()):
-			assert_float(_colour_gap(kinds[i], kinds[j])).is_greater_equal(MIN_KIND_GAP)
-	# A box beside its wall is told from it by brightness (the walls are the tiles' own colours).
-	var plain_gap: float = absf(
-		look.box_solid_colour.get_luminance() - RoomView.SOLID.get_luminance()
-	)
-	var smooth_gap: float = absf(
-		look.box_smooth_colour.get_luminance() - RoomView.SMOOTH.get_luminance()
-	)
-	assert_float(plain_gap).is_greater_equal(MIN_WALL_LUMA_GAP)
-	assert_float(smooth_gap).is_greater_equal(MIN_WALL_LUMA_GAP)
-	# The strike mark is not in the hazards' red family, and stands out from the bell's body.
+	var lights: Array[Color] = [
+		Color(1.0, 1.0, 1.0),
+		_light_at(LightWord.DUSK_LEVEL, DUSK_FAR),
+		_light_at(LightWord.DUSK_LEVEL, DUSK_NEAR),
+		_light_at(LightWord.PITCH_LEVEL, PITCH_NEAR),
+	]
+	for light: Color in lights:
+		var why: String = "in light %s" % light
+		var lit: Array[Color] = []
+		for k: Color in kinds:
+			lit.append(_lit(k, light, true))
+			# Under the post pass's shoulder, so the screen shows the gaps as computed here.
+			assert_float(lit[-1].get_luminance()).override_failure_message(why).is_less(knee)
+		for i: int in range(lit.size()):
+			for j: int in range(i + 1, lit.size()):
+				(
+					assert_float(_colour_gap(lit[i], lit[j]))
+					. override_failure_message("kinds %d and %d %s" % [i, j, why])
+					. is_greater_equal(MIN_KIND_GAP)
+				)
+		var wall: float = _lit(look.tile_solid_colour, light, false).get_luminance()
+		var smooth: float = _lit(look.tile_smooth_colour, light, false).get_luminance()
+		var air: float = _lit(look.tile_air_colour, light, false).get_luminance()
+		assert_float(lit[0].get_luminance() - wall).override_failure_message(why).is_greater_equal(
+			MIN_WALL_LUMA_GAP
+		)
+		(
+			assert_float(lit[1].get_luminance() - smooth)
+			. override_failure_message(why)
+			. is_greater_equal(MIN_WALL_LUMA_GAP)
+		)
+		assert_float(wall - air).override_failure_message(why).is_greater_equal(MIN_AIR_LUMA_GAP)
+		assert_float(smooth - air).override_failure_message(why).is_greater_equal(MIN_AIR_LUMA_GAP)
+
+
+func test_a_bell_mark_reads_as_a_strike_and_not_as_a_hazard() -> void:
+	# A bell's strike mark is nothing like the spikes' or the pit's red, unlit or as light, and
+	# stands out from the bell's body (review F1, F2).
+	var look: FeedbackTuning = RoomView.look()
 	var mark: Color = look.box_pogo_mark_colour
-	assert_float(_colour_gap(mark, RoomView.SPIKES)).is_greater_equal(MIN_HAZARD_GAP)
-	assert_float(_colour_gap(mark, RoomView.PIT_LIP)).is_greater_equal(MIN_HAZARD_GAP)
+	assert_float(_colour_gap(mark, look.tile_spikes_colour)).is_greater_equal(MIN_HAZARD_GAP)
+	assert_float(_colour_gap(mark, look.tile_pit_lip_colour)).is_greater_equal(MIN_HAZARD_GAP)
+	var given: Color = RoomView.glow_colour(mark)
+	var teeth: Color = RoomView.glow_colour(look.tile_spikes_colour)
+	assert_float(_colour_gap(given, teeth)).is_greater_equal(MIN_HAZARD_GAP)
 	assert_float(mark.get_luminance() - look.box_pogo_colour.get_luminance()).is_greater_equal(
 		MIN_MARK_LUMA_GAP
 	)
 	# Thick enough to read at the screenshot scale: a quarter of a 32 u tile at least.
 	assert_float(look.box_mark_u).is_greater_equal(float(TileGrid.TILE) / 4.0)
+
+
+func test_pogo_able_surfaces_give_off_light_and_read_at_pitch_beyond_the_ember() -> void:
+	# BUILD.md section 10, Lighting: "pogo-able surfaces are emissive"; section 5: "Pogo-able
+	# things glow" (second art review I3). A bell's strike mark and the spikes' teeth are drawn as
+	# light, so at Pitch, where the ember does not reach, they stand clear of the walls.
+	var look: FeedbackTuning = RoomView.look()
+	var view: RoomView = auto_free(RoomView.new())
+	add_child(view)
+	for layer: String in ["TileGlow", "BoxGlow"]:
+		var m: ShaderMaterial = (view.get_node(layer) as CanvasItem).material as ShaderMaterial
+		assert_str(m.shader.resource_path).is_equal(LightSurfaces.EMISSIVE_SHADER)
+	assert_bool(RoomView.glows(TileGrid.SPIKES)).is_true()
+	for tile: int in [TileGrid.EMPTY, TileGrid.SOLID, TileGrid.SMOOTH, TileGrid.ONE_WAY]:
+		assert_bool(RoomView.glows(tile)).is_false()
+	# A pit is a hazard with nothing in it to pogo off: it does not glow.
+	assert_bool(RoomView.glows(TileGrid.PIT)).is_false()
+	var r := Rect2(0, 0, 32, 64)
+	for tag: String in ["", "wax", "pogo"]:
+		for cling: bool in [true, false]:
+			var s := SolidBox.new()
+			s.tag = tag
+			s.clingable = cling
+			var fills: Array[RoomView.BoxFill] = RoomView.box_fills(s, r)
+			for k: int in range(fills.size()):
+				# Only a bell's mark (its second fill) is light; its body and side strips are lit.
+				assert_bool(fills[k].glow).is_equal(tag == "pogo" and k == 1)
+	var lighting: LightingTuning = load(LightingTuning.PATH) as LightingTuning
+	var dark: Color = _light_at(LightWord.PITCH_LEVEL, DUSK_FAR)
+	var wall: float = _lit(look.tile_solid_colour, dark, false).get_luminance()
+	for surface: Color in [look.box_pogo_mark_colour, look.tile_spikes_colour]:
+		var given: float = RoomView.glow_colour(surface).get_luminance() * lighting.emissive_boost
+		assert_float(given - wall).is_greater_equal(MIN_GLOW_LUMA_GAP)
 
 
 func test_a_wax_or_bell_box_that_cannot_be_clung_to_shows_it() -> void:
@@ -376,3 +460,47 @@ func test_a_wax_or_bell_box_that_cannot_be_clung_to_shows_it() -> void:
 
 func _colour_gap(a: Color, b: Color) -> float:
 	return Vector3(a.r - b.r, a.g - b.g, a.b - b.b).length()
+
+
+## The light on a flat surface [param share] of the ember's reach from it, the Dark held at Wane
+## Clock level [param level]: the ambient times the Dark plus the ember, from the lighting pass's
+## own table at tick 0, through the shader's formula (light_common.gdshaderinc wane_radiance, which
+## tools/lighting/gpu_check.gd holds the GPU to), unshadowed.
+func _light_at(level: float, share: float) -> Color:
+	var field: LightField = auto_free(LightField.new())
+	field.freeze(0, field.tuning.dark_factor(level))
+	field.present(0, 0.0, Vector2.ZERO)
+	var at := Vector2(field.tuning.ember_radius_u * share, 0.0)
+	var amb: Color = field.globals["wane_ambient"]
+	var rgb := Vector3(amb.r, amb.g, amb.b)
+	for i: int in range(field.lights_in_table):
+		var pos := Vector2(_cell(field, 0, i, 0), _cell(field, 0, i, 1))
+		var reach: float = _cell(field, 0, i, 2)
+		var d: float = pos.distance_to(at)
+		if d >= reach:
+			continue
+		var atten: float = pow(1.0 - d / reach, _cell(field, 2, i, 0))
+		var to_light := Vector3(pos.x - at.x, pos.y - at.y, _cell(field, 0, i, 3)).normalized()
+		var flat: float = field.tuning.flat_share
+		var share_lit: float = flat + (1.0 - flat) * maxf(to_light.z, 0.0)
+		var col := Vector3(_cell(field, 1, i, 0), _cell(field, 1, i, 1), _cell(field, 1, i, 2))
+		rgb += col * (atten * share_lit)
+	return Color(rgb.x, rgb.y, rgb.z)
+
+
+func _cell(field: LightField, row: int, col: int, k: int) -> float:
+	return field.table[(row * LightField.TABLE_COLUMNS + col) * 4 + k]
+
+
+## [param colour] lit by [param light] as lit_flat.gdshader lights it: tinted by it, or, for a
+## surface that keeps its hue, brightened or darkened by its luma.
+func _lit(colour: Color, light: Color, keep_hue: bool) -> Color:
+	if keep_hue:
+		var l: float = light.get_luminance()
+		return Color(colour.r * l, colour.g * l, colour.b * l)
+	return Color(colour.r * light.r, colour.g * light.g, colour.b * light.b)
+
+
+func _keeps_hue(item: CanvasItem) -> bool:
+	var keep: Variant = (item.material as ShaderMaterial).get_shader_parameter("keep_hue")
+	return keep == true

@@ -19,7 +19,8 @@ const ROOM_ARG: String = "--room="
 const VOTIVE_ARG: String = "--votive="
 ## The lighting pass is always on (docs/adr/0023). `-- --lighting=pitch` holds the Dark at Pitch
 ## (the ember and its shadows, ambient 0.15) and `--lighting=dusk` at Dusk, the default; the Wane
-## Clock will drive it in play.
+## Clock will drive it in play. Any other word is reported and the game starts at Dusk: "off" is
+## the frame bench's baseline ([member lighting_word]), not a way to play.
 const LIGHTING_ARG: String = "--lighting="
 ## `--lighting-profile=pc|deck|min` picks the shadow buffer's scale (BUILD.md section 12: the
 ## lighting pass at 0.75x on the Deck and Switch 2, 0.5x on the minimum PC).
@@ -150,12 +151,35 @@ func _process(_delta: float) -> void:
 	debug_overlay.refresh()
 
 
+## The lighting word on command line [param args] (the last `--lighting=<word>`, in lower case), or
+## "" when none is given.
+static func lighting_arg(args: PackedStringArray) -> String:
+	var word: String = ""
+	for arg: String in args:
+		if arg.begins_with(LIGHTING_ARG):
+			word = arg.trim_prefix(LIGHTING_ARG).to_lower()
+	return word
+
+
+## What is wrong with command-line lighting word [param word], or "" if nothing is: the command
+## line holds the Dark at a [LightWord] (pitch or dusk) or says nothing.
+static func lighting_arg_problem(word: String) -> String:
+	if word == "" or LightWord.is_word(word):
+		return ""
+	return (
+		"%s%s is not a lighting word (%s or %s); starting at Dusk"
+		% [LIGHTING_ARG, word, LightWord.PITCH, LightWord.DUSK]
+	)
+
+
 func _start_lighting() -> void:
 	var word: String = lighting_word
 	if word == "":
-		for arg: String in OS.get_cmdline_user_args():
-			if arg.begins_with(LIGHTING_ARG):
-				word = arg.trim_prefix(LIGHTING_ARG)
+		word = lighting_arg(OS.get_cmdline_user_args())
+		var problem: String = lighting_arg_problem(word)
+		if problem != "":
+			printerr(problem)
+			word = LightWord.DUSK
 	if word == LightWord.OFF:
 		return
 	var profile: int = lighting_profile

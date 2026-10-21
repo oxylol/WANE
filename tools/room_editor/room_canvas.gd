@@ -483,16 +483,18 @@ func _door_rect(d: RoomData.Door, with_passage: bool = false) -> Rect2:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), RoomView.BEYOND)
+	# The game's colours (RoomView), shown as they are: the game lights them.
+	var look: FeedbackTuning = RoomView.look()
+	draw_rect(Rect2(Vector2.ZERO, size), look.tile_beyond_colour)
 	if document == null:
 		return
 	var grid: TileGrid = document.room.grid
 	var t: float = float(TileGrid.TILE)
 	draw_set_transform(origin, 0.0, Vector2(zoom, zoom))
-	draw_rect(Rect2(Vector2.ZERO, _room_size_u()), RoomView.PASSAGE)
+	draw_rect(Rect2(Vector2.ZERO, _room_size_u()), look.tile_air_colour)
 	for d: RoomData.Door in document.room.doors:
 		var passage: Rect2 = _door_rect(d, true)
-		draw_rect(passage, RoomView.PASSAGE)
+		draw_rect(passage, look.tile_passage_colour)
 	for j: int in range(grid.height):
 		for i: int in range(grid.width):
 			RoomView.draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)

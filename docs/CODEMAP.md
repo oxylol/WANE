@@ -31,7 +31,7 @@ Entries read `path symbol`: grep the file for the symbol; `tools/ci/test_codemap
 - Films: `tools/replay/film.gd _initialize` (the game's own views, F3 on); `tools/replay/play.gd _initialize` (headless).
 - Camera: `game/camera/camera_rig.gd step` (per tick), `game/camera/game_camera.gd show_at` (between ticks).
 - Feedback: `game/feedback/hit_feedback.gd on_tick` reads SimEvents; sparks via `game/vfx/vfx_budget.gd spawn` and `claim_screen`, sounds via `game/audio/voices.gd play`.
-- Lighting (`-- --lighting=pitch|dusk|off`): `game/lighting/light_field.gd present`, `prebuild`; `ci/lighting.sh`. Frame bench `tools/bench/frame_bench.gd _run`; doors `tools/bench/door_bench.gd _finish`.
+- Lighting (`-- --lighting=pitch|dusk`): `game/lighting/light_field.gd present`, `prebuild`; `ci/lighting.sh`. Frame bench `tools/bench/frame_bench.gd _run`; doors `tools/bench/door_bench.gd _finish`.
 - F3: `game/debug/debug_overlay.gd toggle`; `game/debug/debug_controls.gd handle_key` (F3 overlay, F4 pause, F5 one tick, F6 ten).
 
 ## Fixture language (spec: `tests/replay/README.md`, ADR-0006)
@@ -53,7 +53,7 @@ A condition is `key op value`; keys from `core/sim/simulation.gd probe`: player 
 - All: `ci/test.sh` (must print `ALL STAGES PASSED`). Stages: `compile` (scripts, core purity), `content` (.tres validate, .room parse), `fixtures` (expectations, replay round trip, goldens), `unit` (gdUnit4).
 - One fixture, no golden check: `godot --headless --path . --script tools/replay/check.gd -- tests/replay/movement/jump_tap.fixture`; probe table: `tools/replay/trace.gd -- <fixture> state x y`.
 - Bless: `godot --headless --path . --script tools/replay/bless.gd`; it refuses a changed hash unless `Simulation.VERSION` (`core/sim/simulation.gd`) is bumped; commit `tests/replay/golden_hashes.txt`.
-- Grey-box colours: tiles are `game/rooms/room_view.gd RoomView` consts, boxes by tag `content/feedback.tres` `box_*`. Room PNG: `tools/replay/room_shot.gd` (display).
+- Grey-box colours: `content/feedback.tres` `tile_*`, `box_*`, drawn lit by `game/rooms/room_view.gd RoomView`. Lit room PNG: `tools/replay/room_shot.gd` (display).
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd` (the stage runs 4 processes, `UNIT_PROCESSES=1` for one); raw failures: `python3 tools/ci/unit_failures.py`.
 - Timing: each run logs to reports/timings.jsonl (git-ignored); `python3 tools/ci/timing_report.py` names the slowest and regressions.
