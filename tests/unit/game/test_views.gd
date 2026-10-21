@@ -19,8 +19,10 @@ const MIN_HAZARD_GAP: float = 0.5
 const MIN_MARK_LUMA_GAP: float = 0.3
 const MIN_GLOW_LUMA_GAP: float = 0.3
 ## Where a box is judged lit, in shares of the ember's reach from it: Dusk out of its reach (the
-## ambient alone) and at half of it; Pitch at a fifth of it, inside the ember's pool (BUILD.md
-## section 10: "At Pitch, ambient is 0.15 and the world is the ember").
+## ambient alone, which is also what lights a solid's face inside its own shadow, all but a skin
+## turned to the ember: docs/adr/0023) and at half of it; Pitch at a fifth of it, where the ember
+## reaches a face in its pool (BUILD.md section 10: "At Pitch, ambient is 0.15 and the world is
+## the ember").
 const DUSK_FAR: float = 1.0
 const DUSK_NEAR: float = 0.5
 const PITCH_NEAR: float = 0.2

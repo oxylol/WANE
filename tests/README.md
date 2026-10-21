@@ -5,9 +5,12 @@
 | `unit/` | gdUnit4 suites for the core and tools, run in up to four processes at once (below) | `tools/ci/run_tests.gd --stage unit` |
 | `replay/` | Replay fixtures: an input script and the expected state at named frames (BUILD.md section 13) | `tools/ci/run_tests.gd --stage fixtures` |
 | `perf/` | The stress room (200 dummies, 150 walking, 39-proc Votive set) and its 3840-tick run, timed against `content/perf/budget.tres` (docs/adr/0020) | `ci/perf.sh` |
-| `screenshot/` | Screenshot regression (Phase 2) | |
+| `screenshot/` | Render tests of the ink and gouache shaders and of what the three-size review draws, and the lit test room `rooms/lit_test.room` (docs/adr/0023 Decisions 5, 6); the screenshot regression suite is Phase 2 task 3 | `ci/render.sh` (needs a display: xvfb) |
+| `art/` | The art build's test prop (`src/candle_stump/`) and its build output (`build/`), never shipped | `python3 tools/ci/test_artbuild.py`, `python3 tools/artbuild/build.py --check`; its lit review in `ci/lighting.sh` |
+| `votives/` | Test-only Votives (the stress sets, a chain spark, a coin, a tally), never content | the unit and perf stages |
+| `support/` | Helpers the suites share (physics kits and random worlds, camera runs, shaft jumps, the art rig and the ink probes) | |
 
-Run everything: `ci/test.sh` (or `godot --headless --path . --script tools/ci/run_tests.gd`).
+Run everything headless: `ci/test.sh` (or `godot --headless --path . --script tools/ci/run_tests.gd`). The display-bound checks are separate: `ci/render.sh` (the shaders) and `ci/lighting.sh` (the lighting pass against its CPU twin, and the review of the test prop).
 
 ## The unit stage runs in several processes
 

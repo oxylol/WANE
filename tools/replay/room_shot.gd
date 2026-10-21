@@ -41,6 +41,9 @@ func _shoot() -> void:
 		return
 	var window := Rect2(float(w[1]), float(w[2]), float(w[3]), float(w[4]))
 	var zoom: float = WIDTH / window.size.x
+	# One pixel of the picture is one pixel of the view: the project's stretch to its 1080p base
+	# would shrink the window by the picture's height.
+	root.content_scale_mode = Window.CONTENT_SCALE_MODE_DISABLED
 	root.size = Vector2i(WIDTH, ceili(window.size.y * zoom))
 	# The window through the view's own transform, as a camera would place it, so the lighting pass
 	# sees the room in world units (its distance field and the shadow buffer are placed by it).
