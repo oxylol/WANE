@@ -1,0 +1,23 @@
+[gd_resource type="Resource" format=3]
+
+[resource]
+resource_name = "crawler palette"
+metadata/palette = {
+"materials": {
+"shell": {"lit": "#6b5b4f", "shadow": "#2b2321", "rim": "#ffb070", "gloss": 0.35},
+"limb": {"lit": "#4d413a", "shadow": "#1d1715", "rim": "#ff9a50", "gloss": 0.1},
+"bone": {"lit": "#d9cdb0", "shadow": "#6c5f52", "rim": "#ffe0b0", "gloss": 0.5},
+"eye": {"lit": "#fff0cc", "shadow": "#ffc486", "rim": "#ffffff", "gloss": 0.0, "emissive": "#ffd890", "emissive_strength": 1.0}
+},
+"parts": {
+"leg_far_back": "limb",
+"leg_far_front": "limb",
+"carapace": "shell",
+"spines": "bone",
+"head": "shell",
+"jaw": "bone",
+"eye": "eye",
+"leg_near_back": "limb",
+"leg_near_front": "limb"
+}
+}

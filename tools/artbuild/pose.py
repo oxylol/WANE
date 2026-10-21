@@ -18,11 +18,15 @@ decomposition about the part's pivot: the rotation angle, the stretch and the pi
 interpolated) until no vertex moves more than SMEAR_STEP_U between neighbours, so a few keys sweep
 a continuous ribbon and not a fan of copies. Actions keep the order of the file. A source without a pose file
 is one action, `idle`, of one frame.
+
+The reader is strict, because frame timing is the animation spec (CLAUDE.md rule 5): an unknown key
+(`tiks`) is an error and not a default, `key` and `loop` are booleans, `fps` (1 to 60) and `ticks` (1 or
+more) are integers, an affine is six finite numbers whose determinant is not 0, and the file may hold
+no NaN, no Infinity and no key twice (strict_json).
 """
 
 from __future__ import annotations
 
-import json
 import math
 import re
 from dataclasses import dataclass, field
@@ -31,10 +35,17 @@ from pathlib import Path
 import numpy as np
 
 from . import geometry as geo
+from . import strict_json
 from .svg import PartLibrary
 
 DEFAULT_FPS = 24
 DEFAULT_TICKS = 3
+FPS_RANGE = (1, 60)
+# An affine entry is in u (a scale, a sine, a translation): this is the far side of any page.
+MAX_AFFINE = 1.0e5
+POSE_KEYS = frozenset({"version", "actions"})
+ACTION_KEYS = frozenset({"fps", "loop", "frames"})
+FRAME_KEYS = frozenset({"key", "ticks", "parts", "smear"})
 SMEAR_STEP_U = 0.5  # the farthest any vertex may jump between two sub-poses of a smear
 SMEAR_MAX_STEPS = 64
 
@@ -80,9 +91,38 @@ class Posed:
 
 
 def _affine(v, where: str) -> geo.Affine:
-    if not isinstance(v, list) or len(v) != 6 or not all(isinstance(x, (int, float)) for x in v):
+    if (
+        not isinstance(v, list)
+        or len(v) != 6
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+    ):
         raise PoseError(f"{where}: an affine is six numbers [a, b, c, d, e, f]")
-    return (float(v[0]), float(v[1]), float(v[2]), float(v[3]), float(v[4]), float(v[5]))
+    if not all(math.isfinite(x) and abs(x) <= MAX_AFFINE for x in v):
+        raise PoseError(f"{where}: an affine holds finite numbers of at most {MAX_AFFINE:g}")
+    m = (float(v[0]), float(v[1]), float(v[2]), float(v[3]), float(v[4]), float(v[5]))
+    if geo.determinant(m) == 0.0:
+        raise PoseError(f"{where}: the affine collapses the part to a line or a point (determinant 0)")
+    return m
+
+
+def _object(v, what: str, where: str) -> dict:
+    if not isinstance(v, dict):
+        raise PoseError(f"{where}: {what} must be an object")
+    return v
+
+
+def _known(d: dict, allowed: frozenset[str], where: str) -> None:
+    """A key nothing reads is a typo that would silently build with the default (`tiks`)."""
+    for key in d:
+        if key not in allowed:
+            raise PoseError(f"{where}: unknown key {key!r} (known: {', '.join(sorted(allowed))})")
+
+
+def _flag(d: dict, key: str, default: bool, where: str) -> bool:
+    v = d.get(key, default)
+    if not isinstance(v, bool):
+        raise PoseError(f"{where}: {key} must be true or false")
+    return v
 
 
 def default_actions() -> list[ActionSpec]:
@@ -92,14 +132,13 @@ def default_actions() -> list[ActionSpec]:
 def load(path: Path | None, lib: PartLibrary) -> list[ActionSpec]:
     if path is None or not path.exists():
         return default_actions()
-    try:
-        doc = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as e:
-        raise PoseError(f"{path.name}: {e}") from e
+    doc = strict_json.loads(path.read_text(encoding="utf-8"), PoseError, path.name)
     return parse(doc, lib, path.name)
 
 
 def parse(doc: dict, lib: PartLibrary, name: str = "pose.json") -> list[ActionSpec]:
+    _object(doc, "the document", name)
+    _known(doc, POSE_KEYS, name)
     if doc.get("version") != 1:
         raise PoseError(f"{name}: version must be 1")
     ids = {p.id for p in lib.parts}
@@ -111,32 +150,37 @@ def parse(doc: dict, lib: PartLibrary, name: str = "pose.json") -> list[ActionSp
         where = f"{name}: action {aname!r}"
         if not re.fullmatch(r"[a-z][a-z0-9_]*", aname):
             raise PoseError(f"{where}: names are lower-case letters, digits and underscores")
+        _object(a, "an action", where)
+        _known(a, ACTION_KEYS, where)
         fps = a.get("fps", DEFAULT_FPS)
-        if not isinstance(fps, int) or not 1 <= fps <= 60:
-            raise PoseError(f"{where}: fps must be an integer 1 to 60")
+        if isinstance(fps, bool) or not isinstance(fps, int) or not FPS_RANGE[0] <= fps <= FPS_RANGE[1]:
+            raise PoseError(f"{where}: fps must be an integer {FPS_RANGE[0]} to {FPS_RANGE[1]}")
+        loop = _flag(a, "loop", True, where)
         frames = []
         raw_frames = a.get("frames")
         if not isinstance(raw_frames, list) or not raw_frames:
             raise PoseError(f"{where}: needs frames")
         for k, fr in enumerate(raw_frames):
             fwhere = f"{where} frame {k}"
+            _object(fr, "a frame", fwhere)
+            _known(fr, FRAME_KEYS, fwhere)
             ticks = fr.get("ticks", DEFAULT_TICKS)
-            if not isinstance(ticks, int) or ticks < 1:
+            if isinstance(ticks, bool) or not isinstance(ticks, int) or ticks < 1:
                 raise PoseError(f"{fwhere}: ticks must be an integer of at least 1")
             parts = {}
-            for pid, m in fr.get("parts", {}).items():
+            for pid, m in _object(fr.get("parts", {}), "parts", fwhere).items():
                 if pid not in ids:
                     raise PoseError(f"{fwhere}: no part {pid!r}")
                 parts[pid] = _affine(m, f"{fwhere} part {pid}")
             smear = {}
-            for pid, arc in fr.get("smear", {}).items():
+            for pid, arc in _object(fr.get("smear", {}), "smear", fwhere).items():
                 if pid not in ids:
                     raise PoseError(f"{fwhere}: no part {pid!r} to smear")
                 if not isinstance(arc, list) or not arc:
                     raise PoseError(f"{fwhere}: smear {pid!r} wants a list of affines")
                 smear[pid] = [_affine(m, f"{fwhere} smear {pid}") for m in arc]
-            frames.append(FrameSpec(bool(fr.get("key", False)), ticks, parts, smear))
-        actions.append(ActionSpec(aname, fps, bool(a.get("loop", True)), frames))
+            frames.append(FrameSpec(_flag(fr, "key", False, fwhere), ticks, parts, smear))
+        actions.append(ActionSpec(aname, fps, loop, frames))
     return actions
 
 
@@ -205,7 +249,11 @@ def pose_frame(lib: PartLibrary, spec: FrameSpec) -> Posed:
             arcs = sweep(arcs, np.concatenate(part.polys), part.pivot)
         for i, m in enumerate(arcs):
             age = i / (len(arcs) - 1) if len(arcs) > 1 else 1.0
-            pieces.append(Piece(k, [geo.clean(geo.apply(m, p)) for p in part.polys], age))
+            try:
+                polys = [geo.clean(geo.apply(m, p)) for p in part.polys]
+            except ValueError as e:  # a pose so small that every vertex lands on one point
+                raise PoseError(f"part {part.id!r}: its pose collapses it to a point ({e})") from e
+            pieces.append(Piece(k, polys, age))
         if "smear" in part.tags:
             smear_flags[part.id] = part.id in spec.smear
         if "blade" in part.tags:

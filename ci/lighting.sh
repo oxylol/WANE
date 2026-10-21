@@ -75,6 +75,20 @@ if not sum(near) > 1.5 * sum(far):
     )
 print("review: sil64, dusk1x, pitch1x and the contact sheets drawn; the flame lights its wall")
 PY
+# The wide test crawler (tests/art/src/crawler, review 2): its 64 px silhouette is whole (not cut to a
+# white bar) and its eye is lit as an eye, a tiny point light, not as a campfire.
+wide="$(mktemp -d)"
+trap 'rm -f "$log"; rm -rf "$out" "$wide"' EXIT
+timeout "${LIGHTING_TIME_LIMIT:-300}" xvfb-run -a -s "-screen 0 1920x1080x24" "$godot" --path . \
+	--rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 \
+	--script tools/artbuild/review.gd -- crawler --root res://tests/art/build --out "$wide" \
+	> "$log" 2>&1 || status=$?
+if grep -E "SHADER ERROR|SCRIPT ERROR|Parse Error|Compile Error" "$log" > /dev/null; then
+	grep -E "SHADER ERROR|SCRIPT ERROR|Parse Error|Compile Error" "$log" >&2
+	echo "lighting: shader or script errors in the review of the crawler" >&2
+	exit 1
+fi
+python3 tools/artbuild/review_check.py "$wide" tests/art/build/crawler/crawler.sheet.json
 if [ "$status" -ne 0 ]; then
 	echo "lighting: review FAILED (exit $status)" >&2
 	exit 1

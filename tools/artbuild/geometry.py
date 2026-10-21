@@ -125,6 +125,7 @@ def parse_path(d: str, tol: float = FLAT_TOL_U) -> list[list[tuple[float, float]
     cur = (0.0, 0.0)
     start = cur
     cmd = ""
+    started = False
     i = 0
     counts = {"M": 2, "L": 2, "H": 1, "V": 1, "C": 6, "Q": 4}
     while i < len(toks):
@@ -140,6 +141,9 @@ def parse_path(d: str, tol: float = FLAT_TOL_U) -> list[list[tuple[float, float]
                 continue
         if not cmd:
             raise ValueError("path data must start with a command")
+        if not started and cmd not in "Mm":
+            raise ValueError("path data must start with a moveto (M or m)")
+        started = True
         rel = cmd.islower()
         c = cmd.upper()
         need = counts[c]
@@ -148,6 +152,8 @@ def parse_path(d: str, tol: float = FLAT_TOL_U) -> list[list[tuple[float, float]
             raise ValueError(f"path command {cmd} wants {need} numbers")
         i += need
         ox, oy = cur if rel else (0.0, 0.0)
+        if c != "M" and not pts:
+            pts = [cur]  # after a Z the next subpath starts at the closed one's start (SVG 8.3.3)
         if c == "M":
             if pts:
                 polys.append(pts)
@@ -168,15 +174,11 @@ def parse_path(d: str, tol: float = FLAT_TOL_U) -> list[list[tuple[float, float]
             p1 = (v[0] + ox, v[1] + oy)
             p2 = (v[2] + ox, v[3] + oy)
             p3 = (v[4] + ox, v[5] + oy)
-            if not pts:
-                pts = [cur]
             pts.extend(_cubic(cur, p1, p2, p3, tol))
             cur = p3
         else:
             p1 = (v[0] + ox, v[1] + oy)
             p2 = (v[2] + ox, v[3] + oy)
-            if not pts:
-                pts = [cur]
             pts.extend(_quad(cur, p1, p2, tol))
             cur = p2
     if pts:

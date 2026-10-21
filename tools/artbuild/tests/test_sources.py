@@ -59,6 +59,61 @@ class Palette(unittest.TestCase):
         shared = {f"p{k}": f"m{k % 15}" for k in range(16)}
         palette.parse(pal_text({"materials": mats, "parts": shared}), lib)  # 15 materials: fine
 
+    def test_wrong_types_are_messages_not_tracebacks(self) -> None:
+        part_of = {"a": "m", "b": "m"}
+        cases = {
+            "'materials' and 'parts' dictionaries": {"materials": [], "parts": part_of},
+            "material 'm' must be a dictionary": {"materials": {"m": 5}, "parts": part_of},
+            "names a material by its string": {"materials": {"m": MAT}, "parts": {"a": 5, "b": "m"}},
+            "'variants' must be a dictionary": {"materials": {"m": MAT}, "parts": part_of, "variants": []},
+            "variant 'v' must be a dictionary": {"materials": {"m": MAT}, "parts": part_of, "variants": {"v": []}},
+            "overrides material 'm' with a dictionary": {"materials": {"m": MAT}, "parts": part_of,
+                                                          "variants": {"v": {"m": 5}}},
+            "must be 0 to 1": {"materials": {"m": {**MAT, "gloss": True}}, "parts": part_of},
+            "emissive_strength but no emissive colour": {"materials": {"m": {**MAT, "emissive_strength": 0.5}},
+                                                          "parts": part_of},
+        }
+        for needle, doc in cases.items():
+            with self.assertRaises(palette.PaletteError, msg=needle) as cm:
+                palette.parse(pal_text(doc), LIB)
+            self.assertIn(needle, str(cm.exception))
+        # The dictionary is read as strictly as a pose: no NaN, no key twice.
+        for text, needle in (
+            ('metadata/palette = {"materials": {"m": {"lit": "#ffffff", "shadow": "#000000", "rim": "#000000", '
+             '"gloss": NaN}}, "parts": {"a": "m", "b": "m"}}', "NaN"),
+            ('metadata/palette = {"materials": {"m": {"lit": "#ffffff", "lit": "#000000", "shadow": "#000000", '
+             '"rim": "#000000"}}, "parts": {"a": "m", "b": "m"}}', "given twice"),
+        ):
+            with self.assertRaises(palette.PaletteError, msg=needle) as cm:
+                palette.parse(text, LIB)
+            self.assertIn(needle, str(cm.exception))
+
+    def test_an_emissive_part_needs_a_material_that_glows(self) -> None:
+        """A part tagged `emissive` whose material has no emissive colour (or strength 0) is drawn
+        with no ink and no glow: it vanishes while sheet.json still reports a lit region."""
+        glow = svg.parse(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
+            '<rect id="a" data-z="0" x="0" y="0" width="8" height="8"/>'
+            '<rect id="b" data-z="1" x="8" y="0" width="8" height="8" data-tags="eye emissive"/></svg>'
+        )
+        parts = {"a": "m", "b": "e"}
+        lit = {**MAT, "emissive": "#ffc486"}
+        palette.parse(pal_text({"materials": {"m": MAT, "e": lit}, "parts": parts}), glow)
+        faint = {**lit, "emissive_strength": 0.05}
+        palette.parse(pal_text({"materials": {"m": MAT, "e": faint}, "parts": parts}), glow)
+        off = {**lit, "emissive_strength": 0}
+        for mat, needle in ((MAT, "has no emissive colour"), (off, "emissive_strength above 0")):
+            with self.assertRaises(palette.PaletteError, msg=needle) as cm:
+                palette.parse(pal_text({"materials": {"m": MAT, "e": mat}, "parts": parts}), glow)
+            self.assertIn(needle, str(cm.exception))
+            self.assertIn("'b'", str(cm.exception))
+            self.assertIn("'e'", str(cm.exception))
+        # A variant may switch a glow off (closed eyes): only the base material is held to it.
+        closed = {"closed": {"e": {"emissive_strength": 0}}}
+        palette.parse(pal_text({"materials": {"m": MAT, "e": lit}, "parts": parts, "variants": closed}), glow)
+        # A material shared with a part that does not glow is fine.
+        palette.parse(pal_text({"materials": {"e": lit}, "parts": {"a": "e", "b": "e"}}), glow)
+
     def test_the_dictionary_may_contain_braces_in_strings(self) -> None:
         doc = {"materials": {"m": MAT}, "parts": {"a": "m", "b": "m"}, "note": "a } brace"}
         palette.parse(pal_text(doc), LIB)
@@ -102,6 +157,89 @@ class Poses(unittest.TestCase):
         bad(lambda d: d["actions"]["run"].update(frames=[]), "needs frames")
         bad(lambda d: d["actions"].update({"Bad Name": d["actions"]["run"]}), "lower-case")
         bad(lambda d: d["actions"]["run"]["frames"][1]["smear"].update(b=[]), "list of affines")
+
+    def _bad(self, mutate, needle: str) -> None:
+        doc = json.loads(json.dumps(self.DOC))
+        mutate(doc)
+        with self.assertRaises(pose.PoseError, msg=needle) as cm:
+            pose.parse(doc, LIB)
+        self.assertIn(needle, str(cm.exception))
+
+    def test_a_typo_is_an_error_not_a_default(self) -> None:
+        """Frame timing is the animation spec (CLAUDE.md rule 5): `tiks` must not build as 3 ticks."""
+        frame = lambda d: d["actions"]["run"]["frames"][0]  # noqa: E731
+        self._bad(lambda d: frame(d).update(tiks=5), "unknown key 'tiks'")
+        self._bad(lambda d: d["actions"]["run"].update(loops=False), "unknown key 'loops'")
+        self._bad(lambda d: d.update(action={}), "unknown key 'action'")
+        self._bad(lambda d: frame(d).update(part={}), "unknown key 'part'")
+
+    def test_every_field_has_its_type(self) -> None:
+        frame = lambda d: d["actions"]["run"]["frames"][0]  # noqa: E731
+        self._bad(lambda d: frame(d).update(key="false"), "key must be true or false")
+        self._bad(lambda d: frame(d).update(key=1), "key must be true or false")
+        self._bad(lambda d: d["actions"]["run"].update(loop="no"), "loop must be true or false")
+        self._bad(lambda d: d["actions"]["run"].update(fps=True), "fps")
+        self._bad(lambda d: d["actions"]["run"].update(fps=24.0), "fps")
+        self._bad(lambda d: frame(d).update(ticks=True), "ticks")
+        self._bad(lambda d: frame(d).update(ticks=2.5), "ticks")
+        self._bad(lambda d: frame(d).update(parts=[]), "parts must be an object")
+        self._bad(lambda d: frame(d).update(smear=[]), "smear must be an object")
+        self._bad(lambda d: d["actions"].update(run=[]), "must be an object")
+        self._bad(lambda d: d["actions"]["run"].update(frames=[5]), "must be an object")
+        self._bad(lambda d: d["actions"]["run"].update(frames="x"), "needs frames")
+        self._bad(lambda d: d.update(actions=[]), "actions object")
+        with self.assertRaises(pose.PoseError):
+            pose.parse([], LIB)
+
+    def test_fps_and_ticks_have_their_bounds(self) -> None:
+        for fps in (1, 60):
+            doc = json.loads(json.dumps(self.DOC))
+            doc["actions"]["run"]["fps"] = fps
+            pose.parse(doc, LIB)
+        for fps in (0, 61, 6000, -1):
+            self._bad(lambda d, f=fps: d["actions"]["run"].update(fps=f), "fps must be an integer 1 to 60")
+        doc = json.loads(json.dumps(self.DOC))
+        doc["actions"]["run"]["frames"][0]["ticks"] = 1
+        pose.parse(doc, LIB)
+        self._bad(lambda d: d["actions"]["run"]["frames"][0].update(ticks=0), "ticks")
+
+    def test_an_affine_is_six_finite_numbers_that_keep_the_part(self) -> None:
+        def put(m):
+            return lambda d: d["actions"]["run"]["frames"][0]["parts"].update(a=m)
+
+        for bad in ([float("nan")] * 6, [float("inf"), 0, 0, 1, 0, 0], [1, 0, 0, 1, float("-inf"), 0]):
+            self._bad(put(bad), "finite")
+        self._bad(put([1, 0, 0, 1, 1e9, 0]), "finite")  # off the page by a million cells
+        self._bad(put([True, 0, 0, 1, 0, 0]), "six numbers")
+        self._bad(put(["1", 0, 0, 1, 0, 0]), "six numbers")
+        self._bad(put([0, 0, 0, 0, 5, 5]), "collapses")  # scale 0: a polygon of one point
+        self._bad(put([1, 2, 2, 4, 0, 0]), "collapses")  # det 0: a line
+        arc = lambda d: d["actions"]["run"]["frames"][1]["smear"].update(b=[[float("nan")] * 6])  # noqa: E731
+        self._bad(arc, "finite")
+
+    def test_the_file_may_not_hold_nan_or_a_key_twice(self) -> None:
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "pose.json"
+            for text, needle in (
+                ('{"version": 1, "actions": {"a": {"frames": [{"parts": {"a": [NaN, 0, 0, 1, 0, 0]}}]}}}', "NaN"),
+                ('{"version": 1, "actions": {"a": {"frames": [{"parts": {"a": [Infinity, 0, 0, 1, 0, 0]}}]}}}', "Infinity"),
+                ('{"version": 1, "actions": {"a": {"fps": 12, "fps": 24, "frames": [{}]}}}', "given twice"),
+                ('{"version": 1, "actions": ', "not valid JSON"),
+            ):
+                path.write_text(text, encoding="utf-8")
+                with self.assertRaises(pose.PoseError, msg=text) as cm:
+                    pose.load(path, LIB)
+                self.assertIn(needle, str(cm.exception))
+
+    def test_a_pose_that_collapses_a_part_names_it(self) -> None:
+        """A near-singular affine passes the parse and flattens a polygon to a point."""
+        spec = pose.FrameSpec(True, 3, {"a": (1e-300, 0.0, 0.0, 1e-300, 5.0, 5.0)})
+        with self.assertRaises(pose.PoseError) as cm:
+            pose.pose_frame(LIB, spec)
+        self.assertIn("'a'", str(cm.exception))
 
     def test_between_two_rotations_about_the_pivot_is_the_rotation_between(self) -> None:
         m0, m1 = geo.rotation_about(-20, 44, 39.6), geo.rotation_about(20, 44, 39.6)

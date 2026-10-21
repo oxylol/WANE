@@ -18,6 +18,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SHADER = ROOT / "shaders" / "ink" / "ink_common.gdshaderinc"
 CHANNELS = ROOT / "tools" / "artbuild" / "channels.py"
+NOISE = ROOT / "tools" / "artbuild" / "noise.py"
 
 # shader constant -> (channels.py name, the ADR's value)
 PAIRS = {
@@ -53,6 +54,17 @@ def channels_constants() -> dict:
     return out
 
 
+def noise_constants() -> dict:
+    """SIZE and CELLS of tools/artbuild/noise.py, read as literals (the module is not imported, so
+    this test needs no numpy)."""
+    out = {}
+    for node in ast.parse(NOISE.read_text()).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            if node.targets[0].id in ("SIZE", "CELLS"):
+                out[node.targets[0].id] = ast.literal_eval(node.value)
+    return out
+
+
 class InkLayout(unittest.TestCase):
     def test_the_shader_decodes_the_adrs_layout(self):
         consts = shader_constants()
@@ -71,6 +83,20 @@ class InkLayout(unittest.TestCase):
         for shader_name, (their_name, _) in PAIRS.items():
             self.assertIn(their_name, theirs, f"channels.py must define {their_name}")
             self.assertEqual(float(theirs[their_name]), consts[shader_name], shader_name)
+
+    def test_the_noise_cell_counts_are_the_shaders(self):
+        """ADR-0023 Decision 1.7: the cell counts are part of the interface, because the shaders
+        turn a wavelength in u into texture coordinates with them. noise.py's counts and the
+        shader's constants must be the same numbers, whichever side moves."""
+        theirs = noise_constants()
+        consts = shader_constants()
+        cells = theirs["CELLS"]
+        self.assertEqual(consts["INK_NOISE_PX"], float(theirs["SIZE"]))
+        self.assertEqual((consts["INK_WOBBLE1_CELLS"],), tuple(float(c) for c in cells["wobble1"]))
+        self.assertEqual((consts["INK_WOBBLE2_CELLS"],), tuple(float(c) for c in cells["wobble2"]))
+        # The brush tile is the span of the brush noise in u: its coarsest cell is 1 u.
+        self.assertEqual(consts["INK_BRUSH_TILE_U"] / float(min(cells["brush"])), 1.0)
+        self.assertEqual(sorted(cells), ["brush", "grain", "wobble1", "wobble2"])
 
 
 if __name__ == "__main__":

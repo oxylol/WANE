@@ -67,6 +67,26 @@ class Flattening(unittest.TestCase):
 
     def test_two_subpaths_make_two_polygons(self) -> None:
         self.assertEqual(len(geo.parse_path("M0 0 L4 0 L4 4 Z M10 10 L14 10 L14 14 Z")), 2)
+        # A Z followed by a moveto leaves no one-point subpath behind.
+        self.assertEqual([len(p) for p in geo.parse_path("M0 0 L4 0 L4 4 Z M10 10 L14 10 L14 14 Z")], [3, 3])
+
+    def test_a_drawing_command_after_z_starts_at_the_closed_subpaths_start(self) -> None:
+        """SVG 1.1 8.3.3: after a closepath the current point is the subpath's initial point, and a
+        command that is not a moveto starts a new subpath there (docs/review: L, H and V lost it)."""
+        want = [[(10.0, 10.0), (30.0, 10.0), (30.0, 30.0)],
+                [(10.0, 10.0), (10.0, 30.0), (10.0, 50.0), (40.0, 50.0)]]
+        self.assertEqual(geo.parse_path("M10 10 L30 10 L30 30 Z L10 30 L10 50 L40 50 Z"), want)
+        (a, b) = geo.parse_path("M10 10 h20 v20 z h-5 v20 l30 0 z")
+        self.assertEqual(b[0], (10.0, 10.0))
+        self.assertEqual(b[1:3], [(5.0, 10.0), (5.0, 30.0)])
+        # C and Q already seeded from the current point; they must still.
+        (_, c) = geo.parse_path("M0 0 L8 0 L8 8 Z C2 2 4 4 0 8 L0 0")
+        self.assertEqual(c[0], (0.0, 0.0))
+
+    def test_path_data_must_begin_with_a_moveto(self) -> None:
+        for d in ("L5 5 L9 0 Z", "H4 V4 Z", "5 5 L9 0 L0 9 Z"):
+            with self.assertRaises(ValueError, msg=d):
+                geo.parse_path(d)
 
 
 class Moments(unittest.TestCase):

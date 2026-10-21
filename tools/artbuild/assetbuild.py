@@ -56,10 +56,12 @@ def load_source(src_dir: Path) -> Source:
     return Source(src_dir.name, lib, pal, actions, h.hexdigest())
 
 
-def tool_hash() -> str:
-    """Hash of the build's own code: a cache entry is only valid for the code that made it."""
+def tool_hash(code_dir: Path | None = None) -> str:
+    """Hash of the build's own code (every .py file of the package, or of `code_dir`): a cache
+    entry is only valid for the code that made it, so editing channels.py or pose.py must change
+    this (ADR-0023 Decision 1.8)."""
     h = hashlib.sha256(TOOL_VERSION.encode())
-    for f in sorted(Path(__file__).parent.glob("*.py")):
+    for f in sorted((code_dir or Path(__file__).parent).glob("*.py")):
         h.update(f.name.encode() + b"\0" + f.read_bytes())
     return h.hexdigest()
 
@@ -150,7 +152,10 @@ def build_asset(
     name = src.name
     scales = SHIPPED_SCALES + (MASTER_SCALES if masters else ())
     cells = action_cells(src)
-    slots, sizes = pack.layout([(c, len(a.frames)) for c, a in zip(cells, src.actions)])
+    try:
+        slots, sizes = pack.layout([(c, len(a.frames)) for c, a in zip(cells, src.actions)])
+    except ValueError as e:  # a pose that throws a part off the page
+        raise pose.PoseError(f"{name}: {e}") from e
     th = tool_hash()
     tasks = [
         Task(src, ai, fi, cells[ai], scales, str(cache_dir) if cache_dir else None,
@@ -202,7 +207,7 @@ def build_asset(
         np.ascontiguousarray(pal_img)
     )
     files[f"{name}.sheet.json"] = (
-        json.dumps(sheet_json(src, cells, sizes, frames_meta, versions), indent=1) + "\n"
+        json.dumps(sheet_json(src, cells, sizes, frames_meta, versions), indent=1, allow_nan=False) + "\n"
     ).encode()
     return files
 

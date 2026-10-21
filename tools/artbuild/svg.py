@@ -30,6 +30,9 @@ NORMAL_PROFILES = ("bulge", "flat", "crease")
 DEFAULT_BEVEL_U = 8.0
 MAX_BEVEL_U = 16.0
 DEFAULT_TILT_DEG = 62.0
+# A part's vertices lie within this many u of the origin: the far side of the largest page (a cell
+# is at most 4096 px at 2x, so 2048 u), twice over.
+MAX_COORD_U = 4096.0
 SHAPES = ("path", "circle", "ellipse", "rect", "polygon")
 CONTAINERS = ("svg", "g")
 DOCUMENTATION = ("title", "desc")
@@ -106,6 +109,14 @@ def _num(attrs: dict[str, str], key: str, where: str) -> float:
     return v
 
 
+def _attr_float(attrs: dict[str, str], key: str, default: float, where: str) -> float:
+    try:
+        v = float(attrs.get(key, default))
+    except ValueError as e:
+        raise SvgError(f"{where}: {key}={attrs[key]!r} is not a number") from e
+    return v
+
+
 def parse(text: str, name: str = "parts.svg") -> PartLibrary:
     try:
         root = ET.fromstring(text)
@@ -156,7 +167,10 @@ def _walk(el: ET.Element, xf: geo.Affine, out: list[Part], name: str, is_root: b
             for key in child.attrib:
                 if key not in ("id", "transform"):
                     raise SvgError(f"{where}: group attribute {key!r} is not allowed (only id, transform)")
-            t = geo.parse_transform(child.attrib["transform"]) if "transform" in child.attrib else geo.IDENTITY
+            try:
+                t = geo.parse_transform(child.attrib["transform"]) if "transform" in child.attrib else geo.IDENTITY
+            except ValueError as e:
+                raise SvgError(f"{where}: {e}") from e
             _walk(child, geo.multiply(xf, t), out, name, False)
             continue
         if tag not in SHAPES:
@@ -190,8 +204,8 @@ def _leaf(el: ET.Element, tag: str, xf: geo.Affine, where: str) -> Part:
     for t in tags:
         if t not in TAGS:
             raise SvgError(f"{where}: unknown tag {t!r} (allowed: {', '.join(TAGS)})")
-    bevel = float(attrs.get("data-bevel-u", DEFAULT_BEVEL_U))
-    tilt = float(attrs.get("data-tilt-deg", DEFAULT_TILT_DEG))
+    bevel = _attr_float(attrs, "data-bevel-u", DEFAULT_BEVEL_U, where)
+    tilt = _attr_float(attrs, "data-tilt-deg", DEFAULT_TILT_DEG, where)
     if not 0.25 <= bevel <= MAX_BEVEL_U:
         raise SvgError(f"{where}: data-bevel-u must be 0.25 to {MAX_BEVEL_U:g} (the normal band)")
     if not 0.0 <= tilt <= 89.0:
@@ -234,8 +248,11 @@ def _leaf(el: ET.Element, tag: str, xf: geo.Affine, where: str) -> Part:
             raise SvgError(f"{where}: {e}") from e
     polys: list[np.ndarray] = []
     for p in raw:
+        placed = geo.apply(xf, np.array(p, dtype=np.float64))
+        if not np.isfinite(placed).all() or np.abs(placed).max() > MAX_COORD_U:
+            raise SvgError(f"{where}: a vertex lies beyond {MAX_COORD_U:g} u of the origin (or is not finite)")
         try:
-            polys.append(geo.clean(geo.apply(xf, np.array(p, dtype=np.float64))))
+            polys.append(geo.clean(placed))
         except ValueError as e:
             raise SvgError(f"{where}: {e}") from e
     if not polys:
