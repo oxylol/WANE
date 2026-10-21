@@ -524,6 +524,7 @@ class Cli(unittest.TestCase):
             ("pose.json", "0.92, 0.0, 0.18", "NaN, 0.0, 0.18", "NaN"),
             ("pose.json", "0.92, 0.0, 0.18, 1.08, 0.04, -1.248", "0, 0, 0, 0, 1, 1", "collapses"),
             ("pose.json", "0.92, 0.0, 0.18, 1.08, 0.04, -1.248", "0.92, 0.0, 0.18, 1.08, 0.04, 1e9", "finite"),
+            ("pose.json", "0.92, 0.0, 0.18, 1.08, 0.04, -1.248", "1, 0, 0, 1, 50000, 0", "does not fit"),
             ("parts.svg", 'data-bevel-u="4"', 'data-bevel-u="abc"', "is not a number"),
             ("palette.tres", '"soot": {', '"soot": 5, "unused": {', "must be a dictionary"),
             ("palette.tres", flame + '"emissive": "#ffbe78", "emissive_strength": 1.0}', flame.rstrip(", ") + "}",

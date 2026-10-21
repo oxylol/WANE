@@ -16,8 +16,8 @@ No tunable number moved (rule 6): every limit below is a validation bound of the
 | `sil64.png` of the test crawler | 96 x 96, one white bar on both edges | 213 x 96, whole |
 | light of an `emissive eye` region in the review | `fire` (160 u, 1800 K, flickering) | `eye` (24 u, steady) |
 | `review.sh` exit status on a failed review | 0 | the review's own (2, 1, 0) |
-| art unit tests | 98 | 144 |
-| one-line mutants of the Python build caught | 3 of 9 | see Tests |
+| art unit tests (`tools/ci/test_artbuild.py`) | 98 | 134 |
+| the reviewer's one-line mutants of the Python build caught | 3 of 9 | 9 of 9 (the six survivors are killed) |
 
 ## Why: each finding, the measurement and the picture
 
@@ -37,11 +37,31 @@ No tunable number moved (rule 6): every limit below is a validation bound of the
 
 **T9, `review.sh` always exited 0.** `... | grep -v ... || true` swallowed the script's status. Now `review.sh candle_stump --root res://nowhere` exits 2 and `review.sh` with no argument exits 2 with a usage line.
 
-**T10, stale documents.** The README said bevel default 3 (it is 8, max 16, since ADR-0026), "byte for byte", "about 45 s" (64 s measured with the machine loaded) and that `.uid` fails `--check` is tolerated; `tests/art/README.md` and ADR-0023 1.1 and 1.8 say what the code does; the review 2 addendum in ADR-0023 records the decisions.
+**T10, stale documents.** The README said bevel default 3 (it is 8, max 16, since ADR-0026), "byte for byte" (a PNG is compared by its pixels), "about 45 s" (64 to 69 s measured with the machine loaded) and that a `.uid` is tolerated in an out root; it, `tests/art/README.md`, the `build.py` docstring and ADR-0023 1.1 and 1.8 now say what the code does, and the review 2 addendum in ADR-0023 records the decisions.
 
 ## Tests that pin it (each mutated and caught)
 
-Mutants are one line of `tools/artbuild/*.py` changed in a private copy of the tree, with the outputs rebuilt first where the line feeds them, then `tools/ci/test_artbuild.py` and `tools/ci/test_ink_layout.py` run (`MUTANTS_TABLE`).
+Mutants are one line of `tools/artbuild/*.py` changed in a private copy of the tree, with the outputs rebuilt first where the line feeds them, then `tools/ci/test_artbuild.py` (134 tests, 64 to 69 s with the machine loaded) and `tools/ci/test_ink_layout.py` (3) run. A mutant is killed when either fails. All 21 were killed; the six marked R are the reviewer's survivors.
+
+| Mutant (one line) | Killed by |
+| --- | --- |
+| R: `noise.py` wobble1 cells 16 to 8 | `test_the_noise_cell_counts_are_the_shaders` (reads `noise.py` as literals, compares the shader's `INK_WOBBLE1_CELLS`, `INK_WOBBLE2_CELLS`, `INK_NOISE_PX`, `INK_BRUSH_TILE_U`) |
+| R: `MAX_BEVEL_U` 16 to 1600; tilt lower bound 0 to -90 | `test_the_bevel_and_tilt_ranges_have_both_ends` |
+| R: fps upper bound 60 to 6000 | `test_fps_and_ticks_have_their_bounds` |
+| R: the `--check` toolchain gate off | `test_check_needs_the_pinned_toolchain_and_a_build_only_warns` |
+| R: `tool_hash` ignores the package's code | `test_editing_any_module_of_the_package_changes_the_hash` and one more |
+| `check_root` stops scanning the out root | three `CheckMode` tests (copied folder, deleted source, picture at the out root) |
+| `check_root` stops flagging manifest lines of an asset with no source | `test_a_deleted_source_leaves_nothing_unflagged` |
+| `manifest.same` allows any chunk | `test_a_chunk_added_by_hand_fails_but_another_deflate_stream_does_not` |
+| the master pattern becomes `.*@4x.*`; any `.import` tolerated | `test_only_a_real_master_or_the_import_of_a_known_file_is_tolerated` |
+| unknown pose keys ignored; a NaN affine allowed; `key` truthy | `test_a_typo_is_an_error_not_a_default`, `test_an_affine_is_six_finite_numbers_that_keep_the_part`, `test_every_field_has_its_type`, and the `Cli` source-error test |
+| the emissive check off | `test_an_emissive_part_needs_a_material_that_glows` |
+| `parse_path` after Z as before | `test_a_drawing_command_after_z_starts_at_the_closed_subpaths_start`, `test_every_syntax_fills_what_cairosvg_fills` |
+| duplicate keys allowed; NaN a number in the schema | `test_the_file_may_not_hold_nan_or_a_key_twice`, `test_json_has_no_nan_and_neither_has_a_sheet` |
+| a bad group transform escapes as `ValueError`; the coordinate bound off | `test_a_number_that_is_not_one_is_a_message`, `test_a_part_off_the_page_is_rejected` |
+| `SMEAR_STEP_U` 0.5 to 4 | three smear tests (killed before this change too) |
+
+What the GPU tests hold: `ci/lighting.sh` fails the first review's pictures of the crawler (a clipped silhouette on its edge, the wall above the eye at 52.3 against a limit of 35), measured with `tools/artbuild/review_check.py`, whose own tests (`test_review_check.py`, 8) draw synthetic pictures for each failure. `ci/render.sh`: 30 and 27 checks, 0 failed. `ci/lighting.sh`: passed, 72 s with the machine loaded.
 
 ## Critique of the new pictures (against BUILD.md section 10)
 

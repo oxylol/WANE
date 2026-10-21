@@ -16,6 +16,10 @@ a strength 0 to 1. Every part names a material. Parts that share a material shar
 the value in parts.png's R channel (slots 1 to 15, 0 is none). Variants override fields of
 materials by name; "base" is always variant 0. Palette rows: lit, shadow, rim, emissive (alpha =
 strength), four rows per variant, sixteen columns.
+
+A part tagged `emissive` needs a material with an emissive colour and a strength above 0 (a variant
+may set the strength to 0: closed eyes), and a strength needs a colour. Every wrong type, and a NaN
+or a key given twice, is a PaletteError naming the file, never a traceback.
 """
 
 from __future__ import annotations

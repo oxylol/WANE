@@ -2,7 +2,8 @@ extends SceneTree
 ## The three-size review of one built asset (docs/adr/0023 Decision 5; BUILD.md section 10,
 ## Pipeline, Review), drawn by the game's own shaders and lit by the lighting pass in the lit test
 ## room (tests/screenshot/rooms/lit_test.room):
-##   sil64.png      the silhouette at 64 px tall (shader mode 1: white on black)
+##   sil64.png      the silhouette at 64 px tall (shader mode 1: white on black), in a view of
+##                  96 px square or larger where a wide or deep frame needs it
 ##   dusk1x.png     1x (one texel per u, 1080p native) in the lit test room at Dusk, 640 x 360 u
 ##   pitch1x.png    the same at Pitch (ambient 0.15, the world is the ember)
 ##   detail4x.png   the 4x masters, camera zoom 4, at Dusk, 960 x 540 px
