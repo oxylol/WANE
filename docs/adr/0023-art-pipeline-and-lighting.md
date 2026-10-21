@@ -16,6 +16,7 @@
 - `ShadowTwin` (GDScript bake and march) matches the GPU buffer to a mean 0.0003, so the Clinger line becomes a headless test (see Decision 4.5).
 - `tools/artbuild/review.gd` under xvfb renders the 64 px silhouette, 1x Dusk and Pitch, the 4x detail and a contact sheet per action (Decision 5).
 - Determinism: integer-hash noise, pinned tools, a manifest check; two builds and two llvmpipe renders were byte-identical (see Decision 6).
+- ADR-0026 revises how the two values, the carrier, the line light, the smear and the ember's halo work (form lighting, glow); read it with Decisions 2 and 3.
 - Three parallel builders (artbuild, shaders, lighting) with fixed files and names; the Dark slope 0.53 waits on the director (Decisions 7, 3.5).
 
 ## Context

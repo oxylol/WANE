@@ -61,7 +61,19 @@ sil = Image.open(out / "sil64.png").convert("L")
 white = sum(1 for v in sil.tobytes() if v > 200)
 if not 200 < white < sil.width * sil.height // 2:
     sys.exit(f"lighting: sil64.png has {white} white pixels, not a figure on black")
-print("review: sil64, dusk1x, pitch1x and the contact sheets drawn")
+
+# A lit candle lights its surroundings (BUILD.md section 10, Lighting: fire is a light): at Pitch the
+# wall beside the flame is brighter than the wall 40 u further along, which the flame reaches less.
+# The review turns a prop's emissive region into a fire light; without it the flame is a sticker.
+pitch = Image.open(out / "pitch1x.png").convert("L")
+near = [pitch.getpixel((x, y)) for x in range(364, 370) for y in range(250, 262)]
+far = [pitch.getpixel((x, y)) for x in range(404, 410) for y in range(250, 262)]
+if not sum(near) > 1.5 * sum(far):
+    sys.exit(
+        f"lighting: the flame lights nothing at Pitch (beside it {sum(near) / len(near):.1f}, "
+        f"further along {sum(far) / len(far):.1f})"
+    )
+print("review: sil64, dusk1x, pitch1x and the contact sheets drawn; the flame lights its wall")
 PY
 if [ "$status" -ne 0 ]; then
 	echo "lighting: review FAILED (exit $status)" >&2
