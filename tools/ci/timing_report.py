@@ -434,7 +434,10 @@ def brief(entries: list[dict], run: str | None) -> str:
         verdict = "regression: " + "; ".join(texts) + more
     else:
         verdict = "no regression"
-    return f"timing: slowest {what} {shown}; {verdict}"
+    # What else was running when the run started: a regression on a busy machine is often not one.
+    loads = [r.latest.get("load") for r in rows if isinstance(r.latest.get("load"), (int, float))]
+    busy = f" (machine load {loads[0]:.1f} at the start)" if loads else ""
+    return f"timing: slowest {what} {shown}; {verdict}{busy}"
 
 
 def main(argv: list[str] | None = None) -> int:

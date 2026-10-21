@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Test of ci/native_cache.sh and the cache half of ci/setup_godot_cpp.sh: python3 tools/ci/test_native_cache.py
+"""Test of ci/native_cache.sh and the cache half of ci/setup_godot_cpp.sh.
+
+    python3 tools/ci/test_native_cache.py
 
 Where the shared native build cache lives, what keys it, how it is pruned, and that a worktree
 clones godot-cpp from the cache without the network (docs/adr/0021, "Shared build cache").

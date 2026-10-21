@@ -265,6 +265,14 @@ class Brief(unittest.TestCase):
 
     def test_no_regression_is_said(self) -> None:
         line = report.brief(history("a/test_a.gd", [5.0, 5.0, 5.0]), "r03")
+        self.assertEqual(
+            line,
+            "timing: slowest suites test_a.gd 5.00 s; no regression"
+            " (machine load 1.0 at the start)",
+        )
+
+    def test_a_log_that_does_not_know_the_load_leaves_it_out(self) -> None:
+        line = report.brief(history("a/test_a.gd", [5.0, 5.0], load=None), "r02")
         self.assertEqual(line, "timing: slowest suites test_a.gd 5.00 s; no regression")
 
     def test_more_than_three_regressions_are_counted(self) -> None:
