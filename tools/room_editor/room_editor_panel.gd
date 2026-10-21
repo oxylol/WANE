@@ -323,27 +323,28 @@ func _entity_inspector() -> VBoxContainer:
 static func _tile_icon(t: int) -> ImageTexture:
 	var n: int = 24
 	var img: Image = Image.create_empty(n, n, false, Image.FORMAT_RGBA8)
-	img.fill(Color(0.07, 0.07, 0.08))
-	var fill: Color = RoomView.SOLID
+	var look: FeedbackTuning = RoomView.look()
+	img.fill(look.tile_air_colour)
+	var fill: Color = look.tile_solid_colour
 	if t == TileGrid.SMOOTH:
-		fill = RoomView.SMOOTH
+		fill = look.tile_smooth_colour
 	if t == TileGrid.SOLID or t == TileGrid.SMOOTH:
 		img.fill(fill)
 	elif t == TileGrid.ONE_WAY:
-		img.fill_rect(Rect2i(0, 0, n, 3), RoomView.ONE_WAY)
+		img.fill_rect(Rect2i(0, 0, n, 3), look.tile_one_way_colour)
 	elif t == TileGrid.SPIKES:
 		for x: int in range(n):
 			var tooth: int = n / 3 - absi((x % 8) - 4) * 2 + 2
-			img.fill_rect(Rect2i(x, n - 1 - tooth, 1, tooth + 1), RoomView.SPIKES)
+			img.fill_rect(Rect2i(x, n - 1 - tooth, 1, tooth + 1), look.tile_spikes_colour)
 	elif t == TileGrid.PIT:
-		img.fill(RoomView.PIT)
-		img.fill_rect(Rect2i(0, 0, n, 2), RoomView.PIT_LIP)
+		img.fill(look.tile_pit_colour)
+		img.fill_rect(Rect2i(0, 0, n, 2), look.tile_pit_lip_colour)
 	elif TileGrid.is_slope(t):
 		var edges: Vector2i = TileGrid.slope_edge_heights(t)
 		for x: int in range(n):
 			var h: float = lerpf(float(edges.x), float(edges.y), (x + 0.5) / n) / TileGrid.TILE_SP
 			var rows: int = int(roundf(h * n))
-			img.fill_rect(Rect2i(x, n - rows, 1, rows), RoomView.SOLID)
+			img.fill_rect(Rect2i(x, n - rows, 1, rows), look.tile_solid_colour)
 	return ImageTexture.create_from_image(img)
 
 

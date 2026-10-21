@@ -1,27 +1,15 @@
 class_name RoomView
 extends Node2D
 ## The grey-box room: its tiles, its solid boxes and the solid beyond its edge, drawn from the
-## simulation's collision world. A placeholder until the tileset art (BUILD.md section 10); it
-## reads the core and never writes it.
+## simulation's collision world in the lighting pass (BUILD.md section 10, Lighting). A placeholder
+## until the tileset art (section 10); it reads the core and never writes it. Its colours are
+## content (`tile_*` and `box_*` in content/feedback.tres, CLAUDE.md rule 6).
 
-const SOLID := Color(0.30, 0.30, 0.34)
-const SMOOTH := Color(0.36, 0.33, 0.30)
-const ONE_WAY := Color(0.60, 0.60, 0.64)
-const SPIKES := Color(0.80, 0.30, 0.24)
-## A pit: darker than the solid beyond the room, with a red lip, so a drop reads as a hazard.
-const PIT := Color(0.06, 0.04, 0.05)
-const PIT_LIP := Color(0.55, 0.18, 0.15)
-const BEYOND := Color(0.20, 0.20, 0.23)
-## The wall behind the room's air (a stand-in for the lit parallax layers of the zone's art): the
-## ember lights it and the foreground's shadows fall across it, so the pass has depth to show.
-const BACKDROP := Color(0.26, 0.25, 0.29)
-## A door's way through the solid beyond the room: the room's own empty colour (the project's
-## clear colour), so an opening reads as a passage on to the next room (docs/adr/0014).
-const PASSAGE := Color(0.07, 0.07, 0.08)
 ## How far past the room's edge the solid is drawn: more than the camera's margin can reveal.
 const BEYOND_U: float = 8192.0
 
-## The tuning the tiles' and boxes' grey-box shapes come from, loaded once ([method _look]).
+## The tuning the tiles' and boxes' grey-box shapes and colours come from, loaded once
+## ([method look]).
 static var _look_cache: FeedbackTuning
 
 var world: CollisionWorld
@@ -29,23 +17,35 @@ var doors: Array[RoomData.Door] = []
 ## The solid boxes, redrawn every tick (a wax wall burns away).
 var _solids: Node2D
 var _backdrop: Node2D
+## What gives off light (pogo-able surfaces are emissive, BUILD.md section 10, Lighting): the
+## spikes' teeth, drawn once a room, and the bells' strike marks, redrawn with the boxes.
+var _tile_glow: Node2D
+var _box_glow: Node2D
 
 
 func _ready() -> void:
 	# Lit grey boxes until the tileset art: the tiles take a bevel normal from the room's distance
-	# field so the ember rakes across their edges, the solid boxes are flat (game/lighting).
+	# field so the ember rakes across their edges, the air behind the room is flat, and the solid
+	# boxes are flat and keep their hue, because their colour says what they do (the ember's
+	# 2400 K would make the smooth box's tan and the wax's amber one colour). game/lighting.
 	LightSurfaces.make_lit(self, true)
-	_backdrop = Node2D.new()
-	_backdrop.name = "Backdrop"
+	_backdrop = _layer("Backdrop", _draw_backdrop)
 	_backdrop.show_behind_parent = true
 	LightSurfaces.make_lit(_backdrop, false)
-	add_child(_backdrop)
-	_backdrop.draw.connect(_draw_backdrop)
-	_solids = Node2D.new()
-	_solids.name = "Solids"
-	LightSurfaces.make_lit(_solids, false)
-	add_child(_solids)
-	_solids.draw.connect(_draw_solids)
+	_solids = _layer("Solids", _draw_solids)
+	LightSurfaces.make_lit(_solids, false, true)
+	_tile_glow = _layer("TileGlow", _draw_tile_glow)
+	LightSurfaces.make_emissive(_tile_glow)
+	_box_glow = _layer("BoxGlow", _draw_box_glow)
+	LightSurfaces.make_emissive(_box_glow)
+
+
+func _layer(layer_name: String, drawer: Callable) -> Node2D:
+	var n := Node2D.new()
+	n.name = layer_name
+	add_child(n)
+	n.draw.connect(drawer)
+	return n
 
 
 ## Shows [param p_world]'s room, its [param p_doors] open onto the beyond.
@@ -55,6 +55,7 @@ func show_world(p_world: CollisionWorld, p_doors: Array[RoomData.Door] = []) -> 
 	queue_redraw()
 	if _backdrop != null:
 		_backdrop.queue_redraw()
+		_tile_glow.queue_redraw()
 	refresh()
 
 
@@ -62,6 +63,7 @@ func show_world(p_world: CollisionWorld, p_doors: Array[RoomData.Door] = []) -> 
 func refresh() -> void:
 	if _solids != null:
 		_solids.queue_redraw()
+		_box_glow.queue_redraw()
 
 
 func _draw() -> void:
@@ -70,63 +72,70 @@ func _draw() -> void:
 	var grid: TileGrid = world.grid
 	var t: float = float(TileGrid.TILE)
 	var size := Vector2(grid.width, grid.height) * t
+	var c: FeedbackTuning = look()
 	# The solid beyond the room, as four bands around it.
-	draw_rect(Rect2(-BEYOND_U, -BEYOND_U, size.x + BEYOND_U * 2.0, BEYOND_U), BEYOND)
-	draw_rect(Rect2(-BEYOND_U, size.y, size.x + BEYOND_U * 2.0, BEYOND_U), BEYOND)
-	draw_rect(Rect2(-BEYOND_U, 0, BEYOND_U, size.y), BEYOND)
-	draw_rect(Rect2(size.x, 0, BEYOND_U, size.y), BEYOND)
+	draw_rect(Rect2(-BEYOND_U, -BEYOND_U, size.x + BEYOND_U * 2.0, BEYOND_U), c.tile_beyond_colour)
+	draw_rect(Rect2(-BEYOND_U, size.y, size.x + BEYOND_U * 2.0, BEYOND_U), c.tile_beyond_colour)
+	draw_rect(Rect2(-BEYOND_U, 0, BEYOND_U, size.y), c.tile_beyond_colour)
+	draw_rect(Rect2(size.x, 0, BEYOND_U, size.y), c.tile_beyond_colour)
+	# A door's way through the solid beyond the room (docs/adr/0014).
 	for d: RoomData.Door in doors:
 		var from: float = float(d.from_u)
 		var span: float = float(d.span_u())
 		match d.side:
 			RoomData.LEFT:
-				draw_rect(Rect2(-BEYOND_U, from, BEYOND_U, span), PASSAGE)
+				draw_rect(Rect2(-BEYOND_U, from, BEYOND_U, span), c.tile_passage_colour)
 			RoomData.RIGHT:
-				draw_rect(Rect2(size.x, from, BEYOND_U, span), PASSAGE)
+				draw_rect(Rect2(size.x, from, BEYOND_U, span), c.tile_passage_colour)
 			RoomData.TOP:
-				draw_rect(Rect2(from, -BEYOND_U, span, BEYOND_U), PASSAGE)
+				draw_rect(Rect2(from, -BEYOND_U, span, BEYOND_U), c.tile_passage_colour)
 			RoomData.BOTTOM:
-				draw_rect(Rect2(from, size.y, span, BEYOND_U), PASSAGE)
+				draw_rect(Rect2(from, size.y, span, BEYOND_U), c.tile_passage_colour)
 	for j: int in range(grid.height):
 		for i: int in range(grid.width):
-			draw_tile(self, grid.get_tile(i, j), Vector2(i, j) * t, t)
+			var tile: int = grid.get_tile(i, j)
+			if not glows(tile):
+				draw_tile(self, tile, Vector2(i, j) * t, t)
 
 
-## The tuning the tiles' and boxes' grey-box shapes come from (content/feedback.tres), loaded once.
-static func _look() -> FeedbackTuning:
+## The tuning the tiles' and boxes' grey-box shapes and colours come from
+## (content/feedback.tres), loaded once.
+static func look() -> FeedbackTuning:
 	if _look_cache == null:
 		_look_cache = load(FeedbackTuning.PATH) as FeedbackTuning
 	return _look_cache
 
 
-## Draws [param tile] on [param canvas] with its top-left at [param at], [param t] units square
-## (shared with the room editor, so a room looks the same in both).
+## Whether tile kind [param tile] gives off light in the game: a pogo-able tile does (the spikes;
+## BUILD.md section 10, Lighting: "pogo-able surfaces are emissive"). A pit is a hazard with
+## nothing in it to pogo off, so it does not.
+static func glows(tile: int) -> bool:
+	return tile == TileGrid.SPIKES
+
+
+## [param colour] as a pogo-able surface gives it off ([member FeedbackTuning.pogo_glow] of it;
+## the emissive material multiplies it by the lighting's boost).
+static func glow_colour(colour: Color) -> Color:
+	var g: float = look().pogo_glow
+	return Color(colour.r * g, colour.g * g, colour.b * g, colour.a)
+
+
+## Draws [param tile] on [param canvas] with its top-left at [param at], [param t] units square,
+## in its colour (shared with the room editor, so a room has the same colours in both: the editor
+## shows them as they are, the game lit, with what [method glows] drawn as light).
 static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> void:
-	var look: FeedbackTuning = _look()
+	var c: FeedbackTuning = look()
 	if tile == TileGrid.SOLID:
-		canvas.draw_rect(Rect2(at, Vector2(t, t)), SOLID)
+		canvas.draw_rect(Rect2(at, Vector2(t, t)), c.tile_solid_colour)
 	elif tile == TileGrid.SMOOTH:
-		canvas.draw_rect(Rect2(at, Vector2(t, t)), SMOOTH)
+		canvas.draw_rect(Rect2(at, Vector2(t, t)), c.tile_smooth_colour)
 	elif tile == TileGrid.ONE_WAY:
-		canvas.draw_rect(Rect2(at, Vector2(t, look.tile_one_way_u)), ONE_WAY)
+		canvas.draw_rect(Rect2(at, Vector2(t, c.tile_one_way_u)), c.tile_one_way_colour)
 	elif tile == TileGrid.SPIKES:
-		var teeth: int = look.tile_spike_teeth
-		var w: float = t / teeth
-		for k: int in range(teeth):
-			var x0: float = at.x + k * w
-			canvas.draw_colored_polygon(
-				PackedVector2Array(
-					[
-						Vector2(x0, at.y + t),
-						Vector2(x0 + w, at.y + t),
-						Vector2(x0 + w * 0.5, at.y + t * look.tile_spike_peak)
-					]
-				),
-				SPIKES
-			)
+		draw_spikes(canvas, at, t, c.tile_spikes_colour)
 	elif tile == TileGrid.PIT:
-		canvas.draw_rect(Rect2(at, Vector2(t, t)), PIT)
-		canvas.draw_rect(Rect2(at, Vector2(t, look.tile_pit_lip_u)), PIT_LIP)
+		canvas.draw_rect(Rect2(at, Vector2(t, t)), c.tile_pit_colour)
+		canvas.draw_rect(Rect2(at, Vector2(t, c.tile_pit_lip_u)), c.tile_pit_lip_colour)
 	elif TileGrid.is_slope(tile):
 		var edges: Vector2i = TileGrid.slope_edge_heights(tile)
 		var hl: float = float(edges.x) / Fx.SUB
@@ -140,48 +149,72 @@ static func draw_tile(canvas: CanvasItem, tile: int, at: Vector2, t: float) -> v
 					Vector2(at.x, at.y + t - hl)
 				]
 			),
-			SOLID
+			c.tile_solid_colour
 		)
 
 
-## A filled rectangle of a solid box's grey-box drawing.
+## Draws a spike tile's teeth on [param canvas], its top-left at [param at], [param t] units square,
+## in [param colour].
+static func draw_spikes(canvas: CanvasItem, at: Vector2, t: float, colour: Color) -> void:
+	var c: FeedbackTuning = look()
+	var w: float = t / c.tile_spike_teeth
+	for k: int in range(c.tile_spike_teeth):
+		var x0: float = at.x + k * w
+		canvas.draw_colored_polygon(
+			PackedVector2Array(
+				[
+					Vector2(x0, at.y + t),
+					Vector2(x0 + w, at.y + t),
+					Vector2(x0 + w * 0.5, at.y + t * c.tile_spike_peak)
+				]
+			),
+			colour
+		)
+
+
+## A filled rectangle of a solid box's grey-box drawing; [member glow] if it is a pogo-able
+## surface, which the game draws as light.
 class BoxFill:
 	extends RefCounted
 	var rect: Rect2
 	var colour: Color
+	var glow: bool
 
-	func _init(p_rect: Rect2, p_colour: Color) -> void:
+	func _init(p_rect: Rect2, p_colour: Color, p_glow: bool = false) -> void:
 		rect = p_rect
 		colour = p_colour
+		glow = p_glow
 
 
 ## The fills that draw box [param s] over [param r] (the box in units), by function: wax is
-## amber, a pogo-able box is cyan steel with a pale mark along its top edge, any other is a lighter
-## shade of the wall of its kind (smooth when it cannot be clung to); a wax or bell box that cannot
-## be clung to also has smooth-coloured side strips. The colours are in content/feedback.tres.
+## amber, a pogo-able box is cyan steel with a pale mark along its top edge (the surface struck,
+## a [member BoxFill.glow] fill), any other is a lighter shade of the wall of its kind (smooth when
+## it cannot be clung to); a wax or bell box that cannot be clung to also has smooth-coloured side
+## strips. The colours are in content/feedback.tres.
 static func box_fills(s: SolidBox, r: Rect2) -> Array[BoxFill]:
-	var look: FeedbackTuning = _look()
+	var c: FeedbackTuning = look()
 	var out: Array[BoxFill] = []
 	if s.tag == "wax":
-		out.append(BoxFill.new(r, look.box_wax_colour))
+		out.append(BoxFill.new(r, c.box_wax_colour))
 	elif s.tag == "pogo":
-		out.append(BoxFill.new(r, look.box_pogo_colour))
-		var mark := Rect2(r.position, Vector2(r.size.x, minf(look.box_mark_u, r.size.y)))
-		out.append(BoxFill.new(mark, look.box_pogo_mark_colour))
+		out.append(BoxFill.new(r, c.box_pogo_colour))
+		var mark := Rect2(r.position, Vector2(r.size.x, minf(c.box_mark_u, r.size.y)))
+		out.append(BoxFill.new(mark, c.box_pogo_mark_colour, true))
 	else:
-		out.append(BoxFill.new(r, look.box_solid_colour if s.clingable else look.box_smooth_colour))
+		out.append(BoxFill.new(r, c.box_solid_colour if s.clingable else c.box_smooth_colour))
 		return out
 	if not s.clingable:
 		# Wax and a bell paint over the cling flag, so a strip of the smooth colour down each side
 		# shows the wall cannot be clung to.
-		var w: float = minf(look.box_side_u, r.size.x * 0.5)
-		out.append(BoxFill.new(Rect2(r.position, Vector2(w, r.size.y)), look.box_smooth_colour))
+		var w: float = minf(c.box_side_u, r.size.x * 0.5)
+		out.append(BoxFill.new(Rect2(r.position, Vector2(w, r.size.y)), c.box_smooth_colour))
 		var right := Vector2(r.end.x - w, r.position.y)
-		out.append(BoxFill.new(Rect2(right, Vector2(w, r.size.y)), look.box_smooth_colour))
+		out.append(BoxFill.new(Rect2(right, Vector2(w, r.size.y)), c.box_smooth_colour))
 	return out
 
 
-## Draws box [param s] over [param r] on [param canvas] (shared with the room editor).
+## Draws box [param s] over [param r] on [param canvas] (shared with the room editor), every fill
+## in its colour.
 static func draw_box(canvas: CanvasItem, s: SolidBox, r: Rect2) -> void:
 	for f: BoxFill in box_fills(s, r):
 		canvas.draw_rect(f.rect, f.colour)
@@ -191,12 +224,39 @@ func _draw_backdrop() -> void:
 	if world == null:
 		return
 	var t: float = float(TileGrid.TILE)
-	_backdrop.draw_rect(Rect2(0.0, 0.0, world.grid.width * t, world.grid.height * t), BACKDROP)
+	var room := Rect2(0.0, 0.0, world.grid.width * t, world.grid.height * t)
+	_backdrop.draw_rect(room, look().tile_air_colour)
+
+
+func _draw_tile_glow() -> void:
+	if world == null:
+		return
+	var grid: TileGrid = world.grid
+	var t: float = float(TileGrid.TILE)
+	var light: Color = glow_colour(look().tile_spikes_colour)
+	for j: int in range(grid.height):
+		for i: int in range(grid.width):
+			if glows(grid.get_tile(i, j)):
+				draw_spikes(_tile_glow, Vector2(i, j) * t, t, light)
 
 
 func _draw_solids() -> void:
+	for f: BoxFill in _box_fills():
+		if not f.glow:
+			_solids.draw_rect(f.rect, f.colour)
+
+
+func _draw_box_glow() -> void:
+	for f: BoxFill in _box_fills():
+		if f.glow:
+			_box_glow.draw_rect(f.rect, glow_colour(f.colour))
+
+
+## The fills of every enabled solid box of the world shown.
+func _box_fills() -> Array[BoxFill]:
+	var out: Array[BoxFill] = []
 	if world == null:
-		return
+		return out
 	for s: SolidBox in world.solids:
 		if not s.enabled:
 			continue
@@ -206,4 +266,5 @@ func _draw_solids() -> void:
 			float(s.right - s.left) / Fx.SUB,
 			float(s.bottom - s.top) / Fx.SUB
 		)
-		draw_box(_solids, s, r)
+		out.append_array(box_fills(s, r))
+	return out

@@ -104,6 +104,22 @@ const PATH: String = "res://content/feedback.tres"
 @export var tile_pit_lip_u: float = 2.0
 @export var tile_spike_peak: float = 0.4
 @export var tile_spike_teeth: int = 4
+## The tiles' colours (RoomView draws them lit, the editor as they are): a wall that can be clung
+## to is blue-grey, a smooth one brown-grey, a one-way platform a pale strip, spikes red teeth, a
+## pit near black with a red lip. The air is the wall behind the room (a stand-in for the zone's
+## parallax layers: the ember lights it and shadows fall across it), dark so a wall reads against
+## it lit; the solid beyond the room's edge is between the two, and a door's way through it a
+## shade darker than the air. The legibility floors, lit at Dusk and at Pitch, are
+## tests/unit/game/test_views.gd's.
+@export var tile_solid_colour: Color = Color(0.34, 0.34, 0.39)
+@export var tile_smooth_colour: Color = Color(0.40, 0.36, 0.32)
+@export var tile_one_way_colour: Color = Color(0.60, 0.60, 0.64)
+@export var tile_spikes_colour: Color = Color(0.80, 0.30, 0.24)
+@export var tile_pit_colour: Color = Color(0.06, 0.04, 0.05)
+@export var tile_pit_lip_colour: Color = Color(0.55, 0.18, 0.15)
+@export var tile_air_colour: Color = Color(0.11, 0.10, 0.13)
+@export var tile_beyond_colour: Color = Color(0.20, 0.20, 0.23)
+@export var tile_passage_colour: Color = Color(0.07, 0.07, 0.08)
 
 @export_group("Room boxes")
 ## The grey-box solid boxes (shared by the game and the room editor), coloured by function and
@@ -111,15 +127,21 @@ const PATH: String = "res://content/feedback.tres"
 ## the textured wall, a smooth one (cling=0) a lighter tan than the smooth wall, wax is amber, and
 ## a pogo-able box (a bell) is cyan steel with a pale mark along its top edge ("strike down
 ## here"), [member box_mark_u] thick. A wax or bell box that cannot be clung to gets a
-## [member box_side_u] strip of the smooth colour down each side. The legibility floors are
-## tests/unit/game/test_views.gd's.
-@export var box_solid_colour: Color = Color(0.44, 0.46, 0.54)
-@export var box_smooth_colour: Color = Color(0.58, 0.50, 0.40)
-@export var box_wax_colour: Color = Color(0.82, 0.62, 0.22)
-@export var box_pogo_colour: Color = Color(0.28, 0.58, 0.76)
+## [member box_side_u] strip of the smooth colour down each side. The game lights the boxes
+## keeping their hue (the ember's 2400 K would turn tan and amber into one colour). The
+## legibility floors, lit at Dusk and at Pitch, are tests/unit/game/test_views.gd's.
+@export var box_solid_colour: Color = Color(0.60, 0.62, 0.70)
+@export var box_smooth_colour: Color = Color(0.86, 0.66, 0.46)
+@export var box_wax_colour: Color = Color(0.90, 0.52, 0.08)
+@export var box_pogo_colour: Color = Color(0.22, 0.56, 0.80)
 @export var box_pogo_mark_colour: Color = Color(0.95, 0.97, 1.0)
 @export var box_mark_u: float = 10.0
 @export var box_side_u: float = 4.0
+## Pogo-able surfaces are emissive (BUILD.md section 10, Lighting: "pogo-able surfaces are
+## emissive"; section 5: "Pogo-able things glow"): a bell's strike mark and the spikes' teeth give
+## off this share of their colour as light (then times the lighting's emissive boost), so they
+## read at Pitch out of the ember's reach. Grey-box only: the art's emissive masks replace it.
+@export var pogo_glow: float = 0.75
 
 @export_group("HUD layout")
 ## The grey-box HUD's layout, in pixels: the margin from the screen's corner, a heart's width and
@@ -319,4 +341,6 @@ func validate() -> PackedStringArray:
 			break
 	if trail_alpha <= 0.0 or trail_alpha > 1.0:
 		e.append("trail_alpha must be in (0, 1]")
+	if pogo_glow <= 0.0 or pogo_glow > 1.0:
+		e.append("pogo_glow must be in (0, 1]: a pogo-able surface glows (BUILD.md s10)")
 	return e
