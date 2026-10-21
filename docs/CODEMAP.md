@@ -57,6 +57,7 @@ A condition is `key op value`; keys from `core/sim/simulation.gd probe`: player 
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd` (the whole stage runs 4 processes; `UNIT_PROCESSES=1` for one); raw failures: `python3 tools/ci/unit_failures.py`.
 - Timing: each run logs to `reports/timings.jsonl`; `python3 tools/ci/timing_report.py` prints the slowest, regressions (over 25%) and totals (`tests/README.md`).
+- Native: `ci/setup_godot_cpp.sh`, `ci/build_native.sh`; worktrees share one cache (`WANE_NATIVE_CACHE`, ADR-0021).
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
 - Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (`PERF_LIB=release`) against `content/perf/budget.tres`; `tools/bench/stage_bench.gd` times a tick's stages.
 

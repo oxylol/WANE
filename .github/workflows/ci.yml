@@ -28,6 +28,7 @@ jobs:
       - run: python3 tools/ci/test_gd_coverage.py
       - run: python3 tools/ci/test_codemap.py
       - run: python3 tools/ci/test_timing_report.py
+      - run: python3 tools/ci/test_native_cache.py
 
   test:
     name: test (compile, content, fixtures, unit)
