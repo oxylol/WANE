@@ -120,10 +120,14 @@ func test_the_tuning_validates_and_matches_the_sections_numbers() -> void:
 	assert_float(t.grain_strength).is_equal(0.07)
 	assert_float(t.rim_u).is_equal(1.2)
 	assert_float(t.brush_stretch).is_equal(14.0)
-	assert_float(t.bg_thin).is_equal(0.35)
+	# A background's line breaks to a gap (the fix round 2b: 0.35 drew a hairline in the breaks, so
+	# the open line closed at 4x; feel log 2026-10-21-fix2b-shaders).
+	assert_float(t.bg_thin).is_equal(0.0)
 	assert_vector(Vector2(t.bg_break_lo, t.bg_break_hi)).is_equal(Vector2(0.42, 0.5))
 	assert_vector(Vector2(t.bg_drop_lo, t.bg_drop_hi)).is_equal(Vector2(0.15, 0.55))
 	assert_vector(t.extra_vec()).is_equal(Vector4(0.85, 1.5, 24.0, 0.7))
+	# The ember's hot core (BUILD.md section 10, The ember: "a single orange-white point").
+	assert_vector(t.core_vec()).is_equal(Vector4(2.0, 0.6, 0.0, 0.0))
 
 
 func test_a_bad_tuning_is_refused() -> void:
@@ -154,7 +158,7 @@ func test_every_packed_global_has_a_packing_and_apply_writes_them() -> void:
 	# The dummy renderer keeps no global values, so what apply writes is read back under a display
 	# (tests/screenshot/run_ink_render_tests.gd); here every global is declared and packed.
 	var t: InkTuning = load(InkTuning.PATH) as InkTuning
-	assert_int(InkGlobals.PACKED.size()).is_equal(8)
+	assert_int(InkGlobals.PACKED.size()).is_equal(9)
 	for global_name: StringName in InkGlobals.PACKED:
 		assert_bool(t.has_method(InkGlobals.PACKED[global_name])).is_true()
 		assert_int(typeof(t.call(InkGlobals.PACKED[global_name]))).is_equal(TYPE_VECTOR4)

@@ -16,6 +16,7 @@ const PACKED: Dictionary[StringName, StringName] = {
 	&"wane_ink_light": &"ink_light_vec",
 	&"wane_ink_bg": &"ink_bg_vec",
 	&"wane_ink_extra": &"extra_vec",
+	&"wane_ink_core": &"core_vec",
 }
 
 const BOIL: StringName = &"wane_boil"

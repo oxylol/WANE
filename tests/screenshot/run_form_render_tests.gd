@@ -22,6 +22,7 @@ const PROBE_DIR: String = "res://tests/screenshot/data/probe"
 const HEAD_REL: Vector2 = Vector2(0.0, -45.5)
 const HEAD_RADIUS_U: float = 9.0
 const EMBER_REL: Vector2 = Vector2(-1.0, -28.0)
+const EMBER_RADIUS_U: float = 2.3
 const BLADE_PIVOT_REL: Vector2 = Vector2(12.0, -22.0)
 ## The blade's rest direction, from its pivot to its tip, in degrees (y down), and the swing's
 ## sub-poses around it (tools/artbuild/tests/data/probe/pose.json: the arc is -20, 0 and +20).
@@ -378,6 +379,86 @@ func _test_the_ember() -> void:
 		"a light draws a halo over the wall beside it (%.3f against %.3f)" % [with_halo, without]
 	)
 	rig2.free_all()
+	await _test_the_ember_is_a_hot_core()
+
+
+## The luminance and the whiteness (blue over red) of [param img] at world point [param w].
+func _lum_white(img: Image, w: Vector2) -> Vector2:
+	var c: Color = _at(img, w)
+	return Vector2(_lum(c), c.b / maxf(c.r, 0.0001))
+
+
+## BUILD.md section 10 (The ember): "a single orange-white point in every Wick's chest, a soft bloom
+## over the ink". On screen (post on, Pitch), magnified and at 1x: the ember is hottest and whitest
+## at its core and grades out over its own part into the halo, with no flat disc and no cliff at
+## its edge (the probe's ember is 2.3 u across; the step is read on its lit side, toward the key,
+## where the robe beyond it is in its lit value: the crescent on the other side is the robe's own
+## two values). Measured before the core: a flat disc of 0.74 to 0.75 out to 2.2 u with a 0.10
+## step at its edge, one whiteness (b/r 0.42) across it, and a 4 x 4 block at 1x.
+func _test_the_ember_is_a_hot_core() -> void:
+	var rig: ArtRig = await _rig()
+	rig.sprite.carries_ember = true
+	rig.sprite.setup(_sheet2, &"idle")
+	rig.field.set_post_enabled(true)
+	var ember: Vector2 = ArtRig.MARK + EMBER_REL
+	var img: Image = await _shot(rig, 0, 3.0, ember, 4.0, ember)
+	var core: Vector2 = _lum_white(img, ember)
+	var steepest: float = 0.0
+	var mid_lum: float = 0.0
+	var rim_white: float = 0.0
+	var dirs: Array[Vector2] = [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]
+	for d: Vector2 in dirs:
+		mid_lum += _lum_white(img, ember + d * 1.5).x / float(dirs.size())
+		rim_white += _lum_white(img, ember + d * 1.75).y / float(dirs.size())
+	for d: Vector2 in [Vector2(-1, 0), Vector2(0, -1)]:
+		var inside: float = _lum_white(img, ember + d * (EMBER_RADIUS_U - 0.25)).x
+		var outside: float = _lum_white(img, ember + d * (EMBER_RADIUS_U + 0.25)).x
+		steepest = maxf(steepest, absf(inside - outside))
+	_check(
+		core.x > mid_lum + 0.05,
+		(
+			"the ember is a hot core grading out, not a flat disc (core %.3f, 1.5 u out %.3f)"
+			% [core.x, mid_lum]
+		)
+	)
+	_check(
+		core.y > rim_white + 0.15,
+		"the ember's core is whiter than its rim (b/r %.2f against %.2f)" % [core.y, rim_white]
+	)
+	_check(
+		steepest < 0.04,
+		"the ember grades into its halo with no step at its edge (%.3f across it)" % steepest
+	)
+	# At 1x it is a point: one or two pixels at its hottest, whiter than the ring around them.
+	rig.sprite.setup(_sheet1, &"idle")
+	var one: Image = await _shot(rig, 0, 3.0, ember, 1.0, ember)
+	var c: Vector2i = _px(one, ember)
+	var hottest: float = 0.0
+	for dy: int in range(-3, 4):
+		for dx: int in range(-3, 4):
+			hottest = maxf(hottest, _lum(one.get_pixel(c.x + dx, c.y + dy)))
+	var at_top: int = 0
+	var white_top: float = 0.0
+	var ring_white: float = 0.0
+	var ring_n: int = 0
+	for dy: int in range(-3, 4):
+		for dx: int in range(-3, 4):
+			var px: Color = one.get_pixel(c.x + dx, c.y + dy)
+			if _lum(px) > hottest - 0.02:
+				at_top += 1
+				white_top = maxf(white_top, px.b / maxf(px.r, 0.0001))
+			elif maxi(absi(dx), absi(dy)) == 3:
+				ring_white += px.b / maxf(px.r, 0.0001)
+				ring_n += 1
+	ring_white /= float(maxi(ring_n, 1))
+	_check(
+		at_top <= 4 and white_top > ring_white + 0.15,
+		(
+			"at 1x the ember is a point: %d pixels at its hottest (b/r %.2f, the ring around %.2f)"
+			% [at_top, white_top, ring_white]
+		)
+	)
+	rig.free_all()
 
 
 # --- the smear --------------------------------------------------------------------------------
@@ -710,6 +791,11 @@ func _test_the_background_line_and_surface() -> void:
 			% left_in_light
 		)
 	)
+	# The same at every scale (BUILD.md section 10: the art is resolution-independent): magnified
+	# four times, from the 2x sheet, the line is as open as at 1x and drops out where the light hits
+	# it. Its drop-out comes from the light and its breaks, not from a line too thin for a 1x pixel
+	# (measured before: inked on every column of the ledge's edges at 4x, on 3 of 117 at 1x).
+	await _background_line_magnified(rig, far_ember, near_ember, whole, broken)
 	# The surface: a brushed, grained back wall, at 4x so that a streak is wider than a pixel.
 	# Horizontal streaks (the part's major axis) correlate along a row far more than down a column.
 	var wall: Image = await _shot(rig, 0, 1.0, far_ember, 4.0, Vector2(330.0, 60.0))
@@ -739,6 +825,61 @@ func _test_the_background_line_and_surface() -> void:
 		)
 	)
 	rig.free_all()
+
+
+## The ledge's underside at zoom 4 from the 2x backdrop sheet: as open as at 1x ([param whole_1x]
+## and [param broken_1x] of its columns), and gone where the light hits it.
+func _background_line_magnified(
+	rig: ArtRig, far_ember: Vector2, near_ember: Vector2, whole_1x: float, broken_1x: float
+) -> void:
+	rig.set_backdrop_scale(2)
+	var inkless: InkTuning = _ink.duplicate() as InkTuning
+	inkless.ink_value = 0.0
+	inkless.ink_over_fill = 0.0
+	var centre := Vector2(224.0, 192.0)
+	var far: Image = await _shot(rig, 0, 1.0, far_ember, 4.0, centre)
+	var near: Image = await _shot(rig, 0, 1.0, near_ember, 4.0, centre)
+	InkGlobals.apply(inkless)
+	var far_black: Image = await _shot(rig, 0, 1.0, far_ember, 4.0, centre)
+	var near_black: Image = await _shot(rig, 0, 1.0, near_ember, 4.0, centre)
+	InkGlobals.apply(_ink)
+	rig.set_backdrop_scale(1)
+	var line_far: Array[float] = _ink_columns_fine(far, far_black, 172.0, 276.0, 188.0, 196.0)
+	var line_near: Array[float] = _ink_columns_fine(near, near_black, 172.0, 276.0, 188.0, 196.0)
+	var strongest: float = line_far.max()
+	var whole: float = _share(line_far, 0.6 * strongest, 10.0)
+	var broken: float = _share(line_far, 0.0, 0.6 * strongest)
+	_check(
+		strongest > 0.02 and broken > 0.15 and absf(whole - whole_1x) < 0.25,
+		(
+			(
+				"magnified, a background's line is as open as at 1x: whole along %.2f (%.2f at 1x),"
+				+ " broken along %.2f (%.2f)"
+			)
+			% [whole, whole_1x, broken, broken_1x]
+		)
+	)
+	var kept: float = _share(line_near, 0.2 * strongest, 10.0)
+	_check(
+		kept < 0.1,
+		"magnified, a background's line drops out where the light hits it (%.2f keeps it)" % kept
+	)
+
+
+## [method _ink_columns] at the shot's own pixels: one value per screen column over world x
+## [param x0] to [param x1] and world y [param y0] to [param y1].
+func _ink_columns_fine(
+	drawn: Image, black: Image, x0: float, x1: float, y0: float, y1: float
+) -> Array[float]:
+	var a: Vector2i = _px(drawn, Vector2(x0, y0))
+	var b: Vector2i = _px(drawn, Vector2(x1, y1))
+	var out: Array[float] = []
+	for x: int in range(a.x, b.x + 1):
+		var most: float = 0.0
+		for y: int in range(a.y, b.y + 1):
+			most = maxf(most, _lum(drawn.get_pixel(x, y)) - _lum(black.get_pixel(x, y)))
+		out.append(most)
+	return out
 
 
 # --- gloss ------------------------------------------------------------------------------------

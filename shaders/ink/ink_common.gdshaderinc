@@ -27,6 +27,7 @@ global uniform vec4 wane_ink_more; // ink_value, taper_floor, ink_over_fill, emi
 global uniform vec4 wane_ink_light; // line_light_lo, line_light_hi, bg_drop_lo, bg_drop_hi
 global uniform vec4 wane_ink_bg; // bg_break_lo, bg_break_hi, bg_thin, bg_mask_wave_u
 global uniform vec4 wane_ink_extra; // smear_opacity, smear_tail_pow, gloss_power, gloss_strength
+global uniform vec4 wane_ink_core; // emissive_core_u, emissive_core_white, 0, 0
 
 // ---- The channel layout. These constants are the decode half of ADR-0023 Decision 1.3 and must
 // ---- equal tools/artbuild/channels.py (tools/ci/test_ink_layout.py checks).
@@ -201,7 +202,19 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 		// Weight: thick on the shadow side, hairline on the lit side, tapered at shape ends, never
 		// under line_min_px.
 		float lit_side = smoothstep(wane_ink_light.x, wane_ink_light.y, dot(n_edge, ldir)) * lstr;
-		w = mix(wane_ink.x, wane_ink.y, 1.0 - lit_side) * mix(wane_ink_more.y, 1.0, pt.b);
+		float taper = mix(wane_ink_more.y, 1.0, pt.b);
+		w = mix(wane_ink.x, wane_ink.y, 1.0 - lit_side) * taper;
+		if (background) {
+			// The open, broken line of a background (BUILD.md section 10): the brush lifts where the
+			// light hits, on the side of an edge that faces it (no hairline there) and where the
+			// light reaching it passes the drop-out, and in the breaks of the mask (bg_thin of its
+			// weight there). All three take the weight, not the coverage, so the line is as open at
+			// 4x as at 1x: its drop-out is the light's, never a line too thin for a pixel.
+			float reach = wane_light_reaching(world, screen_uv);
+			w = wane_ink.y * (1.0 - lit_side) * taper;
+			w *= mix(wane_ink_bg.z, 1.0, smoothstep(wane_ink_bg.x, wane_ink_bg.y, bg_mask));
+			w *= 1.0 - smoothstep(wane_ink_light.z, wane_ink_light.w, reach);
+		}
 		// Never under line_min_px wide on the screen; a line thinner than that is drawn at the
 		// pixel's width and as light as it is thin, as a hairline is on paper.
 		float floor_u = max(wane_ink.z * upp, 0.0001);
@@ -211,11 +224,6 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 			// A motion ribbon: the line is the hairline, and it thins out toward the tail.
 			w = max(mix(wane_ink.x, w, age), floor_u);
 			line_cover_scale *= pow(age, wane_ink_extra.y);
-		}
-		if (background) {
-			w *= mix(wane_ink_bg.z, 1.0, smoothstep(wane_ink_bg.x, wane_ink_bg.y, bg_mask));
-			float reach = wane_light_reaching(world, screen_uv);
-			line_cover_scale *= 1.0 - smoothstep(wane_ink_light.z, wane_ink_light.w, reach);
 		}
 		float band = mix(back_u, w, side);
 		cover = (1.0 - smoothstep(band - aa, band + aa, u_dist + wob)) * line_cover_scale;
@@ -248,9 +256,10 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 
 	// Two values: the surface is lit where a light has reached it and it faces the light (N.L of
 	// the form direction above the threshold), the brush noise breaking the terminator like a
-	// brush edge. A smear is all one value.
+	// brush edge. A smear is all one value, and so is a part that gives off light (an ember has no
+	// shadow side: its rim would ring the hot core with a darker band).
 	float lit = wane_key_lit(world, n, screen_uv, carrier, wane_fill.x, wane_fill.y, wane_fill.z * brush);
-	if (smear) {
+	if (smear || sh.a * c_em.a > 0.0) {
 		lit = 1.0;
 	}
 	if (mode == 5) {
@@ -289,9 +298,18 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	vec3 ink = min(c_shadow * wane_ink_more.x, fill * wane_ink_more.z);
 	vec3 outc = mix(fill, ink, cover);
 
-	// Emissive replaces the fill it covers and is untouched by ambient; its halo is the light's
-	// (shaders/lighting/glow.gdshader) and the post pass blooms what exceeds 1.
-	outc = outc * (1.0 - sh.a * c_em.a) + sh.a * c_em.rgb * c_em.a * wane_ink_more.w * inst.g;
+	// An emissive part is a light, not a painted disc (BUILD.md section 10, The ember: "a single
+	// orange-white point ... a soft bloom over the ink"). Its heat rises from its edge to its core,
+	// emissive_core_u deep (U is the depth from the part's own outline), and at its core its colour
+	// goes from the palette's emissive toward white: a hot core grading out to the fill at its edge,
+	// where the light's halo (shaders/lighting/glow.gdshader) carries it on over the ink. It is
+	// untouched by ambient; the post pass blooms what exceeds 1.
+	float em = sh.a * c_em.a;
+	if (em > 0.0) {
+		float heat = smoothstep(0.0, max(wane_ink_core.x, 0.0001), u_dist);
+		vec3 hot = mix(c_em.rgb, vec3(1.0), wane_ink_core.y * heat * heat);
+		outc = mix(outc, hot * wane_ink_more.w * inst.g, em * heat);
+	}
 	outc = mix(outc, vec3(1.0), inst.r);
 	return vec4(outc, alpha);
 }

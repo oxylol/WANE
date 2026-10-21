@@ -19,6 +19,7 @@ var tuning: LightingTuning
 var _tree: SceneTree
 var _camera: Camera2D
 var _holder: Node2D
+var _noise: Texture2D
 
 
 ## Builds the room under [param tree]'s root. [param p_tuning] is the lighting tuning (null for the
@@ -27,6 +28,7 @@ func _init(
 	tree: SceneTree, noise: Texture2D, p_tuning: LightingTuning = null, backdrop: bool = true
 ) -> void:
 	_tree = tree
+	_noise = noise
 	tuning = p_tuning if p_tuning != null else load(LightingTuning.PATH) as LightingTuning
 	var data: RoomData = RoomData.parse(FileAccess.get_file_as_string(ROOM_PATH))
 	_holder = Node2D.new()
@@ -47,6 +49,13 @@ func _init(
 	_camera = Camera2D.new()
 	tree.root.add_child(_camera)
 	_camera.make_current()
+
+
+## Draws the painted backdrop from its sheet at [param scale] (1 or 2; the 4x masters are a review
+## product, not committed): a magnified shot reads the finer sheet, as the review's detail does.
+func set_backdrop_scale(scale: int) -> void:
+	if back != null:
+		back.setup(SpriteSheet.open(BACKDROP_DIR, BACKDROP, scale, _noise), &"idle")
 
 
 ## Waits for the room's field to bake (a shot's shadows are right on its first frame).
