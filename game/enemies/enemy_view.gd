@@ -81,7 +81,7 @@ func _init(p_tuning: FeedbackTuning = null) -> void:
 
 
 func _ready() -> void:
-	LightSurfaces.make_lit(self, false)
+	LightSurfaces.make_lit(self, false, true)
 	_cues = Node2D.new()
 	_cues.z_index = CUE_Z
 	# A telegraph is light: the ambient never dims it and it blooms (game/lighting).

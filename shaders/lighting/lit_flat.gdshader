@@ -14,6 +14,10 @@ uniform bool sdf_normals = false;
 uniform float bevel_u = 6.0;
 // Light the surface gives off itself, added after the lighting.
 uniform float emissive = 0.0;
+// A grey box that stands for a function (the player's, an enemy's, by colour) keeps its hue in
+// every light: it takes the light's brightness and not its colour, so that the 2400 K of the ember
+// at Pitch does not turn cyan into green. Phase 1 only: the art's own palettes replace the boxes.
+uniform bool keep_hue = false;
 
 varying vec2 world;
 
@@ -27,5 +31,8 @@ void fragment() {
 		n = wane_sdf_normal(world, bevel_u);
 	}
 	vec3 rad = wane_radiance(world, n, SCREEN_UV);
+	if (keep_hue) {
+		rad = vec3(wane_luma(rad));
+	}
 	COLOR.rgb = COLOR.rgb * rad + COLOR.rgb * emissive;
 }

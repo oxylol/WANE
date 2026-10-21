@@ -110,9 +110,9 @@ func test_the_tuning_validates_and_matches_the_sections_numbers() -> void:
 	# ADR-0023 Decisions 2.1, 2.2, 2.4 and 3: the starting values.
 	assert_vector(Vector2(t.line_lit_u, t.line_shadow_u)).is_equal(Vector2(0.3, 1.3))
 	assert_float(t.line_min_px).is_equal(0.8)
-	assert_float(t.wobble_u).is_equal(0.22)
+	assert_float(t.wobble_u).is_equal(0.32)
 	assert_vector(Vector2(t.wave1_u, t.wave2_u)).is_equal(Vector2(10.0, 4.0))
-	# docs/adr/0025: the threshold is on N.L of the form direction now (a surface facing the viewer
+	# docs/adr/0026: the threshold is on N.L of the form direction now (a surface facing the viewer
 	# reads sin(40 degrees) = 0.64), so the two values follow the shape's tilt.
 	assert_float(t.lit_threshold).is_equal(0.5)
 	assert_float(t.terminator_soft).is_equal(0.04)
@@ -281,6 +281,7 @@ func test_a_sheet_reads_the_json_of_adr_1_6() -> void:
 		"asset": "t",
 		"cell_u": [96, 128],
 		"origin_u": [48, 112],
+		"pages": [{"page": 0, "size_u": [192, 128]}, {"page": 1, "size_u": [192, 128]}],
 		"actions":
 		{
 			"run":
@@ -322,6 +323,52 @@ func test_a_sheet_reads_the_json_of_adr_1_6() -> void:
 	var missing: PackedStringArray = sheet.errors
 	assert_bool(missing.size() > 0).is_true()
 	assert_bool(SpriteSheet.open(dir, "nothing", 1, null).is_valid()).is_false()
+
+
+## The errors of a sheet whose first frame of "run" is [param frame] and whose action has
+## [param action_extra] besides (docs/review F6: a sheet.json that lies is reported, not trusted).
+func _sheet_errors(
+	frame: Dictionary[String, Variant], action_extra: Dictionary[String, Variant]
+) -> String:
+	var dir: String = "user://ink_sheet_bad"
+	DirAccess.make_dir_recursive_absolute(dir)
+	var body: Dictionary[String, Variant] = {"fps": 24, "loop": true, "frames": [frame]}
+	body.merge(action_extra, true)
+	var meta: Dictionary[String, Variant] = {
+		"version": 1,
+		"asset": "b",
+		"cell_u": [96, 128],
+		"origin_u": [48, 112],
+		"pages": [{"page": 0, "size_u": [192, 128]}],
+		"actions": {"run": body},
+	}
+	var f: FileAccess = FileAccess.open("%s/b.sheet.json" % dir, FileAccess.WRITE)
+	f.store_string(JSON.stringify(meta))
+	f.close()
+	return "; ".join(SpriteSheet.open(dir, "b", 1, null).errors)
+
+
+func test_a_sheet_json_that_lies_is_reported() -> void:
+	var good: Dictionary[String, Variant] = {"rect": {"1": [0, 0, 96, 128]}, "ticks": 2}
+	var none: Dictionary[String, Variant] = {}
+	var base: String = _sheet_errors(good, none)
+	assert_bool(base.contains("page")).is_false()
+	assert_bool(base.contains("ticks")).is_false()
+	assert_bool(base.contains("fps")).is_false()
+	assert_bool(base.contains("loop")).is_false()
+	var off_page: Dictionary[String, Variant] = good.duplicate()
+	off_page["page"] = 3
+	assert_bool(_sheet_errors(off_page, none).contains("page 3 of 1")).is_true()
+	var no_ticks: Dictionary[String, Variant] = good.duplicate()
+	no_ticks["ticks"] = 0
+	assert_bool(_sheet_errors(no_ticks, none).contains("0 ticks")).is_true()
+	var empty: Dictionary[String, Variant] = good.duplicate()
+	empty["rect"] = {"1": [0, 0, 0, 128]}
+	assert_bool(_sheet_errors(empty, none).contains("empty rect")).is_true()
+	assert_bool(_sheet_errors(good, {"fps": 0}).contains("fps of 0")).is_true()
+	assert_bool(_sheet_errors(good, {"loop": "yes"}).contains("loop must be")).is_true()
+	var no_rect: Dictionary[String, Variant] = {"ticks": 2}
+	assert_bool(_sheet_errors(no_rect, none).contains("no rect for scale 1")).is_true()
 
 
 func test_the_project_imports_channel_textures_as_data() -> void:

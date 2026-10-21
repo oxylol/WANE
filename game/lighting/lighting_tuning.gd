@@ -60,7 +60,7 @@ const PROFILE_MIN: int = 2
 @export var bevel_tilt: float = 0.95
 ## The lowest elevation, in degrees above the picture plane, that the key and every light's form
 ## direction stands at: a flat surface faces a light at this angle however far the light is, so
-## the two values follow a shape's tilt and not a ring of distance (docs/adr/0025).
+## the two values follow a shape's tilt and not a ring of distance (docs/adr/0026).
 @export var form_elevation_deg: float = 40.0
 ## The width, in u, of the Gutter Ember's edge between lit above it and dark below.
 @export var up_only_soft_u: float = 8.0
@@ -85,7 +85,7 @@ const PROFILE_MIN: int = 2
 @export var max_steps: int = 48
 @export var min_step_u: float = 1.5
 ## The ember's radius as an area light, for the penumbra.
-@export var light_r_u: float = 8.0
+@export var light_r_u: float = 14.0
 ## A wall's lit skin: a pixel inside a wall is lit, fading out, within this depth of a face turned
 ## to the light, and black beyond.
 @export var skin_u: float = 14.0
@@ -95,6 +95,8 @@ const PROFILE_MIN: int = 2
 @export var sdf_texel_u: float = 4.0
 ## How far past a room's edge its solid border reaches, in world units.
 @export var border_u: float = 64.0
+## How many rooms' distance fields are kept (the ones used longest ago are let go beyond this).
+@export var fields_kept: int = 16
 ## The shadow buffer's scale by profile, and the lights that cast on the minimum profile.
 @export var shadow_scale_pc: float = 1.0
 @export var shadow_scale_deck: float = 0.75
@@ -192,6 +194,8 @@ func validate() -> PackedStringArray:
 		e.append("skin_u must be positive and wall_walk_steps 1 to 32")
 	if sdf_texel_u < 1.0 or sdf_texel_u > 16.0:
 		e.append("sdf_texel_u must be 1 to 16")
+	if fields_kept < 3:
+		e.append("fields_kept must be at least 3 (the room on show and its neighbours)")
 	if border_u < 1.0:
 		e.append("border_u must be at least 1")
 	for s: float in [shadow_scale_pc, shadow_scale_deck, shadow_scale_min]:

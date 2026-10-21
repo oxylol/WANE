@@ -6,8 +6,9 @@ extends Sprite2D
 ## sheet in the same family shares one material and batches; what differs per sprite (flash,
 ## emissive boost, dissolve, opacity) rides on self_modulate (ADR-0023 Decision 2.5).
 
-## Shader mode: 0 lit, 1 silhouette (white on the alpha), 2 visibility, 3 channel debug.
-enum Mode { LIT = 0, SILHOUETTE = 1, VISIBILITY = 2, CHANNELS = 3 }
+## Shader mode: 0 lit, 1 silhouette (white on the alpha), 2 visibility, 3 channel debug, 4 the
+## wobble field (the line's noise, as a grey).
+enum Mode { LIT = 0, SILHOUETTE = 1, VISIBILITY = 2, CHANNELS = 3, WOBBLE = 4 }
 
 var sheet: SpriteSheet
 ## True for a sprite that has its own ember (the Wicks): its line is weighted by the room's key

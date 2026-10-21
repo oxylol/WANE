@@ -10,6 +10,12 @@ extends SceneTree
 ## Exits 0 when every check passes, 1 otherwise.
 
 const FLAT_BG: Color = Color(0.02, 0.015, 0.03)
+## How the wobble's two octaves share its amplitude (ADR-0023 Decision 2.2): the first, at wave1_u,
+## carries this share and the second, at wave2_u, the rest.
+const WOBBLE_FIRST_OCTAVE_WEIGHT: float = 0.66
+const WOBBLE_FIRST_OCTAVE_CELLS: float = 16.0
+const WOBBLE_SECOND_OCTAVE_CELLS: float = 32.0
+const NOISE_PX: float = 256.0
 
 var _failures: PackedStringArray = []
 var _checks: int = 0
@@ -32,6 +38,7 @@ func _run() -> void:
 	_stage = InkProbe.stage_sheet(_noise)
 	await _test_determinism_and_boil()
 	await _test_silhouette_is_the_bake()
+	await _test_the_wobble_is_the_two_octave_noise()
 	await _test_line_follows_the_light()
 	await _test_pitch_and_ember()
 	await _test_instance_values_on_one_material()
@@ -140,6 +147,83 @@ func _test_silhouette_is_the_bake() -> void:
 	_check(absf(ratio - 1.0) < 0.03, "silhouette mode's area is the baked area (ratio %f)" % ratio)
 	# Silhouette mode is white on the clear colour: no ink, no fill.
 	_check(_lum(sil.get_pixel(2, 2)) < 0.1, "silhouette mode leaves the background alone")
+
+
+## One bilinear sample of the noise texture's [param channel] (0 r, 1 g, 2 b, 3 a) at [param uv],
+## repeating, at the level of detail 0: the twin of the shader's texture() on the shared noise.
+func _noise_at(img: Image, uv: Vector2, channel: int) -> float:
+	var p: Vector2 = uv * NOISE_PX - Vector2(0.5, 0.5)
+	var x0: int = floori(p.x)
+	var y0: int = floori(p.y)
+	var fx: float = p.x - float(x0)
+	var fy: float = p.y - float(y0)
+	var v: Array[float] = []
+	for k: int in range(4):
+		var px: int = posmod(x0 + (k % 2), int(NOISE_PX))
+		var py: int = posmod(y0 + (k / 2), int(NOISE_PX))
+		v.append(img.get_pixel(px, py)[channel])
+	return lerpf(lerpf(v[0], v[1], fx), lerpf(v[2], v[3], fx), fy)
+
+
+## The wobble at [param p_u] (u from the feet) on boil step [param boil]: ink_wobble() of
+## shaders/ink/ink_common.gdshaderinc, as 0.5 + 0.5 w / wobble_u.
+func _wobble_twin(img: Image, p_u: Vector2, boil: float) -> float:
+	var off := Vector2(0.7548776662, 0.5698402909) * fmod(boil, 4096.0)
+	off = Vector2(off.x - floorf(off.x), off.y - floorf(off.y))
+	var a: float = _noise_at(img, p_u / (_tuning.wave1_u * WOBBLE_FIRST_OCTAVE_CELLS) + off, 2)
+	var b: float = _noise_at(
+		img, p_u / (_tuning.wave2_u * WOBBLE_SECOND_OCTAVE_CELLS) + Vector2(off.y, off.x), 3
+	)
+	var w: float = (
+		(a - 0.5) * 2.0 * WOBBLE_FIRST_OCTAVE_WEIGHT
+		+ (b - 0.5) * 2.0 * (1.0 - WOBBLE_FIRST_OCTAVE_WEIGHT)
+	)
+	return 0.5 + 0.5 * w
+
+
+func _test_the_wobble_is_the_two_octave_noise() -> void:
+	# Shader mode 4 draws the wobble field as a grey; the CPU twin of it from the noise image must
+	# agree at every sample: the octaves' wavelengths, their share of the amplitude, which noise
+	# channel each reads, and the boil step's offset (an edit to any of them moves a pixel).
+	var tick: int = 17
+	var boil: float = InkGlobals.boil_step(
+		tick, (load(LightingTuning.PATH) as LightingTuning).boil_hz
+	)
+	var ember: Vector2 = InkRender.ember_world()
+	InkRender.set_globals(_tuning, tick, ember, InkRender.DUSK)
+	var centre: Vector2 = InkProbe.STAGE_MARK_U + Vector2(0.0, -20.0)
+	var zoom: float = 8.0
+	var vp: SubViewport = InkRender.viewport(root, InkRender.VIEW_4X, zoom, centre)
+	var fig: InkSprite = InkRender.add_stage_and_figure(vp, _stage, _fig4, false)
+	fig.mode = InkSprite.Mode.WOBBLE
+	var img: Image = await InkRender.capture(self, vp)
+	vp.queue_free()
+	var noise_img: Image = _noise.get_image()
+	var worst: float = 0.0
+	var spread_lo: float = 1.0
+	var spread_hi: float = 0.0
+	var n: int = 0
+	for dy: int in range(-9, 3, 2):
+		for dx: int in range(-5, 6, 2):
+			var p_u := Vector2(float(dx), float(dy) - 20.0)
+			var px := Vector2i(Vector2(img.get_size()) * 0.5 + Vector2(p_u.x, p_u.y + 20.0) * zoom)
+			var got: float = img.get_pixelv(px).r
+			var want: float = _wobble_twin(noise_img, p_u, boil)
+			worst = maxf(worst, absf(got - want))
+			spread_lo = minf(spread_lo, want)
+			spread_hi = maxf(spread_hi, want)
+			n += 1
+	_check(
+		worst < 0.02,
+		"the wobble the shader draws is its CPU twin's at %d points (worst %.4f)" % [n, worst]
+	)
+	_check(
+		spread_hi - spread_lo > 0.15,
+		(
+			"the wobble moves over the samples, so the comparison means something (%.3f to %.3f)"
+			% [spread_lo, spread_hi]
+		)
+	)
 
 
 ## Counts the pixels along row [param y] of [param img] from x0 to x1 (inclusive) darker than

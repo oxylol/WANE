@@ -56,7 +56,7 @@ uniform vec2 frame_u = vec2(64.0, 64.0); // the frame's cell in u
 uniform float texel_u = 1.0; // u per texel at the bound scale (1 at 1x, 0.25 at 4x)
 uniform bool carries_ember = false;
 uniform int palette_row = 0; // palette variant
-uniform int mode = 0; // 0 lit, 1 silhouette, 2 visibility, 3 channel debug
+uniform int mode = 0; // 0 lit, 1 silhouette, 2 visibility, 3 channel debug, 4 the wobble field
 
 varying vec2 ink_p_u; // position in the frame, in u, in the texture's own axes
 varying vec2 ink_world; // world position
@@ -159,6 +159,10 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	}
 	if (mode == 3) {
 		return vec4(s_dist / 16.0 + 0.5, u_dist / 16.0, side, 1.0);
+	}
+	if (mode == 4) {
+		// The wobble field as 0.5 + 0.5 w / wobble_u: what the tests read against their CPU twin.
+		return vec4(vec3(0.5 + 0.5 * wob / max(wane_ink.w, 0.0001)), alpha);
 	}
 
 	vec2 axn = normalize(ax);

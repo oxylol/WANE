@@ -60,6 +60,8 @@ var _fields: Dictionary[String, RoomSdf] = {}
 var _stamps: Dictionary[String, Vector3i] = {}
 var _shown: RoomSdf = null
 var _bound: RoomSdf = null
+var _none_texture: ImageTexture = null
+var _recent: Array[String] = []
 var _queue: Array[RoomSdf] = []
 var _baking: int = 0
 var _world: CollisionWorld = null
@@ -94,7 +96,8 @@ func _init(p_tuning: LightingTuning = null, p_profile: int = LightingTuning.PROF
 		1, 1, false, Image.FORMAT_RF, PackedFloat32Array([100000.0]).to_byte_array()
 	)
 	none.convert(Image.FORMAT_RH)
-	_set_global("wane_room_sdf", ImageTexture.create_from_image(none))
+	_none_texture = ImageTexture.create_from_image(none)
+	_set_global("wane_room_sdf", _none_texture)
 	_set_global("wane_room_rect", Vector4(0, 0, 1, 1))
 	_write_globals(0.0)
 
@@ -132,6 +135,13 @@ func freeze(tick: int, p_dark_factor: float) -> void:
 	_frozen = true
 	_frozen_tick = tick
 	set_dark_factor(p_dark_factor)
+
+
+## Turns the post pass (bloom, shoulder, vignette, grain) on or off: a test that measures what the
+## surfaces and the halos draw wants the HDR picture as it is, before the screen's own tone.
+func set_post_enabled(on: bool) -> void:
+	if _post_layer != null:
+		_post_layer.visible = on
 
 
 ## Lets time run again after [method freeze].
@@ -195,11 +205,15 @@ func prebuild(room_id: String, grid: TileGrid) -> void:
 		return
 	var was_shown: bool = _fields.has(room_id) and _fields[room_id] == _shown
 	var field: RoomSdf = _build(grid)
+	if _fields.has(room_id):
+		# The field it replaces is not baked for nothing.
+		_queue.erase(_fields[room_id])
 	_fields[room_id] = field
 	_stamps[room_id] = stamp
 	if was_shown:
 		_shown = field
 	_enqueue(field)
+	_touch(room_id)
 
 
 ## Shows [param world]'s room: points the lighting at the field kept under [param room_id] (built
@@ -210,6 +224,7 @@ func show_world(world: CollisionWorld, room_id: String = "") -> void:
 	if room_id != "":
 		prebuild(room_id, world.grid)
 		_shown = _fields[room_id]
+		_touch(room_id)
 	else:
 		_shown = _build(world.grid)
 		_enqueue(_shown)
@@ -218,6 +233,23 @@ func show_world(world: CollisionWorld, room_id: String = "") -> void:
 		_queue.erase(_shown)
 		_queue.push_front(_shown)
 	_bind_room()
+
+
+## Remembers that [param room_id] was used now and lets the fields of the rooms used longest ago go
+## beyond [member LightingTuning.fields_kept] (never the one on show, the one bound or one queued).
+func _touch(room_id: String) -> void:
+	_recent.erase(room_id)
+	_recent.append(room_id)
+	var i: int = 0
+	while _fields.size() > tuning.fields_kept and i < _recent.size():
+		var old: String = _recent[i]
+		var f: RoomSdf = _fields.get(old)
+		if old == room_id or f == _shown or f == _bound or _queue.has(f):
+			i += 1
+			continue
+		_fields.erase(old)
+		_stamps.erase(old)
+		_recent.remove_at(i)
 
 
 func _build(grid: TileGrid) -> RoomSdf:
@@ -280,7 +312,15 @@ func settle() -> void:
 
 
 func _bind_room() -> void:
-	if _shown == null or not _shown.baked or _bound == _shown:
+	if _shown == null or _bound == _shown:
+		return
+	if not _shown.baked:
+		# Until the new room's field is baked the walls of the last one must not light or shadow it:
+		# the field of no walls stands in.
+		if _bound != null:
+			_bound = null
+			_set_global("wane_room_sdf", _none_texture)
+			_set_global("wane_room_rect", Vector4(0, 0, 1, 1))
 		return
 	_bound = _shown
 	_set_global("wane_room_sdf", _shown.texture)

@@ -25,7 +25,7 @@ SVG_NS = "http://www.w3.org/2000/svg"
 TAGS = ("emissive", "blade", "eye", "pogo", "wax", "smear")
 NORMAL_PROFILES = ("bulge", "flat", "crease")
 # A part's normal rises from the rim over this many u: deep enough that a part of a Wick's size
-# is rounded through, so the light has a form to find (docs/adr/0025). A flat tile or a thin
+# is rounded through, so the light has a form to find (docs/adr/0026). A flat tile or a thin
 # blade says its own bevel.
 DEFAULT_BEVEL_U = 8.0
 MAX_BEVEL_U = 16.0

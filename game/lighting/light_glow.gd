@@ -1,6 +1,6 @@
 class_name LightGlow
 extends Node2D
-## The soft halos of the lights (docs/adr/0025; BUILD.md section 10, The ember): one additive quad
+## The soft halos of the lights (docs/adr/0026; BUILD.md section 10, The ember): one additive quad
 ## per light in the table, drawn over the sprites and under the post pass, sized in world units. It
 ## owns nothing but what to draw: [LightField] hands it the halos each frame.
 

@@ -11,6 +11,7 @@ const EMISSIVE_SHADER: String = "res://shaders/lighting/emissive.gdshader"
 static var _lit_material: ShaderMaterial
 static var _bevel_material: ShaderMaterial
 static var _emissive_material: ShaderMaterial
+static var _function_material: ShaderMaterial
 
 
 ## Makes [param item] emissive: unaffected by the ambient, brighter than 1.0 so the post pass blooms
@@ -26,11 +27,19 @@ static func make_emissive(item: CanvasItem) -> void:
 
 ## Makes [param item] a lit grey-box surface (Phase 1's stand-in for sprites with normal maps).
 ## [param bevel] gives it a normal from the room's distance field (tiles); otherwise it is flat.
-static func make_lit(item: CanvasItem, bevel: bool = false) -> void:
+## [param keep_hue] is for a box whose colour says what it is (the player, an enemy): the light
+## brightens or darkens it but does not tint it.
+static func make_lit(item: CanvasItem, bevel: bool = false, keep_hue: bool = false) -> void:
 	if _lit_material == null:
 		_lit_material = ShaderMaterial.new()
 		_lit_material.shader = load(LIT_SHADER) as Shader
 		_bevel_material = ShaderMaterial.new()
 		_bevel_material.shader = _lit_material.shader
 		_bevel_material.set_shader_parameter("sdf_normals", true)
+		_function_material = ShaderMaterial.new()
+		_function_material.shader = _lit_material.shader
+		_function_material.set_shader_parameter("keep_hue", true)
+	if keep_hue:
+		item.material = _function_material
+		return
 	item.material = _bevel_material if bevel else _lit_material

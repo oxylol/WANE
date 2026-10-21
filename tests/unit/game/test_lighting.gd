@@ -42,7 +42,8 @@ func test_the_numbers_are_the_sections_and_validate() -> void:
 	assert_float(t.skin_u).is_equal(14.0)
 	assert_int(t.max_steps).is_equal(48)
 	assert_float(t.min_step_u).is_equal(1.5)
-	assert_float(t.light_r_u).is_equal(8.0)
+	# 8 u was the ADR's start; 14 u widens the penumbra of the shadow edges (feel log, docs/adr/0026).
+	assert_float(t.light_r_u).is_equal(14.0)
 	assert_float(t.sdf_texel_u).is_equal(4.0)
 	assert_float(t.beacon.radius_u).is_equal(900.0)
 	assert_float(t.fire.radius_u).is_equal(160.0)
@@ -140,12 +141,13 @@ func test_every_global_the_shaders_read_is_declared_and_set() -> void:
 
 
 func test_the_declared_shape_globals_equal_the_tuning() -> void:
-	# The shape of the lighting (docs/adr/0025) is content, not a literal in the shader: what
-	# project.godot declares is what content/lighting.tres says, so an unapplied render is the tuned one.
+	# The shape of the lighting (docs/adr/0026) is content, not a literal in the shader: what
+	# project.godot declares is what content/lighting.tres says, so an unapplied render is the
+	# tuned one.
 	var t: LightingTuning = _tuning()
 	assert_array(Array(t.validate())).is_empty()
-	var shape: Dictionary = ProjectSettings.get_setting("shader_globals/wane_shape")
-	var gate: Dictionary = ProjectSettings.get_setting("shader_globals/wane_gate")
+	var shape: Variant = ProjectSettings.get_setting("shader_globals/wane_shape")
+	var gate: Variant = ProjectSettings.get_setting("shader_globals/wane_gate")
 	var want: Vector4 = t.shape_vec()
 	var have: Vector4 = shape["value"]
 	assert_float(have.x).is_equal_approx(want.x, 0.00001)
@@ -153,6 +155,14 @@ func test_the_declared_shape_globals_equal_the_tuning() -> void:
 	assert_float(have.z).is_equal_approx(want.z, 0.00001)
 	assert_float(have.w).is_equal_approx(want.w, 0.00001)
 	assert_vector(gate["value"]).is_equal(t.gate_vec())
+	# The starting values (docs/adr/0026), the spec until a feel-log entry changes them.
+	assert_float(t.flat_share).is_equal(0.35)
+	assert_float(t.bevel_tilt).is_equal(0.95)
+	assert_float(t.up_only_soft_u).is_equal(8.0)
+	assert_float(t.gate_lo).is_equal(0.05)
+	assert_float(t.gate_hi).is_equal(0.15)
+	assert_float(t.glow_radius_share).is_equal(0.05)
+	assert_float(t.glow_strength).is_equal(0.5)
 	# 40 degrees above the plane: a flat surface reads sin 40 = 0.64 of any light, above lit_threshold.
 	assert_float(rad_to_deg(want.z)).is_equal_approx(40.0, 0.0001)
 	var ink: InkTuning = load(InkTuning.PATH) as InkTuning

@@ -270,8 +270,13 @@ func _read_meta(meta: Dictionary[String, Variant], scale: int) -> void:
 func _read_action(action: StringName, body: Dictionary[String, Variant], scale: int) -> void:
 	var frames := ActionFrames.new()
 	frames.fps = int(json_num(body.get("fps", 24), 24.0))
-	var loops: bool = body.get("loop", true)
-	frames.loop = loops
+	if frames.fps <= 0:
+		errors.append("%s: action %s has an fps of %d" % [asset, action, frames.fps])
+	var loop_v: Variant = body.get("loop", true)
+	var loop_ok: bool = typeof(loop_v) == TYPE_BOOL
+	if not loop_ok:
+		errors.append("%s: action %s: loop must be true or false" % [asset, action])
+	frames.loop = not loop_ok or loop_v == true
 	var cell: Array[Variant] = json_list(body.get("cell_u", null))
 	var origin: Array[Variant] = json_list(body.get("cell_origin_u", null))
 	frames.cell_u = (
@@ -290,15 +295,29 @@ func _read_action(action: StringName, body: Dictionary[String, Variant], scale: 
 		var frame: Dictionary[String, Variant] = json_dict(frame_v)
 		var r: Array[Variant] = json_list(json_dict(frame.get("rect", null)).get(str(scale), null))
 		if r.size() != 4:
+			# The sheet is invalid from here (errors is not empty), so the frames after this one
+			# shifting their indices is moot.
 			errors.append("%s: a frame of %s has no rect for scale %d" % [asset, action, scale])
 			continue
 		var x: int = int(json_num(r[0], 0.0))
 		var y: int = int(json_num(r[1], 0.0))
 		var w: int = int(json_num(r[2], 0.0))
 		var h: int = int(json_num(r[3], 0.0))
+		var page: int = int(json_num(frame.get("page", 0), 0.0))
+		var ticks: int = int(json_num(frame.get("ticks", 1), 1.0))
+		if w <= 0 or h <= 0:
+			errors.append("%s: a frame of %s has an empty rect" % [asset, action])
+		if page < 0 or page >= page_count:
+			errors.append(
+				"%s: a frame of %s is on page %d of %d" % [asset, action, page, page_count]
+			)
+			page = 0
+		if ticks <= 0:
+			errors.append("%s: a frame of %s is held for %d ticks" % [asset, action, ticks])
+			ticks = 1
 		frames.rects.append(Rect2i(x, y, w, h))
-		frames.pages.append(int(json_num(frame.get("page", 0), 0.0)))
-		frames.ticks.append(int(json_num(frame.get("ticks", 1), 1.0)))
+		frames.pages.append(page)
+		frames.ticks.append(ticks)
 	_actions[action] = frames
 
 

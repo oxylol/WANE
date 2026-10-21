@@ -281,10 +281,14 @@ func _light_emissives(sheet: SpriteSheet) -> void:
 		SpriteSheet.json_dict(frames[0]).get("emissive_regions", null)
 	)
 	for r_v: Variant in regions:
-		var c: Array[Variant] = SpriteSheet.json_list(SpriteSheet.json_dict(r_v).get("centre", null))
+		var c: Array[Variant] = SpriteSheet.json_list(
+			SpriteSheet.json_dict(r_v).get("centre", null)
+		)
 		if c.size() != 2:
 			continue
-		var at: Vector2 = MARK + Vector2(SpriteSheet.json_num(c[0], 0.0), SpriteSheet.json_num(c[1], 0.0))
+		var at: Vector2 = (
+			MARK + Vector2(SpriteSheet.json_num(c[0], 0.0), SpriteSheet.json_num(c[1], 0.0))
+		)
 		_prop_lights.append(_field.spawn_light(_tuning.fire, at))
 
 

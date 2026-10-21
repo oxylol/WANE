@@ -21,7 +21,7 @@ const PATH: String = "res://content/art/ink.tres"
 ## The weight never falls below this many screen pixels: a 0.3 u hairline is 0.3 px at 1x.
 @export var line_min_px: float = 0.8
 ## Amplitude of the two-octave wobble along the edge, in u.
-@export var wobble_u: float = 0.22
+@export var wobble_u: float = 0.32
 
 @export_group("Wobble and edge (wane_ink_wave)")
 ## Wavelength of the wobble's first octave, in u (specified in u so a rescale does not make the
@@ -35,7 +35,7 @@ const PATH: String = "res://content/art/ink.tres"
 @export var edge_dark: float = 0.22
 
 @export_group("Two values (wane_fill)")
-## N.L (of the form direction, docs/adr/0025) a surface must reach, in a light's reach, to turn from
+## N.L (of the form direction, docs/adr/0026) a surface must reach, in a light's reach, to turn from
 ## its shadow value to its lit one. A surface facing the viewer reads sin(form elevation) there, so
 ## this sits below it: only a surface tilted away from the light turns to shadow.
 @export var lit_threshold: float = 0.5

@@ -339,7 +339,30 @@ class Repository(unittest.TestCase):
         for r in build.ROOTS:
             out = common.ROOT / r.out
             for rel, digest in manifest.load(out / manifest.NAME).items():
-                self.assertEqual(manifest.sha256((out / rel).read_bytes()), digest, f"{r.out}/{rel}")
+                self.assertEqual(manifest.digest(rel, (out / rel).read_bytes()), digest, f"{r.out}/{rel}")
+
+    def test_a_png_is_hashed_by_its_pixels_not_by_its_deflate_stream(self) -> None:
+        """docs/review F7: the same picture compressed another way is the same build output."""
+        import io
+
+        import numpy as np
+        from PIL import Image
+
+        px = np.arange(4 * 4 * 4, dtype=np.uint8).reshape(4, 4, 4)
+        a, b = io.BytesIO(), io.BytesIO()
+        Image.fromarray(px, "RGBA").save(a, format="PNG", compress_level=9)
+        Image.fromarray(px, "RGBA").save(b, format="PNG", compress_level=0)
+        self.assertNotEqual(a.getvalue(), b.getvalue())
+        self.assertEqual(manifest.digest("x.png", a.getvalue()), manifest.digest("x.png", b.getvalue()))
+        self.assertTrue(manifest.same("x.png", a.getvalue(), b.getvalue()))
+        px2 = px.copy()
+        px2[0, 0, 0] ^= 1
+        c = io.BytesIO()
+        Image.fromarray(px2, "RGBA").save(c, format="PNG", compress_level=9)
+        self.assertNotEqual(manifest.digest("x.png", a.getvalue()), manifest.digest("x.png", c.getvalue()))
+        self.assertFalse(manifest.same("x.png", a.getvalue(), c.getvalue()))
+        # Anything else is its bytes.
+        self.assertNotEqual(manifest.digest("a.json", b"{}"), manifest.digest("a.json", b"{ }"))
 
     def test_godot_imports_the_data_textures_unaltered(self) -> None:
         """Godot's default fix_alpha_border rewrites the colour of zero-alpha pixels, which is

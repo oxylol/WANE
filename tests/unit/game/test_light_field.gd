@@ -306,3 +306,23 @@ func test_the_boot_scene_prebuilds_every_room_and_a_crossing_builds_nothing() ->
 	for id: String in zone.rooms:
 		main.enter_room(Simulation.new(Scenario.make(1, id)))
 	assert_int(main.lighting.rooms_built).is_equal(built)
+
+
+func test_the_fields_of_rooms_used_longest_ago_are_let_go_but_never_the_one_on_show() -> void:
+	# docs/review F5: the cache of distance fields has an eviction (LightingTuning.fields_kept).
+	var f: LightField = _field()
+	var kept: int = _tuning().fields_kept
+	var grid: TileGrid = _grid(["....", "####"])
+	f.show_world(CollisionWorld.new(grid), "room_0")
+	for i: int in range(1, kept + 6):
+		var g: TileGrid = _grid(["....", "####"])
+		f.prebuild("room_%d" % i, g)
+	assert_object(f.field_of("room_0")).is_not_null()
+	assert_object(f.field_of("room_%d" % (kept + 5))).is_not_null()
+	var held: int = 0
+	for i: int in range(0, kept + 6):
+		if f.field_of("room_%d" % i) != null:
+			held += 1
+	assert_int(held).is_equal(kept)
+	# The oldest of the others went first.
+	assert_object(f.field_of("room_1")).is_null()

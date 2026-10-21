@@ -40,6 +40,11 @@ const FLICKER_RATIO_MAX: float = 1.2
 ## A door crossing, pointing the lighting at a room already built and baked, must cost under this
 ## (content/perf/budget.tres door_max_us).
 const CROSSING_MAX_USEC: int = 2000
+## A surface's light against the CPU's maths of the same numbers, as a share.
+const SHADING_TOLERANCE: float = 0.04
+## The bevel depth of a lit grey box with the distance field's normal (shaders/lighting/
+## lit_flat.gdshader, bevel_u).
+const LIT_BEVEL_U: float = 6.0
 
 var _failures: PackedStringArray = PackedStringArray()
 
@@ -69,6 +74,8 @@ func _run() -> void:
 	await _check_crossing(field)
 	await _check_buffer(field, sdf)
 	await _check_surfaces(field)
+	await _check_shading_maths(field)
+	await _check_unbaked_room(field)
 	_finish()
 
 
@@ -324,6 +331,174 @@ func _check_surfaces(field: LightField) -> void:
 		)
 	near_rect.queue_free()
 	far_rect.queue_free()
+
+
+## The radiance the shader should give a surface at [param at] with normal [param n]: ambient plus
+## each light of the table as it was written this frame (rgb x energy x falloff, the table's own
+## numbers) times flat + (1 - flat) N.L, in the tuning's flat share (the shader's formula, from the
+## tuning's numbers, on the CPU), the ember seen through [param ember_visibility] of the shadow
+## march.
+func _radiance(field: LightField, at: Vector2, n: Vector3, ember_visibility: float = 1.0) -> Color:
+	var amb: Color = field.globals["wane_ambient"]
+	var rgb := Vector3(amb.r, amb.g, amb.b)
+	for i: int in range(field.lights_in_table):
+		var pos := Vector2(_cell(field, 0, i, 0), _cell(field, 0, i, 1))
+		var reach: float = _cell(field, 0, i, 2)
+		var height: float = _cell(field, 0, i, 3)
+		var d: float = pos.distance_to(at)
+		if d >= reach:
+			continue
+		var atten: float = pow(1.0 - d / reach, _cell(field, 2, i, 0))
+		var l: Vector3 = Vector3(pos.x - at.x, pos.y - at.y, height).normalized()
+		var ndl: float = maxf(n.dot(l), 0.0)
+		var share: float = field.tuning.flat_share + (1.0 - field.tuning.flat_share) * ndl
+		var col := Vector3(_cell(field, 1, i, 0), _cell(field, 1, i, 1), _cell(field, 1, i, 2))
+		var vis: float = ember_visibility if i == 0 else 1.0
+		rgb += col * (atten * vis * share)
+	return Color(rgb.x, rgb.y, rgb.z)
+
+
+func _cell(field: LightField, row: int, col: int, k: int) -> float:
+	return field.table[(row * LightField.TABLE_COLUMNS + col) * 4 + k]
+
+
+## One pixel of the screen.
+func _pixel(at: Vector2) -> Color:
+	var shot: Image = root.get_viewport().get_texture().get_image()
+	return shot.get_pixel(int(at.x), int(at.y))
+
+
+## 5. The shading's numbers: a flat surface at three distances from the ember, and a wall's bevel
+## normal, against the maths on the CPU from the tuning (so that an edit to the flat share, the
+## attenuation, the bevel's tilt or how the normal is built moves a reading).
+func _check_shading_maths(field: LightField) -> void:
+	field.set_post_enabled(false)
+	var open_row: String = ".".repeat(32)
+	var open := TileGrid.from_rows(PackedStringArray([open_row, open_row, open_row, open_row]))
+	field.show_world(CollisionWorld.new(open), "open2")
+	await field.settle()
+	var ember := Vector2(100.0, 64.0)
+	var grey := Color(0.25, 0.25, 0.25)
+	var rects: Array[ColorRect] = []
+	var spots: Array[Vector2] = [Vector2(160.0, 64.0), Vector2(250.0, 64.0), Vector2(400.0, 64.0)]
+	for at: Vector2 in spots:
+		var r: ColorRect = _surface(at)
+		r.color = grey
+		root.add_child(r)
+		rects.append(r)
+	field.freeze(0, 0.15)
+	field.present(0, 0.0, ember)
+	for _f: int in range(3):
+		await RenderingServer.frame_post_draw
+	var worst: float = 0.0
+	for at: Vector2 in spots:
+		var want_c: Color = _radiance(field, at, Vector3(0.0, 0.0, 1.0)) * grey.r
+		var want: float = Color(want_c.r, want_c.g, want_c.b).get_luminance()
+		var got: float = _lum(at)
+		worst = maxf(worst, absf(got - want) / maxf(want, 0.0001))
+		print(
+			(
+				"shading: flat surface %d u from the ember: %.4f (maths %.4f)"
+				% [int(at.x - ember.x), got, want]
+			)
+		)
+	if worst > SHADING_TOLERANCE:
+		_fail(
+			(
+				"a flat surface's light differs from the maths by %.1f%% (flat share, falloff)"
+				% (worst * 100.0)
+			)
+		)
+	for r: ColorRect in rects:
+		r.queue_free()
+	# A wall's top face: the bevel normal tilts toward the open by bevel_tilt, falling off to flat
+	# bevel_u inside. The pillar is column 10 of a six-row room; the probe is 2.5 u under its top.
+	var walled := TileGrid.from_rows(
+		PackedStringArray(
+			[
+				"................",
+				"................",
+				"................",
+				"................",
+				"..........#.....",
+				"..........#.....",
+				"..........#....."
+			]
+		)
+	)
+	field.show_world(CollisionWorld.new(walled), "bevel")
+	await field.settle()
+	var sdf: RoomSdf = field.shown_field()
+	var probe := Vector2(10.5 * 32.0, 4.0 * 32.0 + 2.5)
+	var wall_ember := Vector2(7.0 * 32.0, 2.0 * 32.0)
+	var bevel_rect := ColorRect.new()
+	bevel_rect.color = grey
+	bevel_rect.position = probe - Vector2(1.0, 1.0)
+	bevel_rect.size = Vector2(2.0, 2.0)
+	LightSurfaces.make_lit(bevel_rect, true)
+	root.add_child(bevel_rect)
+	field.freeze(0, 0.15)
+	field.present(0, 0.0, wall_ember)
+	for _f: int in range(3):
+		await RenderingServer.frame_post_draw
+	var d: float = sdf.distance(probe)
+	var bevel_u: float = LIT_BEVEL_U
+	var s01: float = clampf((-d) / bevel_u, 0.0, 1.0)
+	var tilt: float = field.tuning.bevel_tilt * (1.0 - s01 * s01 * (3.0 - 2.0 * s01))
+	var grad: Vector2 = Vector2(
+		sdf.distance(probe + Vector2(2, 0)) - sdf.distance(probe - Vector2(2, 0)),
+		sdf.distance(probe + Vector2(0, 2)) - sdf.distance(probe - Vector2(0, 2))
+	)
+	var out_dir: Vector2 = grad.normalized() if grad.length() > 0.0001 else Vector2.ZERO
+	var n: Vector3 = Vector3(out_dir.x * tilt, out_dir.y * tilt, 1.0 - 0.5 * tilt).normalized()
+	var twin := ShadowTwin.new(sdf, field.tuning)
+	twin.use_baked = true
+	var vis: float = twin.visibility(probe, wall_ember, field.tuning.ember_radius_u)
+	var want_wall_c: Color = _radiance(field, probe, n, vis) * grey.r
+	var want_wall: float = Color(want_wall_c.r, want_wall_c.g, want_wall_c.b).get_luminance()
+	var got_wall: float = _pixel(probe).get_luminance()
+	var flat_c: Color = _radiance(field, probe, Vector3(0.0, 0.0, 1.0), vis) * grey.r
+	var flat_wall: float = Color(flat_c.r, flat_c.g, flat_c.b).get_luminance()
+	print(
+		(
+			"shading: wall bevel at depth %.1f u, tilt %.2f: %.4f (maths %.4f, flat normal %.4f)"
+			% [-d, tilt, got_wall, want_wall, flat_wall]
+		)
+	)
+	if absf(got_wall - want_wall) / maxf(want_wall, 0.0001) > SHADING_TOLERANCE:
+		_fail(
+			(
+				"a wall's bevel does not light as its normal says (%.4f against %.4f)"
+				% [got_wall, want_wall]
+			)
+		)
+	if absf(flat_wall - want_wall) / maxf(want_wall, 0.0001) < 0.08:
+		_fail(
+			(
+				"the check cannot tell a bevelled wall from a flat one here (%.4f, %.4f)"
+				% [flat_wall, want_wall]
+			)
+		)
+	bevel_rect.queue_free()
+	field.set_post_enabled(true)
+
+
+## 6. A room whose field is not baked yet does not borrow the last room's walls: the field of no
+## walls stands in until it binds.
+func _check_unbaked_room(field: LightField) -> void:
+	var a := TileGrid.from_rows(PackedStringArray(["....", "####"]))
+	var b := TileGrid.from_rows(PackedStringArray(["........", "........", "#......#", "########"]))
+	field.show_world(CollisionWorld.new(a), "bound_a")
+	await field.settle()
+	var rect_a: Vector4 = field.globals["wane_room_rect"]
+	field.show_world(CollisionWorld.new(b), "bound_b")
+	var rect_now: Vector4 = field.globals["wane_room_rect"]
+	if rect_now != Vector4(0, 0, 1, 1):
+		_fail("a room shown before its field is baked still has the last room's rect %s" % rect_now)
+	await field.settle()
+	var rect_b: Vector4 = field.globals["wane_room_rect"]
+	if rect_b == Vector4(0, 0, 1, 1) or rect_b == rect_a:
+		_fail("a room's own field was not bound once baked (%s)" % rect_b)
 
 
 func _finish() -> void:

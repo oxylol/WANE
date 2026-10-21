@@ -116,7 +116,7 @@ def write_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -
             path.write_bytes(data)
             changed += 1
         if not is_master(rel):
-            entries[rel] = manifest.sha256(data)
+            entries[rel] = manifest.digest(rel, data)
     for name in sorted(scope):  # output of a removed action or a renamed file
         for stale in manifest.strays(out, name, set(files)):
             if not is_master(stale):
@@ -136,12 +136,12 @@ def check_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -
     out = root / r.out
     scope = scope_of(files, built)
     problems = []
-    fresh = {k: manifest.sha256(v) for k, v in files.items() if not is_master(k)}
+    fresh = {k: manifest.digest(k, v) for k, v in files.items() if not is_master(k)}
     for rel, data in sorted(files.items()):
         path = out / rel
         if not path.exists():
             problems.append(f"missing: {r.out}/{rel}")
-        elif path.read_bytes() != data:
+        elif not manifest.same(rel, path.read_bytes(), data):
             problems.append(f"differs from a fresh build: {r.out}/{rel}")
     disk = manifest.load(out / manifest.NAME)
     for rel in sorted(disk):

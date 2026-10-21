@@ -1,4 +1,4 @@
-// The soft halo a light draws over the ink (docs/adr/0025; BUILD.md section 10, The ember: "a soft
+// The soft halo a light draws over the ink (docs/adr/0026; BUILD.md section 10, The ember: "a soft
 // bloom over the ink"). One quad per light, added to the HDR 2D pass: its colour is the light's
 // colour times its energy times the glow strength, its radius is in world units, so the halo is the
 // same size at every zoom (the post pass's bloom, which averages screen blocks, cannot make a halo
