@@ -20,13 +20,13 @@ strength), four rows per variant, sixteen columns.
 
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
 
+from . import strict_json
 from .channels import PALETTE_COLUMNS, PALETTE_ROWS_PER_VARIANT
 from .svg import PartLibrary
 
@@ -70,6 +70,8 @@ def _hex(value, where: str) -> tuple[int, int, int]:
 
 
 def _check_material(name: str, m: dict, partial: bool, where: str) -> None:
+    if not isinstance(m, dict):
+        raise PaletteError(f"{where}: material {name!r} must be a dictionary")
     for key in m:
         if key not in FIELDS:
             raise PaletteError(f"{where}: material {name!r} has unknown field {key!r}")
@@ -79,7 +81,9 @@ def _check_material(name: str, m: dict, partial: bool, where: str) -> None:
         elif not partial and key != "emissive":
             raise PaletteError(f"{where}: material {name!r} needs {key}")
     for key in ("gloss", "emissive_strength"):
-        if key in m and not (isinstance(m[key], (int, float)) and 0.0 <= m[key] <= 1.0):
+        if key in m and not (
+            isinstance(m[key], (int, float)) and not isinstance(m[key], bool) and 0.0 <= m[key] <= 1.0
+        ):
             raise PaletteError(f"{where}: {name}.{key} must be 0 to 1")
 
 
@@ -102,11 +106,23 @@ def extract_dictionary(text: str, name: str = "palette.tres") -> dict:
         elif c == "}":
             depth -= 1
             if depth == 0:
-                try:
-                    return json.loads(text[start : k + 1])
-                except json.JSONDecodeError as e:
-                    raise PaletteError(f"{name}: palette dictionary is not valid ({e})") from e
+                return strict_json.loads(text[start : k + 1], PaletteError, name)
     raise PaletteError(f"{name}: unterminated palette dictionary")
+
+
+def _check_glows(part: str, material: str, m: dict, name: str) -> None:
+    """A part tagged `emissive` must have a material that glows. Its emissive coverage is written
+    from the tag, and the shader draws no ink around it, so a material with no emissive colour (or
+    a strength of 0) leaves a hole where the part is while sheet.json still reports a lit region."""
+    if "emissive" not in m:
+        raise PaletteError(
+            f"{name}: part {part!r} is tagged emissive but its material {material!r} has no emissive colour"
+        )
+    if float(m.get("emissive_strength", 1.0)) <= 0.0:
+        raise PaletteError(
+            f"{name}: part {part!r} is tagged emissive but its material {material!r} has "
+            "an emissive_strength of 0 (it needs emissive_strength above 0)"
+        )
 
 
 def parse(text: str, lib: PartLibrary, name: str = "palette.tres") -> Palette:
@@ -124,15 +140,26 @@ def parse(text: str, lib: PartLibrary, name: str = "palette.tres") -> Palette:
     for pid, mname in parts.items():
         if pid not in ids:
             raise PaletteError(f"{name}: material for unknown part {pid!r}")
+        if not isinstance(mname, str):
+            raise PaletteError(f"{name}: part {pid!r} names a material by its string, not {mname!r}")
         if mname not in materials:
             raise PaletteError(f"{name}: part {pid!r} uses unknown material {mname!r}")
+    for p in lib.parts:
+        if "emissive" in p.tags:
+            _check_glows(p.id, parts[p.id], materials[parts[p.id]], name)
     variants = doc.get("variants", {})
+    if not isinstance(variants, dict):
+        raise PaletteError(f"{name}: 'variants' must be a dictionary of variants")
     for vname, over in variants.items():
         if vname == "base":
             raise PaletteError(f"{name}: 'base' is the materials themselves")
+        if not isinstance(over, dict):
+            raise PaletteError(f"{name}: variant {vname!r} must be a dictionary of materials")
         for mname, m in over.items():
             if mname not in materials:
                 raise PaletteError(f"{name}: variant {vname!r} overrides unknown material {mname!r}")
+            if not isinstance(m, dict):
+                raise PaletteError(f"{name}: variant {vname!r} overrides material {mname!r} with a dictionary")
             _check_material(mname, m, True, f"{name} variant {vname}")
     slots: list[str] = []
     for p in lib.parts:  # z order, back to front: stable and independent of the file's order

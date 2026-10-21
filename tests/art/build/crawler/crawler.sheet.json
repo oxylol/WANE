@@ -1,0 +1,499 @@
+{
+ "version": 1,
+ "asset": "crawler",
+ "source_sha256": "f390fe515a2afe2071bdbe1268ca0256b9d97a6c1a580f1e05244db93938ccd0",
+ "tools": {
+  "artbuild": "1.0.0",
+  "numpy": "2.5.3",
+  "pillow": "12.3.0"
+ },
+ "scales": [
+  1,
+  2
+ ],
+ "masters": [
+  4
+ ],
+ "origin_u": [
+  64.0,
+  40.0
+ ],
+ "cell_u": [
+  136,
+  64
+ ],
+ "pages": [
+  {
+   "page": 0,
+   "size_u": [
+    544,
+    124
+   ]
+  }
+ ],
+ "palette": {
+  "file": "crawler.palette.png",
+  "columns": 16,
+  "rows_per_variant": 4,
+  "variants": [
+   "base"
+  ],
+  "slots": [
+   {
+    "slot": 1,
+    "material": "limb"
+   },
+   {
+    "slot": 2,
+    "material": "shell"
+   },
+   {
+    "slot": 3,
+    "material": "bone"
+   },
+   {
+    "slot": 4,
+    "material": "eye"
+   }
+  ]
+ },
+ "parts": [
+  {
+   "id": "leg_far_back",
+   "index": 1,
+   "z": 0,
+   "tags": [],
+   "material": "limb",
+   "pivot_u": [
+    -28.0,
+    -11.0
+   ]
+  },
+  {
+   "id": "leg_near_back",
+   "index": 1,
+   "z": 1,
+   "tags": [],
+   "material": "limb",
+   "pivot_u": [
+    -22.0,
+    -10.0
+   ]
+  },
+  {
+   "id": "leg_far_front",
+   "index": 1,
+   "z": 2,
+   "tags": [],
+   "material": "limb",
+   "pivot_u": [
+    24.0,
+    -11.0
+   ]
+  },
+  {
+   "id": "leg_near_front",
+   "index": 1,
+   "z": 3,
+   "tags": [],
+   "material": "limb",
+   "pivot_u": [
+    18.0,
+    -10.0
+   ]
+  },
+  {
+   "id": "carapace",
+   "index": 2,
+   "z": 4,
+   "tags": [],
+   "material": "shell",
+   "pivot_u": [
+    -2.0,
+    -18.0
+   ]
+  },
+  {
+   "id": "spines",
+   "index": 3,
+   "z": 5,
+   "tags": [],
+   "material": "bone",
+   "pivot_u": [
+    -4.0,
+    -30.0
+   ]
+  },
+  {
+   "id": "head",
+   "index": 2,
+   "z": 6,
+   "tags": [],
+   "material": "shell",
+   "pivot_u": [
+    40.0,
+    -10.0
+   ]
+  },
+  {
+   "id": "jaw",
+   "index": 3,
+   "z": 7,
+   "tags": [],
+   "material": "bone",
+   "pivot_u": [
+    46.0,
+    -6.0
+   ]
+  },
+  {
+   "id": "eye",
+   "index": 4,
+   "z": 8,
+   "tags": [
+    "emissive",
+    "eye"
+   ],
+   "material": "eye",
+   "pivot_u": [
+    43.0,
+    -12.0
+   ]
+  }
+ ],
+ "actions": {
+  "idle": {
+   "fps": 12,
+   "loop": true,
+   "cell_u": [
+    136,
+    60
+   ],
+   "cell_origin_u": [
+    68.0,
+    48.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 6,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       0,
+       136,
+       60
+      ],
+      "2": [
+       0,
+       0,
+       272,
+       120
+      ],
+      "4": [
+       0,
+       0,
+       544,
+       240
+      ]
+     },
+     "silhouette_box": [
+      -57.6,
+      -38.5,
+      57.5,
+      3.0
+     ],
+     "part_boxes": [
+      {
+       "part": "eye",
+       "tags": [
+        "emissive",
+        "eye"
+       ],
+       "box": [
+        41.1097,
+        -13.8976,
+        44.9,
+        -10.1024
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "eye",
+       "centre": [
+        43.0049,
+        -12.0
+       ],
+       "radius": 1.9048,
+       "colour": "#ffd890",
+       "strength": 1.0,
+       "kind": "eye"
+      }
+     ],
+     "smear": {}
+    }
+   ]
+  },
+  "skitter": {
+   "fps": 12,
+   "loop": true,
+   "cell_u": [
+    136,
+    64
+   ],
+   "cell_origin_u": [
+    68.0,
+    48.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       60,
+       136,
+       64
+      ],
+      "2": [
+       0,
+       120,
+       272,
+       128
+      ],
+      "4": [
+       0,
+       240,
+       544,
+       256
+      ]
+     },
+     "silhouette_box": [
+      -59.157,
+      -38.5,
+      54.5641,
+      6.9081
+     ],
+     "part_boxes": [
+      {
+       "part": "eye",
+       "tags": [
+        "emissive",
+        "eye"
+       ],
+       "box": [
+        41.1097,
+        -13.8976,
+        44.9,
+        -10.1024
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "eye",
+       "centre": [
+        43.0049,
+        -12.0
+       ],
+       "radius": 1.9048,
+       "colour": "#ffd890",
+       "strength": 1.0,
+       "kind": "eye"
+      }
+     ],
+     "smear": {}
+    },
+    {
+     "index": 1,
+     "key": false,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       136,
+       60,
+       136,
+       64
+      ],
+      "2": [
+       272,
+       120,
+       272,
+       128
+      ],
+      "4": [
+       544,
+       240,
+       544,
+       256
+      ]
+     },
+     "silhouette_box": [
+      -57.6,
+      -39.1,
+      57.5,
+      2.4
+     ],
+     "part_boxes": [
+      {
+       "part": "eye",
+       "tags": [
+        "emissive",
+        "eye"
+       ],
+       "box": [
+        41.1097,
+        -14.4976,
+        44.9,
+        -10.7024
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "eye",
+       "centre": [
+        43.0049,
+        -12.6
+       ],
+       "radius": 1.9048,
+       "colour": "#ffd890",
+       "strength": 1.0,
+       "kind": "eye"
+      }
+     ],
+     "smear": {}
+    },
+    {
+     "index": 2,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       272,
+       60,
+       136,
+       64
+      ],
+      "2": [
+       544,
+       120,
+       272,
+       128
+      ],
+      "4": [
+       1088,
+       240,
+       544,
+       256
+      ]
+     },
+     "silhouette_box": [
+      -54.7493,
+      -38.5,
+      58.9719,
+      7.0829
+     ],
+     "part_boxes": [
+      {
+       "part": "eye",
+       "tags": [
+        "emissive",
+        "eye"
+       ],
+       "box": [
+        41.1097,
+        -13.8976,
+        44.9,
+        -10.1024
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "eye",
+       "centre": [
+        43.0049,
+        -12.0
+       ],
+       "radius": 1.9048,
+       "colour": "#ffd890",
+       "strength": 1.0,
+       "kind": "eye"
+      }
+     ],
+     "smear": {}
+    },
+    {
+     "index": 3,
+     "key": false,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       408,
+       60,
+       136,
+       64
+      ],
+      "2": [
+       816,
+       120,
+       272,
+       128
+      ],
+      "4": [
+       1632,
+       240,
+       544,
+       256
+      ]
+     },
+     "silhouette_box": [
+      -57.6,
+      -39.1,
+      57.5,
+      2.4
+     ],
+     "part_boxes": [
+      {
+       "part": "eye",
+       "tags": [
+        "emissive",
+        "eye"
+       ],
+       "box": [
+        41.1097,
+        -14.4976,
+        44.9,
+        -10.7024
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "eye",
+       "centre": [
+        43.0049,
+        -12.6
+       ],
+       "radius": 1.9048,
+       "colour": "#ffd890",
+       "strength": 1.0,
+       "kind": "eye"
+      }
+     ],
+     "smear": {}
+    }
+   ]
+  }
+ }
+}

@@ -1,10 +1,13 @@
 """Determinism, sheets, metadata and the byte-identity check (ADR-0023 Decision 1.5, 1.6, 1.8, 6.1)."""
 
+import contextlib
+import io
 import json
 import shutil
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -94,6 +97,17 @@ class Sheets(unittest.TestCase):
         problems = " ".join(schema.validate(bad, schema.load_schema()))
         for word in ("silhouette_box", "ticks", "surplus", "glow"):
             self.assertIn(word, problems)
+
+    def test_json_has_no_nan_and_neither_has_a_sheet(self) -> None:
+        """A bare NaN is not JSON: Godot's parser cannot read the sheet that holds one."""
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            self.assertTrue(schema.validate(bad, {"type": "number"}), bad)
+            self.assertTrue(schema.validate([bad], {"type": "array", "items": {"type": ["number", "null"]}}), bad)
+        self.assertEqual(schema.validate(1.5, {"type": "number"}), [])
+        self.assertEqual(schema.validate(3, {"type": "number"}), [])
+        with mock.patch.object(assetbuild, "sheet_json", return_value={"x": float("nan")}):
+            with self.assertRaises(ValueError):
+                build_files(common.CANDLE_DIR)
 
     def test_files_per_scale_and_the_masters_flag(self) -> None:
         for s in (1, 2, 4):
@@ -259,13 +273,28 @@ class CheckMode(unittest.TestCase):
         cls.r = build.Root("src", "out", noise=True)
         files, built = build.build_root(root, cls.r, None, masters=False, jobs=1, cache_dir=None, versions=VERSIONS)
         build.write_root(root, cls.r, files, built)
+        cls.built = (files, built)  # the sources never change, so every test compares to this one build
+        cls.built_one = build.build_root(root, cls.r, ["candle_stump"], masters=False, jobs=1, cache_dir=None,
+                                         versions=VERSIONS)
 
     @classmethod
     def tearDownClass(cls) -> None:
         cls.tmp.cleanup()
 
     def fresh(self):
-        return build.build_root(self.root, self.r, None, masters=False, jobs=1, cache_dir=None, versions=VERSIONS)
+        return dict(self.built[0]), list(self.built[1])
+
+    def problems(self) -> list[str]:
+        files, built = self.fresh()
+        return build.check_root(self.root, self.r, files, built)
+
+    def problems_of_one(self) -> list[str]:
+        """`build.py --check candle_stump`: the same tree, a build of one asset."""
+        files, built = self.built_one
+        return build.check_root(self.root, self.r, dict(files), list(built))
+
+    def out(self, *parts: str) -> Path:
+        return self.root.joinpath("out", *parts)
 
     def test_a_clean_tree_passes(self) -> None:
         files, built = self.fresh()
@@ -320,6 +349,141 @@ class CheckMode(unittest.TestCase):
             victim.write_bytes(saved)
             imp.unlink()
 
+    # --- what review 2 found: --check looked only inside the folders of the assets it built -----
+
+    def test_a_stock_picture_in_a_new_folder_fails(self) -> None:
+        stock = self.out("stock", "wax_stock.png")
+        stock.parent.mkdir()
+        stock.write_bytes((self.out("candle_stump", "candle_stump@1x.shape.png")).read_bytes())
+        try:
+            self.assertTrue(any("not build output" in p and "stock/wax_stock.png" in p for p in self.problems()))
+            partial = self.problems_of_one()  # a check of one asset sees it too
+            self.assertTrue(any("stock/wax_stock.png" in p for p in partial), partial)
+        finally:
+            stock.unlink()
+            stock.parent.rmdir()
+        self.assertEqual(self.problems(), [])
+
+    def test_a_picture_at_the_out_root_fails(self) -> None:
+        stray = self.out("readme.png")
+        stray.write_bytes(b"x")
+        try:
+            self.assertTrue(any("not build output" in p and "readme.png" in p for p in self.problems()))
+        finally:
+            stray.unlink()
+
+    def test_a_copied_build_folder_with_no_source_fails(self) -> None:
+        ghost = self.out("ghost")
+        shutil.copytree(self.out("candle_stump"), ghost)
+        try:
+            problems = " | ".join(self.problems())
+            self.assertIn("out/ghost/candle_stump.sheet.json", problems)
+        finally:
+            shutil.rmtree(ghost)
+
+    def test_a_deleted_source_leaves_nothing_unflagged(self) -> None:
+        """The source is gone: its committed renders and its manifest lines are orphans."""
+        src = self.root / "src" / "candle_stump"
+        hidden = self.root / "src_gone"
+        src.rename(hidden)
+        try:
+            files, built = build.build_root(self.root, self.r, None, masters=False, jobs=1, cache_dir=None,
+                                            versions=VERSIONS)
+            self.assertEqual(built, [])
+            problems = build.check_root(self.root, self.r, files, built)
+            text = " | ".join(problems)
+            self.assertIn("manifest lists a file of an asset with no source: out/candle_stump/", text)
+            self.assertIn("not build output (renders are never hand-edited): out/candle_stump/candle_stump@1x.shape.png",
+                          text)
+            self.assertNotIn("noise", text)  # the noise has its source in the build itself
+        finally:
+            hidden.rename(src)
+        self.assertEqual(self.problems(), [])
+
+    def test_a_partial_check_does_not_blame_the_assets_it_did_not_build(self) -> None:
+        files, built = build.build_root(self.root, self.r, ["noise"], masters=False, jobs=1, cache_dir=None,
+                                        versions=VERSIONS)
+        self.assertEqual(built, [])
+        self.assertEqual(list(files), ["noise/noise.png"])
+        self.assertEqual(build.check_root(self.root, self.r, files, built), [])
+
+    def test_a_chunk_added_by_hand_fails_but_another_deflate_stream_does_not(self) -> None:
+        import struct
+        import zlib
+
+        def chunks(data: bytes) -> list[tuple[bytes, bytes]]:
+            pos, out = 8, []
+            while pos < len(data):
+                n = struct.unpack(">I", data[pos : pos + 4])[0]
+                out.append((data[pos + 4 : pos + 8], data[pos + 8 : pos + 8 + n]))
+                pos += 12 + n
+            return out
+
+        def png(parts: list[tuple[bytes, bytes]]) -> bytes:
+            b = b"\x89PNG\r\n\x1a\n"
+            for kind, body in parts:
+                b += struct.pack(">I", len(body)) + kind + body + struct.pack(">I", zlib.crc32(kind + body) & 0xFFFFFFFF)
+            return b
+
+        target = self.out("candle_stump", "candle_stump@1x.shape.png")
+        original = target.read_bytes()
+        parts = chunks(original)
+        try:
+            raw = zlib.decompress(b"".join(body for kind, body in parts if kind == b"IDAT"))
+            other = [(k, b) for k, b in parts if k != b"IDAT"]
+            other.insert(1, (b"IDAT", zlib.compress(raw, 1)))
+            target.write_bytes(png(other))  # the same pixels through another zlib
+            self.assertEqual(self.problems(), [])
+            tagged = [parts[0], (b"tEXt", b"Comment\x00painted by hand"), *parts[1:]]
+            target.write_bytes(png(tagged))  # the same pixels with a chunk that holds anything
+            self.assertTrue(any("differs from a fresh build" in p and "shape" in p for p in self.problems()))
+            target.write_bytes(original + b"trailing bytes")
+            self.assertTrue(any("differs from a fresh build" in p for p in self.problems()))
+        finally:
+            target.write_bytes(original)
+        self.assertEqual(self.problems(), [])
+
+    def test_a_corrupt_picture_or_manifest_is_a_message(self) -> None:
+        target = self.out("candle_stump", "candle_stump@2x.normal.png")
+        original = target.read_bytes()
+        mpath = self.out(manifest.NAME)
+        saved = mpath.read_bytes()
+        try:
+            damaged = bytearray(original)
+            damaged[len(damaged) // 2] ^= 0xFF
+            target.write_bytes(bytes(damaged))
+            self.assertTrue(any("differs from a fresh build" in p and "normal" in p for p in self.problems()))
+            target.write_bytes(b"not a png at all")
+            self.assertTrue(any("differs from a fresh build" in p for p in self.problems()))
+            target.write_bytes(original)
+            mpath.write_bytes(b"{ not json")
+            self.assertTrue(any(manifest.NAME in p and "not valid" in p for p in self.problems()))
+            mpath.write_bytes(b"[1, 2]")
+            self.assertTrue(any(manifest.NAME in p for p in self.problems()))
+        finally:
+            target.write_bytes(original)
+            mpath.write_bytes(saved)
+        self.assertEqual(self.problems(), [])
+
+    def test_only_a_real_master_or_the_import_of_a_known_file_is_tolerated(self) -> None:
+        folder = self.out("candle_stump")
+        ok = [folder / "candle_stump@4x.shape.png", folder / "candle_stump@4x.shape.png.import",
+              folder / "candle_stump@1x.parts.png.import"]
+        bad = [folder / "stock@4x.png", folder / "candle_stump@3x.shape.png",
+               folder / "elsewhere.png.import", folder / "note.uid"]
+        for f in ok + bad:
+            f.write_bytes(b"x")
+        try:
+            text = " | ".join(self.problems())
+            for f in ok:
+                self.assertNotIn(f.name, text)
+            for f in bad:
+                self.assertIn(f.name, text)
+        finally:
+            for f in ok + bad:
+                f.unlink()
+        self.assertEqual(self.problems(), [])
+
     def test_a_partial_build_keeps_the_other_manifest_lines(self) -> None:
         before = manifest.load(self.root / "out" / manifest.NAME)
         files, built = build.build_root(self.root, self.r, ["candle_stump"], masters=False, jobs=1,
@@ -327,6 +491,111 @@ class CheckMode(unittest.TestCase):
         build.write_root(self.root, self.r, files, built)
         self.assertEqual(manifest.load(self.root / "out" / manifest.NAME), before)
         self.assertIn("noise/noise.png", before)
+
+
+class Cli(unittest.TestCase):
+    """build.main: the toolchain gate, a bad source as a message, a deleted source cleaned up."""
+
+    def run_main(self, argv: list[str], **kw) -> tuple[int, str]:
+        err = io.StringIO()
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+            code = build.main(argv, **kw)
+        return code, err.getvalue()
+
+    def test_check_needs_the_pinned_toolchain_and_a_build_only_warns(self) -> None:
+        other = {"numpy": "0.0.0", "pillow": "0.0.0"}
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(assetbuild, "installed_versions", return_value=other):
+                code, err = self.run_main(["--check"], repo=Path(tmp), roots=())
+                self.assertEqual(code, 2)
+                self.assertIn("pinned toolchain", err)
+                code, err = self.run_main([], repo=Path(tmp), roots=())
+                self.assertEqual(code, 0)
+                self.assertIn("warning", err)
+            self.assertEqual(self.run_main(["--check"], repo=Path(tmp), roots=())[0], 0)
+
+    def test_a_bad_source_is_a_message_not_a_traceback(self) -> None:
+        """Each of these used to build (a typo, NaN, no glow) or die with a traceback."""
+        flame = '"flame": {"lit": "#fff2d2", "shadow": "#ffc486", "rim": "#ffffff", "gloss": 0.0, '
+        cases = [
+            ("pose.json", '"ticks": 5', '"tiks": 5', "unknown key 'tiks'"),
+            ("pose.json", "0.92, 0.0, 0.18", "NaN, 0.0, 0.18", "NaN"),
+            ("pose.json", "0.92, 0.0, 0.18, 1.08, 0.04, -1.248", "0, 0, 0, 0, 1, 1", "collapses"),
+            ("pose.json", "0.92, 0.0, 0.18, 1.08, 0.04, -1.248", "0.92, 0.0, 0.18, 1.08, 0.04, 1e9", "finite"),
+            ("parts.svg", 'data-bevel-u="4"', 'data-bevel-u="abc"', "is not a number"),
+            ("palette.tres", '"soot": {', '"soot": 5, "unused": {', "must be a dictionary"),
+            ("palette.tres", flame + '"emissive": "#ffbe78", "emissive_strength": 1.0}', flame.rstrip(", ") + "}",
+             "has no emissive colour"),
+        ]
+        for name, old, new, needle in cases:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                shutil.copytree(common.CANDLE_DIR, root / "src" / "candle_stump")
+                target = root / "src" / "candle_stump" / name
+                text = target.read_text(encoding="utf-8")
+                self.assertIn(old, text, (name, old))
+                target.write_text(text.replace(old, new, 1), encoding="utf-8")
+                for argv in (["--check"], []):
+                    code, err = self.run_main(argv, repo=root, roots=(build.Root("src", "out"),))
+                    self.assertEqual(code, 1, (needle, argv))
+                    self.assertIn("source error", err)
+                    self.assertIn(needle, err)
+                self.assertFalse((root / "out").exists(), "a source that does not lint writes nothing")
+
+    def test_a_full_build_removes_what_a_deleted_source_or_action_left(self) -> None:
+        roots = (build.Root("src", "out"),)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shutil.copytree(common.CANDLE_DIR, root / "src" / "candle_stump")
+            self.assertEqual(self.run_main([], repo=root, roots=roots)[0], 0)
+            folder = root / "out" / "candle_stump"
+            keep = folder / "candle_stump@1x.shape.png.import"
+            stale = [folder / "old_action@1x.shape.png", folder / "old_action@1x.shape.png.import"]
+            for f in [keep, *stale]:
+                f.write_bytes(b"x")
+            self.assertEqual(self.run_main([], repo=root, roots=roots)[0], 0)
+            self.assertTrue(keep.exists(), "Godot's import of a built file stays")
+            self.assertFalse(any(f.exists() for f in stale), "a file of a removed action goes, import and all")
+            self.assertEqual(self.run_main(["--check"], repo=root, roots=roots)[0], 0)
+            (root / "src" / "candle_stump").rename(root / "gone")
+            self.assertEqual(self.run_main([], repo=root, roots=roots)[0], 0)
+            self.assertFalse(folder.exists(), "the render of an asset whose source is gone is removed")
+            self.assertEqual(manifest.load(root / "out" / manifest.NAME), {})
+            self.assertEqual(self.run_main(["--check"], repo=root, roots=roots)[0], 0)
+
+
+class ToolHash(unittest.TestCase):
+    """The frame cache is keyed on the code that made a frame (ADR-0023 Decision 1.8)."""
+
+    def test_editing_any_module_of_the_package_changes_the_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            code = Path(tmp) / "artbuild"
+            shutil.copytree(common.TOOLS / "artbuild", code, ignore=shutil.ignore_patterns("tests", "__pycache__"))
+            before = assetbuild.tool_hash(code)
+            self.assertEqual(before, assetbuild.tool_hash(code))
+            for name in ("channels.py", "pose.py", "frame.py", "svg.py"):
+                f = code / name
+                saved = f.read_text(encoding="utf-8")
+                f.write_text(saved + "\n# edited\n", encoding="utf-8")
+                self.assertNotEqual(assetbuild.tool_hash(code), before, name)
+                f.write_text(saved, encoding="utf-8")
+            self.assertEqual(assetbuild.tool_hash(code), before)
+            (code / "newmodule.py").write_text("X = 1\n", encoding="utf-8")
+            self.assertNotEqual(assetbuild.tool_hash(code), before, "a new module is code too")
+
+    def test_the_real_hash_covers_the_package_and_keys_the_cache(self) -> None:
+        import hashlib
+
+        from artbuild import TOOL_VERSION
+
+        self.assertEqual(assetbuild.tool_hash(), assetbuild.tool_hash(common.TOOLS / "artbuild"))
+        self.assertNotEqual(assetbuild.tool_hash(), hashlib.sha256(TOOL_VERSION.encode()).hexdigest())
+        src = common.source(common.CANDLE_DIR)
+        cell = ch.Cell(0, 0, 64, 64)
+        self.assertNotEqual(
+            assetbuild._task_key(src, 0, 0, cell, (1, 2), "tool-a"),
+            assetbuild._task_key(src, 0, 0, cell, (1, 2), "tool-b"),
+        )
 
 
 class Repository(unittest.TestCase):

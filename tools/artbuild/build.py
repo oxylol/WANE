@@ -3,10 +3,13 @@
 
 Builds the SVG part libraries under assets/art/src/ (and the pipeline's own test assets) into
 sprite sheets, normal and emissive maps and metadata (ADR-0023 Decision 1). Output is committed
-and every file's SHA-256 is in the root's MANIFEST.json.
+and every file's SHA-256 is in the root's MANIFEST.json (a PNG is hashed by its pixels, ADR-0026).
 
-  --check     rebuild everything without the cache and fail on any byte difference, any file
-              that is not in the manifest, and any manifest line that does not match (CI)
+  --check     rebuild everything without the cache and fail on any difference: a render that is not
+              what a fresh build draws (pixels for a PNG, bytes for the rest, and no chunk the
+              build does not write), a file anywhere under an out root that no source builds (a
+              stock picture, a new folder, the render of an asset whose source is gone), a manifest
+              line that does not match or names a file no source builds (CI)
   --jobs N    frames bake in N processes (0 = all cores); the output is the same in any order
   --masters   also write the 4x masters (<asset>@4x.*.png) for the review renders; they are
               build products that are never committed or listed in the manifest
@@ -27,9 +30,12 @@ if __name__ == "__main__" and __package__ in (None, ""):
 import argparse
 import json
 import os
+import re
+import shutil
 from dataclasses import dataclass
 
 from . import assetbuild, manifest, noise, pack, schema
+from .manifest import ManifestError
 from .palette import PaletteError
 from .pose import PoseError
 from .svg import SvgError
@@ -37,6 +43,8 @@ from .svg import SvgError
 REPO = Path(__file__).resolve().parents[2]
 CACHE = REPO / "tools" / "out" / "artbuild_cache"
 NOISE_PATH = "noise/noise.png"
+# The 4x masters of the review: <asset>/<asset>[.pN]@4x.<kind>.png, never committed, never listed.
+MASTER = re.compile(r"[^/]+/[^/]+@4x\.(?:shape|normal|parts)\.png")
 
 
 @dataclass(frozen=True)
@@ -93,12 +101,28 @@ def build_root(
 
 
 def is_master(rel: str) -> bool:
-    return "@4x." in rel
+    return MASTER.fullmatch(rel) is not None
 
 
 def scope_of(files: dict[str, bytes], built: list[str]) -> set[str]:
     """The top-level folders (asset names, noise) this build is responsible for."""
     return set(built) | ({"noise"} if NOISE_PATH in files else set())
+
+
+def sources_of(root: Path, r: Root) -> set[str]:
+    """The top-level out folders some source of this root builds."""
+    return set(assets_in(root, r.src)) | ({"noise"} if r.noise else set())
+
+
+def is_build_output(rel: str, known: set[str]) -> bool:
+    """Whether the file `rel` (relative to an out root) belongs there: a built file, a review
+    master, or Godot's `.import` beside one of those."""
+    if rel in known or is_master(rel):
+        return True
+    if rel.endswith(manifest.IMPORT_SUFFIX):
+        base = rel[: -len(manifest.IMPORT_SUFFIX)]
+        return base in known or is_master(base)
+    return False
 
 
 def write_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -> int:
@@ -117,11 +141,18 @@ def write_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -
             changed += 1
         if not is_master(rel):
             entries[rel] = manifest.digest(rel, data)
+    known = set(files)
     for name in sorted(scope):  # output of a removed action or a renamed file
-        for stale in manifest.strays(out, name, set(files)):
-            if not is_master(stale):
-                (out / stale).unlink()
+        for rel in manifest.files_under(out / name):
+            if not is_build_output(f"{name}/{rel}", known):
+                (out / name / rel).unlink()
                 changed += 1
+    if full:  # the render of an asset whose source is gone
+        for top in sorted({k.split("/", 1)[0] for k in old} - sources_of(root, r)):
+            orphan = out / top
+            if orphan.is_dir() and not orphan.is_symlink() and orphan.resolve().parent == out.resolve():
+                changed += len(manifest.files_under(orphan))
+                shutil.rmtree(orphan)
     data = manifest.render(entries)
     mpath = out / manifest.NAME
     if not mpath.exists() or mpath.read_bytes() != data:
@@ -132,9 +163,12 @@ def write_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -
 
 
 def check_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -> list[str]:
-    """Differences between a fresh build and what is on disk."""
+    """Differences between a fresh build and what is on disk: in the folders this build covers
+    (a render that differs or is missing, a manifest line that is stale), and everywhere else under
+    the out root (a file no source builds, a manifest line of an asset with no source)."""
     out = root / r.out
     scope = scope_of(files, built)
+    sources = sources_of(root, r)
     problems = []
     fresh = {k: manifest.digest(k, v) for k, v in files.items() if not is_master(k)}
     for rel, data in sorted(files.items()):
@@ -143,21 +177,29 @@ def check_root(root: Path, r: Root, files: dict[str, bytes], built: list[str]) -
             problems.append(f"missing: {r.out}/{rel}")
         elif not manifest.same(rel, path.read_bytes(), data):
             problems.append(f"differs from a fresh build: {r.out}/{rel}")
-    disk = manifest.load(out / manifest.NAME)
+    try:
+        disk = manifest.load(out / manifest.NAME)
+    except ManifestError as e:
+        problems.append(f"{r.out}/{manifest.NAME}: {e}")
+        disk = {}
     for rel in sorted(disk):
-        if rel.split("/", 1)[0] in scope and rel not in fresh:
+        top = rel.split("/", 1)[0]
+        if top not in sources:
+            problems.append(f"manifest lists a file of an asset with no source: {r.out}/{rel}")
+        elif top in scope and rel not in fresh:
             problems.append(f"manifest lists a file no build makes: {r.out}/{rel}")
     for rel, digest in sorted(fresh.items()):
         if disk.get(rel) != digest:
             problems.append(f"manifest line is stale or missing: {r.out}/{rel}")
-    for name in sorted(scope):
-        for stray in manifest.strays(out, name, set(fresh)):
-            if not is_master(stray):
-                problems.append(f"not build output (renders are never hand-edited): {r.out}/{stray}")
+    # What the manifest vouches for outside this build's folders is known; everything else is not.
+    known = set(fresh) | {rel for rel in disk if rel.split("/", 1)[0] in sources - scope}
+    for rel in manifest.files_under(out):
+        if rel != manifest.NAME and not is_build_output(rel, known):
+            problems.append(f"not build output (renders are never hand-edited): {r.out}/{rel}")
     return problems
 
 
-def main(argv: list[str] | None = None) -> int:
+def main(argv: list[str] | None = None, *, repo: Path = REPO, roots: tuple[Root, ...] = ROOTS) -> int:
     ap = argparse.ArgumentParser(description="WANE art build (ADR-0023)")
     ap.add_argument("assets", nargs="*", help="asset folder names (default: all)")
     ap.add_argument("--check", action="store_true")
@@ -174,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"artbuild: --check needs the pinned toolchain: {msg}", file=sys.stderr)
             return 2
         print(f"artbuild: warning: {msg}; output may differ from CI's", file=sys.stderr)
-    known = {n for r in ROOTS for n in assets_in(REPO, r.src)} | {"noise"}
+    known = {n for r in roots for n in assets_in(repo, r.src)} | {"noise"}
     unknown = [a for a in args.assets if a not in known]
     if unknown:
         print(f"artbuild: unknown asset(s) {unknown}; known: {sorted(known)}", file=sys.stderr)
@@ -184,19 +226,20 @@ def main(argv: list[str] | None = None) -> int:
     problems: list[str] = []
     total = 0
     try:
-        for r in ROOTS:
+        for r in roots:
             files, built = build_root(
-                REPO, r, names, masters=args.masters and not args.check, jobs=jobs,
+                repo, r, names, masters=args.masters and not args.check, jobs=jobs,
                 cache_dir=use_cache, versions=pinned,
             )
-            if not files:
+            # A root nothing builds is still checked when the whole tree is: its out may hold orphans.
+            if not files and (names is not None or not (repo / r.out).exists()):
                 continue
             if args.check:
-                problems.extend(check_root(REPO, r, files, built))
+                problems.extend(check_root(repo, r, files, built))
             else:
-                total += write_root(REPO, r, files, built)
-            print(f"artbuild: {r.src}: {', '.join(built) or '(noise only)'}")
-    except (SvgError, PaletteError, PoseError) as e:
+                total += write_root(repo, r, files, built)
+            print(f"artbuild: {r.src}: {', '.join(built) or '(noise only)' if files else '(no sources)'}")
+    except (SvgError, PaletteError, PoseError, ManifestError) as e:
         print(f"artbuild: source error: {e}", file=sys.stderr)
         return 1
     if args.check:

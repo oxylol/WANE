@@ -7,6 +7,7 @@ Supports $ref to #/definitions/..., type (including a list of types), enum, cons
 from __future__ import annotations
 
 import json
+import math
 import re
 from pathlib import Path
 
@@ -15,7 +16,8 @@ TYPES = {
     "array": lambda v: isinstance(v, list),
     "string": lambda v: isinstance(v, str),
     "integer": lambda v: isinstance(v, int) and not isinstance(v, bool),
-    "number": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool),
+    # JSON has no NaN or Infinity (Godot's parser cannot read them), so neither is a number here.
+    "number": lambda v: isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v),
     "boolean": lambda v: isinstance(v, bool),
     "null": lambda v: v is None,
 }

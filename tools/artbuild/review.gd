@@ -17,7 +17,8 @@ extends SceneTree
 ## --root is the build root holding <asset>/ (default: assets/art/build, then tests/art/build,
 ## then tests/screenshot/data). --out defaults to docs/gallery/<asset>. An asset that carries its
 ## own ember (a Wick) is lit by it at the chest; any other is lit by an ember 120 u to its left at
-## chest height. The tick and the Dark are frozen ([method LightField.freeze]), so a review is
+## chest height, and each of its emissive regions is a light of its own kind (a flame a fire, an eye
+## an eye). The tick and the Dark are frozen ([method LightField.freeze]), so a review is
 ## reproducible (Decision 6.3).
 
 const ROOM_PATH: String = "res://tests/screenshot/rooms/lit_test.room"
@@ -37,7 +38,10 @@ const CROP_CENTRE: Vector2 = Vector2(320.0, 192.0)
 const CROP_4X: Vector2i = Vector2i(960, 540)
 const ZOOM_DETAIL: float = 4.0
 const SIL_HEIGHT_PX: float = 64.0
+## The silhouette view is at least this square, and grows to hold a frame wider (a crawler) or
+## deeper than that, so that no asset is clipped: the 64 px is the height, not the frame.
 const SIL_VIEW_PX: int = 96
+const SIL_MARGIN_PX: int = 12
 ## An ember not carried by the asset sits this far to its left, in u.
 const EMBER_OFFSET_X: float = -120.0
 ## The ember's height as a share of the asset's height above its feet (chest height).
@@ -190,31 +194,40 @@ func _box_of(v: Variant) -> Rect2:
 
 
 ## sil64.png: the first action's first frame in shader mode 1, scaled so the tallest frame of the
-## asset is 64 px, white on black, in a viewport of its own (no lighting, no post pass).
+## asset is 64 px, white on black, in a viewport of its own (no lighting, no post pass). The view
+## is 96 px square, or larger on the side where the frame would not fit with a margin: an asset
+## that is wider than it is tall (the Soot-tick, the Gnawer) is drawn whole at the same scale.
 func _silhouette(sheet: SpriteSheet) -> void:
+	var action: StringName = (
+		_actions[0] if sheet.has_action(_actions[0]) else sheet.action_names()[0]
+	)
+	var k: float = SIL_HEIGHT_PX / _asset_height_u
+	var box: Rect2 = _box_of(
+		SpriteSheet.json_dict(_frames_of(action)[0]).get("silhouette_box", null)
+	)
+	var above: float = maxf(-box.position.y, 0.0) * k
+	var below: float = maxf(box.end.y, 0.0) * k
+	var size := Vector2i(
+		maxi(SIL_VIEW_PX, ceili(box.size.x * k) + 2 * SIL_MARGIN_PX),
+		maxi(SIL_VIEW_PX, ceili(above) + ceili(below) + 2 * SIL_MARGIN_PX)
+	)
 	var vp := SubViewport.new()
-	vp.size = Vector2i(SIL_VIEW_PX, SIL_VIEW_PX)
+	vp.size = size
 	vp.transparent_bg = false
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	var bg := ColorRect.new()
 	bg.color = Color.BLACK
-	bg.size = Vector2(SIL_VIEW_PX, SIL_VIEW_PX)
+	bg.size = Vector2(size)
 	vp.add_child(bg)
 	var sil := InkSprite.new()
 	vp.add_child(sil)
 	sil.mode = InkSprite.Mode.SILHOUETTE
-	var action: StringName = (
-		_actions[0] if sheet.has_action(_actions[0]) else sheet.action_names()[0]
-	)
 	sil.setup(sheet, action)
-	var k: float = SIL_HEIGHT_PX / _asset_height_u
 	sil.scale *= k
-	# Feet 8 px above the bottom, centred on the silhouette's horizontal middle.
-	var box: Rect2 = _box_of(
-		SpriteSheet.json_dict(_frames_of(action)[0]).get("silhouette_box", null)
-	)
-	var mid_x: float = box.get_center().x
-	sil.position = Vector2(float(SIL_VIEW_PX) * 0.5 - mid_x * k, float(SIL_VIEW_PX) - 12.0)
+	# Feet a margin above the bottom (more if the frame hangs below them), centred on the
+	# silhouette's horizontal middle.
+	var feet_y: float = float(size.y) - float(SIL_MARGIN_PX) - below
+	sil.position = Vector2(float(size.x) * 0.5 - box.get_center().x * k, feet_y)
 	root.add_child(vp)
 	await _frames(2)
 	var img: Image = vp.get_texture().get_image()
@@ -268,8 +281,15 @@ func _place_ember() -> void:
 	_ember_at = chest if _carries else chest + Vector2(EMBER_OFFSET_X, 0.0)
 
 
-## A prop's emissive parts are lights (a flame is a fire): one [member LightingTuning.fire] light
-## at each emissive region of the asset's first frame. A Wick's emissive is its ember, light 0.
+## The light an emissive region of [param kind] (sheet.json `kind`) is. An enemy's eye is the tiny,
+## steady point of BUILD.md section 10 (Lighting, "enemy eyes (point lights, tiny)"); every other
+## emissive part (a flame, a hot blade) is a fire.
+func _light_kind(kind: String) -> LightKind:
+	return _tuning.eye if kind == "eye" else _tuning.fire
+
+
+## A prop's emissive parts are lights: one light of the region's kind (see [method _light_kind]) at
+## each emissive region of the asset's first frame. A Wick's emissive is its ember, light 0.
 func _light_emissives(sheet: SpriteSheet) -> void:
 	if _carries:
 		return
@@ -289,7 +309,8 @@ func _light_emissives(sheet: SpriteSheet) -> void:
 		var at: Vector2 = (
 			MARK + Vector2(SpriteSheet.json_num(c[0], 0.0), SpriteSheet.json_num(c[1], 0.0))
 		)
-		_prop_lights.append(_field.spawn_light(_tuning.fire, at))
+		var kind: String = str(SpriteSheet.json_dict(r_v).get("kind", "ember"))
+		_prop_lights.append(_field.spawn_light(_light_kind(kind), at))
 
 
 ## Draws the backdrop from the sheet at the picture's scale.

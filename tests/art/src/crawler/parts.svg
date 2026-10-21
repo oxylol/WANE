@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 44" data-origin-u="64 40">
+  <title>crawler: the art pipeline's wide, low test creature (not shipped art)</title>
+  <desc>
+    Silhouette first, and wide: 115 u across its legs and 38 u tall, the shape of a Soot-tick or a
+    Gnawer, so the review's 64 px silhouette and its Pitch picture are judged on an asset that is
+    not taller than it is wide. A domed carapace on four jointed, tapering legs (all behind the
+    body, so only the knees and feet show, as the thigh of a near leg across the belly read as a
+    plank), three bone spines that break the top line, a tucked head with a hooked mandible, and
+    one eye tagged `emissive eye`, which the review lights as an eye and not as a fire.
+  </desc>
+  <path id="leg_far_back" data-z="0" data-pivot="36 29" data-bevel-u="1.6"
+    d="M36.7 26.9 L16.3 21.3 L6.4 39.6 L7.6 40.4 L17.7 24.7 L35.3 31.1 Z"/>
+  <path id="leg_far_front" data-z="2" data-pivot="88 29" data-bevel-u="1.6"
+    d="M88.7 31.1 L106.5 24.7 L120.5 40.4 L121.5 39.6 L107.5 21.3 L87.3 26.9 Z"/>
+  <path id="carapace" data-z="4" data-pivot="62 22" data-bevel-u="10"
+    d="M24 29 C24 14 42 7 62 7 C82 7 100 14 100 29 C100 32 96 33 92 33 L32 33 C28 33 24 32 24 29 Z"/>
+  <path id="spines" data-z="5" data-pivot="60 10" data-bevel-u="2" data-tilt-deg="50"
+    d="M38 15 L41 5 L45.5 11.5 Z M54.5 10.5 L58.5 1.5 L63.5 9 Z M71 11 L75.5 3 L79.5 12.5 Z"/>
+  <path id="head" data-z="6" data-pivot="104 30" data-bevel-u="5"
+    d="M96 26 C101 21 111 22 114 28 C116 32 112 36 106 36.5 C100 37 95 34 96 26 Z"/>
+  <path id="jaw" data-z="7" data-pivot="110 34" data-bevel-u="1.6" data-tilt-deg="55"
+    d="M109 33 C115 33 119 37 118 43 C116 40 113 38.5 108 38 Z"/>
+  <circle id="eye" data-z="8" data-pivot="107 28" data-tags="eye emissive" data-bevel-u="1" cx="107" cy="28" r="1.9"/>
+  <path id="leg_near_back" data-z="1" data-pivot="42 30" data-bevel-u="1.8"
+    d="M42.4 27.8 L24.3 25.4 L16.4 39.6 L17.6 40.4 L25.7 28.6 L41.6 32.2 Z"/>
+  <path id="leg_near_front" data-z="3" data-pivot="82 30" data-bevel-u="1.8"
+    d="M82.4 32.2 L98.5 28.6 L110.5 40.5 L111.5 39.5 L99.5 25.4 L81.6 27.8 Z"/>
+</svg>
