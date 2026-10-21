@@ -35,37 +35,51 @@ func scene(p: Vector2) -> float:
 	return d
 
 
+## The outward direction of the face nearest [param p]: the scene's gradient by four taps half a
+## texel of the room's field apart, as the shader's scene_normal.
+func scene_normal(p: Vector2) -> Vector2:
+	var e: float = 0.5 * sdf.texel_u
+	var g := Vector2(
+		scene(p + Vector2(e, 0.0)) - scene(p - Vector2(e, 0.0)),
+		scene(p + Vector2(0.0, e)) - scene(p - Vector2(0.0, e))
+	)
+	var g_len: float = g.length()
+	return g / g_len if g_len > 0.0001 else Vector2(0.0, -1.0)
+
+
 ## How much of a light at [param light] with reach [param reach] shows at [param p], 0 to 1: the
-## shader's visibility_from.
+## shader's visibility_from. A point inside a wall is lit within [member LightingTuning.skin_u] of
+## its nearest face, by the field's own depth (square to the face, so the skin is as deep wherever
+## the light is along it), as far as that face sees the light. The penumbra radius is held within
+## the light's clearance from the nearest surface ([member LightingTuning.light_r_min_u] at least),
+## so a light set low over a floor does not shadow its own pool.
 func visibility(p: Vector2, light: Vector2, reach: float) -> float:
-	var to_light: Vector2 = light - p
-	var dist: float = to_light.length()
-	if reach <= 0.0 or dist >= reach or dist < 0.001:
+	if reach <= 0.0:
 		return 1.0
-	var dir: Vector2 = to_light / dist
+	var dist: float = (light - p).length()
+	if dist >= reach or dist < 0.001:
+		return 1.0
 	var skin: float = 1.0
 	var q: Vector2 = p
-	var d: float = scene(q)
+	var d: float = scene(p)
 	if d < 0.0:
-		var walked: float = 0.0
-		for i: int in range(tuning.wall_walk_steps):
-			if d >= 0.0:
-				break
-			var step_u: float = maxf(-d, tuning.min_step_u)
-			q += dir * step_u
-			walked += step_u
-			d = scene(q)
-		if d < 0.0 or walked > tuning.skin_u:
+		if -d >= tuning.skin_u:
 			return 0.0
-		skin = 1.0 - walked / tuning.skin_u
-	var total: float = (light - q).length()
+		skin = 1.0 + d / tuning.skin_u
+		q = p - scene_normal(p) * d
+	var to_light: Vector2 = light - q
+	var total: float = to_light.length()
+	if total < 0.001:
+		return skin
+	var dir: Vector2 = to_light / total
+	var r: float = clampf(scene(light), tuning.light_r_min_u, tuning.light_r_u)
 	var res: float = 1.0
 	var t: float = tuning.min_step_u
 	for i: int in range(tuning.max_steps):
 		if t >= total:
 			break
 		var h: float = scene(q + dir * t)
-		res = minf(res, h * total / (tuning.light_r_u * t))
+		res = minf(res, h * total / (r * t))
 		if res < 0.001:
 			return 0.0
 		t += maxf(h, tuning.min_step_u)

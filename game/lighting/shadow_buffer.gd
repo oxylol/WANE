@@ -34,7 +34,7 @@ func _init(tuning: LightingTuning, p_scale: float) -> void:
 	_material.set_shader_parameter("skin_u", tuning.skin_u)
 	_material.set_shader_parameter("max_steps", tuning.max_steps)
 	_material.set_shader_parameter("min_step_u", tuning.min_step_u)
-	_material.set_shader_parameter("wall_walk_steps", tuning.wall_walk_steps)
+	_material.set_shader_parameter("light_r_min_u", tuning.light_r_min_u)
 	_quad = ColorRect.new()
 	_quad.material = _material
 	_quad.mouse_filter = Control.MOUSE_FILTER_IGNORE

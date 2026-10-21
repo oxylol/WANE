@@ -89,11 +89,13 @@ const PROFILE_MIN: int = 2
 @export var min_step_u: float = 1.5
 ## The ember's radius as an area light, for the penumbra.
 @export var light_r_u: float = 14.0
-## A wall's lit skin: a pixel inside a wall is lit, fading out, within this depth of a face turned
-## to the light, and black beyond.
+## The penumbra radius of a light set close to a surface: a light's penumbra radius is held within
+## its clearance from the nearest surface (so a light low over a floor does not shadow its own
+## pool), but never under this, in world units.
+@export var light_r_min_u: float = 2.0
+## A wall's lit skin: a pixel inside a wall is lit, fading out, within this depth of its nearest
+## face (the field's depth, square to the face) where that face sees the light, and black beyond.
 @export var skin_u: float = 14.0
-## How many steps a pixel inside a wall walks toward the light looking for its face.
-@export var wall_walk_steps: int = 12
 ## The room's distance field is baked at this many world units a texel.
 @export var sdf_texel_u: float = 4.0
 ## How far past a room's edge its solid border reaches, in world units.
@@ -193,8 +195,8 @@ func validate() -> PackedStringArray:
 		e.append("light_height_u must be positive and max_lights 1 to 16")
 	if max_steps < 4 or max_steps > 128 or min_step_u <= 0.0 or light_r_u <= 0.0:
 		e.append("max_steps must be 4 to 128, min_step_u and light_r_u positive")
-	if skin_u <= 0.0 or wall_walk_steps < 1 or wall_walk_steps > 32:
-		e.append("skin_u must be positive and wall_walk_steps 1 to 32")
+	if skin_u <= 0.0 or light_r_min_u <= 0.0 or light_r_min_u > light_r_u:
+		e.append("skin_u must be positive and light_r_min_u above 0 and at most light_r_u")
 	if sdf_texel_u < 1.0 or sdf_texel_u > 16.0:
 		e.append("sdf_texel_u must be 1 to 16")
 	if fields_kept < 3:
