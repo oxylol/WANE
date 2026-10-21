@@ -93,3 +93,52 @@ if [ "$status" -ne 0 ]; then
 	echo "lighting: review FAILED (exit $status)" >&2
 	exit 1
 fi
+# tools/lighting/render.sh draws the room that was asked for or fails (review: `--room zone1/01`, not
+# a room id, printed an error, wrote two pictures of an empty world and exited 0). A missing room
+# must exit nonzero and write nothing; a real one must write its Dusk and its Pitch, drawn, with
+# the Dark at work between them.
+shots="$(mktemp -d)"
+trap 'rm -f "$log"; rm -rf "$out" "$wide" "$shots"' EXIT
+if tools/lighting/render.sh "$shots/missing" --room zone1/01 --scale 4 > "$log" 2>&1; then
+	cat "$log" >&2
+	echo "lighting: render.sh exited 0 for a room that does not exist" >&2
+	exit 1
+fi
+if ! grep -q "no room file" "$log"; then
+	cat "$log" >&2
+	echo "lighting: render.sh did not say which room file is missing" >&2
+	exit 1
+fi
+if compgen -G "$shots/missing*" > /dev/null; then
+	echo "lighting: render.sh wrote a picture for a room that does not exist: $(ls "$shots")" >&2
+	exit 1
+fi
+if tools/lighting/render.sh "$shots/nothing" --scale 4 > "$log" 2>&1; then
+	echo "lighting: render.sh exited 0 with neither --room nor --fixture" >&2
+	exit 1
+fi
+if ! tools/lighting/render.sh "$shots/room" --room zone1/01_dash_slash --scale 2 > "$log" 2>&1; then
+	cat "$log" >&2
+	echo "lighting: render.sh failed on zone1/01_dash_slash" >&2
+	exit 1
+fi
+python3 - "$shots" <<'PY'
+import sys
+from pathlib import Path
+from PIL import Image
+
+shots = Path(sys.argv[1])
+mean = {}
+for word in ("dusk", "pitch"):
+    path = shots / f"room_{word}.png"
+    if not path.exists():
+        sys.exit(f"lighting: render.sh did not write room_{word}.png")
+    im = Image.open(path).convert("L")
+    colours = len(im.getcolors(1 << 24) or [])
+    if colours < 64:
+        sys.exit(f"lighting: room_{word}.png is nearly flat ({colours} grey levels)")
+    mean[word] = sum(im.tobytes()) / (im.width * im.height)
+if not mean["pitch"] < 0.5 * mean["dusk"]:
+    sys.exit(f"lighting: Pitch is not darker than Dusk (mean {mean['pitch']:.1f} against {mean['dusk']:.1f})")
+print(f"render.sh: a missing room fails and draws nothing; zone1/01_dash_slash at Dusk {mean['dusk']:.1f}, Pitch {mean['pitch']:.1f}")
+PY

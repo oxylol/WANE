@@ -67,7 +67,7 @@ class SilhouetteDistance(unittest.TestCase):
         self.assertAlmostEqual(float(common.decode_s(px(shape, 12.625, 20.125, s))), -2.625, delta=0.04)
 
     def test_sign_agrees_with_cairosvg_on_every_firm_pixel(self) -> None:
-        for path in (common.PROBE_DIR, common.CANDLE_DIR):
+        for path in common.part_libraries():
             src = common.source(path)
             for ai in range(len(src.actions)):
                 for fi in range(len(src.actions[ai].frames)):

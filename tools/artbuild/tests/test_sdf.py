@@ -98,3 +98,37 @@ class Nearest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NearOutline(unittest.TestCase):
+    """`inside_points` is half-open, so on the outline it answers by which edge the point is on;
+    `near_outline` is what finds the outline (a piece's edge along another's, ADR-0023 addendum)."""
+
+    RECT = geo.segments([geo.clean([(10.0, 10.0), (30.0, 10.0), (30.0, 20.0), (10.0, 20.0)])])
+
+    def test_the_winding_rule_calls_a_left_edge_in_and_a_right_edge_out(self) -> None:
+        pts = np.array([[10.0, 15.0], [30.0, 15.0]])
+        self.assertEqual(sdf.inside_points(pts, *self.RECT).tolist(), [True, False])
+
+    def test_every_edge_corner_and_midpoint_is_on_the_outline_and_nothing_else(self) -> None:
+        on = np.array([[10.0, 15.0], [30.0, 15.0], [20.0, 10.0], [20.0, 20.0], [10.0, 10.0], [30.0, 20.0]])
+        self.assertTrue(sdf.near_outline(on, *self.RECT, 1e-6).all())
+        off = np.array([[10.0, 20.0 + 1e-3], [9.999, 15.0], [20.0, 15.0], [5.0, 5.0], [30.0 + 1e-3, 15.0]])
+        near = sdf.near_outline(off, *self.RECT, 1e-6)
+        self.assertEqual(near.tolist(), [False, False, False, False, False])
+
+    def test_rounding_noise_is_on_the_outline_and_the_tolerance_is_the_limit(self) -> None:
+        pts = np.array([[10.0 + 1e-12, 15.0], [30.0 - 1e-12, 15.0], [20.0, 10.0 - 9e-7], [20.0, 10.0 - 2e-6]])
+        self.assertEqual(sdf.near_outline(pts, *self.RECT, 1e-6).tolist(), [True, True, True, False])
+
+    def test_no_points_or_no_segments_is_nothing(self) -> None:
+        self.assertEqual(len(sdf.near_outline(np.zeros((0, 2)), *self.RECT, 1e-6)), 0)
+        none = np.zeros((0, 2))
+        self.assertEqual(sdf.near_outline(np.array([[1.0, 1.0]]), none, none, 1e-6).tolist(), [False])
+
+    def test_more_than_one_chunk_of_segments(self) -> None:
+        poly = star(n=300)
+        a, b = geo.segments([poly])
+        self.assertGreater(len(a), 512)
+        pts = np.concatenate([a[:3], a[-3:], np.array([[32.0, 32.0], [0.0, 0.0]])])
+        self.assertEqual(sdf.near_outline(pts, a, b, 1e-6).tolist(), [True] * 6 + [False, False])
