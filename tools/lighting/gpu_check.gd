@@ -573,21 +573,21 @@ func _check_light_kinds(field: LightField) -> void:
 		root.add_child(r)
 	# A kind, where it stands (left of the pillar), a surface behind the pillar from it and one in
 	# its sight. The Gutter Ember stands lower than the surfaces it lights, which are above it.
-	var cases: Array[Array] = [
-		[field.tuning.beacon, Vector2(288.0, 150.0), Vector2(368.0, 200.0), Vector2(368.0, 64.0)],
-		[field.tuning.fire, Vector2(288.0, 150.0), Vector2(368.0, 200.0), Vector2(368.0, 64.0)],
-		[
-			field.tuning.gutter_ember,
-			Vector2(288.0, 190.0),
-			Vector2(368.0, 170.0),
-			Vector2(300.0, 60.0)
-		],
+	var kinds: Array[LightKind] = [
+		field.tuning.beacon, field.tuning.fire, field.tuning.gutter_ember
 	]
+	var places: Array[Vector2] = [
+		Vector2(288.0, 150.0), Vector2(288.0, 150.0), Vector2(288.0, 190.0)
+	]
+	var behinds: Array[Vector2] = [
+		Vector2(368.0, 200.0), Vector2(368.0, 200.0), Vector2(368.0, 170.0)
+	]
+	var seen: Array[Vector2] = [Vector2(368.0, 64.0), Vector2(368.0, 64.0), Vector2(300.0, 60.0)]
 	var problems: PackedStringArray = []
-	for c: Array in cases:
-		var kind: LightKind = c[0]
-		var at: Vector2 = c[1]
-		var spots: Array[Vector2] = [c[2], c[3]]
+	for i: int in range(kinds.size()):
+		var kind: LightKind = kinds[i]
+		var at: Vector2 = places[i]
+		var spots: Array[Vector2] = [behinds[i], seen[i]]
 		for k: int in range(2):
 			rects[k].position = spots[k] - Vector2(6.0, 6.0)
 		var l: WaneLight = field.spawn_light(kind, at)

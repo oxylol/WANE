@@ -497,7 +497,9 @@ func _write_globals(seconds: float) -> void:
 	)
 	# The view's top left and its size, in world units: what a shader needs for a reach in u (the
 	# post's bloom) at any output size, since the screen's pixels are not the world's.
-	_set_global("wane_view", Vector4(_view.position.x, _view.position.y, _view.size.x, _view.size.y))
+	_set_global(
+		"wane_view", Vector4(_view.position.x, _view.position.y, _view.size.x, _view.size.y)
+	)
 	_set_global("wane_boil", floorf(seconds * tuning.boil_hz))
 	_set_global("wane_time", seconds)
 

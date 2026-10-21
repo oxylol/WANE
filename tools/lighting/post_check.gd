@@ -203,12 +203,12 @@ func _check_bloom_reach_is_in_world_units() -> void:
 		var prof: PackedVector2Array = await _bloom(out_px, tuning(), SOURCE_VALUE)
 		reaches.append(_reach(prof))
 		lights.append(_light(prof))
-	print(
-		(
-			"post: bloom reach %s u, light %s at outputs %s (bloom_radius_u %.0f)"
-			% [reaches, lights, OUTPUTS, tuning().bloom_radius_u]
+	var lines: PackedStringArray = []
+	for i: int in range(OUTPUTS.size()):
+		lines.append(
+			"%dx%d %.1f u (light %.2f)" % [OUTPUTS[i].x, OUTPUTS[i].y, reaches[i], lights[i]]
 		)
-	)
+	print("post: bloom reach %s, bloom_radius_u %.0f" % [", ".join(lines), tuning().bloom_radius_u])
 	for i: int in range(OUTPUTS.size()):
 		if absf(reaches[i] - reaches[1]) > REACH_AGREE_U:
 			_fail(

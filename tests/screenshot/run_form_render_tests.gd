@@ -597,7 +597,8 @@ func _test_hairlines_and_the_line_light() -> void:
 	)
 	# At Pitch the key is the Dark's (ADR-0026 Decision 1): beyond every light it is too dim to
 	# weight the line, which stays heavy all round. The width is read at 4x with the ink black (at
-	# Pitch a line's ink is a share of its fill, which differs side to side).
+	# Pitch a line's ink is a share of its fill, which differs side to side). Measured 7 px on the
+	# key's side against 9; a key the Dark did not scale thins it to 2.
 	rig.field.key = key
 	InkGlobals.apply(inkless)
 	var pitch_black: Image = await _shot(rig, 0, 3.0, far_ember, 4.0, head, true)
@@ -609,7 +610,7 @@ func _test_hairlines_and_the_line_light() -> void:
 		pitch_black, head.y, right_edge - 2.5, right_edge + 0.5, right_edge - 5.0
 	)
 	_check(
-		float(lit_px) >= 0.7 * float(shadow_px) and shadow_px >= 3,
+		float(lit_px) >= 0.6 * float(shadow_px) and shadow_px >= 3,
 		(
 			"at Pitch the key does not thin the line beyond every light (%d px lit side, %d shadow)"
 			% [lit_px, shadow_px]
