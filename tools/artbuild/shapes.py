@@ -34,7 +34,9 @@ class Edges:
     b: np.ndarray
     part: np.ndarray
     taper: np.ndarray  # visible edges only; zeros elsewhere
-    age: np.ndarray  # where the edge's piece lies along its smear arc, 0 tail to 1 (1 off a smear)
+    # Where the edge's piece lies along its smear arc, 0 tail to 1 (1 off a smear). The bake's age
+    # channel is per pixel (channels.sweep_ages), so the edges only carry it.
+    age: np.ndarray
 
 
 @dataclass
@@ -186,17 +188,13 @@ def _tapers(edges: Edges, part_segments, own: Edges) -> np.ndarray:
     The thickness is found by casting a ray inward from the edge's midpoint to the part's own
     outline (the spike walked 24 steps; this is exact), where "own outline" leaves out the outlines
     of a smear's sub-poses that lie inside its union. Thin at blade tips and fingers, 1 on a body.
-    A smeared part's edges carry their age along the arc instead (0 tail, 1 the blade).
+    A smear's pixels carry their age along the arc in this channel instead, per pixel and not per
+    edge (channels.sweep_ages): an edge's age gave the half of the fan nearest the tail edge age 0.
     """
     taper = np.ones(len(edges.a))
     for k, (pa, pb) in enumerate(part_segments):
         sel = np.nonzero(edges.part == k)[0]
         if len(sel) == 0:
-            continue
-        if (edges.age[sel] < 1.0).any():
-            # A smear: the channel is the edge's age along the arc, so the line and the fill taper
-            # off toward the tail (the ribbon of BUILD.md section 10, Animation).
-            taper[sel] = edges.age[sel]
             continue
         a, b = edges.a[sel], edges.b[sel]
         oa, ob = own.a[own.part == k], own.b[own.part == k]

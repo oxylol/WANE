@@ -141,6 +141,15 @@ class Poses(unittest.TestCase):
         self.assertEqual(len(posed2.pieces), 6)
         self.assertEqual(posed2.smear, {"b": True})
 
+    def test_a_smear_arc_on_a_part_not_tagged_smear_is_an_error(self) -> None:
+        # Baked, it was a solid union with no ribbon flag: a doubled part, not a smear.
+        doc = json.loads(json.dumps(self.DOC))
+        doc["actions"]["run"]["frames"][1]["smear"] = {"a": [[1, 0, 0, 1, -2, 0]]}
+        with self.assertRaises(pose.PoseError) as ctx:
+            pose.parse(doc, LIB)
+        self.assertIn("smear", str(ctx.exception))
+        self.assertIn("'a'", str(ctx.exception))
+
     def test_rejects_mistakes(self) -> None:
         def bad(mutate, needle):
             doc = json.loads(json.dumps(self.DOC))

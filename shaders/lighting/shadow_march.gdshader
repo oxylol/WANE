@@ -20,7 +20,9 @@ uniform int occluder_count = 0;
 uniform float skin_u = 14.0;
 uniform int max_steps = 48;
 uniform float min_step_u = 1.5;
-uniform int wall_walk_steps = 12;
+// A light's penumbra radius is never more than its clearance from the nearest surface, nor less
+// than this (LightingTuning.light_r_min_u): a light set low over a floor is not shadowed by it.
+uniform float light_r_min_u = 2.0;
 
 float scene(vec2 p) {
 	float d = wane_room_distance(p);
@@ -41,33 +43,47 @@ float scene(vec2 p) {
 	return d;
 }
 
+// The outward direction of the nearest face: the field's gradient by four taps half a texel of the
+// room's field apart (the scene's, so a dynamic occluder has faces too).
+vec2 scene_normal(vec2 p) {
+	float e = 0.5 * wane_room_rect.z / float(textureSize(wane_room_sdf, 0).x);
+	vec2 g = vec2(scene(p + vec2(e, 0.0)) - scene(p - vec2(e, 0.0)),
+			scene(p + vec2(0.0, e)) - scene(p - vec2(0.0, e)));
+	float len = length(g);
+	return len > 0.0001 ? g / len : vec2(0.0, -1.0);
+}
+
 float visibility_from(vec2 p, vec4 caster) {
-	vec2 to_light = caster.xy - p;
-	float dist = length(to_light);
-	if (caster.z <= 0.0 || dist >= caster.z || dist < 0.001) {
+	if (caster.z <= 0.0) {
 		return 1.0;
 	}
-	vec2 dir = to_light / dist;
+	float dist = length(caster.xy - p);
+	if (dist >= caster.z || dist < 0.001) {
+		return 1.0;
+	}
+	// Inside a wall: lit within skin_u of its nearest face, at 1 - depth / skin_u, and only as far as
+	// that face sees the light. The depth is the field's own (square to the face), so the skin is as
+	// deep wherever the light is along the face; a walk toward the light lengthened with the angle
+	// and drew a lens under every light near a floor, and its steps drew terraces.
 	float skin = 1.0;
 	vec2 q = p;
-	float d = scene(q);
+	float d = scene(p);
 	if (d < 0.0) {
-		float walked = 0.0;
-		for (int i = 0; i < 32; i++) {
-			if (i >= wall_walk_steps || d >= 0.0) {
-				break;
-			}
-			float step_u = max(-d, min_step_u);
-			q += dir * step_u;
-			walked += step_u;
-			d = scene(q);
-		}
-		if (d < 0.0 || walked > skin_u) {
+		if (-d >= skin_u) {
 			return 0.0;
 		}
-		skin = 1.0 - walked / skin_u;
+		skin = 1.0 + d / skin_u;
+		q = p - scene_normal(p) * d;
 	}
-	float total = length(caster.xy - q);
+	vec2 to_light = caster.xy - q;
+	float total = length(to_light);
+	if (total < 0.001) {
+		return skin;
+	}
+	vec2 dir = to_light / total;
+	// The penumbra radius, held within the light's clearance: a light whose disc would reach into
+	// the floor it sits over would otherwise dim, and band, its own pool.
+	float r = clamp(scene(caster.xy), light_r_min_u, caster.w);
 	float res = 1.0;
 	float t = min_step_u;
 	for (int i = 0; i < 128; i++) {
@@ -75,7 +91,7 @@ float visibility_from(vec2 p, vec4 caster) {
 			break;
 		}
 		float h = scene(q + dir * t);
-		res = min(res, h * total / (caster.w * t));
+		res = min(res, h * total / (r * t));
 		if (res < 0.001) {
 			return 0.0;
 		}

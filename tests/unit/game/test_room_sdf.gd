@@ -196,6 +196,98 @@ func test_a_wall_face_turned_to_the_light_has_a_lit_skin_and_a_black_interior() 
 	assert_float(tw.visibility(Vector2(100.0, 112.0), light, 420.0)).is_equal(0.0)
 
 
+## How deep under the floor's top (y = [param top]) at x = [param x] the lit skin's light falls to
+## half of what it is just under the top, in u (0.1 u steps).
+func _skin_half_depth(tw: ShadowTwin, x: float, top: float, light: Vector2) -> float:
+	var at_top: float = tw.visibility(Vector2(x, top + 0.1), light, 420.0)
+	var depth: float = 0.1
+	while depth < 20.0:
+		if tw.visibility(Vector2(x, top + depth), light, 420.0) < 0.5 * at_top:
+			return depth
+		depth += 0.1
+	return depth
+
+
+func test_a_floors_lit_skin_is_one_depth_along_it_with_no_lens_and_no_steps() -> void:
+	# BUILD.md section 10 (Lighting): the shadows are "soft". The skin of a face turned to the light
+	# is as deep wherever the light is along the face (a walk toward the light through the wall made
+	# it thin out with the angle, a lens under every light near a floor), and it is continuous along
+	# the face (the walk's steps drew terraces: 6, 13 and 33 in a row of the probe's Pitch picture).
+	var tw: ShadowTwin = _twin(
+		["................", "................", "................", "################"]
+	)
+	var top: float = 96.0
+	var light := Vector2(200.0, top - 28.0)
+	var depths: Array[float] = []
+	for dx: float in [0.0, 40.0, 80.0, 120.0, 160.0]:
+		depths.append(_skin_half_depth(tw, light.x + dx, top, light))
+	(
+		assert_float(depths.max() - depths.min())
+		. override_failure_message(
+			(
+				"the lit skin's half depth along the floor is %s u (a lens if it thins away from the light)"
+				% [depths]
+			)
+		)
+		. is_less(0.5)
+	)
+	# Along the floor at one depth, from under the light to 200 u away: no step from one 0.25 u to
+	# the next.
+	var worst: float = 0.0
+	var last: float = tw.visibility(Vector2(light.x, top + 3.0), light, 420.0)
+	var x: float = light.x
+	while x < light.x + 200.0:
+		x += 0.25
+		var v: float = tw.visibility(Vector2(x, top + 3.0), light, 420.0)
+		worst = maxf(worst, absf(v - last))
+		last = v
+	(
+		assert_float(worst)
+		. override_failure_message(
+			"the lit skin steps by %.3f between two points 0.25 u apart along the floor" % worst
+		)
+		. is_less(0.01)
+	)
+
+
+func test_a_light_set_close_to_a_floor_does_not_shadow_its_own_pool() -> void:
+	# A Gutter Ember sits low in its gutter (BUILD.md section 10, Lighting): 10 u above the floor, less
+	# than its penumbra radius. The floor under it must not dim, or band, the light it gives the open
+	# around it: every point in sight of it is fully lit, and the light does not step from one point
+	# to the next (the march drew contour lines through its own pool).
+	var tw: ShadowTwin = _twin(
+		[
+			"................",
+			"................",
+			"................",
+			"................",
+			"################"
+		]
+	)
+	var top: float = 128.0
+	var light := Vector2(256.0, top - 10.0)
+	var lowest: float = 1.0
+	var worst_step: float = 0.0
+	for row: int in range(0, 60):
+		var y: float = top - 1.0 - float(row) * 2.0
+		var last: float = -1.0
+		for col: int in range(0, 200):
+			var p := Vector2(light.x - 200.0 + float(col) * 2.0, y)
+			var v: float = tw.visibility(p, light, 600.0)
+			lowest = minf(lowest, v)
+			if last >= 0.0:
+				worst_step = maxf(worst_step, absf(v - last))
+			last = v
+	(
+		assert_float(lowest)
+		. override_failure_message(
+			"a point in sight of a light 10 u above the floor sees %.3f of it" % lowest
+		)
+		. is_greater(0.99)
+	)
+	assert_float(worst_step).is_less(0.01)
+
+
 func test_a_shadow_has_a_penumbra_that_widens_with_distance_from_the_occluder() -> void:
 	var rows: Array[String] = []
 	for j: int in range(14):

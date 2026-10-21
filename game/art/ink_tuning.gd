@@ -6,8 +6,9 @@ extends Resource
 ##
 ## The shaders read these as global shader parameters, packed in vec4s (game/art/ink_globals.gd
 ## writes them): wane_ink, wane_ink_wave, wane_fill, wane_fill_more (ADR-0023 Decision 7.2) and
-## three more this task added for numbers the ADR's four left no room for: wane_ink_more,
-## wane_ink_light and wane_ink_bg.
+## more for numbers the ADR's four left no room for: wane_ink_more, wane_ink_light, wane_ink_bg,
+## wane_ink_extra (ADR-0026) and wane_ink_core (the emissive core, ADR-0026 addendum of the fix
+## round 2b).
 
 const PATH: String = "res://content/art/ink.tres"
 
@@ -88,13 +89,21 @@ const PATH: String = "res://content/art/ink.tres"
 @export var gloss_power: float = 24.0
 @export var gloss_strength: float = 0.7
 
+@export_group("Emissive core (wane_ink_core)")
+## How deep into an emissive part (from its own outline, in u) its heat rises to the full: the ember
+## is a hot core grading out to its edge, not a flat disc (BUILD.md section 10, The ember).
+@export var emissive_core_u: float = 2.0
+## How far the hottest core goes from the palette's emissive colour toward white (0 none, 1 white):
+## the ember's "orange-white".
+@export var emissive_core_white: float = 0.6
+
 @export_group("Background line (wane_ink_bg)")
 ## The break mask's value below which the open line is at its thinnest.
 @export var bg_break_lo: float = 0.42
 ## And above which it is whole.
 @export var bg_break_hi: float = 0.5
-## Weight of the open line inside a break, as a share of its full weight.
-@export var bg_thin: float = 0.35
+## Weight of the open line inside a break, as a share of its full weight (0: a gap).
+@export var bg_thin: float = 0.0
 ## Wavelength of the break mask, in u.
 @export var bg_mask_wave_u: float = 48.0
 
@@ -135,6 +144,11 @@ func ink_light_vec() -> Vector4:
 ## wane_ink_extra
 func extra_vec() -> Vector4:
 	return Vector4(smear_opacity, smear_tail_pow, gloss_power, gloss_strength)
+
+
+## wane_ink_core
+func core_vec() -> Vector4:
+	return Vector4(emissive_core_u, emissive_core_white, 0.0, 0.0)
 
 
 ## wane_ink_bg
@@ -184,6 +198,10 @@ func validate() -> PackedStringArray:
 		e.append("smear_opacity must be above 0 and at most 1, smear_tail_pow 0.1 to 8")
 	if gloss_power < 1.0 or gloss_power > 256.0 or gloss_strength < 0.0 or gloss_strength > 4.0:
 		e.append("gloss_power must be 1 to 256 and gloss_strength 0 to 4")
+	if emissive_core_u <= 0.0 or emissive_core_u > 16.0:
+		e.append("emissive_core_u must be above 0 and at most 16")
+	if emissive_core_white < 0.0 or emissive_core_white > 1.0:
+		e.append("emissive_core_white must be 0 to 1")
 	if bg_thin < 0.0 or bg_thin > 1.0 or bg_mask_wave_u < 4.0:
 		e.append("bg_thin must be 0 to 1 and bg_mask_wave_u at least 4")
 	return e

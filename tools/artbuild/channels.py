@@ -6,6 +6,11 @@ The shaders decode with the constants in the block below, which tests compare ag
 shape  (linear)  R S, G U, B side, A emissive
 normal (linear)  R nx, G ny (y down), B nz, A gloss
 parts  (nearest) R palette slot, G brush angle, B taper (a smear: its age along the arc), A flags
+
+A smear's age is per pixel: where along its arc the part last covered the pixel, 0 at the tail and 1
+at the part's own pose, interpolated between the arc's sub-poses (`sweep_ages`). Its flag, age, slot
+and angle also reach SMEAR_FRINGE_U past its silhouette, where the shader's anti-aliasing still
+draws (`_smear_fringe`).
 """
 
 from __future__ import annotations
@@ -15,6 +20,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import geometry as geo
 from . import sdf
 from .shapes import Geometry
 from .svg import PartLibrary
@@ -40,6 +46,9 @@ MASTER_SCALE = 4
 SCALES = (1, 2, 4)
 TAG_FLAGS = {"pogo": FLAG_POGO, "blade": FLAG_BLADE, "eye": FLAG_EYE, "wax": FLAG_WAX}
 PROFILE_STEPS = 1024
+# How far past a smear's silhouette its parts texels reach: the shader's anti-aliasing (0.75 of a
+# pixel of U) plus the line's wobble (0.32 u) at 1x, with room to spare.
+SMEAR_FRINGE_U = 1.5
 
 
 @dataclass(frozen=True)
@@ -98,8 +107,13 @@ def render_scale(
     angles: list[float],
     grid: sdf.Grid,
     master: bool,
+    sweeps: dict[int, list[tuple[float, list[np.ndarray]]]] | None = None,
 ):
     """The shape, parts and (at the master scale) normal channels for one grid.
+
+    `sweeps` maps a smeared part's index to its pieces in arc order, (age, polygons) each: its
+    pixels' taper channel is then their age along the arc (`sweep_ages`), and its parts texels
+    reach over its anti-aliased fringe.
 
     Returns (shape, parts, extra): shape and parts are (ny, nx, 4) uint8. `extra` is None, except at
     the master scale, where it is the float planes the reductions start from: normal x, y, z,
@@ -145,6 +159,10 @@ def render_scale(
             f |= FLAG_SMEAR
         flags[sel] = f
         gloss[sel] = info[k].gloss
+    for k, pieces in (sweeps or {}).items():
+        sel = top == k
+        if sel.any():
+            taper[sel] = sweep_ages(grid, pieces, sel)[sel]
     extra = None
     if master:
         emissive = np.zeros(n)
@@ -204,7 +222,74 @@ def render_scale(
         ],
         axis=1,
     ).reshape(grid.ny, grid.nx, 4)
+    if sweeps:
+        _smear_fringe(parts_tex, (top < 0).reshape(grid.ny, grid.nx), grid.s)
     return shape, parts_tex, extra
+
+
+def sweep_ages(
+    grid: sdf.Grid, pieces: list[tuple[float, list[np.ndarray]]], want: np.ndarray
+) -> np.ndarray:
+    """A smear's age at each wanted pixel (flat mask): where along its arc the part last covered it.
+
+    The pieces are the part's poses along the arc in order, (age, polygons) each, the last its own
+    pose (age 1). A pixel the last piece covers has age 1; one last covered by piece i lies between
+    that piece's outline and the next's, and its age is interpolated between theirs by its distance
+    to each (the boundary sweeping over it from one pose to the next), so the age rises smoothly
+    along the arc from 0 at the tail. Elsewhere the result is 1.
+    """
+    n = grid.nx * grid.ny
+    out = np.ones(n)
+    idx = np.nonzero(want)[0]
+    if len(idx) == 0 or not pieces:
+        return out
+    segs = [geo.segments(polys) for _, polys in pieces]
+    last = np.full(len(idx), -1, dtype=np.int64)
+    for i, (a, b) in enumerate(segs):
+        covered = sdf.inside_grid(a, b, grid).ravel()[idx]
+        last = np.where(covered, i, last)
+    pts = grid.points()[idx]
+    ages = np.ones(len(idx))
+    for i in range(len(pieces) - 1):
+        sel = np.nonzero(last == i)[0]
+        if len(sel) == 0:
+            continue
+        d_in, _, _ = sdf.nearest(pts[sel], *segs[i])
+        d_out, _, _ = sdf.nearest(pts[sel], *segs[i + 1])
+        frac = d_in / np.maximum(d_in + d_out, 1e-12)
+        a0, a1 = pieces[i][0], pieces[i + 1][0]
+        ages[sel] = a0 + frac * (a1 - a0)
+    out[idx] = np.clip(ages, 0.0, 1.0)
+    return out
+
+
+def _smear_fringe(parts_tex: np.ndarray, empty: np.ndarray, scale: int) -> None:
+    """Copy a smear's parts texels (slot, angle, age, flags) onto the empty pixels within
+    SMEAR_FRINGE_U of it, nearest first, in place: the anti-aliased fringe just outside a silhouette
+    is drawn by the shader, which reads the flag and the age there (nearest sampling), so without
+    them the fringe of a faint tail drew as opaque ink."""
+    smear = (parts_tex[..., 3] & FLAG_SMEAR) > 0
+    todo = empty & ~smear
+    for _ in range(math.ceil(SMEAR_FRINGE_U * scale)):
+        grown = np.zeros_like(smear)
+        src = np.zeros_like(parts_tex)
+        for dy, dx in ((0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)):
+            shifted = np.zeros_like(smear)
+            moved = np.zeros_like(parts_tex)
+            ys = slice(max(dy, 0), smear.shape[0] + min(dy, 0))
+            yd = slice(max(-dy, 0), smear.shape[0] + min(-dy, 0))
+            xs = slice(max(dx, 0), smear.shape[1] + min(dx, 0))
+            xd = slice(max(-dx, 0), smear.shape[1] + min(-dx, 0))
+            shifted[yd, xd] = smear[ys, xs]
+            moved[yd, xd] = parts_tex[ys, xs]
+            take = shifted & todo & ~grown
+            src[take] = moved[take]
+            grown |= take
+        if not grown.any():
+            return
+        parts_tex[grown] = src[grown]
+        smear |= grown
+        todo &= ~grown
 
 
 def _dilate(m: np.ndarray) -> np.ndarray:

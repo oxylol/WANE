@@ -332,10 +332,11 @@ func _test_pitch_and_ember() -> void:
 	var amb_dusk: Image = await InkRender.capture(self, vp_d, true)
 	vp_d.queue_free()
 	InkRender.set_globals(_tuning, 0, far, InkRender.PITCH)
-	# Hold the key's own Dark at Dusk: at Pitch the key falls under the lit threshold and the
-	# surface drops to its shadow value (the two-value choice, checked by the lighting GPU check).
-	# This check is the ambient colour's multiplier alone.
-	RenderingServer.global_shader_parameter_set(&"wane_dark", 1.0)
+	# Hold the key at its Dusk share: at Pitch the key gives nothing and the surface drops to its
+	# shadow value (the two-value choice, checked by the form render tests). This check is the
+	# ambient colour's multiplier alone.
+	var key: Vector4 = InkRender.KEY
+	RenderingServer.global_shader_parameter_set(&"wane_key", Vector4(key.x, key.y, key.z, 1.0))
 	var vp_p: SubViewport = InkRender.viewport(
 		root, InkRender.VIEW_1X, 1.0, Vector2(InkRender.VIEW_1X) * 0.5
 	)
@@ -360,7 +361,15 @@ func _test_pitch_and_ember() -> void:
 		_lum(pitch.get_pixel(e.x, e.y)) > 0.95,
 		"the ember is white-hot at Pitch: ambient does not touch it"
 	)
-	_check(_lum(pitch.get_pixel(e.x + 2, e.y)) > 0.9, "the ember has no ink ring")
+	# No ink ring: the ember is a hot core grading out (BUILD.md section 10, The ember), so beside
+	# the core it is still light, and just past its 3 u edge the robe is not darker than further out.
+	var ring: PackedFloat32Array = PackedFloat32Array()
+	for dx: int in range(0, 9):
+		ring.append(_lum(pitch.get_pixel(e.x + dx, e.y)))
+	_check(
+		ring[2] > 0.5 and ring[4] >= 0.85 * ring[7],
+		"the ember has no ink ring (from its core outward: %s)" % [ring]
+	)
 	# At Pitch the world is the ember: the floor under it is lit, the floor far away is not.
 	var near_floor: float = _lum(pitch.get_pixel(240, 250))
 	var far_floor: float = _lum(pitch.get_pixel(20, 250))

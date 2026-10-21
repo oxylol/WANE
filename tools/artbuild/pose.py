@@ -12,12 +12,13 @@ test format (`pose.json` beside `parts.svg`):
 
 `parts` holds the per-part affine of the frame, in asset coordinates (SVG matrix order; a part
 that is not named stays in its source pose). `smear` holds the part's earlier sub-frame poses along
-its arc; the part's drawn shape is the union of those and its pose in `parts`, and the frame's
-`smear` flag for the part is true. Between two poses of an arc the baker adds poses (a polar
-decomposition about the part's pivot: the rotation angle, the stretch and the pivot's position are
-interpolated) until no vertex moves more than SMEAR_STEP_U between neighbours, so a few keys sweep
-a continuous ribbon and not a fan of copies. Actions keep the order of the file. A source without a pose file
-is one action, `idle`, of one frame.
+its arc, for a part tagged `smear` only (any other is an error); the part's drawn shape is the union
+of those and its pose in `parts`, and the frame's `smear` flag for the part is true. Between two
+poses of an arc the baker adds poses (a polar decomposition about the part's pivot: the rotation
+angle, the stretch and the pivot's position are interpolated) until no vertex moves more than
+SMEAR_STEP_U between neighbours, so a few keys sweep a continuous ribbon and not a fan of copies.
+Actions keep the order of the file. A source without a pose file is one action, `idle`, of one
+frame.
 
 The reader is strict, because frame timing is the animation spec (CLAUDE.md rule 5): an unknown key
 (`tiks`) is an error and not a default, `key` and `loop` are booleans, `fps` (1 to 60) and `ticks` (1 or
@@ -142,6 +143,7 @@ def parse(doc: dict, lib: PartLibrary, name: str = "pose.json") -> list[ActionSp
     if doc.get("version") != 1:
         raise PoseError(f"{name}: version must be 1")
     ids = {p.id for p in lib.parts}
+    smearable = {p.id for p in lib.parts if "smear" in p.tags}
     actions = []
     acts = doc.get("actions")
     if not isinstance(acts, dict) or not acts:
@@ -176,6 +178,9 @@ def parse(doc: dict, lib: PartLibrary, name: str = "pose.json") -> list[ActionSp
             for pid, arc in _object(fr.get("smear", {}), "smear", fwhere).items():
                 if pid not in ids:
                     raise PoseError(f"{fwhere}: no part {pid!r} to smear")
+                if pid not in smearable:
+                    # Baked, it would be the part doubled into a solid union with no ribbon flag.
+                    raise PoseError(f"{fwhere}: part {pid!r} has a smear arc but no `smear` tag")
                 if not isinstance(arc, list) or not arc:
                     raise PoseError(f"{fwhere}: smear {pid!r} wants a list of affines")
                 smear[pid] = [_affine(m, f"{fwhere} smear {pid}") for m in arc]

@@ -49,7 +49,8 @@ const PROFILE_MIN: int = 2
 ## 0.15".
 @export var dark_slope: float = 0.53
 @export var dark_floor: float = 0.15
-## The key light of a room that gives none: x and y toward the key (upper left), z its strength.
+## The key light of a room that gives none: x and y toward the key (upper left), z its strength at
+## Dusk (it fades with the Dark to nothing at Pitch: [method key_share]).
 @export var key_dir: Vector2 = Vector2(-0.6, -0.8)
 @export var key_strength: float = 0.5
 
@@ -89,11 +90,13 @@ const PROFILE_MIN: int = 2
 @export var min_step_u: float = 1.5
 ## The ember's radius as an area light, for the penumbra.
 @export var light_r_u: float = 14.0
-## A wall's lit skin: a pixel inside a wall is lit, fading out, within this depth of a face turned
-## to the light, and black beyond.
+## The penumbra radius of a light set close to a surface: a light's penumbra radius is held within
+## its clearance from the nearest surface (so a light low over a floor does not shadow its own
+## pool), but never under this, in world units.
+@export var light_r_min_u: float = 2.0
+## A wall's lit skin: a pixel inside a wall is lit, fading out, within this depth of its nearest
+## face (the field's depth, square to the face) where that face sees the light, and black beyond.
 @export var skin_u: float = 14.0
-## How many steps a pixel inside a wall walks toward the light looking for its face.
-@export var wall_walk_steps: int = 12
 ## The room's distance field is baked at this many world units a texel.
 @export var sdf_texel_u: float = 4.0
 ## How far past a room's edge its solid border reaches, in world units.
@@ -138,6 +141,14 @@ const PROFILE_MIN: int = 2
 ## The Dark factor at Wane Clock level [param d] (docs/adr/0023 Decision 3.5).
 func dark_factor(d: float) -> float:
 	return maxf(dark_floor, 1.0 - dark_slope * (d - 1.0))
+
+
+## The share of its strength the room's key keeps at Dark factor [param factor]: 1 at Dusk, falling
+## to 0 at the Dark's floor. The key is the world's light; at Pitch "only the ember and Beacons cast
+## light" (BUILD.md section 8) while the ambient keeps its floor (section 10: "At Pitch, ambient is
+## 0.15 and the world is the ember").
+func key_share(factor: float) -> float:
+	return clampf((factor - dark_floor) / maxf(1.0 - dark_floor, 0.0001), 0.0, 1.0)
 
 
 ## The ember's energy at [param seconds] of play, with the flicker.
@@ -193,8 +204,8 @@ func validate() -> PackedStringArray:
 		e.append("light_height_u must be positive and max_lights 1 to 16")
 	if max_steps < 4 or max_steps > 128 or min_step_u <= 0.0 or light_r_u <= 0.0:
 		e.append("max_steps must be 4 to 128, min_step_u and light_r_u positive")
-	if skin_u <= 0.0 or wall_walk_steps < 1 or wall_walk_steps > 32:
-		e.append("skin_u must be positive and wall_walk_steps 1 to 32")
+	if skin_u <= 0.0 or light_r_min_u <= 0.0 or light_r_min_u > light_r_u:
+		e.append("skin_u must be positive and light_r_min_u above 0 and at most light_r_u")
 	if sdf_texel_u < 1.0 or sdf_texel_u > 16.0:
 		e.append("sdf_texel_u must be 1 to 16")
 	if fields_kept < 3:

@@ -171,6 +171,85 @@ class VisibleEdges(unittest.TestCase):
         self.assertAlmostEqual(float(common.decode_u(px(shape, 25.125, 25.125, 4))), 14.875, delta=0.1)
 
 
+class SmearRibbon(unittest.TestCase):
+    """A smear's age channel is where along its arc the part last passed each pixel (BUILD.md
+    section 10, Animation: "a fast blade is stretched along its motion arc and its ink line becomes
+    a motion ribbon"): the fill fades and the line thins along the arc, not by the nearest edge."""
+
+    # A blade 24 u long and 6 u wide about its base (20, 40), swept from -60 degrees to 0.
+    BLADE = (
+        '<polygon id="b" data-z="0" data-tags="blade smear" data-pivot="20 40" '
+        'points="20,37 44,37 44,43 20,43"/>'
+    )
+    TAIL_DEG = -60.0
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        from artbuild import geometry as geo
+
+        spec = pose.FrameSpec(True, 2, {}, {"b": [geo.rotation_about(cls.TAIL_DEG, 20, 40)]})
+        _, cls.res = common.bake_svg(cls.BLADE, CELL, frame_spec=spec)
+
+    def _at(self, deg: float, r: float) -> tuple[float, float]:
+        a = math.radians(deg)
+        return 20.0 + r * math.cos(a), 40.0 + r * math.sin(a)
+
+    def _expected_age(self, deg: float, r: float) -> float:
+        # The pixel is last covered when the blade's trailing edge (3 u off its axis) passes it.
+        last = deg + math.degrees(math.asin(3.0 / r))
+        return min(max((last - self.TAIL_DEG) / -self.TAIL_DEG, 0.0), 1.0)
+
+    def test_the_age_is_where_along_the_arc_the_part_last_passed(self) -> None:
+        # The nearest-edge age left the half of the fan nearest the tail edge at 0 (a V, not a
+        # ribbon): at -55 degrees, 18 u out, the tail edge is the nearest edge.
+        for s in (1, 4):
+            parts = self.res.arrays[s]["parts"]
+            for deg in (-55.0, -45.0, -30.0, -15.0):
+                x, y = self._at(deg, 18.0)
+                got = int(px(parts, x, y, s)[2]) / 255.0
+                want = self._expected_age(deg, 18.0)
+                self.assertAlmostEqual(got, want, delta=0.06, msg=f"{s}x at {deg} degrees")
+                self.assertEqual(int(px(parts, x, y, s)[3]) & ch.FLAG_SMEAR, ch.FLAG_SMEAR)
+
+    def test_the_age_rises_continuously_along_the_arc(self) -> None:
+        # From the tail to the blade at 16 u out, a quarter of a degree at a time: the age never
+        # falls and never jumps (between two of the arc's sub-poses it is interpolated).
+        parts = self.res.arrays[4]["parts"]
+        ages = []
+        deg = -62.0
+        while deg <= -5.0:
+            x, y = self._at(deg, 16.0)
+            ages.append(int(px(parts, x, y, 4)[2]) / 255.0)
+            deg += 0.25
+        steps = np.diff(np.array(ages))
+        self.assertGreater(float(steps.min()), -0.02, "the age falls along the arc")
+        self.assertLess(float(steps.max()), 0.03, "the age jumps along the arc")
+        self.assertAlmostEqual(ages[0], self._expected_age(-62.0, 16.0), delta=0.04)
+        self.assertEqual(ages[-1], 1.0)
+
+    def test_the_flag_and_age_reach_over_the_antialiased_fringe(self) -> None:
+        # Just outside the silhouette the shader's anti-aliasing still draws: those pixels must fade
+        # with the ribbon (the flag read as off there drew opaque ink specks beside a faint tail).
+        for s in (1, 2, 4):
+            shape = self.res.arrays[s]["shape"]
+            parts = self.res.arrays[s]["parts"]
+            sdist = common.decode_s(shape)
+            fringe = (sdist > 0.0) & (sdist < 0.75)
+            near_blade = np.zeros_like(fringe)
+            ys, xs = np.nonzero(fringe)
+            for yy, xx in zip(ys.tolist(), xs.tolist()):
+                wx, wy = (xx + 0.5) / s, (yy + 0.5) / s
+                if math.hypot(wx - 20.0, wy - 40.0) > 4.0:
+                    near_blade[yy, xx] = True
+            flags = parts[..., 3][near_blade]
+            self.assertGreater(int(near_blade.sum()), 10)
+            self.assertTrue(bool(np.all(flags & ch.FLAG_SMEAR)), f"{s}x: the fringe lost the smear flag")
+            # At the tail the fringe is as faint as the ribbon beside it.
+            x, y = self._at(self.TAIL_DEG - 12.0, 16.0)
+            tail = parts[int(y * s), int(x * s)]
+            self.assertLess(int(tail[2]), 40, f"{s}x: the tail's fringe has age {int(tail[2])}")
+
+
 class PartsChannels(unittest.TestCase):
     def test_slot_angle_taper_and_flags(self) -> None:
         body = (rect("fat", 0, 4, 4, 20, 20, 'data-tags="wax"')
