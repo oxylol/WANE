@@ -464,6 +464,13 @@ func _test_the_ember_is_a_hot_core() -> void:
 # --- the smear --------------------------------------------------------------------------------
 
 
+## BUILD.md section 10 (Animation): "a fast blade is stretched along its motion arc and its ink
+## line becomes a motion ribbon". The probe's swing frame 1 sweeps the blade 40 degrees, from its
+## tail at -62.6 to its own pose at -22.6, about its pivot (tools/artbuild/tests/data/probe). Its
+## fill fades along the arc toward the tail, smoothly (no V where the half nearest the tail edge
+## was empty: measured 0 then 0.85 across the fan's bisector); its outer edge carries a line that
+## thins toward the tail; its tail edge, across the motion, carries none (it drew a radial
+## hairline); and nothing beside the faint tail is opaque (ink specks of 0.90 there).
 func _test_a_smear_is_a_ribbon() -> void:
 	var rig: ArtRig = await _rig(null, false)
 	rig.sprite.setup(_sheet2, &"swing")
@@ -471,32 +478,74 @@ func _test_a_smear_is_a_ribbon() -> void:
 	rig.sprite.mode = InkSprite.Mode.SILHOUETTE
 	var pivot: Vector2 = ArtRig.MARK + BLADE_PIVOT_REL
 	var img: Image = await _shot(rig, 0, 1.0, Vector2(-500.0, 0.0), 4.0, pivot)
-	var alphas: Array[float] = []
-	for deg: float in [-62.0, -54.0, -46.0, -38.0, -30.0, -25.0]:
-		var a: float = deg_to_rad(deg)
-		var at: Vector2 = pivot + Vector2(cos(a), sin(a)) * 14.0
-		alphas.append(_lum(_at(img, at)))
-	var mono: bool = true
-	for i: int in range(1, alphas.size()):
-		mono = mono and alphas[i] >= alphas[i - 1] - 0.05
-	_check(mono, "a smear fades toward its tail: opacity along the arc %s" % [alphas])
-	_check(alphas[0] < 0.4, "the tail of the smear is faint (%.2f)" % alphas[0])
+	# The fill along the arc, 10, 14 and 18 u out, from the tail to the blade, 2 degrees a step.
+	var worst_fall: float = 0.0
+	var worst_jump: float = 0.0
+	var tail_most: float = 0.0
+	var mid: Array[float] = []
+	for r: float in [10.0, 14.0, 18.0]:
+		var last: float = -1.0
+		var deg: float = -60.0
+		while deg <= -26.0:
+			var a: float = _lum(_at(img, pivot + Vector2.from_angle(deg_to_rad(deg)) * r))
+			if last >= 0.0:
+				worst_fall = maxf(worst_fall, last - a)
+				worst_jump = maxf(worst_jump, absf(a - last))
+			if deg == -60.0:
+				tail_most = maxf(tail_most, a)
+			if deg == -44.0:
+				mid.append(a)
+			last = a
+			deg += 2.0
 	_check(
-		alphas[alphas.size() - 1] > 0.7, "the blade end of the smear is solid (%.2f)" % alphas[-1]
+		worst_fall < 0.04 and worst_jump < 0.15,
+		(
+			"a smear's fill fades smoothly along its arc toward the tail (falls by %.2f, jumps by %.2f)"
+			% [worst_fall, worst_jump]
+		)
 	)
-	# Its line is a ribbon's: at the tail edge there is no closed outline. Lit, the picture's
-	# tail end holds no near-black line pixels while the blade end does.
+	_check(tail_most < 0.12, "the smear's fill is faint at its tail (%.2f)" % tail_most)
+	var mid_lo: float = mid[0]
+	var mid_hi: float = mid[0]
+	for v: float in mid:
+		mid_lo = minf(mid_lo, v)
+		mid_hi = maxf(mid_hi, v)
+	_check(
+		mid_lo > 0.15 and mid_hi < 0.65,
+		"halfway along its arc the smear is half faded (%s)" % [mid]
+	)
+	# Beside the tail, over its anti-aliased fringe, nothing is opaque (from 10 u out: nearer the
+	# pivot the fan is no wider than the blade itself).
+	var speck: float = 0.0
+	for deg10: int in range(-760, -590, 5):
+		for r10: int in range(100, 280, 4):
+			var w: Vector2 = (
+				pivot + Vector2.from_angle(deg_to_rad(float(deg10) / 10.0)) * (float(r10) / 10.0)
+			)
+			speck = maxf(speck, _lum(_at(img, w)))
+	_check(speck < 0.3, "no opaque ink beside the smear's faint tail (%.2f at most)" % speck)
+	# Its line is a ribbon's: along the outer edge (the tip's path) it thins out toward the tail, and
+	# its tail edge, across the motion, carries no line. Lit, over grey.
 	rig.sprite.mode = InkSprite.Mode.LIT
 	RenderingServer.set_default_clear_color(Color(0.5, 0.5, 0.5))
 	var lit: Image = await _shot(rig, 0, 1.0, pivot + Vector2(-120.0, 0.0), 4.0, pivot)
 	RenderingServer.set_default_clear_color(Color.BLACK)
-	var tail_dark: int = _dark_pixels(lit, pivot, -62.0, -52.0)
-	var head_dark: int = _dark_pixels(lit, pivot, -30.0, -20.0)
+	var outer_tail: int = _dark_pixels(lit, pivot, -60.0, -50.0, 22.0, 28.0)
+	var outer_blade: int = _dark_pixels(lit, pivot, -34.0, -24.0, 22.0, 28.0)
 	_check(
-		tail_dark < head_dark,
+		outer_blade >= 8 and outer_tail < outer_blade / 3,
 		(
-			"the smear's line thins out toward the tail (%d dark pixels there, %d at the blade)"
-			% [tail_dark, head_dark]
+			"the smear's outer line thins out toward the tail (%d dark pixels there, %d at the blade)"
+			% [outer_tail, outer_blade]
+		)
+	)
+	var tail_edge: int = _dark_pixels(lit, pivot, -72.0, -60.0, 6.0, 22.0)
+	var lead_edge: int = _dark_pixels(lit, pivot, -24.0, -14.0, 6.0, 22.0)
+	_check(
+		lead_edge >= 8 and tail_edge * 10 < lead_edge,
+		(
+			"the smear's tail edge is open (%d dark pixels across the motion, %d on the blade's edge)"
+			% [tail_edge, lead_edge]
 		)
 	)
 	# It thins by its width, not only its coverage (ADR-0026 Decision 5). Beyond every light (the

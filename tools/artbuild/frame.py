@@ -84,7 +84,15 @@ def bake(
         )
         for p in lib.parts
     ]
-    shape4, parts4, extra = ch.render_scale(lib, geom, info, angles, cell.grid(ch.MASTER_SCALE), True)
+    # A smeared part's pieces in arc order, with their ages: the channels' sweep fraction.
+    sweeps = {
+        k: [(piece.age, piece.polys) for piece in posed.pieces if piece.part == k]
+        for k in range(len(lib.parts))
+        if info[k].smeared
+    }
+    shape4, parts4, extra = ch.render_scale(
+        lib, geom, info, angles, cell.grid(ch.MASTER_SCALE), True, sweeps
+    )
     nx, ny, nz, gloss, union, emis = extra
     arrays: dict[int, dict[str, np.ndarray]] = {}
     for s in sorted(scales):
@@ -95,7 +103,7 @@ def bake(
                 "parts": parts4,
             }
             continue
-        shape, parts, _ = ch.render_scale(lib, geom, info, angles, cell.grid(s), False)
+        shape, parts, _ = ch.render_scale(lib, geom, info, angles, cell.grid(s), False, sweeps)
         f = ch.MASTER_SCALE // s
         shape[..., 3] = ch.q8(ch.box_reduce(emis, f) * 255.0)
         normal = ch.encode_normal(*ch.reduce_normal(nx, ny, nz, gloss, union.astype(np.float64), f))
