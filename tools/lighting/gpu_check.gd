@@ -59,6 +59,19 @@ const CROSSING_MAX_USEC: int = 2000
 ## surface that only the ambient reaches at Pitch (a few hundredths).
 const SHADING_TOLERANCE: float = 0.04
 const KIND_FLOOR: float = 0.003
+## BUILD.md section 10's ember, checked on the screen against the spec's own numbers: "radius 420 u
+## at base, warm 2400 K, flicker at 0.5 Hz" (120 ticks a period, its crest at 0.5 s, tick 30). The
+## reach is read from the light at two distances; a surface a little past it, and one far beyond,
+## get nothing from it.
+const SPEC_RADIUS_U: float = 420.0
+const SPEC_RADIUS_TOLERANCE_U: float = 6.0
+const SPEC_KELVIN: float = 2400.0
+const SPEC_HUE_TOLERANCE: float = 0.03
+const SPEC_NEAR_U: float = 150.0
+const SPEC_FAR_U: float = 330.0
+const SPEC_BEYOND_U: float = 880.0
+const SPEC_CREST_TICK: int = 30
+const SPEC_PERIOD_TICKS: int = 120
 ## The room of the wall checks: a pillar at column 10, rows 4 to 6.
 const WALLED: Array[String] = [
 	"................",
@@ -532,7 +545,103 @@ func _check_shading_maths(field: LightField) -> void:
 			)
 		)
 	bevel_rect.queue_free()
+	await _check_ember_against_the_spec(field, ember)
 	field.set_post_enabled(true)
+
+
+## The ember on the screen against BUILD.md section 10's own numbers ("radius 420 u at base, warm
+## 2400 K, flicker at 0.5 Hz with ±4% amplitude"), not the tuning's: what it adds to a flat grey
+## surface at Pitch (the surface minus the same surface far beyond its reach), in open ground,
+## falls off to the reach the spec gives and ends there, has the colour of a 2400 K black body, and
+## its flicker comes round again after 2 s.
+func _check_ember_against_the_spec(field: LightField, ember: Vector2) -> void:
+	var open_row: String = ".".repeat(32)
+	var open := TileGrid.from_rows(PackedStringArray([open_row, open_row, open_row, open_row]))
+	field.show_world(CollisionWorld.new(open), "open3")
+	await field.settle()
+	var grey := Color(0.25, 0.25, 0.25)
+	var spots: Array[Vector2] = [
+		ember + Vector2(SPEC_NEAR_U, 0.0),
+		ember + Vector2(SPEC_FAR_U, 0.0),
+		ember + Vector2(SPEC_RADIUS_U + 10.0, 0.0),
+		ember + Vector2(SPEC_BEYOND_U, 0.0)
+	]
+	var rects: Array[ColorRect] = []
+	for at: Vector2 in spots:
+		var r: ColorRect = _surface(at)
+		r.color = grey
+		root.add_child(r)
+		rects.append(r)
+	field.freeze(0, 0.15)
+	field.present(0, 0.0, ember)
+	for _f: int in range(3):
+		await RenderingServer.frame_post_draw
+	var base: Color = _mean_colour(spots[3])
+	var near_c: Color = _mean_colour(spots[0]) - base
+	var far_c: Color = _mean_colour(spots[1]) - base
+	var past_c: Color = _mean_colour(spots[2]) - base
+	# What a flat surface keeps of a light d away at height h: flat + (1 - flat) N.L.
+	var h: float = field.tuning.light_height_u
+	var flat: float = field.tuning.flat_share
+	var s_near: float = flat + (1.0 - flat) * h / Vector2(SPEC_NEAR_U, h).length()
+	var s_far: float = flat + (1.0 - flat) * h / Vector2(SPEC_FAR_U, h).length()
+	var k: float = pow(
+		(near_c.get_luminance() / s_near) / maxf(far_c.get_luminance() / s_far, 0.000001),
+		1.0 / field.tuning.falloff_power
+	)
+	var reach: float = (k * SPEC_FAR_U - SPEC_NEAR_U) / maxf(k - 1.0, 0.000001)
+	var spec_colour: Color = LightKind.kelvin_colour(SPEC_KELVIN)
+	var hue := Vector2(near_c.g / near_c.r, near_c.b / near_c.r)
+	var spec_hue := Vector2(spec_colour.g / spec_colour.r, spec_colour.b / spec_colour.r)
+	print(
+		(
+			"ember: reach %.1f u on the screen (spec %d), %.5f past it; g/r %.3f b/r %.3f (%d K: %s)"
+			% [
+				reach,
+				int(SPEC_RADIUS_U),
+				past_c.get_luminance(),
+				hue.x,
+				hue.y,
+				int(SPEC_KELVIN),
+				spec_hue
+			]
+		)
+	)
+	if absf(reach - SPEC_RADIUS_U) > SPEC_RADIUS_TOLERANCE_U:
+		_fail("the ember's light reaches %.1f u on the screen, not section 10's 420" % reach)
+	if absf(past_c.get_luminance()) > KIND_FLOOR * 0.1:
+		_fail("the ember lights a surface past its reach (%.5f)" % past_c.get_luminance())
+	if (hue - spec_hue).length() > SPEC_HUE_TOLERANCE:
+		_fail("the ember's light is not 2400 K on the screen (%s against %s)" % [hue, spec_hue])
+	# The flicker's period: the crest at 0.5 s comes round again at 2.5 s (0.5 Hz), and 1.5 s is
+	# the trough between.
+	var swings: Array[float] = []
+	var ticks: Array[int] = [
+		SPEC_CREST_TICK,
+		SPEC_CREST_TICK + SPEC_PERIOD_TICKS,
+		SPEC_CREST_TICK + SPEC_PERIOD_TICKS / 2
+	]
+	for tick: int in ticks:
+		field.freeze(tick, 0.15)
+		field.present(tick, 0.0, ember)
+		for _f: int in range(3):
+			await RenderingServer.frame_post_draw
+		swings.append((_mean_colour(spots[0]) - base).get_luminance())
+	print("ember: flicker %.5f at 0.5 s, %.5f at 2.5 s, %.5f at 1.5 s" % swings)
+	if absf(swings[1] - swings[0]) > 0.002 * swings[0] or swings[2] > swings[0] * 0.95:
+		_fail("the ember's flicker does not come round every 2 s (%s)" % [swings])
+	for r: ColorRect in rects:
+		r.queue_free()
+
+
+## The mean colour of the 8 x 8 pixels around [param at] on the screen.
+func _mean_colour(at: Vector2) -> Color:
+	var shot: Image = root.get_viewport().get_texture().get_image()
+	var total := Color(0, 0, 0, 0)
+	for dy: int in range(-4, 4):
+		for dx: int in range(-4, 4):
+			total += shot.get_pixel(int(at.x) + dx, int(at.y) + dy)
+	return total / 64.0
 
 
 ## The twin's visibility of the light at [param light] (reach [param reach]) averaged over the 8 x 8

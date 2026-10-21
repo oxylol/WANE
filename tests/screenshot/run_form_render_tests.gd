@@ -1,42 +1,20 @@
-extends SceneTree
-## What the lit pictures must show (docs/adr/0026; BUILD.md section 10, Style, Lighting, Animation),
-## measured on the pictures the review draws: a [LightField] with its halos, the painted backdrop
-## through the background shader, and the artbuild probe (tests/screenshot/data/probe) standing in
-## the lit test room. Each check is a number the director's eye reads off the review:
-##   two values follow the shape (and not a ring of distance); the key is one more light scaled by
-##   the Dark; a Wick stays lit at Pitch and stands off its ground, and its crescent comes from the
-##   key, not from where its ember is; the ember is warm, keeps its hue past the shoulder, carries
-##   no dark ring and has a halo; a smear is a ribbon of one value that fades and thins toward its
-##   tail; a hairline is lighter than a heavy line at 1x, a sprite beyond every light (at Pitch,
-##   the key too) draws the heavy line all round, and the ink is never lighter than the fill; the
-##   background's line is open and drops out where the light is, over a brushed, grained surface;
-##   gloss reaches the shader.
+extends RenderChecks
+## What the lit pictures must show (docs/adr/0026; BUILD.md section 10, Style, Lighting), measured
+## on the pictures the review draws: a [LightField] with its halos, the painted backdrop through
+## the background shader, and the artbuild probe (tests/screenshot/data/probe) standing in the lit
+## test room. Each check is a number the director's eye reads off the review:
+##   two values follow the shape (and not a ring of distance); the key fades with the Dark to
+##   nothing at Pitch; a Wick stays lit at Pitch and stands off its ground, and its crescent comes
+##   from the key, not from where its ember is; a hairline is lighter than a heavy line at 1x, a
+##   sprite beyond every light (at Pitch, the key too) draws the heavy line all round, and the ink
+##   is never lighter than the fill; the background's line is open and drops out where the light
+##   is, at 1x and magnified, over a brushed, grained surface; the floor's lit lip has no lens;
+##   gloss reaches the shader. The ember and the smear are run_ember_and_smear_render_tests.gd.
 ## Needs a display:
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 \
 ##     --audio-driver Dummy --resolution 1920x1080 \
 ##     --script tests/screenshot/run_form_render_tests.gd
 ## Exits 0 when every check passes, 1 otherwise.
-
-const PROBE_DIR: String = "res://tests/screenshot/data/probe"
-## The probe's parts from its feet, in u (tools/artbuild/tests/data/probe/parts.svg, origin 32 61).
-const HEAD_REL: Vector2 = Vector2(0.0, -45.5)
-const HEAD_RADIUS_U: float = 9.0
-const EMBER_REL: Vector2 = Vector2(-1.0, -28.0)
-const EMBER_RADIUS_U: float = 2.3
-const BLADE_PIVOT_REL: Vector2 = Vector2(12.0, -22.0)
-## The blade's rest direction, from its pivot to its tip, in degrees (y down), and the swing's
-## sub-poses around it (tools/artbuild/tests/data/probe/pose.json: the arc is -20, 0 and +20).
-const BLADE_REST_DEG: float = -42.6
-
-var _failures: PackedStringArray = []
-var _checks: int = 0
-var _noise: Texture2D
-var _sheet1: SpriteSheet
-var _sheet2: SpriteSheet
-var _ink: InkTuning
-## The camera of the shot being read, for [method _px].
-var _centre: Vector2 = Vector2.ZERO
-var _zoom: float = 1.0
 
 
 func _initialize() -> void:
@@ -44,105 +22,17 @@ func _initialize() -> void:
 
 
 func _run() -> void:
-	RenderingServer.set_default_clear_color(Color.BLACK)
-	_noise = SpriteSheet.load_noise()
-	_sheet1 = SpriteSheet.open(PROBE_DIR, "probe", 1, _noise)
-	_sheet2 = SpriteSheet.open(PROBE_DIR, "probe", 2, _noise)
-	if not _sheet1.is_valid() or not _sheet2.is_valid():
-		printerr("form render: the probe's sheets are not valid: %s" % "; ".join(_sheet1.errors))
-		quit(2)
+	if not _begin("form render"):
 		return
-	_ink = load(InkTuning.PATH) as InkTuning
-	InkGlobals.apply(_ink)
 	await _test_two_values_follow_the_shape()
 	await _test_the_key_fades_with_the_dark_to_nothing_at_pitch()
 	await _test_a_wick_stays_lit_at_pitch_and_stands_off_its_ground()
 	await _test_a_carriers_crescent_comes_from_the_key()
-	await _test_the_ember()
-	await _test_a_smear_is_a_ribbon()
 	await _test_hairlines_and_the_line_light()
 	await _test_the_background_line_and_surface()
+	await _test_the_floor_lip_has_no_lens()
 	await _test_gloss_reaches_the_shader()
-	print("form render: %d checks, %d failed" % [_checks, _failures.size()])
-	for f: String in _failures:
-		printerr("  FAIL ", f)
-	quit(1 if not _failures.is_empty() else 0)
-
-
-func _check(ok: bool, what: String) -> void:
-	_checks += 1
-	if not ok:
-		_failures.append(what)
-
-
-func _lum(c: Color) -> float:
-	return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
-
-
-## The screen pixel of world point [param w] in the shot last taken.
-func _px(img: Image, w: Vector2) -> Vector2i:
-	return Vector2i(Vector2(img.get_size()) * 0.5 + (w - _centre) * _zoom)
-
-
-func _at(img: Image, w: Vector2) -> Color:
-	return img.get_pixelv(_px(img, w))
-
-
-## The mean luminance of the world rectangle [param r] in [param img].
-func _mean(img: Image, r: Rect2) -> float:
-	var a: Vector2i = _px(img, r.position)
-	var b: Vector2i = _px(img, r.end)
-	var total: float = 0.0
-	var n: int = 0
-	for y: int in range(a.y, b.y):
-		for x: int in range(a.x, b.x):
-			total += _lum(img.get_pixel(x, y))
-			n += 1
-	return total / float(maxi(n, 1))
-
-
-func _shot(
-	rig: ArtRig,
-	tick: int,
-	level: float,
-	ember: Vector2,
-	zoom: float,
-	centre: Vector2,
-	hdr: bool = false
-) -> Image:
-	_zoom = zoom
-	_centre = centre
-	return await rig.shot(tick, level, ember, zoom, centre, hdr)
-
-
-## The largest luminance over the world rectangle [param r] of [param img].
-func _max(img: Image, r: Rect2) -> float:
-	var a: Vector2i = _px(img, r.position)
-	var b: Vector2i = _px(img, r.end)
-	var most: float = 0.0
-	for y: int in range(a.y, b.y):
-		for x: int in range(a.x, b.x):
-			most = maxf(most, _lum(img.get_pixel(x, y)))
-	return most
-
-
-## The mean difference in luminance of [param a] and [param b] over the world rectangle [param r].
-func _mean_diff(a: Image, b: Image, r: Rect2) -> float:
-	var p: Vector2i = _px(a, r.position)
-	var q: Vector2i = _px(a, r.end)
-	var total: float = 0.0
-	var n: int = 0
-	for y: int in range(p.y, q.y):
-		for x: int in range(p.x, q.x):
-			total += absf(_lum(a.get_pixel(x, y)) - _lum(b.get_pixel(x, y)))
-			n += 1
-	return total / float(maxi(n, 1))
-
-
-func _rig(tuning: LightingTuning = null, backdrop: bool = true) -> ArtRig:
-	var rig := ArtRig.new(self, _noise, tuning, backdrop)
-	await rig.settle()
-	return rig
+	_finish("form render")
 
 
 # --- two values -------------------------------------------------------------------------------
@@ -302,321 +192,6 @@ func _test_a_carriers_crescent_comes_from_the_key() -> void:
 		)
 	)
 	rig.free_all()
-
-
-# --- the ember --------------------------------------------------------------------------------
-
-
-func _test_the_ember() -> void:
-	var rig: ArtRig = await _rig()
-	rig.sprite.carries_ember = true
-	rig.sprite.setup(_sheet1, &"idle")
-	var centre := Vector2(320.0, 192.0)
-	var ember: Vector2 = ArtRig.MARK + EMBER_REL
-	var img: Image = await _shot(rig, 0, 3.0, ember, 1.0, centre, true)
-	# The core is HDR, brighter than 1: only the post pass's shoulder gives it a colour on screen
-	# (a per-channel clip would make it white, or turn its orange yellow). It reaches the screen at
-	# the top of its own hue's range: its strongest channel at the screen's 1, no channel over it
-	# (one over it would clip alone and turn the hue), and the hue it had before the post pass.
-	rig.field.set_post_enabled(true)
-	var toned: Image = await _shot(rig, 0, 3.0, ember, 1.0, centre, true)
-	rig.field.set_post_enabled(false)
-	var core_in: Color = _at(img, ember)
-	var core: Color = _at(toned, ember)
-	var peak: float = maxf(core.r, maxf(core.g, core.b))
-	# The grain rides on top, half its width either way.
-	var grain_top: float = 1.0 + 0.5 * rig.tuning.grain + 0.0005
-	_check(
-		peak > 0.9 and peak < grain_top,
-		"the ember's core is as bright as its colour can be shown (strongest channel %.3f)" % peak
-	)
-	_check(
-		core.r - core.b > 0.1,
-		(
-			"the ember's core is warm, not white: the shoulder keeps its hue (r %.2f b %.2f)"
-			% [core.r, core.b]
-		)
-	)
-	var hue_out := Vector2(core.g / core.r, core.b / core.r)
-	var hue_in := Vector2(core_in.g / core_in.r, core_in.b / core_in.r)
-	_check(
-		absf(hue_out.x - hue_in.x) < 0.08 and absf(hue_out.y - hue_in.y) < 0.08,
-		(
-			"the ember keeps its orange past the shoulder: g/r and b/r %s, before the post pass %s"
-			% [hue_out, hue_in]
-		)
-	)
-	# Its halo: the same picture with the halos off is darker just outside the body.
-	var plain: LightingTuning = rig.tuning.duplicate() as LightingTuning
-	plain.glow_strength = 0.0
-	rig.free_all()
-	var rig2: ArtRig = await _rig(plain)
-	rig2.sprite.carries_ember = true
-	rig2.sprite.setup(_sheet1, &"idle")
-	var bare: Image = await _shot(rig2, 0, 3.0, ember, 1.0, centre, true)
-	# No ring of ink around the ember (looked for without the halo, which would brighten it): the
-	# pixels next to the core are not darker than the robe around them.
-	var body: float = _mean(bare, Rect2(342.0, 300.0, 16.0, 14.0))
-	var darkest: float = 1.0
-	for off: Vector2 in [
-		Vector2(-3, 0),
-		Vector2(-3.5, 0),
-		Vector2(-2, -2.5),
-		Vector2(-2, 2.5),
-		Vector2(0, 3),
-		Vector2(0, -3)
-	]:
-		darkest = minf(darkest, _lum(_at(bare, ember + off)))
-	_check(
-		darkest > 0.6 * body,
-		"the ember has no dark ring (darkest next to it %.2f, the robe %.2f)" % [darkest, body]
-	)
-	var spot := Rect2(335.0, 289.0, 4.0, 5.0)
-	var with_halo: float = _mean(img, spot)
-	var without: float = _mean(bare, spot)
-	_check(
-		with_halo > 1.06 * without,
-		"a light draws a halo over the wall beside it (%.3f against %.3f)" % [with_halo, without]
-	)
-	rig2.free_all()
-	await _test_the_ember_is_a_hot_core()
-
-
-## The luminance and the whiteness (blue over red) of [param img] at world point [param w].
-func _lum_white(img: Image, w: Vector2) -> Vector2:
-	var c: Color = _at(img, w)
-	return Vector2(_lum(c), c.b / maxf(c.r, 0.0001))
-
-
-## BUILD.md section 10 (The ember): "a single orange-white point in every Wick's chest, a soft bloom
-## over the ink". On screen (post on, Pitch), magnified and at 1x: the ember is hottest and whitest
-## at its core and grades out over its own part into the halo, with no flat disc and no cliff at
-## its edge (the probe's ember is 2.3 u across; the step is read on its lit side, toward the key,
-## where the robe beyond it is in its lit value: the crescent on the other side is the robe's own
-## two values). Measured before the core: a flat disc of 0.74 to 0.75 out to 2.2 u with a 0.10
-## step at its edge, one whiteness (b/r 0.42) across it, and a 4 x 4 block at 1x.
-func _test_the_ember_is_a_hot_core() -> void:
-	var rig: ArtRig = await _rig()
-	rig.sprite.carries_ember = true
-	rig.sprite.setup(_sheet2, &"idle")
-	rig.field.set_post_enabled(true)
-	var ember: Vector2 = ArtRig.MARK + EMBER_REL
-	var img: Image = await _shot(rig, 0, 3.0, ember, 4.0, ember)
-	var core: Vector2 = _lum_white(img, ember)
-	var steepest: float = 0.0
-	var mid_lum: float = 0.0
-	var rim_white: float = 0.0
-	var dirs: Array[Vector2] = [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]
-	for d: Vector2 in dirs:
-		mid_lum += _lum_white(img, ember + d * 1.5).x / float(dirs.size())
-		rim_white += _lum_white(img, ember + d * 1.75).y / float(dirs.size())
-	for d: Vector2 in [Vector2(-1, 0), Vector2(0, -1)]:
-		var inside: float = _lum_white(img, ember + d * (EMBER_RADIUS_U - 0.25)).x
-		var outside: float = _lum_white(img, ember + d * (EMBER_RADIUS_U + 0.25)).x
-		steepest = maxf(steepest, absf(inside - outside))
-	_check(
-		core.x > mid_lum + 0.05,
-		(
-			"the ember is a hot core grading out, not a flat disc (core %.3f, 1.5 u out %.3f)"
-			% [core.x, mid_lum]
-		)
-	)
-	_check(
-		core.y > rim_white + 0.15,
-		"the ember's core is whiter than its rim (b/r %.2f against %.2f)" % [core.y, rim_white]
-	)
-	_check(
-		steepest < 0.04,
-		"the ember grades into its halo with no step at its edge (%.3f across it)" % steepest
-	)
-	# At 1x it is a point: one or two pixels at its hottest, whiter than the ring around them.
-	rig.sprite.setup(_sheet1, &"idle")
-	var one: Image = await _shot(rig, 0, 3.0, ember, 1.0, ember)
-	var c: Vector2i = _px(one, ember)
-	var hottest: float = 0.0
-	for dy: int in range(-3, 4):
-		for dx: int in range(-3, 4):
-			hottest = maxf(hottest, _lum(one.get_pixel(c.x + dx, c.y + dy)))
-	var at_top: int = 0
-	var white_top: float = 0.0
-	var ring_white: float = 0.0
-	var ring_n: int = 0
-	for dy: int in range(-3, 4):
-		for dx: int in range(-3, 4):
-			var px: Color = one.get_pixel(c.x + dx, c.y + dy)
-			if _lum(px) > hottest - 0.02:
-				at_top += 1
-				white_top = maxf(white_top, px.b / maxf(px.r, 0.0001))
-			elif maxi(absi(dx), absi(dy)) == 3:
-				ring_white += px.b / maxf(px.r, 0.0001)
-				ring_n += 1
-	ring_white /= float(maxi(ring_n, 1))
-	_check(
-		at_top <= 4 and white_top > ring_white + 0.15,
-		(
-			"at 1x the ember is a point: %d pixels at its hottest (b/r %.2f, the ring around %.2f)"
-			% [at_top, white_top, ring_white]
-		)
-	)
-	rig.free_all()
-
-
-# --- the smear --------------------------------------------------------------------------------
-
-
-## BUILD.md section 10 (Animation): "a fast blade is stretched along its motion arc and its ink
-## line becomes a motion ribbon". The probe's swing frame 1 sweeps the blade 40 degrees, from its
-## tail at -62.6 to its own pose at -22.6, about its pivot (tools/artbuild/tests/data/probe). Its
-## fill fades along the arc toward the tail, smoothly (no V where the half nearest the tail edge
-## was empty: measured 0 then 0.85 across the fan's bisector); its outer edge carries a line that
-## thins toward the tail; its tail edge, across the motion, carries none (it drew a radial
-## hairline); and nothing beside the faint tail is opaque (ink specks of 0.90 there).
-func _test_a_smear_is_a_ribbon() -> void:
-	var rig: ArtRig = await _rig(null, false)
-	rig.sprite.setup(_sheet2, &"swing")
-	rig.sprite.show_frame(&"swing", 1)
-	rig.sprite.mode = InkSprite.Mode.SILHOUETTE
-	var pivot: Vector2 = ArtRig.MARK + BLADE_PIVOT_REL
-	var img: Image = await _shot(rig, 0, 1.0, Vector2(-500.0, 0.0), 4.0, pivot)
-	# The fill along the arc, 10, 14 and 18 u out, from the tail to the blade, 2 degrees a step.
-	var worst_fall: float = 0.0
-	var worst_jump: float = 0.0
-	var tail_most: float = 0.0
-	var mid: Array[float] = []
-	for r: float in [10.0, 14.0, 18.0]:
-		var last: float = -1.0
-		var deg: float = -60.0
-		while deg <= -26.0:
-			var a: float = _lum(_at(img, pivot + Vector2.from_angle(deg_to_rad(deg)) * r))
-			if last >= 0.0:
-				worst_fall = maxf(worst_fall, last - a)
-				worst_jump = maxf(worst_jump, absf(a - last))
-			if deg == -60.0:
-				tail_most = maxf(tail_most, a)
-			if deg == -44.0:
-				mid.append(a)
-			last = a
-			deg += 2.0
-	_check(
-		worst_fall < 0.04 and worst_jump < 0.15,
-		(
-			"a smear's fill fades smoothly along its arc toward the tail (falls by %.2f, jumps by %.2f)"
-			% [worst_fall, worst_jump]
-		)
-	)
-	_check(tail_most < 0.12, "the smear's fill is faint at its tail (%.2f)" % tail_most)
-	var mid_lo: float = mid[0]
-	var mid_hi: float = mid[0]
-	for v: float in mid:
-		mid_lo = minf(mid_lo, v)
-		mid_hi = maxf(mid_hi, v)
-	_check(
-		mid_lo > 0.15 and mid_hi < 0.65,
-		"halfway along its arc the smear is half faded (%s)" % [mid]
-	)
-	# Beside the tail, over its anti-aliased fringe, nothing is opaque (from 10 u out: nearer the
-	# pivot the fan is no wider than the blade itself).
-	var speck: float = 0.0
-	for deg10: int in range(-760, -590, 5):
-		for r10: int in range(100, 280, 4):
-			var w: Vector2 = (
-				pivot + Vector2.from_angle(deg_to_rad(float(deg10) / 10.0)) * (float(r10) / 10.0)
-			)
-			speck = maxf(speck, _lum(_at(img, w)))
-	_check(speck < 0.3, "no opaque ink beside the smear's faint tail (%.2f at most)" % speck)
-	# Its line is a ribbon's: along the outer edge (the tip's path) it thins out toward the tail, and
-	# its tail edge, across the motion, carries no line. Lit, over grey.
-	rig.sprite.mode = InkSprite.Mode.LIT
-	RenderingServer.set_default_clear_color(Color(0.5, 0.5, 0.5))
-	var lit: Image = await _shot(rig, 0, 1.0, pivot + Vector2(-120.0, 0.0), 4.0, pivot)
-	RenderingServer.set_default_clear_color(Color.BLACK)
-	var outer_tail: int = _dark_pixels(lit, pivot, -60.0, -50.0, 22.0, 28.0)
-	var outer_blade: int = _dark_pixels(lit, pivot, -34.0, -24.0, 22.0, 28.0)
-	_check(
-		outer_blade >= 8 and outer_tail < outer_blade / 3,
-		(
-			"the smear's outer line thins out toward the tail (%d dark pixels there, %d at the blade)"
-			% [outer_tail, outer_blade]
-		)
-	)
-	var tail_edge: int = _dark_pixels(lit, pivot, -72.0, -60.0, 6.0, 22.0)
-	var lead_edge: int = _dark_pixels(lit, pivot, -24.0, -14.0, 6.0, 22.0)
-	_check(
-		lead_edge >= 8 and tail_edge * 10 < lead_edge,
-		(
-			"the smear's tail edge is open (%d dark pixels across the motion, %d on the blade's edge)"
-			% [tail_edge, lead_edge]
-		)
-	)
-	# It thins by its width, not only its coverage (ADR-0026 Decision 5). Beyond every light (the
-	# key off, the ember far) every line is the heavy one; with the coverage nearly held along the
-	# arc (smear_tail_pow at its least, 0.1) and no pressure taper (taper_floor 1), only the age can
-	# thin the ribbon's outer edge toward the tail (measured 27 dark pixels against 222 at the blade
-	# end; 88 against 224 without the age).
-	var bare: InkTuning = _ink.duplicate() as InkTuning
-	bare.smear_tail_pow = 0.1
-	bare.taper_floor = 1.0
-	InkGlobals.apply(bare)
-	var key: Vector4 = rig.field.key
-	rig.field.key = Vector4(key.x, key.y, 0.0, 0.0)
-	RenderingServer.set_default_clear_color(Color(0.5, 0.5, 0.5))
-	var aged: Image = await _shot(rig, 0, 1.0, Vector2(-2000.0, 0.0), 4.0, pivot)
-	RenderingServer.set_default_clear_color(Color.BLACK)
-	rig.field.key = key
-	InkGlobals.apply(_ink)
-	var tail_aged: int = _dark_pixels(aged, pivot, -64.0, -41.0, 17.0, 27.0)
-	var head_aged: int = _dark_pixels(aged, pivot, -28.0, -17.0, 17.0, 27.0)
-	_check(
-		float(tail_aged) < 0.25 * float(head_aged),
-		(
-			"the smear's line thins with its age (%d dark px at the tail, %d at the blade)"
-			% [tail_aged, head_aged]
-		)
-	)
-	# A smear is all one value (ADR-0026 Decision 5): its lit one, even at Pitch beyond every light
-	# where the key alone gives a surface a fraction of it. The two-value choice over the
-	# silhouette's alpha is the value itself.
-	var away := Vector2(-2000.0, 0.0)
-	rig.sprite.mode = InkSprite.Mode.VALUE
-	var values: Image = await _shot(rig, 0, 3.0, away, 4.0, pivot, true)
-	rig.sprite.mode = InkSprite.Mode.SILHOUETTE
-	var cover: Image = await _shot(rig, 0, 3.0, away, 4.0, pivot, true)
-	var lowest: float = 1.0
-	var read: int = 0
-	for deg: int in range(-60, -24, 4):
-		for r: int in range(8, 21, 3):
-			var a_rad: float = deg_to_rad(float(deg))
-			var at: Vector2 = pivot + Vector2(cos(a_rad), sin(a_rad)) * float(r)
-			var a: float = _lum(_at(cover, at))
-			if a > 0.05:
-				lowest = minf(lowest, _lum(_at(values, at)) / a)
-				read += 1
-	_check(
-		read >= 12 and lowest > 0.97,
-		"a smear is all one value, its lit one (lowest %.2f over %d points)" % [lowest, read]
-	)
-	rig.free_all()
-
-
-## How many pixels darker than 0.25 lie in the wedge of angles [param from_deg] to [param to_deg]
-## about [param pivot], [param from_u] to [param to_u] out.
-func _dark_pixels(
-	img: Image,
-	pivot: Vector2,
-	from_deg: float,
-	to_deg: float,
-	from_u: float = 6.0,
-	to_u: float = 26.0
-) -> int:
-	var n: int = 0
-	for deg: int in range(int(from_deg), int(to_deg) + 1):
-		for r10: int in range(int(from_u * 10.0), int(to_u * 10.0) + 1, 2):
-			var a: float = deg_to_rad(float(deg))
-			var p: Vector2 = pivot + Vector2(cos(a), sin(a)) * (float(r10) / 10.0)
-			var c: Color = _at(img, p)
-			if _lum(c) < 0.25 and c.a > 0.5:
-				n += 1
-	return n
 
 
 # --- hairlines --------------------------------------------------------------------------------
@@ -876,6 +451,52 @@ func _test_the_background_line_and_surface() -> void:
 	rig.free_all()
 
 
+## BUILD.md section 10 (Lighting: soft shadows): the floor a Wick stands on, lit by its ember at
+## Pitch, shows a lit skin as deep under the light as 60 u to either side, with no step along it.
+## The march walked toward the light through the wall, so the skin thinned with the angle and
+## stepped with the walk: a lens of nested terraces under every light near a floor (the review's
+## Pitch picture stepped 6, 13 and 33 along one row).
+func _test_the_floor_lip_has_no_lens() -> void:
+	var rig: ArtRig = await _rig()
+	rig.set_backdrop_scale(2)
+	rig.sprite.carries_ember = true
+	rig.sprite.setup(_sheet2, &"idle")
+	var ember: Vector2 = ArtRig.MARK + EMBER_REL
+	var top: float = ArtRig.MARK.y
+	var img: Image = await _shot(rig, 0, 3.0, ember, 4.0, Vector2(ember.x, top + 8.0), true)
+	var depths: Array[float] = []
+	for dx: float in [-60.0, -30.0, 0.0, 30.0, 60.0]:
+		var x: float = ember.x + dx
+		var lip: float = _lum(_at(img, Vector2(x, top + 1.0)))
+		var depth: float = 1.0
+		while depth < 20.0 and _lum(_at(img, Vector2(x, top + depth))) > 0.5 * lip:
+			depth += 0.25
+		depths.append(depth)
+	var worst: float = 0.0
+	var last: float = _lum(_at(img, Vector2(ember.x - 60.0, top + 4.0)))
+	var at_x: float = ember.x - 60.0
+	while at_x < ember.x + 60.0:
+		at_x += 0.25
+		var here: float = _lum(_at(img, Vector2(at_x, top + 4.0)))
+		worst = maxf(worst, absf(here - last) / maxf(last, 0.0001))
+		last = here
+	var shallowest: float = depths[0]
+	var deepest: float = depths[0]
+	for d: float in depths:
+		shallowest = minf(shallowest, d)
+		deepest = maxf(deepest, d)
+	_check(
+		deepest - shallowest <= 1.5,
+		"the floor's lit lip is as deep under the ember as beside it, no lens (%s u)" % [depths]
+	)
+	_check(
+		worst < 0.08,
+		"the floor's lit lip has no step along it (%.3f of its light between two pixels)" % worst
+	)
+	rig.set_backdrop_scale(1)
+	rig.free_all()
+
+
 ## The ledge's underside at zoom 4 from the 2x backdrop sheet: as open as at 1x ([param whole_1x]
 ## and [param broken_1x] of its columns), and gone where the light hits it.
 func _background_line_magnified(
@@ -912,6 +533,28 @@ func _background_line_magnified(
 	_check(
 		kept < 0.1,
 		"magnified, a background's line drops out where the light hits it (%.2f keeps it)" % kept
+	)
+	# The floor's top edge beside a Wick's ember at Dusk (the review's detail): the edge faces the
+	# light, so it carries no line, not even on the pixels right on the edge, where the unsigned
+	# distance's gradient turned the edge's normal over (a dashed black line at 4x).
+	rig.set_backdrop_scale(2)
+	var chest: Vector2 = ArtRig.MARK + EMBER_REL
+	var floor_at := Vector2(chest.x + 50.0, ArtRig.MARK.y)
+	var lit: Image = await _shot(rig, 0, 1.0, chest, 4.0, floor_at)
+	InkGlobals.apply(inkless)
+	var lit_black: Image = await _shot(rig, 0, 1.0, chest, 4.0, floor_at)
+	InkGlobals.apply(_ink)
+	rig.set_backdrop_scale(1)
+	var floor_line: Array[float] = _ink_columns_fine(
+		lit, lit_black, floor_at.x - 40.0, floor_at.x + 40.0, floor_at.y - 3.0, floor_at.y + 3.0
+	)
+	var on_floor: float = _share(floor_line, 0.2 * strongest, 10.0)
+	_check(
+		on_floor < 0.005,
+		(
+			"magnified, the floor's top edge in the ember's light has no line (%.2f keeps it)"
+			% on_floor
+		)
 	)
 
 

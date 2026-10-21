@@ -17,7 +17,8 @@ extends SceneTree
 ##     <asset> [--root res://dir] [--out dir] [--carries-ember] [--palette N] [action...]
 ## --root is the build root holding <asset>/ (default: assets/art/build, then tests/art/build,
 ## then tests/screenshot/data). --out defaults to docs/gallery/<asset>. An asset that carries its
-## own ember (a Wick) is lit by it at the chest; any other is lit by an ember 120 u to its left at
+## own ember (a Wick) is lit by it at its ember part (or its chest if it has none); any other is
+## lit by an ember 120 u to its left at
 ## chest height, and each of its emissive regions is a light of its own kind (a flame a fire, an eye
 ## an eye). The tick and the Dark are frozen ([method LightField.freeze]), so a review is
 ## reproducible (Decision 6.3).
@@ -276,10 +277,28 @@ func _build_room(noise: Texture2D) -> void:
 	await _field.settle()
 
 
-## The ember: at the asset's chest if it carries one, else 120 u to its left at chest height.
+## The ember: at the asset's own ember if it carries one (its first frame's emissive region of kind
+## `ember`, so the light and its halo sit on the hot core the shader draws), else at its chest
+## height; 120 u to its left at chest height if it carries none.
 func _place_ember() -> void:
 	var chest: Vector2 = MARK + Vector2(0.0, -_asset_height_u * CHEST_SHARE)
-	_ember_at = chest if _carries else chest + Vector2(EMBER_OFFSET_X, 0.0)
+	_ember_at = chest + Vector2(EMBER_OFFSET_X, 0.0)
+	if not _carries:
+		return
+	_ember_at = chest
+	var frames: Array[Variant] = _frames_of(_actions[0])
+	if frames.is_empty():
+		return
+	for r_v: Variant in SpriteSheet.json_list(
+		SpriteSheet.json_dict(frames[0]).get("emissive_regions", null)
+	):
+		var region: Dictionary[String, Variant] = SpriteSheet.json_dict(r_v)
+		var c: Array[Variant] = SpriteSheet.json_list(region.get("centre", null))
+		if str(region.get("kind", "")) == "ember" and c.size() == 2:
+			_ember_at = (
+				MARK + Vector2(SpriteSheet.json_num(c[0], 0.0), SpriteSheet.json_num(c[1], 0.0))
+			)
+			return
 
 
 ## The light an emissive region of [param kind] (sheet.json `kind`) is. An enemy's eye is the tiny,

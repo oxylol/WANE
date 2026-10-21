@@ -106,7 +106,16 @@ float ink_wobble(vec2 p_u) {
 	return wane_ink.w * ((a - 0.5) * 2.0 * INK_WOBBLE1_WEIGHT + (b - 0.5) * 2.0 * (1.0 - INK_WOBBLE1_WEIGHT));
 }
 
-// The distance field's gradient by four taps, per u, in the texture's axes. channel 0 is S, 1 is U.
+// U signed by its side, negative inside the part that owns the nearest visible edge and positive
+// outside it: continuous across the edge, where U itself has a crease (its gradient there turns
+// the edge's normal over on the pixels right on the edge). The side is the filtered flag, so the
+// sign changes smoothly through 0 on the edge.
+float ink_signed_u(vec4 t) {
+	return ink_decode_u(t.g) * (1.0 - 2.0 * t.b);
+}
+
+// The distance field's gradient by four taps, per u, in the texture's axes. channel 0 is S, 1 is U
+// signed by its side (ink_signed_u): the outward normal of the nearest visible edge.
 vec2 ink_gradient(vec2 uv, int channel) {
 	vec2 px = 1.0 / vec2(textureSize(shape_tex, 0));
 	vec4 xp = textureLod(shape_tex, uv + vec2(px.x, 0.0), 0.0);
@@ -119,8 +128,8 @@ vec2 ink_gradient(vec2 uv, int channel) {
 		dx = ink_decode_s(xp.r) - ink_decode_s(xm.r);
 		dy = ink_decode_s(yp.r) - ink_decode_s(ym.r);
 	} else {
-		dx = ink_decode_u(xp.g) - ink_decode_u(xm.g);
-		dy = ink_decode_u(yp.g) - ink_decode_u(ym.g);
+		dx = ink_signed_u(xp) - ink_signed_u(xm);
+		dy = ink_signed_u(yp) - ink_signed_u(ym);
 	}
 	return vec2(dx, dy) / (2.0 * texel_u);
 }
@@ -189,11 +198,10 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 		bg_mask = texture(noise_tex, p_u / (wane_ink_bg.w * INK_WOBBLE1_CELLS)).b;
 	}
 	if (u_dist < reach_u) {
-		// The visible edge's outward normal: minus the gradient of U on the front side, plus it on
-		// the back. Where the four taps straddle the edge the gradient collapses; the bevel
-		// normal's outward direction stands in.
-		vec2 gu = ink_gradient(uv, 1);
-		vec2 n_edge_t = side > 0.5 ? -gu : gu;
+		// The visible edge's outward normal: the gradient of U signed by its side, on both sides of
+		// the edge and on it. Where it collapses (a T-junction, a sliver), the bevel normal's
+		// outward direction stands in.
+		vec2 n_edge_t = ink_gradient(uv, 1);
 		if (length(n_edge_t) < 0.2) {
 			n_edge_t = nm.xy * 2.0 - 1.0;
 		}

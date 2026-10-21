@@ -5,7 +5,8 @@
 # passes; on failure the failing checks are listed and it exits 1.
 #
 #   ci/render.sh                  the checks (tests/screenshot/run_ink_render_tests.gd on the shaders,
-#                                 tests/screenshot/run_form_render_tests.gd on what the review draws)
+#                                 tests/screenshot/run_form_render_tests.gd and
+#                                 run_ember_and_smear_render_tests.gd on what the review draws)
 #   ci/render.sh --review <dir> [tick]
 #                                 the probe's three-size review: sil64, dusk1x, pitch1x, dusk4x,
 #                                 pitch4x and channels4x PNGs in <dir> (tests/screenshot/render_ink.gd)
@@ -39,12 +40,14 @@ if [ "$status" -ne 0 ] || ! grep -q '^ink render: .* 0 failed' "$log"; then
 	echo "render: FAILED (exit $status)" >&2
 	exit 1
 fi
-status=0
-run --script tests/screenshot/run_form_render_tests.gd > "$log" 2>&1 || status=$?
-if grep -E '^(form render:|  FAIL )' "$log"; then :; else
-	tail -n 20 "$log" >&2
-fi
-if [ "$status" -ne 0 ] || ! grep -q '^form render: .* 0 failed' "$log"; then
-	echo "render: FAILED (exit $status)" >&2
-	exit 1
-fi
+for suite in form "ember and smear"; do
+	status=0
+	run --script "tests/screenshot/run_${suite// /_}_render_tests.gd" > "$log" 2>&1 || status=$?
+	if grep -E "^($suite render:|  FAIL )" "$log"; then :; else
+		tail -n 20 "$log" >&2
+	fi
+	if [ "$status" -ne 0 ] || ! grep -q "^$suite render: .* 0 failed" "$log"; then
+		echo "render: FAILED (exit $status)" >&2
+		exit 1
+	fi
+done
