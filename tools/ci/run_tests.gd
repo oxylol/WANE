@@ -17,15 +17,13 @@ extends SceneTree
 ## fails, only what failed (tools/ci/quiet_report.gd), all on stdout; the closing marker is the
 ## same. --fail-fast stops after the first failing stage. --unit <res:// path> (repeatable) runs
 ## only those gdUnit4 suites or folders in the unit stage, and --unit-time-limit <seconds>
-## replaces its default limit; ci/unit.sh uses both.
+## replaces its default limit; ci/unit.sh uses both. The unit stage runs its suites in up to four
+## gdUnit4 processes at once, one per processor (tools/ci/unit_runner.gd, docs/adr/0006);
+## --unit-processes <n> sets how many (1: one process, as before).
 
 const SKIP_DIRS: Array[String] = ["res://.godot", "res://addons/gdUnit4", "res://reports"]
 const CONTENT_ROOT: String = "res://content"
 const UNIT_ROOT: String = "res://tests/unit"
-const REPORT_DIR: String = "res://reports"
-## gdUnit4 writes its reports here (reports/unit/report_N/results.xml); the rest of reports/
-## (timings.jsonl, perf.txt) is not the unit stage's to delete.
-const UNIT_REPORT_DIR: String = "res://reports/unit"
 const ALL_STAGES: Array[String] = ["compile", "content", "fixtures", "unit"]
 ## The unit run is stopped, with a diagnosis, once it has printed this many engine or script
 ## errors (a broken invariant asserting in a loop) or run this long; gdUnit4 slows down sharply
@@ -44,6 +42,8 @@ var _quiet: bool = false
 var _fail_fast: bool = false
 var _unit_paths: Array[String] = []
 var _unit_time_limit: int = UNIT_TIME_LIMIT_SECONDS
+## 0: one gdUnit4 process per processor, at most four (tools/ci/unit_runner.gd).
+var _unit_processes: int = 0
 ## What this run measured (tools/ci/timing_log.gd): written when the run ends.
 var _timing: TimingLog = null
 ## A quiet run's report on the stage that is running: the summary after PASS or FAIL, and each
@@ -175,12 +175,17 @@ func _requested_stages() -> Array[String]:
 			_unit_time_limit = args[i + 1].to_int()
 			i += 2
 			continue
+		if args[i] == "--unit-processes" and i + 1 < args.size() and args[i + 1].is_valid_int():
+			_unit_processes = maxi(args[i + 1].to_int(), 1)
+			i += 2
+			continue
 		if args[i] != "--stage" or i + 1 >= args.size():
 			printerr(
 				(
 					(
 						"usage: run_tests.gd [-- [--quiet] [--fail-fast] [--no-time-budget]"
 						+ " [--unit <res:// path>]... [--unit-time-limit <seconds>]"
+						+ " [--unit-processes <n>]"
 						+ " --stage <%s>...]"
 					)
 					% "|".join(ALL_STAGES)
@@ -323,148 +328,40 @@ func _stage_unit() -> bool:
 		_say("no unit suites")
 		_summary = "no suites"
 		return true
-	# Reports live in the project folder for CI artifacts (one run's worth: reports/unit/report_1);
-	# .gdignore keeps Godot from importing the report's images as project assets.
-	_remove_tree(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
-	var ignore: FileAccess = FileAccess.open(REPORT_DIR.path_join(".gdignore"), FileAccess.WRITE)
-	ignore.close()
-	var args: PackedStringArray = [
-		"--headless",
-		"--path",
-		ProjectSettings.globalize_path("res://"),
-		"-s",
-		"-d",
-		# Needed with -d: without a remote debugger, a script error drops the child process into
-		# Godot's interactive command-line debugger and the run hangs. Port 0 is never bound, so
-		# the connection is refused at once (Godot prints two harmless ERROR lines for it).
-		"--remote-debug",
-		"tcp://127.0.0.1:0",
-		"res://addons/gdUnit4/bin/GdUnitCmdTool.gd",
-		"--ignoreHeadlessMode",
-		"-c",
-		"-rd",
-		UNIT_REPORT_DIR,
-	]
-	for target: String in targets:
-		args.append_array(["-a", target])
-	var info: Dictionary[String, Variant] = {}
-	info.assign(OS.execute_with_pipe(OS.get_executable_path(), args, false))
-	if info.is_empty():
-		_complain("  cannot start the gdUnit4 run")
-		_summary = "did not start"
-		return false
-	var pid: int = info["pid"]
-	var stdout: FileAccess = info["stdio"]
-	var stderr: FileAccess = info["stderr"]
-	return _watch_unit_run(pid, stdout, stderr)
-
-
-## Streams the unit run's output as it arrives (not at all, quiet) and stops it at the error or
-## time limit. Returns true if the run exited 0 within the limits.
-func _watch_unit_run(pid: int, stdout: FileAccess, stderr: FileAccess) -> bool:
-	var streams: Array[FileAccess] = [stdout, stderr]
-	var partial: Array[String] = ["", ""]
-	var watch := UnitWatch.new()
-	watch.quiet = _quiet
-	var started_msec: int = Time.get_ticks_msec()
-	var unit_limit: int = _unit_time_limit
+	var runner := UnitRunner.new()
+	runner.quiet = _quiet
+	runner.processes = _unit_processes
+	runner.max_errors = UNIT_MAX_ERRORS
+	runner.time_limit_seconds = _unit_time_limit
 	if not _time_budget:
-		unit_limit = maxi(unit_limit, SLOW_UNIT_TIME_LIMIT_SECONDS)
-	while true:
-		var running: bool = OS.is_process_running(pid)
-		var got: int = 0
-		for i: int in range(2):
-			var chunk: PackedByteArray = streams[i].get_buffer(65536)
-			got += chunk.size()
-			partial[i] += chunk.get_string_from_utf8()
-			var lines: PackedStringArray = partial[i].split("\n")
-			partial[i] = lines[lines.size() - 1]
-			for li: int in range(lines.size() - 1):
-				watch.line(lines[li], i == 1)
-		var stop: String = ""
-		if watch.errors >= UNIT_MAX_ERRORS:
-			stop = "%d engine or script errors" % watch.errors
-		elif Time.get_ticks_msec() - started_msec > unit_limit * 1000:
-			stop = "the %d s time limit" % unit_limit
-		if stop != "":
-			OS.kill(pid)
-			_complain("  unit run stopped after %s" % stop)
-			_complain("  first error: %s" % watch.first_error)
-			_complain("  last test reported: %s" % watch.last_test)
-			_summary = "run stopped"
-			return false
-		if not running and got == 0:
-			break
-		if got == 0:
-			OS.delay_msec(10)
-	for i: int in range(2):
-		if partial[i] != "":
-			watch.line(partial[i], i == 1)
-	var exit_code: int = OS.get_process_exit_code(pid)
-	var result: QuietReport.UnitResult = QuietReport.parse_unit(watch.out)
-	_summary = "%d cases" % result.cases if result.has_summary else "no result"
-	if exit_code != 0 and result.failed() > 0:
-		_summary += ", %d failed" % result.failed()
-	if exit_code != 0 and _quiet:
-		_failures.append_array(result.failure_blocks(exit_code))
-	if exit_code == 0 and not _unit_paths.is_empty() and result.cases == 0:
-		_complain("  no test cases found under %s" % ", ".join(_unit_paths))
-		return false
-	if exit_code == 0:
-		_log_unit_times()
-	return exit_code == 0
+		runner.time_limit_seconds = maxi(_unit_time_limit, SLOW_UNIT_TIME_LIMIT_SECONDS)
+	runner.log_path = TimingLog.history_path()
+	runner.variant = _timing.variant
+	var ok: bool = runner.run(targets)
+	for line: String in runner.complaints:
+		_complain(line)
+	_failures.append_array(runner.failures)
+	_summary = runner.summary
+	if ok:
+		_log_unit_times(runner.reported)
+		_log_unit_processes(runner.process_seconds)
+	return ok
 
 
-## Notes each suite's and case's time from the report of the run that just passed.
-func _log_unit_times() -> void:
-	var results: String = UnitReport.newest_results(ProjectSettings.globalize_path(UNIT_REPORT_DIR))
-	for suite: UnitReport.Suite in UnitReport.read(results):
+## Notes each suite's and case's time from the reports of the run that just passed.
+func _log_unit_times(suites: Array[UnitReport.Suite]) -> void:
+	for suite: UnitReport.Suite in suites:
 		_timing.add("unit", "suite", suite.path, suite.seconds)
 		for i: int in range(suite.case_names.size()):
+			var item: String = "%s::%s" % [suite.path, suite.case_names[i]]
+			_timing.add("unit", "case", item, suite.case_seconds[i])
+
+
+## Notes how long each of the unit stage's processes ran, so that the report can show how well the
+## plan balanced them (tools/ci/timing_report.py, "unit processes").
+func _log_unit_processes(seconds: PackedFloat64Array) -> void:
+	if _unit_paths.is_empty():
+		for k: int in range(seconds.size()):
 			_timing.add(
-				"unit", "case", "%s::%s" % [suite.path, suite.case_names[i]], suite.case_seconds[i]
+				"unit", "process", "unit process %d of %d" % [k, seconds.size()], seconds[k]
 			)
-
-
-## Prints the child's lines and keeps what a diagnosis needs.
-class UnitWatch:
-	## Print nothing; the lines are kept for tools/ci/quiet_report.gd.
-	var quiet: bool = false
-	## The child's stdout, one entry per line (its stderr is engine noise, kept out of it).
-	var out: PackedStringArray = PackedStringArray()
-	var errors: int = 0
-	var first_error: String = "(none)"
-	var last_test: String = "(none yet)"
-	var _ansi: RegEx = RegEx.create_from_string("\\x1b\\[[0-9;]*m")
-
-	func line(text: String, is_stderr: bool) -> void:
-		if not is_stderr:
-			out.append(text)
-		if quiet:
-			pass
-		elif is_stderr:
-			printerr(text)
-		else:
-			print(text)
-		var plain: String = _ansi.sub(text, "", true).strip_edges()
-		if plain.contains(" > test_"):
-			last_test = plain
-		var is_error: bool = plain.begins_with("SCRIPT ERROR:") or plain.begins_with("ERROR:")
-		# The two lines -d with --remote-debug to port 0 always prints (see _stage_unit).
-		if is_error and not plain.contains("emote"):
-			errors += 1
-			if first_error == "(none)":
-				first_error = plain
-
-
-static func _remove_tree(absolute: String) -> void:
-	var dir: DirAccess = DirAccess.open(absolute)
-	if dir == null:
-		return
-	dir.include_hidden = true
-	for sub: String in dir.get_directories():
-		_remove_tree(absolute.path_join(sub))
-	for file: String in dir.get_files():
-		DirAccess.remove_absolute(absolute.path_join(file))
-	DirAccess.remove_absolute(absolute)

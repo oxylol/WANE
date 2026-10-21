@@ -1,4 +1,5 @@
 extends GdUnitTestSuite
+# unit-group: room-scratch
 ## The room editor's document: every edit, undo, validation and saving (CLAUDE.md: "Rooms are
 ## authored in the room editor plugin and stored as text"; docs/adr/0009, 0014, 0015).
 

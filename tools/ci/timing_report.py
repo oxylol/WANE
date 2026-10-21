@@ -11,7 +11,8 @@ measured item to reports/timings.jsonl (git-ignored; the file is moved to timing
     commit     short SHA of HEAD, or "unknown"
     tool       the script that started the run: ci/test.sh, ci/unit.sh, ci/perf.sh, ...
     stage      compile, content, fixtures, unit, import, perf, native, coverage, film
-    kind       stage, suite, case, fixture, bench, build, coverage, film, or total (a whole run)
+    kind       stage, suite, case, fixture, bench, build, coverage, film, process (one of the unit
+               stage's gdUnit4 processes), or total (a whole run)
     item       what was measured: a stage's name, a suite's path, "path::case", a fixture's name
     variant    what must not be compared across ("native=on", "release", "cold"), or ""
     seconds    wall time of the item
@@ -327,11 +328,30 @@ def totals(entries: list[dict]) -> list[str]:
     return lines
 
 
+def process_lines(entries: list[dict]) -> list[str]:
+    """How the unit stage's processes shared the latest run that had several: each one's time and
+    how far the slowest was above the mean (1.00 is a perfect split)."""
+    mine = [e for e in entries if e["kind"] == "process"]
+    if not mine:
+        return []
+    last = [e for e in mine if e["run"] == mine[-1]["run"]]
+    times = [float(e["seconds"]) for e in last]
+    mean = sum(times) / len(times)
+    if mean <= 0:
+        return []
+    parts = ", ".join(f"{e['item'].split()[2]}: {fmt_seconds(e['seconds'])}" for e in last)
+    return [
+        "",
+        f"unit processes of the latest run ({last[0]['ts']}): {parts}; "
+        f"slowest is {max(times) / mean:.2f} x the mean",
+    ]
+
+
 def report(entries: list[dict], run: str | None = None, top: int = TOP, name: str = "") -> str:
     """The whole report as text."""
     if not entries:
         return f"no timings logged yet{' in ' + name if name else ''}"
-    rows = rows_of(entries, run)
+    rows = [r for r in rows_of(entries, run) if r.key[0] != "process"]
     ambiguous = _ambiguous(entries)
     runs: list[str] = []
     for e in entries:
@@ -361,6 +381,7 @@ def report(entries: list[dict], run: str | None = None, top: int = TOP, name: st
                 f"  {rank:2d}. {fmt_seconds(row.seconds):>9}  {label_of(row, ambiguous)}"
                 f"  ({fmt_change(row)})"
             )
+    out.extend(process_lines(entries))
     flagged = sorted((r for r in rows if r.regression), key=lambda r: -(r.change or 0))
     out.append("")
     if flagged:
@@ -384,7 +405,7 @@ def brief(entries: list[dict], run: str | None) -> str:
     """The line ci/test.sh --quiet ends with, or "" when the run measured nothing."""
     if run is None and entries:
         run = entries[-1]["run"]
-    rows = rows_of(entries, run)
+    rows = [r for r in rows_of(entries, run) if r.key[0] != "process"]
     if not rows:
         return ""
     ambiguous = _ambiguous(entries)

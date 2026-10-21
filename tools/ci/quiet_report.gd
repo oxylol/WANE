@@ -119,15 +119,16 @@ class UnitResult:
 		return maxi(blocks.size(), errors + failures)
 
 	## Everything to report under a failed unit stage's line: a block for each failing case, or
-	## for why there are none (a suite that does not compile, or the run's last lines).
-	func failure_blocks(exit_code: int) -> Array[PackedStringArray]:
+	## for why there are none (a suite that does not compile, or the run's last lines). [param who]
+	## names the process when the stage ran several ("unit process 2").
+	func failure_blocks(exit_code: int, who: String = "unit run") -> Array[PackedStringArray]:
 		var out: Array[PackedStringArray] = blocks.duplicate()
 		if not discovery.is_empty():
 			out.append(QuietReport.failure_block("a suite does not compile", discovery))
 		if out.is_empty():
 			out.append(
 				QuietReport.failure_block(
-					"unit run exited %d with no failing case; its last lines:" % exit_code, tail
+					"%s exited %d with no failing case; its last lines:" % [who, exit_code], tail
 				)
 			)
 		return out

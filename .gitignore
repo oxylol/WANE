@@ -30,3 +30,6 @@ Thumbs.db
 *.exp
 *.pdb
 *.ilk
+
+# Scratch suites tests/unit/tools/test_unit_runner.gd writes while it runs (docs/adr/0006)
+/tests/unit_scratch/

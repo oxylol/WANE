@@ -204,3 +204,77 @@ func test_a_crowd_of_idle_enemies_far_from_the_player_is_boxed_but_not_labelled(
 		var d: float = Vector2(e.body.x - sim.player.body.x, e.body.y - sim.player.body.y).length()
 		if e.state != Enemy.IDLE or d / Fx.SUB <= DebugBoxes.IDLE_LABEL_NEAR_U:
 			assert_str(enemies[i].label).is_not_empty()
+
+
+## The hazard boxes as the overlay drew them before it searched for the tiles: every tile of the
+## view, row by row.
+func _hazards_by_visiting_every_tile(world: CollisionWorld, view: Rect2) -> Array[DebugBoxes.Box]:
+	var out: Array[DebugBoxes.Box] = []
+	var t: int = TileGrid.TILE
+	var grid: TileGrid = world.grid
+	var inset: float = float(world.spike_inset_sp) / Fx.SUB
+	var i0: int = maxi(0, floori(view.position.x / t))
+	var i1: int = mini(grid.width - 1, floori(view.end.x / t))
+	var j0: int = maxi(0, floori(view.position.y / t))
+	var j1: int = mini(grid.height - 1, floori(view.end.y / t))
+	for j: int in range(j0, j1 + 1):
+		for i: int in range(i0, i1 + 1):
+			var tile: int = grid.get_tile(i, j)
+			if tile == TileGrid.SPIKES:
+				out.append(
+					DebugBoxes._box(DebugBoxes.HAZARD, Rect2(i * t, j * t + inset, t, t - inset))
+				)
+			elif tile == TileGrid.PIT:
+				out.append(DebugBoxes._box(DebugBoxes.HAZARD, Rect2(i * t, j * t, t, t)))
+	return out
+
+
+func test_hazards_found_by_searching_are_those_found_by_visiting_every_tile() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	for trial: int in range(60):
+		var world := CollisionWorld.new()
+		var grid := TileGrid.new(rng.randi_range(1, 40), rng.randi_range(1, 30))
+		for _n: int in range(rng.randi_range(0, grid.width * grid.height)):
+			var kind: int = [TileGrid.SPIKES, TileGrid.PIT, TileGrid.SOLID, TileGrid.EMPTY][
+				rng.randi_range(0, 3)
+			]
+			grid.set_tile(
+				rng.randi_range(0, grid.width - 1), rng.randi_range(0, grid.height - 1), kind
+			)
+		world.grid = grid
+		var views: Array[Rect2] = [WIDE_VIEW, Rect2(0, 0, 320, 224), Rect2(-50, -50, 100, 100)]
+		views.append(
+			Rect2(
+				rng.randf_range(-100, 800),
+				rng.randf_range(-100, 500),
+				rng.randf_range(0, 900),
+				rng.randf_range(0, 700)
+			)
+		)
+		for view: Rect2 in views:
+			var found: Array[DebugBoxes.Box] = []
+			DebugBoxes._add_hazards(world, view, found)
+			var visited: Array[DebugBoxes.Box] = _hazards_by_visiting_every_tile(world, view)
+			(
+				assert_int(found.size())
+				. override_failure_message("trial %d at %s" % [trial, view])
+				. is_equal(visited.size())
+			)
+			for k: int in range(visited.size()):
+				assert_vector(found[k].rect.position).is_equal(visited[k].rect.position)
+				assert_vector(found[k].rect.size).is_equal(visited[k].rect.size)
+				assert_int(found[k].kind).is_equal(visited[k].kind)
+
+
+func test_a_hazard_added_to_the_grid_after_a_look_is_seen_on_the_next() -> void:
+	var world := CollisionWorld.new()
+	world.grid = TileGrid.new(4, 3)
+	var first_look: Array[DebugBoxes.Box] = []
+	DebugBoxes._add_hazards(world, WIDE_VIEW, first_look)
+	assert_int(first_look.size()).is_equal(0)
+	world.grid.set_tile(2, 1, TileGrid.PIT)
+	var second_look: Array[DebugBoxes.Box] = []
+	DebugBoxes._add_hazards(world, WIDE_VIEW, second_look)
+	assert_int(second_look.size()).is_equal(1)
+	assert_vector(second_look[0].rect.position).is_equal(Vector2(64, 32))

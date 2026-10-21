@@ -1,4 +1,5 @@
 extends RoomEditorSuite
+# unit-group: room-scratch
 ## The room editor's doors, drawn, moved, resized, edited and deleted the way the mouse and the
 ## inspector do it (docs/adr/0014, 0015).
 

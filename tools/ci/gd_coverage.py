@@ -169,6 +169,12 @@ def main() -> int:
             work,
             ignore=shutil.ignore_patterns(".git", ".godot", "reports", "__pycache__"),
         )
+        # The unit stage balances its processes by the suites' times in the timing log; the copy has
+        # no reports/ folder, so it is given the log (read-only: the instrumented run writes none).
+        log = ROOT / "reports" / "timings.jsonl"
+        if log.is_file():
+            (work / "reports").mkdir(exist_ok=True)
+            shutil.copy(log, work / "reports" / "timings.jsonl")
         probes: dict[int, tuple[Path, list[int]]] = {}
         for file_id, path in enumerate(core_files):
             rel = path.relative_to(ROOT)

@@ -225,6 +225,34 @@ class Report(unittest.TestCase):
         self.assertTrue(done.stdout.rstrip().endswith("```"))
 
 
+class Processes(unittest.TestCase):
+    def processes(self, run: str, times: list[float]) -> list[dict]:
+        return [
+            entry(run, f"unit process {k} of {len(times)}", t, kind="process")
+            for k, t in enumerate(times)
+        ]
+
+    def test_the_latest_runs_processes_and_how_even_they_were_are_reported(self) -> None:
+        entries = self.processes("r01", [200.0, 50.0]) + self.processes(
+            "r02", [90.0, 100.0, 110.0, 100.0]
+        )
+        text = report.report(entries)
+        self.assertIn(
+            "0: 90.0 s, 1: 100.0 s, 2: 110.0 s, 3: 100.0 s; slowest is 1.10 x the mean", text
+        )
+        self.assertNotIn("200.0 s", text)
+
+    def test_processes_are_not_listed_as_items_or_flagged(self) -> None:
+        entries = self.processes("r01", [50.0, 50.0]) + self.processes("r02", [90.0, 90.0])
+        text = report.report(entries)
+        self.assertIn("regressions: none", text)
+        self.assertNotIn("slowest stages", text)
+        self.assertEqual(report.brief(entries, "r02"), "")
+
+    def test_a_log_without_processes_has_no_such_line(self) -> None:
+        self.assertNotIn("unit processes", report.report(history("a.gd", [1.0, 1.0])))
+
+
 class Brief(unittest.TestCase):
     def test_it_names_the_three_slowest_suites_of_the_run_and_the_regression(self) -> None:
         entries = Report().sample_log()

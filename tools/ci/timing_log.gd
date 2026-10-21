@@ -49,7 +49,7 @@ func _init(default_tool: String, variant_text: String = "") -> void:
 	var path_env: String = OS.get_environment(ENV_PATH)
 	if path_env == OFF:
 		return
-	path = ProjectSettings.globalize_path(path_env if path_env != "" else DEFAULT_PATH)
+	path = history_path()
 	_stamp = Time.get_datetime_string_from_system(true) + "Z"
 	_run = OS.get_environment(ENV_RUN)
 	if _run == "":
@@ -62,6 +62,15 @@ func _init(default_tool: String, variant_text: String = "") -> void:
 
 func enabled() -> bool:
 	return path != ""
+
+
+## The log to read history from (the unit stage balances its processes by it): the one written to,
+## or the default one when writing is switched off.
+static func history_path() -> String:
+	var path_env: String = OS.get_environment(ENV_PATH)
+	if path_env == "" or path_env == OFF:
+		path_env = DEFAULT_PATH
+	return ProjectSettings.globalize_path(path_env)
 
 
 ## Notes one measured item; the line is written by [method flush]. Cases and fixtures under their
