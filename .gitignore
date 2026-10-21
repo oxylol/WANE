@@ -33,3 +33,9 @@ Thumbs.db
 
 # Scratch suites tests/unit/tools/test_unit_runner.gd writes while it runs (docs/adr/0006)
 /tests/unit_scratch/
+
+# Art build (ADR-0023): the 4x masters are review products of `tools/artbuild/build.py --masters`,
+# never committed and never in MANIFEST.json
+/assets/art/build/**/*@4x.*
+/tests/art/build/**/*@4x.*
+/tests/screenshot/data/**/*@4x.*

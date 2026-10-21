@@ -1,0 +1,22 @@
+{
+ "version": 1,
+ "tool": "1.0.0",
+ "files": {
+  "candle_stump/candle_stump.palette.png": "bd8cab959ab59588f4b0defae22eca3c50a8299f2cc5f88e9f5252e7094fc521",
+  "candle_stump/candle_stump.sheet.json": "6265505271d4fef1b97056ac1469140c009cf9e0d0f16f5173d279aa8c4c8d19",
+  "candle_stump/candle_stump@1x.normal.png": "be0b8f0953b820938d6bca2bb874d4d6df6147279321a79f6da2bebceaa6ba1b",
+  "candle_stump/candle_stump@1x.parts.png": "d8f7634bdf8dc11cf76544f18857dec0400a76df2c6fb2755281622754d8d3e0",
+  "candle_stump/candle_stump@1x.shape.png": "4012130a88b6f8be1524640893d0f777a89e25c421e68d7026195d3aa4bdcb27",
+  "candle_stump/candle_stump@2x.normal.png": "4f9639c71f012bad2e6aa99df6d67ed5a8b8733501458c911ea3abc273bae668",
+  "candle_stump/candle_stump@2x.parts.png": "7108ba24885def8a788e0014fdbcf0f08b2e6e2f866490a8dba3b51c7bc8dbc4",
+  "candle_stump/candle_stump@2x.shape.png": "fdc6d8ac4349183d417cda0b7ffc6e999d1d55c8bdb101fd23416e124b03f93a",
+  "lit_test_room/lit_test_room.palette.png": "aa16b467750e886b076264d09ea4b155e456c589f1806788b134b4cb87a92c69",
+  "lit_test_room/lit_test_room.sheet.json": "a47d47be645af04fa75e2f13a6cccd69c4e28c249f2e28b774723cca63aa44b2",
+  "lit_test_room/lit_test_room@1x.normal.png": "270dd55993093771d34e59c9c673dbcac78e5835b276abdfaf395a3b2ca217dc",
+  "lit_test_room/lit_test_room@1x.parts.png": "85234ac222477c6fd74a482e7dc26382a5c90605723f326f196a3169c4ff4866",
+  "lit_test_room/lit_test_room@1x.shape.png": "5e643a9235bb0c88c7615978bffeff2d6bebebe020770071c4c10b596b654378",
+  "lit_test_room/lit_test_room@2x.normal.png": "76ca5bc601f598ccdb1ae2be30a370120796d51130f648713ff63b5161e21430",
+  "lit_test_room/lit_test_room@2x.parts.png": "26159aec5356bd5f9daae9975a7d08cc4f9f66add79ea4732876cfde37d536c1",
+  "lit_test_room/lit_test_room@2x.shape.png": "ce00c028d99147a4917896d141d746a11d542aa63c6c81ebf3bddc637fffe082"
+ }
+}

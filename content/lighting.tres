@@ -1,19 +1,125 @@
-[gd_resource type="Resource" script_class="LightingTuning" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="LightingTuning" load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://game/lighting/lighting_tuning.gd" id="1"]
+[ext_resource type="Script" path="res://game/lighting/light_kind.gd" id="2"]
+
+[sub_resource type="Resource" id="Beacon"]
+script = ExtResource("2")
+id = &"beacon"
+radius_u = 900.0
+kelvin = 6500.0
+tint = Color(1, 1, 1, 1)
+energy = 2.2
+flicker = 0
+flicker_hz = 0.0
+flicker_amplitude = 0.0
+shadow_channel = 1
+up_only = false
+falloff_power = 1.6
+priority = 1
+height_u = 0.0
+
+[sub_resource type="Resource" id="Fire"]
+script = ExtResource("2")
+id = &"fire"
+radius_u = 160.0
+kelvin = 1800.0
+tint = Color(1, 1, 1, 1)
+energy = 1.4
+flicker = 2
+flicker_hz = 3.0
+flicker_amplitude = 0.18
+shadow_channel = 2
+up_only = false
+falloff_power = 1.6
+priority = 2
+height_u = 0.0
+
+[sub_resource type="Resource" id="GutterEmber"]
+script = ExtResource("2")
+id = &"gutter_ember"
+radius_u = 600.0
+kelvin = 1500.0
+tint = Color(1, 0.3, 0.26, 1)
+energy = 1.3
+flicker = 1
+flicker_hz = 0.25
+flicker_amplitude = 0.15
+shadow_channel = 3
+up_only = true
+falloff_power = 1.6
+priority = 3
+height_u = 0.0
+
+[sub_resource type="Resource" id="Eye"]
+script = ExtResource("2")
+id = &"eye"
+radius_u = 24.0
+kelvin = 3200.0
+tint = Color(1, 0.7, 0.55, 1)
+energy = 0.9
+flicker = 0
+flicker_hz = 0.0
+flicker_amplitude = 0.0
+shadow_channel = -1
+up_only = false
+falloff_power = 1.6
+priority = 4
+height_u = 0.0
 
 [resource]
 script = ExtResource("1")
 ember_radius_u = 420.0
 ember_energy = 1.6
-ember_colour = Color(1, 0.66, 0.36, 1)
+ember_kelvin = 2400.0
 flicker_hz = 0.5
 flicker_amplitude = 0.04
 falloff_power = 1.6
-texture_px = 256
-ember_height_px = 0.0
-shadow_filter = 1
-shadow_smooth = 2.0
+light_height_u = 40.0
+max_lights = 16
+beacon = SubResource("Beacon")
+fire = SubResource("Fire")
+gutter_ember = SubResource("GutterEmber")
+eye = SubResource("Eye")
+ambient_colour = Color(0.62, 0.56, 0.72, 1)
+dark_slope = 0.53
+dark_floor = 0.15
+key_dir = Vector2(-0.6, -0.8)
+key_strength = 0.5
+flat_share = 0.35
+bevel_tilt = 0.95
+form_elevation_deg = 40.0
+up_only_soft_u = 8.0
+gate_lo = 0.05
+gate_hi = 0.15
+flicker_phase_per_u = Vector2(0.013, 0.007)
+glow_radius_share = 0.05
+glow_min_u = 3.0
+glow_strength = 0.5
+glow_falloff = 2.0
+max_steps = 48
+min_step_u = 1.5
+light_r_u = 14.0
+skin_u = 14.0
+wall_walk_steps = 12
+sdf_texel_u = 4.0
 border_u = 64.0
-pitch_ambient = 0.15
-ambient_tint = Color(0.78, 0.84, 1, 1)
+fields_kept = 16
+shadow_scale_pc = 1.0
+shadow_scale_deck = 0.75
+shadow_scale_min = 0.5
+casters_min = 3
+reveal_threshold = 0.1
+boil_hz = 12.0
+bloom_threshold = 1.0
+bloom_strength = 0.55
+bloom_radius_u = 14.0
+bloom_core = 0.2
+bloom_ring = 0.1
+shoulder_knee = 0.8
+grain = 0.012
+vignette = 0.22
+vignette_start = 0.26
+vignette_end = 0.74
+vignette_squash = 0.8
+emissive_boost = 1.5

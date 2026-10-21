@@ -1,0 +1,23 @@
+# The lit test room of the three-size review (docs/adr/0023 Decision 5; BUILD.md section 10,
+# Pipeline, Review): a floor to stand on, a wall on the right to rake the ember across and to throw
+# the asset's shadow on, a ledge above, and a crate on the left between the ember and the floor's
+# far end. 20 x 12 tiles (640 x 384 u): the review crops 640 x 360 u of it. The asset stands on
+# the mark (352, 320) with an ember 120 u to its left at chest height.
+room lit_test
+size 20 12
+spawn 352 320
+tiles
+####################
+#..................#
+#..................#
+#..............#####
+#..............#####
+#....####......#####
+#..................#
+#..................#
+#..............#####
+#..............#####
+####################
+####################
+end
+solid 96 256 160 320

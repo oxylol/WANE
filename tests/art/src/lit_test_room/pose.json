@@ -1,0 +1,6 @@
+{
+ "version": 1,
+ "actions": {
+  "idle": {"fps": 12, "loop": true, "frames": [{"key": true, "ticks": 5}]}
+ }
+}

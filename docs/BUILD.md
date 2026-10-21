@@ -468,7 +468,7 @@ where `t_min` is elapsed minutes and `zone` is the current depth. At minute 0 in
 | Enemy damage | `base × (0.6 + 0.4 × D)` | Damage scales slower than HP; the player should die to being overwhelmed, not one-shot |
 | Spawn count per room | `base × D^1.3` | The main pressure |
 | Elite chance | `min(60%, 4% × (D − 1) × 10)` | Elites appear at about minute 8 |
-| Ambient light | `base × max(0.15, 1 − 0.09 × (D − 1))` | The world literally darkens; by D = 4 only the player's ember and enemy eyes are visible |
+| Ambient light | `base × max(0.15, 1 − 0.53 × (D − 1))` (ADR-0023 Decision 3.5: 0.15 from D = 2.6, the start of Pitch) | The world literally darkens; by D = 4 only the player's ember and enemy eyes are visible |
 | Tallow drops | `base × D` | Greed pays, but spawns pay back |
 | Vigil length | `90 + 12 × (zone − 1)` seconds | Not clock-scaled, so lingering is punished by spawns, not by longer holds |
 

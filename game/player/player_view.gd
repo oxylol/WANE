@@ -54,6 +54,8 @@ var _stretch_amount: float = 0.0
 var _vy_before: int = 0
 var _was_air: bool = false
 var _rise_peak: int = 0
+## The thrown ember, drawn emissive.
+var _ember_node: Node2D = null
 
 
 ## Starts from [param sim]'s state with nothing to interpolate from.
@@ -192,10 +194,23 @@ static func _accel_share(frames: int) -> float:
 	return 1.0 / float(half * (half + 1))
 
 
+func _ready() -> void:
+	# Lit grey box until Ash's rig; the thrown ember is a light itself, drawn emissive on its own
+	# node.
+	LightSurfaces.make_lit(self, false, true)
+	_ember_node = Node2D.new()
+	_ember_node.name = "Ember"
+	LightSurfaces.make_emissive(_ember_node)
+	add_child(_ember_node)
+	_ember_node.draw.connect(_draw_ember)
+
+
 ## Draws at [param alpha] (0..1) between the last two ticks.
 func show_at(alpha: float) -> void:
 	_alpha = alpha
 	queue_redraw()
+	if _ember_node != null:
+		_ember_node.queue_redraw()
 
 
 ## The player as drawn at [param alpha] between the last two ticks: the collider, eased off any
@@ -256,5 +271,10 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2(eye_x, box.position.y + tuning.eye_drop_u * k.y), eye), EYE)
 	if _invulnerable:
 		draw_rect(box, INVULNERABLE, false, tuning.invulnerable_outline_u)
+
+
+func _draw_ember() -> void:
 	if _ember_out:
-		draw_circle(_ember_before.lerp(_ember_after, _alpha), tuning.ember_radius_u, EMBER)
+		_ember_node.draw_circle(
+			_ember_before.lerp(_ember_after, _alpha), tuning.ember_radius_u, EMBER
+		)

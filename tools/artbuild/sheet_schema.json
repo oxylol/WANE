@@ -1,0 +1,150 @@
+{
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "title": "WANE sprite sheet metadata (ADR-0023 Decision 1.6)",
+ "type": "object",
+ "required": ["version", "asset", "source_sha256", "tools", "scales", "masters", "origin_u", "cell_u", "pages", "palette", "parts", "actions"],
+ "additionalProperties": false,
+ "properties": {
+  "version": {"const": 1},
+  "asset": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+  "source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+  "tools": {
+   "type": "object",
+   "required": ["artbuild", "numpy", "pillow"],
+   "additionalProperties": {"type": "string"}
+  },
+  "scales": {"type": "array", "items": {"enum": [1, 2]}, "minItems": 1},
+  "masters": {"type": "array", "items": {"enum": [4]}},
+  "origin_u": {"$ref": "#/definitions/vec2"},
+  "cell_u": {"type": "array", "items": {"type": "integer", "minimum": 16}, "minItems": 2, "maxItems": 2},
+  "pages": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "required": ["page", "size_u"],
+    "additionalProperties": false,
+    "properties": {
+     "page": {"type": "integer", "minimum": 0},
+     "size_u": {"type": "array", "items": {"type": "integer", "minimum": 1}, "minItems": 2, "maxItems": 2}
+    }
+   }
+  },
+  "palette": {
+   "type": "object",
+   "required": ["file", "columns", "rows_per_variant", "variants", "slots"],
+   "additionalProperties": false,
+   "properties": {
+    "file": {"type": "string"},
+    "columns": {"const": 16},
+    "rows_per_variant": {"const": 4},
+    "variants": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "slots": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "required": ["slot", "material"],
+      "additionalProperties": false,
+      "properties": {
+       "slot": {"type": "integer", "minimum": 1, "maximum": 15},
+       "material": {"type": "string"}
+      }
+     }
+    }
+   }
+  },
+  "parts": {
+   "type": "array",
+   "minItems": 1,
+   "items": {
+    "type": "object",
+    "required": ["id", "index", "z", "tags", "material", "pivot_u"],
+    "additionalProperties": false,
+    "properties": {
+     "id": {"type": "string"},
+     "index": {"type": "integer", "minimum": 1, "maximum": 15},
+     "z": {"type": "integer"},
+     "tags": {"type": "array", "items": {"enum": ["emissive", "blade", "eye", "pogo", "wax", "smear"]}},
+     "material": {"type": "string"},
+     "pivot_u": {"$ref": "#/definitions/vec2"}
+    }
+   }
+  },
+  "actions": {
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "required": ["fps", "loop", "cell_u", "cell_origin_u", "frames"],
+    "additionalProperties": false,
+    "properties": {
+     "fps": {"type": "integer", "minimum": 1, "maximum": 60},
+     "loop": {"type": "boolean"},
+     "cell_u": {"type": "array", "items": {"type": "integer", "minimum": 16}, "minItems": 2, "maxItems": 2},
+     "cell_origin_u": {"$ref": "#/definitions/vec2"},
+     "frames": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "object",
+       "required": ["index", "key", "ticks", "page", "rect", "smear", "silhouette_box", "part_boxes", "emissive_regions"],
+       "additionalProperties": false,
+       "properties": {
+        "index": {"type": "integer", "minimum": 0},
+        "key": {"type": "boolean"},
+        "ticks": {"type": "integer", "minimum": 1},
+        "page": {"type": "integer", "minimum": 0},
+        "rect": {
+         "type": "object",
+         "required": ["1", "2", "4"],
+         "additionalProperties": false,
+         "properties": {
+          "1": {"$ref": "#/definitions/rect"},
+          "2": {"$ref": "#/definitions/rect"},
+          "4": {"$ref": "#/definitions/rect"}
+         }
+        },
+        "smear": {"type": "object", "additionalProperties": {"type": "boolean"}},
+        "silhouette_box": {"$ref": "#/definitions/box"},
+        "part_boxes": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "required": ["part", "tags", "box"],
+          "additionalProperties": false,
+          "properties": {
+           "part": {"type": "string"},
+           "tags": {"type": "array", "items": {"type": "string"}},
+           "box": {"$ref": "#/definitions/box"},
+           "tip": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}
+          }
+         }
+        },
+        "emissive_regions": {
+         "type": "array",
+         "items": {
+          "type": "object",
+          "required": ["part", "centre", "radius", "colour", "strength", "kind"],
+          "additionalProperties": false,
+          "properties": {
+           "part": {"type": "string"},
+           "centre": {"$ref": "#/definitions/vec2"},
+           "radius": {"type": "number", "minimum": 0},
+           "colour": {"type": "string", "pattern": "^#[0-9a-f]{6}$"},
+           "strength": {"type": "number", "minimum": 0, "maximum": 1},
+           "kind": {"enum": ["ember", "eye", "blade", "pogo"]}
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "definitions": {
+  "vec2": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+  "box": {"type": "array", "items": {"type": "number"}, "minItems": 4, "maxItems": 4},
+  "rect": {"type": "array", "items": {"type": "integer", "minimum": 0}, "minItems": 4, "maxItems": 4}
+ }
+}

@@ -1,0 +1,194 @@
+{
+ "version": 1,
+ "asset": "lit_test_room",
+ "source_sha256": "7690eda67ab00fbf1ad3e58835e44df91fa9e668433d17da7619612153c26e08",
+ "tools": {
+  "artbuild": "1.0.0",
+  "numpy": "2.5.3",
+  "pillow": "12.3.0"
+ },
+ "scales": [
+  1,
+  2
+ ],
+ "masters": [
+  4
+ ],
+ "origin_u": [
+  0.0,
+  0.0
+ ],
+ "cell_u": [
+  672,
+  416
+ ],
+ "pages": [
+  {
+   "page": 0,
+   "size_u": [
+    672,
+    416
+   ]
+  }
+ ],
+ "palette": {
+  "file": "lit_test_room.palette.png",
+  "columns": 16,
+  "rows_per_variant": 4,
+  "variants": [
+   "base"
+  ],
+  "slots": [
+   {
+    "slot": 1,
+    "material": "far"
+   },
+   {
+    "slot": 2,
+    "material": "column"
+   },
+   {
+    "slot": 3,
+    "material": "stone"
+   },
+   {
+    "slot": 4,
+    "material": "bone"
+   },
+   {
+    "slot": 5,
+    "material": "timber"
+   }
+  ]
+ },
+ "parts": [
+  {
+   "id": "back",
+   "index": 1,
+   "z": 0,
+   "tags": [],
+   "material": "far",
+   "pivot_u": [
+    320.0,
+    176.0
+   ]
+  },
+  {
+   "id": "pillar_a",
+   "index": 2,
+   "z": 1,
+   "tags": [],
+   "material": "column",
+   "pivot_u": [
+    60.0,
+    176.0
+   ]
+  },
+  {
+   "id": "pillar_b",
+   "index": 2,
+   "z": 2,
+   "tags": [],
+   "material": "column",
+   "pivot_u": [
+    222.0,
+    176.0
+   ]
+  },
+  {
+   "id": "pillar_c",
+   "index": 2,
+   "z": 3,
+   "tags": [],
+   "material": "column",
+   "pivot_u": [
+    456.0,
+    176.0
+   ]
+  },
+  {
+   "id": "walls",
+   "index": 3,
+   "z": 4,
+   "tags": [],
+   "material": "stone",
+   "pivot_u": [
+    320.0,
+    192.0
+   ]
+  },
+  {
+   "id": "ledge",
+   "index": 4,
+   "z": 5,
+   "tags": [],
+   "material": "bone",
+   "pivot_u": [
+    224.0,
+    176.0
+   ]
+  },
+  {
+   "id": "crate",
+   "index": 5,
+   "z": 6,
+   "tags": [],
+   "material": "timber",
+   "pivot_u": [
+    128.0,
+    288.0
+   ]
+  }
+ ],
+ "actions": {
+  "idle": {
+   "fps": 12,
+   "loop": true,
+   "cell_u": [
+    672,
+    416
+   ],
+   "cell_origin_u": [
+    16.0,
+    16.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       0,
+       672,
+       416
+      ],
+      "2": [
+       0,
+       0,
+       1344,
+       832
+      ],
+      "4": [
+       0,
+       0,
+       2688,
+       1664
+      ]
+     },
+     "silhouette_box": [
+      -5.0,
+      -5.1851,
+      645.1207,
+      389.2089
+     ],
+     "part_boxes": [],
+     "emissive_regions": [],
+     "smear": {}
+    }
+   ]
+  }
+ }
+}

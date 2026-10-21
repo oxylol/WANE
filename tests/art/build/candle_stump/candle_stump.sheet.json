@@ -1,0 +1,475 @@
+{
+ "version": 1,
+ "asset": "candle_stump",
+ "source_sha256": "7fbd751b8f4937c523e8c7cc228134abd9f5b2f1e831affaa549aafe86f03bb2",
+ "tools": {
+  "artbuild": "1.0.0",
+  "numpy": "2.5.3",
+  "pillow": "12.3.0"
+ },
+ "scales": [
+  1,
+  2
+ ],
+ "masters": [
+  4
+ ],
+ "origin_u": [
+  32.0,
+  61.0
+ ],
+ "cell_u": [
+  64,
+  80
+ ],
+ "pages": [
+  {
+   "page": 0,
+   "size_u": [
+    192,
+    160
+   ]
+  }
+ ],
+ "palette": {
+  "file": "candle_stump.palette.png",
+  "columns": 16,
+  "rows_per_variant": 4,
+  "variants": [
+   "base",
+   "dusk"
+  ],
+  "slots": [
+   {
+    "slot": 1,
+    "material": "wax"
+   },
+   {
+    "slot": 2,
+    "material": "soot"
+   },
+   {
+    "slot": 3,
+    "material": "flame"
+   }
+  ]
+ },
+ "parts": [
+  {
+   "id": "pool",
+   "index": 1,
+   "z": 0,
+   "tags": [
+    "wax"
+   ],
+   "material": "wax",
+   "pivot_u": [
+    0.0,
+    -4.0
+   ]
+  },
+  {
+   "id": "stump",
+   "index": 1,
+   "z": 1,
+   "tags": [
+    "wax"
+   ],
+   "material": "wax",
+   "pivot_u": [
+    0.0,
+    -21.0
+   ]
+  },
+  {
+   "id": "wick",
+   "index": 2,
+   "z": 2,
+   "tags": [],
+   "material": "soot",
+   "pivot_u": [
+    0.0,
+    -39.0
+   ]
+  },
+  {
+   "id": "flame",
+   "index": 3,
+   "z": 3,
+   "tags": [
+    "emissive"
+   ],
+   "material": "flame",
+   "pivot_u": [
+    3.4,
+    -46.0
+   ]
+  }
+ ],
+ "actions": {
+  "idle": {
+   "fps": 12,
+   "loop": true,
+   "cell_u": [
+    64,
+    80
+   ],
+   "cell_origin_u": [
+    32.0,
+    68.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       0,
+       64,
+       80
+      ],
+      "2": [
+       0,
+       0,
+       128,
+       160
+      ],
+      "4": [
+       0,
+       0,
+       256,
+       320
+      ]
+     },
+     "silhouette_box": [
+      -22.1082,
+      -57.4,
+      23.377,
+      0.6201
+     ],
+     "part_boxes": [
+      {
+       "part": "pool",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -22.1082,
+        -7.6919,
+        23.377,
+        0.6201
+       ]
+      },
+      {
+       "part": "stump",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -12.4,
+        -38.8713,
+        21.8261,
+        -6.2
+       ]
+      },
+      {
+       "part": "flame",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        0.9759,
+        -57.4,
+        7.263,
+        -45.4
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "flame",
+       "centre": [
+        4.1194,
+        -51.4
+       ],
+       "radius": 6.0224,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {}
+    }
+   ]
+  },
+  "flicker": {
+   "fps": 12,
+   "loop": true,
+   "cell_u": [
+    64,
+    80
+   ],
+   "cell_origin_u": [
+    32.0,
+    68.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       80,
+       64,
+       80
+      ],
+      "2": [
+       0,
+       160,
+       128,
+       160
+      ],
+      "4": [
+       0,
+       320,
+       256,
+       320
+      ]
+     },
+     "silhouette_box": [
+      -22.1082,
+      -57.4,
+      23.377,
+      0.6201
+     ],
+     "part_boxes": [
+      {
+       "part": "pool",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -22.1082,
+        -7.6919,
+        23.377,
+        0.6201
+       ]
+      },
+      {
+       "part": "stump",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -12.4,
+        -38.8713,
+        21.8261,
+        -6.2
+       ]
+      },
+      {
+       "part": "flame",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        0.9759,
+        -57.4,
+        7.263,
+        -45.4
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "flame",
+       "centre": [
+        4.1194,
+        -51.4
+       ],
+       "radius": 6.0224,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {}
+    },
+    {
+     "index": 1,
+     "key": false,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       64,
+       80,
+       64,
+       80
+      ],
+      "2": [
+       128,
+       160,
+       128,
+       160
+      ],
+      "4": [
+       256,
+       320,
+       256,
+       320
+      ]
+     },
+     "silhouette_box": [
+      -22.1082,
+      -58.36,
+      23.377,
+      0.6201
+     ],
+     "part_boxes": [
+      {
+       "part": "pool",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -22.1082,
+        -7.6919,
+        23.377,
+        0.6201
+       ]
+      },
+      {
+       "part": "stump",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -12.4,
+        -38.8713,
+        21.8261,
+        -6.2
+       ]
+      },
+      {
+       "part": "flame",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        0.3576,
+        -58.36,
+        6.1064,
+        -45.4
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "flame",
+       "centre": [
+        3.232,
+        -51.88
+       ],
+       "radius": 6.6765,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {}
+    },
+    {
+     "index": 2,
+     "key": true,
+     "ticks": 5,
+     "page": 0,
+     "rect": {
+      "1": [
+       128,
+       80,
+       64,
+       80
+      ],
+      "2": [
+       256,
+       160,
+       128,
+       160
+      ],
+      "4": [
+       512,
+       320,
+       256,
+       320
+      ]
+     },
+     "silhouette_box": [
+      -22.1082,
+      -56.8,
+      23.377,
+      0.6201
+     ],
+     "part_boxes": [
+      {
+       "part": "pool",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -22.1082,
+        -7.6919,
+        23.377,
+        0.6201
+       ]
+      },
+      {
+       "part": "stump",
+       "tags": [
+        "wax"
+       ],
+       "box": [
+        -12.4,
+        -38.8713,
+        21.8261,
+        -6.2
+       ]
+      },
+      {
+       "part": "flame",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        1.6513,
+        -56.8,
+        8.8009,
+        -45.4
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "flame",
+       "centre": [
+        5.2261,
+        -51.1
+       ],
+       "radius": 5.9274,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {}
+    }
+   ]
+  }
+ }
+}

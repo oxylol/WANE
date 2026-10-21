@@ -1,0 +1,11 @@
+{
+ "version": 1,
+ "actions": {
+  "idle": {"fps": 12, "loop": true, "frames": [{"key": true, "ticks": 5}]},
+  "flicker": {"fps": 12, "loop": true, "frames": [
+   {"key": true, "ticks": 5},
+   {"key": false, "ticks": 5, "parts": {"flame": [0.92, 0.0, 0.18, 1.08, 0.04, -1.248]}},
+   {"key": true, "ticks": 5, "parts": {"flame": [1.04, 0.0, -0.22, 0.95, 2.008, 0.78]}}
+  ]}
+ }
+}

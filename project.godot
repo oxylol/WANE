@@ -84,12 +84,113 @@ settings/test/flaky_check_enable=false
 report/godot/push_error=true
 report/godot/script_error=true
 
+[importer_defaults]
+
+texture={
+"compress/mode": 0,
+"mipmaps/generate": false,
+"process/fix_alpha_border": false,
+"process/premult_alpha": false
+}
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/canvas_textures/default_texture_filter=1
+viewport/hdr_2d=true
 environment/defaults/default_clear_color=Color(0.07, 0.07, 0.08, 1)
+
+[shader_globals]
+
+wane_ink={
+"type": "vec4",
+"value": Vector4(0.3, 1.3, 0.8, 0.32)
+}
+wane_ink_wave={
+"type": "vec4",
+"value": Vector4(10, 4, 1, 0.22)
+}
+wane_fill={
+"type": "vec4",
+"value": Vector4(0.5, 0.04, 0.05, 0.12)
+}
+wane_fill_more={
+"type": "vec4",
+"value": Vector4(14, 1.2, 0.07, 0)
+}
+wane_ink_more={
+"type": "vec4",
+"value": Vector4(0.18, 0.2, 0.6, 3)
+}
+wane_ink_light={
+"type": "vec4",
+"value": Vector4(-0.2, 0.4, 0.15, 0.55)
+}
+wane_ink_bg={
+"type": "vec4",
+"value": Vector4(0.42, 0.5, 0.35, 48)
+}
+wane_ink_extra={
+"type": "vec4",
+"value": Vector4(0.85, 1.5, 24, 0.7)
+}
+wane_ambient={
+"type": "color",
+"value": Color(0.2, 0.17, 0.26, 1)
+}
+wane_dark={
+"type": "float",
+"value": 1.0
+}
+wane_key={
+"type": "vec4",
+"value": Vector4(-0.6, -0.8, 0.5, 0)
+}
+wane_ember={
+"type": "vec4",
+"value": Vector4(0, 0, 420, 1.6)
+}
+wane_light_table={
+"type": "sampler2D",
+"value": ""
+}
+wane_light_count={
+"type": "int",
+"value": 0
+}
+wane_shadow={
+"type": "sampler2D",
+"value": ""
+}
+wane_view={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
+wane_room_sdf={
+"type": "sampler2D",
+"value": ""
+}
+wane_room_rect={
+"type": "vec4",
+"value": Vector4(0, 0, 1, 1)
+}
+wane_boil={
+"type": "float",
+"value": 0.0
+}
+wane_time={
+"type": "float",
+"value": 0.0
+}
+wane_shape={
+"type": "vec4",
+"value": Vector4(0.35, 0.95, 0.698132, 8)
+}
+wane_gate={
+"type": "vec2",
+"value": Vector2(0.05, 0.15)
+}
 
 [wane]
 

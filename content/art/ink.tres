@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="InkTuning" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/art/ink_tuning.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+line_lit_u = 0.3
+line_shadow_u = 1.3
+line_min_px = 0.8
+wobble_u = 0.32
+wave1_u = 10.0
+wave2_u = 4.0
+edge_dark_u = 1.0
+edge_dark = 0.22
+lit_threshold = 0.5
+terminator_soft = 0.04
+brush_noise = 0.05
+brush_strength = 0.12
+brush_stretch = 14.0
+rim_u = 1.2
+grain_strength = 0.07
+back_line_u = 0.0
+ink_value = 0.18
+taper_floor = 0.2
+ink_over_fill = 0.6
+emissive_gain = 3.0
+line_light_lo = -0.2
+line_light_hi = 0.4
+bg_drop_lo = 0.15
+bg_drop_hi = 0.55
+bg_break_lo = 0.42
+bg_break_hi = 0.5
+bg_thin = 0.35
+bg_mask_wave_u = 48.0
+smear_opacity = 0.85
+smear_tail_pow = 1.5
+gloss_power = 24.0
+gloss_strength = 0.7

@@ -39,8 +39,9 @@ var path: String = ""
 var name: String = ""
 var doc: String = ""
 var scenario: Scenario = Scenario.new()
-## How the fixture is to be drawn: "" (the game as it is) or "pitch" (the Phase 1 stand-in lighting
-## at Pitch, game/lighting). Presentation only: not part of the scenario, so no hash moves.
+## How the fixture is to be drawn: "" (the game as it is, at Dusk) or "pitch" or "dusk" (the Dark
+## factor the lighting pass is held at, game/lighting). Presentation only: not part of the
+## scenario, so no hash moves.
 var lighting: String = ""
 var frame_total: int = 0
 ## Held bits, tap (press-without-hold) bits and stick per frame, length [member frame_total].
@@ -356,10 +357,12 @@ func _header(words: PackedStringArray, line_number: int) -> void:
 		"frames":
 			frame_total = _int_word(words, 1, line_number)
 		"lighting":
-			if LightingRig.asks_for_pitch(words[1]):
+			if LightWord.is_word(words[1]):
 				lighting = words[1]
 			else:
-				errors.append("line %d: lighting is 'pitch', not '%s'" % [line_number, words[1]])
+				errors.append(
+					"line %d: lighting is 'pitch' or 'dusk', not '%s'" % [line_number, words[1]]
+				)
 
 
 func _int_word(words: PackedStringArray, i: int, line_number: int) -> int:

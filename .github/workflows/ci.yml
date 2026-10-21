@@ -29,6 +29,12 @@ jobs:
       - run: python3 tools/ci/test_codemap.py
       - run: python3 tools/ci/test_timing_report.py
       - run: python3 tools/ci/test_native_cache.py
+      # The art build (ADR-0023): CairoSVG needs libcairo2; the tests and the byte-identity check
+      # of the committed renders (a render that differs from a fresh build was hand-edited or stale).
+      - run: sudo apt-get install -y --no-install-recommends libcairo2
+      - run: python3 tools/ci/test_artbuild.py
+      - run: python3 tools/artbuild/build.py --check
+      - run: python3 tools/ci/test_ink_layout.py
 
   test:
     name: test (compile, content, fixtures, unit)
@@ -68,6 +74,10 @@ jobs:
         run: |
           ci/test.sh --quiet --stage compile --stage fixtures
           ci/unit.sh --quiet tests/unit/core/test_native_parity.gd
+      - name: Ink and gouache render tests (xvfb, GL Compatibility, llvmpipe)
+        run: |
+          sudo apt-get install -y xvfb libgl1-mesa-dri
+          ci/render.sh
       - name: Core coverage (gate 85%)
         run: python3 tools/ci/gd_coverage.py --min 85
       - name: Upload unit test reports
@@ -163,6 +173,28 @@ jobs:
         if: always()
         with:
           name: perf-stress
+
+  # The lighting pass's GPU half (docs/adr/0023): the baked room field and the shadow buffer against
+  # their CPU twin, the lit shader against its numbers, every shader compiling, on GL Compatibility
+  # under xvfb (llvmpipe). The renderer-free half is the unit suite (tests/unit/game/test_lighting.gd).
+  lighting:
+    name: lighting (GPU check under a virtual display)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot
+        run: |
+          godot="$(ci/setup_godot.sh linux | tail -n 1)"
+          test -x "$godot"
+          echo "GODOT=$godot" >> "$GITHUB_ENV"
+      - name: Install a virtual display and a software GL driver
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dri libglx-mesa0
+      - uses: ./.github/actions/native-build
+      # The review check (ci/lighting.sh) reads its pictures with Pillow, pinned with the art build.
+      - run: python3 -m pip install --user "$(grep -i '^pillow' tools/requirements.txt)"
+      - name: Lighting GPU check and art review
+        run: ci/lighting.sh
 
   native-release:
     name: native release library (${{ matrix.os }})

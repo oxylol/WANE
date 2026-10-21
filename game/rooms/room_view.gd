@@ -12,6 +12,9 @@ const SPIKES := Color(0.80, 0.30, 0.24)
 const PIT := Color(0.06, 0.04, 0.05)
 const PIT_LIP := Color(0.55, 0.18, 0.15)
 const BEYOND := Color(0.20, 0.20, 0.23)
+## The wall behind the room's air (a stand-in for the lit parallax layers of the zone's art): the
+## ember lights it and the foreground's shadows fall across it, so the pass has depth to show.
+const BACKDROP := Color(0.26, 0.25, 0.29)
 ## A door's way through the solid beyond the room: the room's own empty colour (the project's
 ## clear colour), so an opening reads as a passage on to the next room (docs/adr/0014).
 const PASSAGE := Color(0.07, 0.07, 0.08)
@@ -25,11 +28,22 @@ var world: CollisionWorld
 var doors: Array[RoomData.Door] = []
 ## The solid boxes, redrawn every tick (a wax wall burns away).
 var _solids: Node2D
+var _backdrop: Node2D
 
 
 func _ready() -> void:
+	# Lit grey boxes until the tileset art: the tiles take a bevel normal from the room's distance
+	# field so the ember rakes across their edges, the solid boxes are flat (game/lighting).
+	LightSurfaces.make_lit(self, true)
+	_backdrop = Node2D.new()
+	_backdrop.name = "Backdrop"
+	_backdrop.show_behind_parent = true
+	LightSurfaces.make_lit(_backdrop, false)
+	add_child(_backdrop)
+	_backdrop.draw.connect(_draw_backdrop)
 	_solids = Node2D.new()
 	_solids.name = "Solids"
+	LightSurfaces.make_lit(_solids, false)
 	add_child(_solids)
 	_solids.draw.connect(_draw_solids)
 
@@ -39,6 +53,8 @@ func show_world(p_world: CollisionWorld, p_doors: Array[RoomData.Door] = []) -> 
 	world = p_world
 	doors = p_doors
 	queue_redraw()
+	if _backdrop != null:
+		_backdrop.queue_redraw()
 	refresh()
 
 
@@ -169,6 +185,13 @@ static func box_fills(s: SolidBox, r: Rect2) -> Array[BoxFill]:
 static func draw_box(canvas: CanvasItem, s: SolidBox, r: Rect2) -> void:
 	for f: BoxFill in box_fills(s, r):
 		canvas.draw_rect(f.rect, f.colour)
+
+
+func _draw_backdrop() -> void:
+	if world == null:
+		return
+	var t: float = float(TileGrid.TILE)
+	_backdrop.draw_rect(Rect2(0.0, 0.0, world.grid.width * t, world.grid.height * t), BACKDROP)
 
 
 func _draw_solids() -> void:

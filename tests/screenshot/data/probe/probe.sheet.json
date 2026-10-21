@@ -1,0 +1,510 @@
+{
+ "version": 1,
+ "asset": "probe",
+ "source_sha256": "d67550e5f01a87280baddc9d0f888f6032c84ff2957cdf7d045d0a0a5862fb85",
+ "tools": {
+  "artbuild": "1.0.0",
+  "numpy": "2.5.3",
+  "pillow": "12.3.0"
+ },
+ "scales": [
+  1,
+  2
+ ],
+ "masters": [
+  4
+ ],
+ "origin_u": [
+  32.0,
+  61.0
+ ],
+ "cell_u": [
+  68,
+  76
+ ],
+ "pages": [
+  {
+   "page": 0,
+   "size_u": [
+    204,
+    152
+   ]
+  }
+ ],
+ "palette": {
+  "file": "probe.palette.png",
+  "columns": 16,
+  "rows_per_variant": 4,
+  "variants": [
+   "base",
+   "hurt"
+  ],
+  "slots": [
+   {
+    "slot": 1,
+    "material": "cloak"
+   },
+   {
+    "slot": 2,
+    "material": "skin"
+   },
+   {
+    "slot": 3,
+    "material": "char"
+   },
+   {
+    "slot": 4,
+    "material": "ash"
+   },
+   {
+    "slot": 5,
+    "material": "steel"
+   },
+   {
+    "slot": 6,
+    "material": "ember"
+   }
+  ]
+ },
+ "parts": [
+  {
+   "id": "back_arm",
+   "index": 1,
+   "z": 0,
+   "tags": [],
+   "material": "cloak",
+   "pivot_u": [
+    -5.0,
+    -32.0
+   ]
+  },
+  {
+   "id": "body",
+   "index": 1,
+   "z": 1,
+   "tags": [],
+   "material": "cloak",
+   "pivot_u": [
+    0.0,
+    -35.0
+   ]
+  },
+  {
+   "id": "head",
+   "index": 2,
+   "z": 2,
+   "tags": [],
+   "material": "skin",
+   "pivot_u": [
+    0.0,
+    -39.0
+   ]
+  },
+  {
+   "id": "wick",
+   "index": 3,
+   "z": 3,
+   "tags": [],
+   "material": "char",
+   "pivot_u": [
+    0.0,
+    -54.0
+   ]
+  },
+  {
+   "id": "front_arm",
+   "index": 4,
+   "z": 4,
+   "tags": [],
+   "material": "ash",
+   "pivot_u": [
+    3.0,
+    -33.0
+   ]
+  },
+  {
+   "id": "hand",
+   "index": 2,
+   "z": 5,
+   "tags": [],
+   "material": "skin",
+   "pivot_u": [
+    12.0,
+    -21.4
+   ]
+  },
+  {
+   "id": "blade",
+   "index": 5,
+   "z": 6,
+   "tags": [
+    "blade",
+    "smear"
+   ],
+   "material": "steel",
+   "pivot_u": [
+    12.0,
+    -22.0
+   ]
+  },
+  {
+   "id": "ember",
+   "index": 6,
+   "z": 7,
+   "tags": [
+    "emissive"
+   ],
+   "material": "ember",
+   "pivot_u": [
+    -1.0,
+    -28.0
+   ]
+  }
+ ],
+ "actions": {
+  "idle": {
+   "fps": 24,
+   "loop": true,
+   "cell_u": [
+    60,
+    76
+   ],
+   "cell_origin_u": [
+    20.0,
+    68.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 3,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       0,
+       60,
+       76
+      ],
+      "2": [
+       0,
+       0,
+       120,
+       152
+      ],
+      "4": [
+       0,
+       0,
+       240,
+       304
+      ]
+     },
+     "silhouette_box": [
+      -11.0,
+      -59.8,
+      30.8,
+      0.0
+     ],
+     "part_boxes": [
+      {
+       "part": "blade",
+       "tags": [
+        "blade",
+        "smear"
+       ],
+       "box": [
+        10.9,
+        -38.8,
+        30.8,
+        -19.8
+       ],
+       "tip": [
+        30.2,
+        -38.8
+       ]
+      },
+      {
+       "part": "ember",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        -3.3,
+        -30.2902,
+        1.3,
+        -25.7098
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "ember",
+       "centre": [
+        -1.0,
+        -28.0
+       ],
+       "radius": 2.3,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {
+      "blade": false
+     }
+    }
+   ]
+  },
+  "swing": {
+   "fps": 24,
+   "loop": false,
+   "cell_u": [
+    68,
+    76
+   ],
+   "cell_origin_u": [
+    20.0,
+    68.0
+   ],
+   "frames": [
+    {
+     "index": 0,
+     "key": true,
+     "ticks": 2,
+     "page": 0,
+     "rect": {
+      "1": [
+       0,
+       76,
+       68,
+       76
+      ],
+      "2": [
+       0,
+       152,
+       136,
+       152
+      ],
+      "4": [
+       0,
+       304,
+       272,
+       304
+      ]
+     },
+     "silhouette_box": [
+      -11.0,
+      -59.8,
+      18.2228,
+      0.0
+     ],
+     "part_boxes": [
+      {
+       "part": "blade",
+       "tags": [
+        "blade",
+        "smear"
+       ],
+       "box": [
+        10.5253,
+        -46.0923,
+        18.2228,
+        -21.0071
+       ],
+       "tip": [
+        16.9283,
+        -46.0923
+       ]
+      },
+      {
+       "part": "ember",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        -3.3,
+        -30.2902,
+        1.3,
+        -25.7098
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "ember",
+       "centre": [
+        -1.0,
+        -28.0
+       ],
+       "radius": 2.3,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {
+      "blade": false
+     }
+    },
+    {
+     "index": 1,
+     "key": false,
+     "ticks": 2,
+     "page": 0,
+     "rect": {
+      "1": [
+       68,
+       76,
+       68,
+       76
+      ],
+      "2": [
+       136,
+       152,
+       136,
+       152
+      ],
+      "4": [
+       272,
+       304,
+       272,
+       304
+      ]
+     },
+     "silhouette_box": [
+      -11.0,
+      -59.8,
+      35.1386,
+      0.0
+     ],
+     "part_boxes": [
+      {
+       "part": "blade",
+       "tags": [
+        "blade",
+        "smear"
+       ],
+       "box": [
+        10.6243,
+        -43.9754,
+        35.1386,
+        -19.3493
+       ],
+       "tip": [
+        35.0536,
+        -31.5259
+       ]
+      },
+      {
+       "part": "ember",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        -3.3,
+        -30.2902,
+        1.3,
+        -25.7098
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "ember",
+       "centre": [
+        -1.0,
+        -28.0
+       ],
+       "radius": 2.3,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {
+      "blade": true
+     }
+    },
+    {
+     "index": 2,
+     "key": true,
+     "ticks": 3,
+     "page": 0,
+     "rect": {
+      "1": [
+       136,
+       76,
+       68,
+       76
+      ],
+      "2": [
+       272,
+       152,
+       136,
+       152
+      ],
+      "4": [
+       544,
+       304,
+       272,
+       304
+      ]
+     },
+     "silhouette_box": [
+      -11.0,
+      -59.8,
+      36.6923,
+      0.0
+     ],
+     "part_boxes": [
+      {
+       "part": "blade",
+       "tags": [
+        "blade",
+        "smear"
+       ],
+       "box": [
+        11.6071,
+        -22.8747,
+        36.6923,
+        -15.1772
+       ],
+       "tip": [
+        36.6923,
+        -16.4717
+       ]
+      },
+      {
+       "part": "ember",
+       "tags": [
+        "emissive"
+       ],
+       "box": [
+        -3.3,
+        -30.2902,
+        1.3,
+        -25.7098
+       ]
+      }
+     ],
+     "emissive_regions": [
+      {
+       "part": "ember",
+       "centre": [
+        -1.0,
+        -28.0
+       ],
+       "radius": 2.3,
+       "colour": "#ffbe78",
+       "strength": 1.0,
+       "kind": "ember"
+      }
+     ],
+     "smear": {
+      "blade": false
+     }
+    }
+   ]
+  }
+ }
+}
