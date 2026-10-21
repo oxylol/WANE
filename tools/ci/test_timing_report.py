@@ -397,5 +397,14 @@ class Writers(unittest.TestCase):
             self.assertFalse(log.exists())
 
 
+class Order(unittest.TestCase):
+    def test_regressions_are_listed_by_the_seconds_lost_not_the_percent(self) -> None:
+        entries = history("big.gd", [100.0] * 3 + [130.0]) + history("small.gd", [0.2] * 3 + [0.9])
+        text = report.report(entries)
+        self.assertLess(text.index("suite big.gd: 130.0 s"), text.index("suite small.gd: 0.900 s"))
+        line = report.brief(entries, "r04")
+        self.assertLess(line.index("big.gd"), line.index("small.gd"))
+
+
 if __name__ == "__main__":
     unittest.main()

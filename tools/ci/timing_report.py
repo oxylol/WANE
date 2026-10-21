@@ -204,6 +204,13 @@ class Row:
         return self.seconds / median - 1.0
 
     @property
+    def extra_seconds(self) -> float:
+        """How many seconds slower than the median the latest time is (the regressions are listed
+        by it, so that a minute lost comes before a case that doubled from 70 to 240 ms)."""
+        median = self.median
+        return self.seconds - median if median is not None else 0.0
+
+    @property
     def regression(self) -> bool:
         median = self.median
         change = self.change
@@ -382,7 +389,7 @@ def report(entries: list[dict], run: str | None = None, top: int = TOP, name: st
                 f"  ({fmt_change(row)})"
             )
     out.extend(process_lines(entries))
-    flagged = sorted((r for r in rows if r.regression), key=lambda r: -(r.change or 0))
+    flagged = sorted((r for r in rows if r.regression), key=lambda r: -r.extra_seconds)
     out.append("")
     if flagged:
         out.append(
@@ -423,7 +430,7 @@ def brief(entries: list[dict], run: str | None) -> str:
         f"{label_of(r, ambiguous).rsplit('/', 1)[-1]} {fmt_seconds(r.seconds)}"
         for r in slowest[:BRIEF_SUITES]
     )
-    flagged = sorted((r for r in rows if r.regression), key=lambda r: -(r.change or 0))
+    flagged = sorted((r for r in rows if r.regression), key=lambda r: -r.extra_seconds)
     if flagged:
         texts = [regression_text(r, ambiguous, short=True) for r in flagged[:BRIEF_REGRESSIONS]]
         more = (

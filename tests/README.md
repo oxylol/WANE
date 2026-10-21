@@ -105,7 +105,8 @@ busy machine can be told from a slow item; `variant` keeps series apart that mus
   median of the (up to) ten runs before it;
 - every item more than 25% and 0.1 s slower than that median (`REGRESSION`, with the load of
   that run and of the median beside it; the second condition keeps a case from "regressing" from
-  7 ms to 9 ms), and every new item among the slowest (`NEW`);
+  7 ms to 9 ms; the one that lost the most seconds comes first), and every new item among the
+  slowest (`NEW`);
 - the total: the latest run of each tool, stage by stage, and the time all logged runs took.
 
 `ci/test.sh --quiet` ends a green run with one more line, from the same log:
