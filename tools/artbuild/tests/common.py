@@ -21,6 +21,23 @@ from artbuild import assetbuild, channels as ch, frame, pose  # noqa: E402
 
 PROBE_DIR = ROOT / "tools" / "artbuild" / "tests" / "data" / "probe"
 CANDLE_DIR = ROOT / "tests" / "art" / "src" / "candle_stump"
+# Where a part library (a folder with a parts.svg) may live; build.ROOTS says which of them build.
+LIBRARY_TREES = ("assets", "tests", "tools")
+
+
+def part_libraries() -> list[Path]:
+    """Every part library in the repository, found by walking for parts.svg, never from a list.
+
+    A library added under assets/art/src, tests/art/src or anywhere else is checked by the tests
+    that loop over this (the cairosvg sign cross-check, the SVG lint) without anyone editing them.
+    Fails if there is none, so a moved folder cannot make those tests pass by checking nothing.
+    """
+    found = sorted(
+        svg.parent for tree in LIBRARY_TREES for svg in (ROOT / tree).rglob("parts.svg") if svg.is_file()
+    )
+    if not found:
+        raise AssertionError(f"no parts.svg under {', '.join(LIBRARY_TREES)} in {ROOT}")
+    return found
 
 
 @functools.lru_cache(maxsize=None)

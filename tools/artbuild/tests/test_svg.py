@@ -3,7 +3,7 @@
 import unittest
 
 from . import common  # noqa: F401  (puts tools/ on sys.path)
-from artbuild import svg
+from artbuild import build, svg
 
 HEAD = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">'
 
@@ -113,9 +113,26 @@ class SvgLint(unittest.TestCase):
             lib("")
 
     def test_the_shipped_sources_pass(self) -> None:
-        for path in (common.PROBE_DIR, common.CANDLE_DIR):
+        for path in common.part_libraries():
             library = svg.parse_file(path / "parts.svg")
-            self.assertGreaterEqual(len(library.parts), 4)
+            self.assertGreaterEqual(len(library.parts), 4, path.name)
+
+    def test_the_tests_find_every_library_by_walking_for_it(self) -> None:
+        found = common.part_libraries()
+        # The three the repository ships today, each under a root the build reads.
+        names = {p.name for p in found}
+        self.assertLessEqual({"probe", "candle_stump", "crawler", "lit_test_room"}, names)
+        # And no library is outside the build's roots, where nothing would bake it.
+        roots = [common.ROOT / r.src for r in build.ROOTS]
+        for path in found:
+            self.assertIn(path.parent, roots, f"{path} is under no root of tools/artbuild/build.py")
+
+    def test_finding_no_library_is_a_failure_not_a_pass(self) -> None:
+        from unittest import mock
+
+        with mock.patch.object(common, "LIBRARY_TREES", ("a_folder_that_does_not_exist",)):
+            with self.assertRaises(AssertionError):
+                common.part_libraries()
 
 
 # Each body is a part library in a 64 u viewBox. The syntax a part library may use fills the same

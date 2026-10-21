@@ -1,13 +1,20 @@
 """From a posed frame to the edge sets the channels are measured against (ADR-0023 Decision 1.2).
 
-Every outline segment is cut where it crosses another piece's outline, so each cut piece lies
-wholly inside or wholly outside every other piece, and a midpoint test classifies it exactly (the
-spike cut at a fixed 0.25 u and mis-classified up to 0.125 u around each crossing). A piece is one
-polygon of a part, in one of its sub-poses.
-- silhouette edge: inside no other piece;
-- visible edge: inside no piece of the same part and no piece of a part with higher `data-z`
+Every outline segment is cut where it crosses or touches another piece's outline, so each cut
+piece lies wholly inside, wholly outside, or wholly along every other piece, and a midpoint test
+classifies it exactly (the spike cut at a fixed 0.25 u and mis-classified up to 0.125 u around each
+crossing). A piece is one polygon of a part, in one of its sub-poses.
+- silhouette edge: covered by no other piece;
+- visible edge: covered by no piece of the same part and no piece of a part with higher `data-z`
   (the silhouette plus every interior overlap, such as an arm over the body);
-- own edge: inside no other piece of the same part (the part's own outline, for its bevel).
+- own edge: covered by no other piece of the same part (the part's own outline, for its bevel).
+
+A piece covers a cut segment when the segment lies in its interior, or along its outline with the
+piece on the far side of it (two parts that abut: the seam is inside their union, not on its
+outline). A segment along another piece's outline with both pieces on the same side is not
+covered, but it is hidden from the visible set by a piece with a higher `data-z`, which draws the
+same line. A midpoint on an outline cannot be told by the winding rule, which is half-open, so
+such a midpoint is found by distance (SHARED_EDGE_U) and decided by which side the piece lies on.
 """
 
 from __future__ import annotations
@@ -24,6 +31,12 @@ from .svg import PartLibrary
 TAPER_U = 2.5
 INWARD_PROBE_U = 0.05
 CUT_EPS = 1e-9
+# Two edges closer than this are one edge (rounding: a 90 degree turn leaves coordinates 1e-15 off).
+SHARED_EDGE_U = 1e-6
+# How far beside a shared edge to look for the piece on the far side of it, at most.
+SIDE_PROBE_U = 1e-3
+# Edges whose directions differ by less than this (a sine) are parallel, and cut nothing.
+PARALLEL_SIN = 1e-9
 
 
 @dataclass
@@ -73,16 +86,21 @@ def _cuts(a, b, other_a, other_b, other_box) -> list[tuple[int, float]]:
         return []
     r = (b - a)[sel]
     s = other_b - other_a
+    rlen = np.hypot(r[:, 0], r[:, 1])
+    slen = np.hypot(s[:, 0], s[:, 1])
     out: list[tuple[int, float]] = []
     for c0 in range(0, len(other_a), 512):
-        oa, sv = other_a[c0 : c0 + 512], s[c0 : c0 + 512]
+        oa, sv, sl = other_a[c0 : c0 + 512], s[c0 : c0 + 512], slen[c0 : c0 + 512]
         qpx = oa[None, :, 0] - a[sel][:, None, 0]
         qpy = oa[None, :, 1] - a[sel][:, None, 1]
         denom = r[:, None, 0] * sv[None, :, 1] - r[:, None, 1] * sv[None, :, 0]
         with np.errstate(divide="ignore", invalid="ignore"):
             t = (qpx * sv[None, :, 1] - qpy * sv[None, :, 0]) / denom
             u = (qpx * r[:, None, 1] - qpy * r[:, None, 0]) / denom
-        hit = (denom != 0) & (t > CUT_EPS) & (t < 1.0 - CUT_EPS) & (u >= 0.0) & (u <= 1.0)
+        # An end of the other segment that touches this one to rounding still cuts it.
+        slack = (SHARED_EDGE_U / np.maximum(sl, 1e-12))[None, :]
+        apart = np.abs(denom) > PARALLEL_SIN * rlen[:, None] * sl[None, :]
+        hit = apart & (t > CUT_EPS) & (t < 1.0 - CUT_EPS) & (u >= -slack) & (u <= 1.0 + slack)
         ii, _ = np.nonzero(hit)
         for i, tv in zip(ii.tolist(), t[hit].tolist()):
             out.append((int(sel[i]), tv))
@@ -122,6 +140,39 @@ def _ray_hits(m: np.ndarray, n: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.
     return best
 
 
+def _outward_probes(pa: np.ndarray, pb: np.ndarray) -> np.ndarray:
+    """A short step from each segment's midpoint out of its piece (N x 2).
+
+    Pieces are positively wound (`geo.clean`), so the interior lies at (-dy, dx) of a segment's
+    direction and the exterior at (dy, -dx). The step is SIDE_PROBE_U, or a quarter of a shorter
+    segment.
+    """
+    d = pb - pa
+    length = np.maximum(np.hypot(d[:, 0], d[:, 1]), 1e-12)
+    step = np.minimum(SIDE_PROBE_U, 0.25 * length) / length
+    return np.stack([d[:, 1] * step, -d[:, 0] * step], axis=1)
+
+
+def _cover(mid: np.ndarray, beside: np.ndarray, qa: np.ndarray, qb: np.ndarray):
+    """How a piece Q (segments qa->qb) bears on cut segments of another piece.
+
+    `mid` are the segments' midpoints and `beside` the step from each out of its own piece.
+    Returns (covered, shadowed): covered where the midpoint lies in Q's interior, or on Q's outline
+    with Q on the far side of the segment (the pieces abut, so the segment is inside their union);
+    shadowed where it lies on Q's outline with Q on the segment's own side (the same line is on the
+    outline of both pieces). The winding rule alone would call one of two abutting edges inside and
+    the other outside.
+    """
+    on_outline = sdf.near_outline(mid, qa, qb, SHARED_EDGE_U)
+    covered = sdf.inside_points(mid, qa, qb) & ~on_outline
+    shadowed = np.zeros(len(mid), dtype=bool)
+    if on_outline.any():
+        across = sdf.inside_points(mid[on_outline] + beside[on_outline], qa, qb)
+        covered[on_outline] = across
+        shadowed[on_outline] = ~across
+    return covered, shadowed
+
+
 def build(lib: PartLibrary, posed: Posed) -> Geometry:
     # Each polygon of each piece classifies on its own, so a part's overlapping subpaths (a drip
     # drawn over its candle) and a smear's sub-poses are unions with no interior edges.
@@ -145,18 +196,19 @@ def build(lib: PartLibrary, posed: Posed) -> Geometry:
     for k, piece in enumerate(pieces):
         pa, pb = cut_a[k], cut_b[k]
         mid = (pa + pb) * 0.5
+        beside = _outward_probes(pa, pb)
         other = np.zeros(len(mid), dtype=bool)
         same = np.zeros(len(mid), dtype=bool)
         front = np.zeros(len(mid), dtype=bool)
         for j, q in enumerate(pieces):
             if j == k or not _overlap(boxes[k], boxes[j]):
                 continue
-            hit = sdf.inside_points(mid, *segs[j])
-            other |= hit
+            covered, shadowed = _cover(mid, beside, *segs[j])
+            other |= covered
             if q.part == piece.part:
-                same |= hit
+                same |= covered
             elif lib.parts[q.part].z > lib.parts[piece.part].z:
-                front |= hit
+                front |= covered | shadowed
         for lst, keep in ((sil, ~other), (vis, ~same & ~front), (own, ~same)):
             n_keep = int(keep.sum())
             lst.append(

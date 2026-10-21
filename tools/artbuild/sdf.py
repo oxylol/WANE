@@ -1,10 +1,12 @@
 """Exact distances and winding on a pixel grid (ADR-0023 Decision 1.2).
 
-All three queries are exact in float64 and use only +, -, *, /, sqrt and comparisons, so the result
+All four queries are exact in float64 and use only +, -, *, /, sqrt and comparisons, so the result
 does not depend on the CPU:
 - `inside_grid`: nonzero winding at every pixel centre by scanline accumulation (a crossing per
   segment per pixel row, a cumulative sum along the row), replacing the spike's per-pixel test;
-- `inside_points`: nonzero winding at arbitrary points (segment midpoints and probes);
+- `inside_points`: nonzero winding at arbitrary points (segment midpoints and probes), half-open on
+  the outline (a point on it is in or out by which side it lies on, so it is no test of the outline);
+- `near_outline`: which points lie on the outline, to a tolerance (a piece's edge along another's);
 - `nearest_banded`: the exact nearest segment, searched per 16 x 16 px tile among only the
   segments within the band of that tile (identical to brute force inside the band).
 
@@ -103,6 +105,37 @@ def inside_points(points: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.ndarra
         down = (say > py) & (sby <= py) & (cross < 0)
         wind += up.sum(axis=1) - down.sum(axis=1)
     out[cand] = wind != 0
+    return out
+
+
+def near_outline(points: np.ndarray, a: np.ndarray, b: np.ndarray, tol: float) -> np.ndarray:
+    """Which points (N x 2) lie within `tol` of some segment a->b: on the outline, to rounding.
+
+    `inside_points` is half-open (a point on a left or top edge counts as inside, one on a right or
+    bottom edge as outside), so it cannot tell a point on the outline from one just off it. This
+    can; the build uses it to find where one piece's edge lies along another's.
+    """
+    out = np.zeros(len(points), dtype=bool)
+    if len(points) == 0 or len(a) == 0:
+        return out
+    lo = np.minimum(a, b).min(axis=0) - tol
+    hi = np.maximum(a, b).max(axis=0) + tol
+    cand = np.nonzero(
+        (points[:, 0] >= lo[0]) & (points[:, 0] <= hi[0]) & (points[:, 1] >= lo[1]) & (points[:, 1] <= hi[1])
+    )[0]
+    if len(cand) == 0:
+        return out
+    px, py = points[cand, 0][:, None], points[cand, 1][:, None]
+    near = np.zeros(len(cand), dtype=bool)
+    for s in range(0, len(a), 256):
+        sa, sb = a[s : s + 256], b[s : s + 256]
+        ex, ey = (sb[:, 0] - sa[:, 0])[None, :], (sb[:, 1] - sa[:, 1])[None, :]
+        l2 = np.maximum(ex * ex + ey * ey, 1e-18)
+        dx, dy = px - sa[None, :, 0], py - sa[None, :, 1]
+        t = np.clip((dx * ex + dy * ey) / l2, 0.0, 1.0)
+        vx, vy = dx - t * ex, dy - t * ey
+        near |= ((vx * vx + vy * vy) <= tol * tol).any(axis=1)
+    out[cand] = near
     return out
 
 
