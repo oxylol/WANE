@@ -7,7 +7,7 @@
 # and compares the 99th percentile and the worst tick with content/perf/budget.tres.
 # tools/bench/frame_bench.gd plays the same run
 # through the game's real scene tree (views, camera, feedback, VFX budget, voices, HUD, the
-# Pitch lighting stand-in) and gates the presentation's script time (sprites 2.0 + VFX 2.0 +
+# lighting pass, LightField held at Pitch) and gates the presentation's script time (sprites 2.0 + VFX 2.0 +
 # audio and UI 1.0 = 5.0 ms at the 99th percentile). tools/bench/door_bench.gd times the first
 # crossing into each room of zone 1 at Pitch (the door spike: the lighting's occluders were once
 # rebuilt on the door tick, 4 to 12 ms) against budget.door_max_us. All of them always run; either failing fails the

@@ -3,7 +3,7 @@
 - Author: Claude
 - BUILD.md section and table row: section 10, Style (two values, the ember), Lighting, Animation (smears), Pipeline (Review); section 8, The Dark
 - Fixture(s): none (presentation only; the core and every golden hash are untouched)
-- Contact sheet: `docs/feel_log/2026-10-21-art-pipeline-fixes/` (stump at the top level, `probe/`, `zone1/`); the before is `docs/feel_log/2026-10-20-art-pipeline/`
+- Contact sheet: `docs/feel_log/2026-10-21-art-pipeline-fixes/` (stump at the top level, `probe/`, `zone1/`); the before is `docs/feel_log/2026-10-20-art-pipeline/`. `zone1/room01_dusk.png` and `room01_pitch.png` are deleted: they showed an empty world (the room id `zone1/01` does not exist and `render.sh` drew it anyway) and are replaced by the fix2b pictures of `zone1/01_dash_slash` in `docs/feel_log/2026-10-21-fix2b-tools/`.
 
 ## Change
 

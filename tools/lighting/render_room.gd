@@ -15,6 +15,11 @@ extends SceneTree
 ## --fixture plays the fixture's scenario and input for --tick ticks (default: all of it).
 ## --debug also writes the shadow buffer (_shadow.png: R the ember, G, B, A the other casters) and
 ## the room's distance field (_sdf.png, grey, wall interiors blue, 0.0 on the zero contour).
+##
+## A room that is not there, or does not load, is an error: the problems are printed, the exit
+## status is 1 and no picture is written (the first fix round's room pictures were an empty world
+## because "zone1/01" is not a room id; the ids are the file names under content/rooms/zone1/).
+## A usage mistake exits 2.
 
 const SCENE: String = "res://game/main.tscn"
 const SETTLE: int = 3
@@ -40,11 +45,15 @@ func _initialize() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.is_empty():
 		printerr("usage: render_room.gd -- <out prefix> (--room id | --fixture path) [options]")
-		quit(1)
+		quit(2)
 		return
 	_out = args[0]
 	var room: String = _arg(args, "--room", "")
 	var fixture_path: String = _arg(args, "--fixture", "")
+	if (room == "") == (fixture_path == ""):
+		printerr("render_room: give exactly one of --room <room id> and --fixture <path>")
+		quit(2)
+		return
 	var tick: int = int(_arg(args, "--tick", "-1"))
 	_scale = maxi(1, int(_arg(args, "--scale", "1")))
 	_debug = args.has("--debug")
@@ -59,11 +68,18 @@ func _initialize() -> void:
 	if dark.is_valid_float():
 		_factors.append(dark.to_float())
 		_names.append("dark%s" % dark)
+	if _factors.is_empty():
+		printerr("render_room: --dark is dusk, pitch, both or a number, not '%s'" % dark)
+		quit(2)
+		return
 	var fixture: Fixture = null
 	if fixture_path != "":
 		fixture = Fixture.parse_file(fixture_path)
 		for e: String in fixture.errors:
 			printerr("%s: %s" % [fixture_path, e])
+		if not fixture.errors.is_empty():
+			quit(1)
+			return
 		Main.scenario_override = fixture.scenario.copy()
 	else:
 		Main.scenario_override = Scenario.make(1, room)
@@ -77,6 +93,12 @@ func _run(fixture: Fixture, tick: int) -> void:
 	root.add_child(main)
 	var driver: SimDriver = main.get_node("SimDriver")
 	driver.set_process(false)
+	var problems: PackedStringArray = _load_problems(driver.sim)
+	if not problems.is_empty():
+		for problem: String in problems:
+			printerr("render_room: %s" % problem)
+		quit(1)
+		return
 	var input := ScriptedInput.new()
 	input.fixture = fixture
 	driver.input_layer = input
@@ -108,6 +130,19 @@ func _run(fixture: Fixture, tick: int) -> void:
 	if _debug:
 		_dump(field)
 	quit(0)
+
+
+## What is wrong with the room [param sim] started in: anything it failed to load, no room named,
+## or no Ash to stand in it. Empty when the picture will show the room that was asked for.
+static func _load_problems(sim: Simulation) -> PackedStringArray:
+	var problems: PackedStringArray = sim.load_errors.duplicate()
+	if sim.scenario.room == "":
+		problems.append("the scenario names no room, so there is no world to draw")
+	elif sim.room.id != sim.scenario.room:
+		problems.append("started in '%s', not in '%s'" % [sim.room.id, sim.scenario.room])
+	if sim.player == null:
+		problems.append("no player: the room has no spawn")
+	return problems
 
 
 func _dump(field: LightField) -> void:
