@@ -1,13 +1,16 @@
 extends SceneTree
 ## The lighting pass's GPU half (docs/adr/0023 Decisions 4.1, 4.3, 4.5; BUILD.md section 13, Testing
 ## and CI): what the headless unit suite cannot see because the dummy renderer draws nothing. Under
-## a
-## display it holds
+## a display it holds
 ##   1. the room distance field the GPU bakes to the exact CPU field (the twin);
-##   2. the shadow buffer the GPU marches to the twin's march, point by point;
+##   2. the shadow buffer the GPU marches to the twin's march, texel by texel, in all four
+##      channels (the ember, a Beacon, a fire, the Gutter Ember), the penumbras apart;
 ##   3. the lit surface shader to its numbers: ambient times the Dark at Pitch and Dusk, the ember's
-##      light brighter near it than far, a wall between it and the light shadowing a surface;
-##   4. every shader of the pass compiling (a compile error is an engine error: ci/lighting.sh
+##      light brighter near it than far, a wall between it and the light shadowing a surface, and
+##      each other kind of light read from its own shadow channel, the Gutter Ember lighting only
+##      what is above it (BUILD.md section 10: "the only light that casts up");
+##   4. the post pass (tools/lighting/post_check.gd);
+##   5. every shader of the pass compiling (a compile error is an engine error: ci/lighting.sh
 ##      fails on any).
 ## It prints LIGHTING GPU CHECK PASSED and exits 0, or the failures and exits 1.
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 \
@@ -33,6 +36,18 @@ const BAKE_RIDGE_TEXELS: float = 0.7
 ## The buffer against the twin: mean error, the share of points off by more than 0.1.
 const BUFFER_MEAN_MAX: float = 0.01
 const BUFFER_OFF_SHARE_MAX: float = 0.02
+## The buffer against the twin where the twin is in a penumbra (0.02 to 0.98), at the texels'
+## centres: the march's smoothing of the penumbra is held here (measured 0.001 to 0.002; the march
+## without its smoothstep is 0.02 to 0.04 off). The RGBA8 buffer's step is 0.004.
+const PENUMBRA_MEAN_MAX: float = 0.008
+const PENUMBRA_POINTS_MIN: int = 60
+## The other lights of the buffer check, by shadow channel (1 a Beacon, 2 a fire, 3 the Gutter
+## Ember), each in the open of ROOM_ROWS.
+const CHANNEL_LIGHTS: Array[Vector2] = [
+	Vector2(80.0, 200.0), Vector2(400.0, 60.0), Vector2(150.0, 100.0), Vector2(300.0, 150.0)
+]
+## Where the ember waits when another light is under test: beyond its reach of everything.
+const EMBER_AWAY: Vector2 = Vector2(-4000.0, -4000.0)
 
 ## The flicker is 4% either way, so crest over trough is about 1.08 of the ember's light.
 const FLICKER_RATIO_MIN: float = 1.03
@@ -40,11 +55,20 @@ const FLICKER_RATIO_MAX: float = 1.2
 ## A door crossing, pointing the lighting at a room already built and baked, must cost under this
 ## (content/perf/budget.tres door_max_us).
 const CROSSING_MAX_USEC: int = 2000
-## A surface's light against the CPU's maths of the same numbers, as a share.
+## A surface's light against the CPU's maths of the same numbers, as a share, and as a floor for a
+## surface that only the ambient reaches at Pitch (a few hundredths).
 const SHADING_TOLERANCE: float = 0.04
-## The bevel depth of a lit grey box with the distance field's normal (shaders/lighting/
-## lit_flat.gdshader, bevel_u).
-const LIT_BEVEL_U: float = 6.0
+const KIND_FLOOR: float = 0.003
+## The room of the wall checks: a pillar at column 10, rows 4 to 6.
+const WALLED: Array[String] = [
+	"................",
+	"................",
+	"................",
+	"................",
+	"..........#.....",
+	"..........#.....",
+	"..........#.....",
+]
 
 var _failures: PackedStringArray = PackedStringArray()
 
@@ -75,7 +99,12 @@ func _run() -> void:
 	await _check_buffer(field, sdf)
 	await _check_surfaces(field)
 	await _check_shading_maths(field)
+	await _check_light_kinds(field)
 	await _check_unbaked_room(field)
+	field.queue_free()
+	var post := PostCheck.new(self)
+	await post.run()
+	_failures.append_array(post.failures)
 	_finish()
 
 
@@ -139,63 +168,104 @@ func _check_crossing(field: LightField) -> void:
 	field.show_world(CollisionWorld.new(TileGrid.from_rows(PackedStringArray(ROOM_ROWS))), "check")
 
 
-## 2. The shadow buffer against the twin.
+## 2. The shadow buffer against the twin, channel by channel: the ember (R) and a Beacon (G), a
+## fire (B) and the Gutter Ember (A), each read at its texels' centres (where the march ran).
 func _check_buffer(field: LightField, sdf: RoomSdf) -> void:
-	var ember := Vector2(80.0, 200.0)
+	var kinds: Array[LightKind] = [
+		field.tuning.beacon, field.tuning.fire, field.tuning.gutter_ember
+	]
+	var others: Array[WaneLight] = []
+	for i: int in range(kinds.size()):
+		var l: WaneLight = field.spawn_light(kinds[i], CHANNEL_LIGHTS[kinds[i].shadow_channel])
+		others.append(l)
 	field.freeze(0, 1.0)
-	field.present(0, 0.0, ember)
+	field.present(0, 0.0, CHANNEL_LIGHTS[0])
 	for _f: int in range(3):
 		await RenderingServer.frame_post_draw
 	var buf: Image = field.shadow_buffer().texture().get_image()
 	var view: Rect2 = field.view_rect()
 	var twin := ShadowTwin.new(sdf, field.tuning)
 	twin.use_baked = true
+	for ch: int in range(4):
+		var c: Vector4 = field.casters[ch]
+		if Vector2(c.x, c.y) != CHANNEL_LIGHTS[ch]:
+			_fail("shadow channel %d is not its light's (%s)" % [ch, c])
+			continue
+		_check_channel(buf, view, twin, ch, Vector2(c.x, c.y), c.z)
+	for l: WaneLight in others:
+		field.remove_light(l)
+
+
+## One channel of the buffer against the twin for the light at [param light] of reach
+## [param reach].
+func _check_channel(
+	buf: Image, view: Rect2, twin: ShadowTwin, ch: int, light: Vector2, reach: float
+) -> void:
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 5
+	rng.seed = 5 + ch
 	var total: float = 0.0
 	var off: int = 0
 	var counted: int = 0
 	var lit: int = 0
 	var dark: int = 0
-	for _i: int in range(SAMPLES):
+	var pen_total: float = 0.0
+	var pen: int = 0
+	var size := Vector2(buf.get_size())
+	for _i: int in range(SAMPLES * 2):
 		var p := Vector2(rng.randf_range(0.0, 16.0 * 32.0), rng.randf_range(0.0, 8.0 * 32.0))
-		if p.distance_to(ember) > field.tuning.ember_radius_u - 4.0:
+		if p.distance_to(light) > reach - 4.0:
 			continue
 		var uv: Vector2 = (p - view.position) / view.size
 		var px := Vector2i(
-			clampi(int(uv.x * float(buf.get_width())), 0, buf.get_width() - 1),
-			clampi(int(uv.y * float(buf.get_height())), 0, buf.get_height() - 1)
+			clampi(int(uv.x * size.x), 0, buf.get_width() - 1),
+			clampi(int(uv.y * size.y), 0, buf.get_height() - 1)
 		)
-		var gpu: float = buf.get_pixel(px.x, px.y).r
-		var cpu: float = twin.visibility(p, ember, field.tuning.ember_radius_u)
-		total += absf(gpu - cpu)
+		var centre: Vector2 = view.position + (Vector2(px) + Vector2(0.5, 0.5)) / size * view.size
+		var gpu: float = buf.get_pixel(px.x, px.y)[ch]
+		var cpu: float = twin.visibility(centre, light, reach)
+		var err: float = absf(gpu - cpu)
+		total += err
 		counted += 1
-		if absf(gpu - cpu) > 0.1:
+		if err > 0.1:
 			off += 1
 		if cpu > 0.95:
 			lit += 1
 		elif cpu < 0.05:
 			dark += 1
+		if cpu > 0.02 and cpu < 0.98:
+			pen_total += err
+			pen += 1
 	var mean: float = total / float(maxi(counted, 1))
 	var share: float = float(off) / float(maxi(counted, 1))
+	var pen_mean: float = pen_total / float(maxi(pen, 1))
 	print(
 		(
-			"buffer: %d points (%d lit, %d dark), mean error %.4f, %.1f%% off by more than 0.1"
-			% [counted, lit, dark, mean, share * 100.0]
+			(
+				"buffer %s: %d points (%d lit, %d dark), mean error %.4f, %.1f%% off by more "
+				+ "than 0.1; %d in a penumbra, mean error %.4f"
+			)
+			% ["RGBA"[ch], counted, lit, dark, mean, share * 100.0, pen, pen_mean]
 		)
 	)
-	if counted < 200 or lit < 20 or dark < 20:
+	if counted < 200 or lit < 20 or dark < 20 or pen < PENUMBRA_POINTS_MIN:
 		_fail(
 			(
-				"the buffer check needs lit and dark points in the ember's reach (%d, %d, %d)"
-				% [counted, lit, dark]
+				"the buffer check of channel %d needs lit, dark and penumbra points (%d, %d, %d, %d)"
+				% [ch, counted, lit, dark, pen]
 			)
 		)
 	if mean > BUFFER_MEAN_MAX or share > BUFFER_OFF_SHARE_MAX:
 		_fail(
 			(
-				"the shadow buffer differs from the twin (mean %.4f, %.1f%% off)"
-				% [mean, share * 100.0]
+				"shadow channel %d differs from the twin (mean %.4f, %.1f%% off)"
+				% [ch, mean, share * 100.0]
+			)
+		)
+	if pen_mean > PENUMBRA_MEAN_MAX:
+		_fail(
+			(
+				"shadow channel %d's penumbra differs from the twin's (mean %.4f): the march's soft edge"
+				% [ch, pen_mean]
 			)
 		)
 
@@ -295,19 +365,7 @@ func _check_surfaces(field: LightField) -> void:
 	if not (swing > FLICKER_RATIO_MIN and swing < FLICKER_RATIO_MAX):
 		_fail("the ember's flicker does not show on a surface at Pitch (ratio %.3f)" % swing)
 	# A wall between the ember and a surface shadows it.
-	var walled := TileGrid.from_rows(
-		PackedStringArray(
-			[
-				"................",
-				"................",
-				"................",
-				"................",
-				"..........#.....",
-				"..........#.....",
-				"..........#....."
-			]
-		)
-	)
+	var walled := TileGrid.from_rows(PackedStringArray(WALLED))
 	field.show_world(CollisionWorld.new(walled), "walled")
 	await field.settle()
 	field.freeze(0, 0.15)
@@ -335,12 +393,15 @@ func _check_surfaces(field: LightField) -> void:
 
 ## The radiance the shader should give a surface at [param at] with normal [param n]: ambient plus
 ## each light of the table as it was written this frame (rgb x energy x falloff, the table's own
-## numbers) times flat + (1 - flat) N.L, in the tuning's flat share (the shader's formula, from the
-## tuning's numbers, on the CPU), the ember seen through [param ember_visibility] of the shadow
-## march.
-func _radiance(field: LightField, at: Vector2, n: Vector3, ember_visibility: float = 1.0) -> Color:
+## numbers, the Gutter Ember's above-only edge from its flag) times flat + (1 - flat) N.L, in the
+## tuning's flat share (the shader's formula, from the tuning's numbers, on the CPU), light i seen
+## through [param visibility][i] of the shadow march (1 where it has no entry).
+func _radiance(
+	field: LightField, at: Vector2, n: Vector3, visibility: Dictionary[int, float]
+) -> Color:
 	var amb: Color = field.globals["wane_ambient"]
 	var rgb := Vector3(amb.r, amb.g, amb.b)
+	var soft: float = field.tuning.up_only_soft_u
 	for i: int in range(field.lights_in_table):
 		var pos := Vector2(_cell(field, 0, i, 0), _cell(field, 0, i, 1))
 		var reach: float = _cell(field, 0, i, 2)
@@ -349,11 +410,14 @@ func _radiance(field: LightField, at: Vector2, n: Vector3, ember_visibility: flo
 		if d >= reach:
 			continue
 		var atten: float = pow(1.0 - d / reach, _cell(field, 2, i, 0))
+		var flags: int = int(_cell(field, 1, i, 3) + 0.5)
+		if flags & LightField.FLAG_UP_ONLY:
+			atten *= smoothstep(-soft, soft, pos.y - at.y)
 		var l: Vector3 = Vector3(pos.x - at.x, pos.y - at.y, height).normalized()
 		var ndl: float = maxf(n.dot(l), 0.0)
 		var share: float = field.tuning.flat_share + (1.0 - field.tuning.flat_share) * ndl
 		var col := Vector3(_cell(field, 1, i, 0), _cell(field, 1, i, 1), _cell(field, 1, i, 2))
-		var vis: float = ember_visibility if i == 0 else 1.0
+		var vis: float = visibility.get(i, 1.0)
 		rgb += col * (atten * vis * share)
 	return Color(rgb.x, rgb.y, rgb.z)
 
@@ -392,7 +456,7 @@ func _check_shading_maths(field: LightField) -> void:
 		await RenderingServer.frame_post_draw
 	var worst: float = 0.0
 	for at: Vector2 in spots:
-		var want_c: Color = _radiance(field, at, Vector3(0.0, 0.0, 1.0)) * grey.r
+		var want_c: Color = _radiance(field, at, Vector3(0.0, 0.0, 1.0), {}) * grey.r
 		var want: float = Color(want_c.r, want_c.g, want_c.b).get_luminance()
 		var got: float = _lum(at)
 		worst = maxf(worst, absf(got - want) / maxf(want, 0.0001))
@@ -413,19 +477,7 @@ func _check_shading_maths(field: LightField) -> void:
 		r.queue_free()
 	# A wall's top face: the bevel normal tilts toward the open by bevel_tilt, falling off to flat
 	# bevel_u inside. The pillar is column 10 of a six-row room; the probe is 2.5 u under its top.
-	var walled := TileGrid.from_rows(
-		PackedStringArray(
-			[
-				"................",
-				"................",
-				"................",
-				"................",
-				"..........#.....",
-				"..........#.....",
-				"..........#....."
-			]
-		)
-	)
+	var walled := TileGrid.from_rows(PackedStringArray(WALLED))
 	field.show_world(CollisionWorld.new(walled), "bevel")
 	await field.settle()
 	var sdf: RoomSdf = field.shown_field()
@@ -442,7 +494,7 @@ func _check_shading_maths(field: LightField) -> void:
 	for _f: int in range(3):
 		await RenderingServer.frame_post_draw
 	var d: float = sdf.distance(probe)
-	var bevel_u: float = LIT_BEVEL_U
+	var bevel_u: float = field.tuning.wall_bevel_u
 	var s01: float = clampf((-d) / bevel_u, 0.0, 1.0)
 	var tilt: float = field.tuning.bevel_tilt * (1.0 - s01 * s01 * (3.0 - 2.0 * s01))
 	var grad: Vector2 = Vector2(
@@ -454,10 +506,10 @@ func _check_shading_maths(field: LightField) -> void:
 	var twin := ShadowTwin.new(sdf, field.tuning)
 	twin.use_baked = true
 	var vis: float = twin.visibility(probe, wall_ember, field.tuning.ember_radius_u)
-	var want_wall_c: Color = _radiance(field, probe, n, vis) * grey.r
+	var want_wall_c: Color = _radiance(field, probe, n, {0: vis}) * grey.r
 	var want_wall: float = Color(want_wall_c.r, want_wall_c.g, want_wall_c.b).get_luminance()
 	var got_wall: float = _pixel(probe).get_luminance()
-	var flat_c: Color = _radiance(field, probe, Vector3(0.0, 0.0, 1.0), vis) * grey.r
+	var flat_c: Color = _radiance(field, probe, Vector3(0.0, 0.0, 1.0), {0: vis}) * grey.r
 	var flat_wall: float = Color(flat_c.r, flat_c.g, flat_c.b).get_luminance()
 	print(
 		(
@@ -480,6 +532,114 @@ func _check_shading_maths(field: LightField) -> void:
 			)
 		)
 	bevel_rect.queue_free()
+	field.set_post_enabled(true)
+
+
+## The twin's visibility of the light at [param light] (reach [param reach]) averaged over the 8 x 8
+## pixel centres that [method _lum] reads around [param at].
+func _block_visibility(twin: ShadowTwin, at: Vector2, light: Vector2, reach: float) -> float:
+	var total: float = 0.0
+	for dy: int in range(-4, 4):
+		for dx: int in range(-4, 4):
+			var p := Vector2(float(int(at.x) + dx) + 0.5, float(int(at.y) + dy) + 0.5)
+			total += twin.visibility(p, light, reach)
+	return total / 64.0
+
+
+## A lit grey surface's luminance at [param at] against the maths, as a failure line or "".
+func _shading_off(at: Vector2, want_c: Color, what: String) -> String:
+	var want: float = want_c.get_luminance()
+	var got: float = _lum(at)
+	print("kinds: %s: %.4f (maths %.4f)" % [what, got, want])
+	if absf(got - want) > SHADING_TOLERANCE * want + KIND_FLOOR:
+		return "%s: %.4f against the maths' %.4f" % [what, got, want]
+	return ""
+
+
+## 3b. Every kind of light reads its own shadow channel (the table's flags, docs/adr/0023 Decision
+## 3.1) and the Gutter Ember lights only what is above it (BUILD.md section 10: "the only light
+## that casts up"). Each kind alone (the ember away) lights a surface behind the pillar of WALLED
+## and one in its sight; the shadow comes from its own channel, so a light that read another's
+## (each other channel sees everything) would light the surface behind the wall.
+func _check_light_kinds(field: LightField) -> void:
+	field.set_post_enabled(false)
+	field.show_world(CollisionWorld.new(TileGrid.from_rows(PackedStringArray(WALLED))), "kinds")
+	await field.settle()
+	var twin := ShadowTwin.new(field.shown_field(), field.tuning)
+	twin.use_baked = true
+	var grey := Color(0.5, 0.5, 0.5)
+	var rects: Array[ColorRect] = [_surface(Vector2.ZERO), _surface(Vector2.ZERO)]
+	for r: ColorRect in rects:
+		root.add_child(r)
+	# A kind, where it stands (left of the pillar), a surface behind the pillar from it and one in
+	# its sight. The Gutter Ember stands lower than the surfaces it lights, which are above it.
+	var cases: Array[Array] = [
+		[field.tuning.beacon, Vector2(288.0, 150.0), Vector2(368.0, 200.0), Vector2(368.0, 64.0)],
+		[field.tuning.fire, Vector2(288.0, 150.0), Vector2(368.0, 200.0), Vector2(368.0, 64.0)],
+		[
+			field.tuning.gutter_ember,
+			Vector2(288.0, 190.0),
+			Vector2(368.0, 170.0),
+			Vector2(300.0, 60.0)
+		],
+	]
+	var problems: PackedStringArray = []
+	for c: Array in cases:
+		var kind: LightKind = c[0]
+		var at: Vector2 = c[1]
+		var spots: Array[Vector2] = [c[2], c[3]]
+		for k: int in range(2):
+			rects[k].position = spots[k] - Vector2(6.0, 6.0)
+		var l: WaneLight = field.spawn_light(kind, at)
+		field.freeze(0, 0.15)
+		field.present(0, 0.0, EMBER_AWAY)
+		for _f: int in range(3):
+			await RenderingServer.frame_post_draw
+		var flat := Vector3(0.0, 0.0, 1.0)
+		for p: Vector2 in spots:
+			var vis: float = _block_visibility(twin, p, at, kind.radius_u)
+			var want: Color = _radiance(field, p, flat, {1: vis}) * grey.r
+			var line: String = _shading_off(
+				p, want, "%s, visibility %.2f at %s" % [kind.id, vis, p]
+			)
+			if line != "":
+				problems.append(line)
+		field.remove_light(l)
+	# The Gutter Ember in the open: lit above it, dark below it.
+	var open_row: String = ".".repeat(32)
+	var open := TileGrid.from_rows(PackedStringArray([open_row, open_row, open_row, open_row]))
+	field.show_world(CollisionWorld.new(open), "kinds_open")
+	await field.settle()
+	var gutter_at := Vector2(400.0, 64.0)
+	var above := Vector2(400.0, 24.0)
+	var below := Vector2(400.0, 104.0)
+	rects[0].position = above - Vector2(6.0, 6.0)
+	rects[1].position = below - Vector2(6.0, 6.0)
+	var g: WaneLight = field.spawn_light(field.tuning.gutter_ember, gutter_at)
+	field.present(0, 0.0, EMBER_AWAY)
+	for _f: int in range(3):
+		await RenderingServer.frame_post_draw
+	var flat_n := Vector3(0.0, 0.0, 1.0)
+	var lum_above: float = _lum(above)
+	var lum_below: float = _lum(below)
+	for p: Vector2 in [above, below]:
+		var line: String = _shading_off(
+			p, _radiance(field, p, flat_n, {}) * grey.r, "the Gutter Ember at %s" % p
+		)
+		if line != "":
+			problems.append(line)
+	if not (lum_above > lum_below * 2.0):
+		problems.append(
+			(
+				"the Gutter Ember lights below it as well as above (%.4f above, %.4f below)"
+				% [lum_above, lum_below]
+			)
+		)
+	field.remove_light(g)
+	for r: ColorRect in rects:
+		r.queue_free()
+	for line: String in problems:
+		_fail("a light of another kind: " + line)
 	field.set_post_enabled(true)
 
 

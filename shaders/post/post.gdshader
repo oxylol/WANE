@@ -4,7 +4,9 @@
 // the vignette. The grain is reseeded by the boil step (tick-driven), so a frame is reproducible
 // from its tick. The bloom averages screen blocks, so it takes a source of some size; the halo of
 // a light a few pixels wide is drawn by shaders/lighting/glow.gdshader. Every number is
-// LightingTuning's.
+// LightingTuning's. The bloom's reach is in world units whatever the output's size (BUILD.md
+// section 10: resolution-independent): wane_view.zw is the view's size in u, and the screen's own
+// pixels only pick the mip level. tools/lighting/post_check.gd holds all of it to its numbers.
 shader_type canvas_item;
 render_mode unshaded;
 
@@ -39,18 +41,21 @@ vec3 bright(vec2 uv, float lod) {
 void fragment() {
 	vec2 uv = SCREEN_UV;
 	vec3 c = textureLod(screen_tex, uv, 0.0).rgb;
-	vec2 px = SCREEN_PIXEL_SIZE;
 	// One tap at the pixel and a ring of eight at the bloom's reach, from the screen's mip levels so
 	// that each tap already averages a block: nine fetches a pixel.
-	// The taps average blocks of the screen that grow with the radius (a block about as wide as the
-	// ring's taps are far apart), so the bloom stays smooth when the camera zooms in.
-	float radius_px = bloom_radius_u / max(wane_view.z, 0.0001);
+	// The reach in uv is the radius over the view's size in u, so it is the same share of the view
+	// on a 720p window, at 1080p and at 4K (the window's pixels are not the world's under the
+	// project's stretch). The taps average blocks of the screen that grow with the radius in the
+	// screen's own pixels (a block about as wide as the ring's taps are far apart), so the bloom
+	// stays smooth when the camera zooms in.
+	vec2 radius_uv = vec2(bloom_radius_u) / max(wane_view.zw, vec2(0.0001));
+	float radius_px = radius_uv.x / SCREEN_PIXEL_SIZE.x;
 	float ring_lod = max(log2(radius_px) - 0.75, 1.0);
 	vec3 glow = bright(uv, ring_lod - 1.0) * bloom_core;
 	for (int i = 0; i < 8; i++) {
 		float a = 0.785398 * float(i);
 		vec2 dir = vec2(cos(a), sin(a));
-		glow += bright(uv + dir * px * radius_px, ring_lod) * bloom_ring;
+		glow += bright(uv + dir * radius_uv, ring_lod) * bloom_ring;
 	}
 	c += glow * bloom_strength;
 	// A soft shoulder: above the knee the brightness rolls off instead of clipping, and the colour
@@ -63,6 +68,10 @@ void fragment() {
 		rolled = shoulder_knee + room * (over / (over + room));
 	}
 	c *= rolled / max(luma, 0.0001);
+	// A saturated colour can keep a channel above 1 at a brightness under 1 (the ember's red): it
+	// would clip alone on its way to the screen and turn the hue (orange to yellow). The colour is
+	// scaled down whole instead, so it reaches the screen at its own hue and saturation.
+	c /= max(max(c.r, max(c.g, c.b)), 1.0);
 	float v = length((uv - vec2(0.5)) * vec2(1.0, vignette_squash));
 	c *= 1.0 - vignette * smoothstep(vignette_start, vignette_end, v);
 	float g = hash(FRAGCOORD.xy + vec2(wane_boil * 17.0, wane_boil * 5.0)) - 0.5;

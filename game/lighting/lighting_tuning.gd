@@ -58,6 +58,9 @@ const PROFILE_MIN: int = 2
 @export var flat_share: float = 0.35
 ## How far a wall's edge normals tilt toward the open (0 flat, 1 the full bevel).
 @export var bevel_tilt: float = 0.95
+## How far into a wall that bevel reaches, in world units (the lit grey boxes' tiles,
+## shaders/lighting/lit_flat.gdshader).
+@export var wall_bevel_u: float = 6.0
 ## The lowest elevation, in degrees above the picture plane, that the key and every light's form
 ## direction stands at: a flat surface faces a light at this angle however far the light is, so
 ## the two values follow a shape's tilt and not a ring of distance (docs/adr/0026).
@@ -215,6 +218,8 @@ func validate() -> PackedStringArray:
 		e.append("vignette_start must not be negative and below vignette_end, squash positive")
 	if flat_share < 0.0 or flat_share > 1.0 or bevel_tilt < 0.0 or bevel_tilt > 1.0:
 		e.append("flat_share and bevel_tilt must be 0 to 1")
+	if wall_bevel_u <= 0.0:
+		e.append("wall_bevel_u must be positive")
 	if form_elevation_deg < 5.0 or form_elevation_deg > 85.0 or up_only_soft_u <= 0.0:
 		e.append("form_elevation_deg must be 5 to 85 and up_only_soft_u positive")
 	if gate_lo < 0.0 or gate_hi <= gate_lo:

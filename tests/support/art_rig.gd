@@ -56,8 +56,11 @@ func settle() -> void:
 
 ## One picture of the root viewport at [param level] of the Wane Clock (1 Dusk, 3 Pitch), tick
 ## [param tick], with the ember at [param ember_at], the camera centred on [param centre] at
-## [param zoom].
-func shot(tick: int, level: float, ember_at: Vector2, zoom: float, centre: Vector2) -> Image:
+## [param zoom]: RGBA8 as the screen shows it, or with [param hdr] the HDR picture itself (linear,
+## unclamped: a value at Pitch keeps its precision).
+func shot(
+	tick: int, level: float, ember_at: Vector2, zoom: float, centre: Vector2, hdr: bool = false
+) -> Image:
 	_camera.zoom = Vector2(zoom, zoom)
 	_camera.position = centre
 	field.freeze(tick, tuning.dark_factor(level))
@@ -65,7 +68,8 @@ func shot(tick: int, level: float, ember_at: Vector2, zoom: float, centre: Vecto
 	for _i: int in range(3):
 		await RenderingServer.frame_post_draw
 	var img: Image = _tree.root.get_viewport().get_texture().get_image()
-	img.convert(Image.FORMAT_RGBA8)
+	if not hdr:
+		img.convert(Image.FORMAT_RGBA8)
 	return img
 
 

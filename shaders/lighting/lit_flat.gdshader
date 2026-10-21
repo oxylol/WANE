@@ -10,7 +10,8 @@ render_mode unshaded;
 
 // Whether the normal comes from the room's distance field (tiles) or is flat (everything else).
 uniform bool sdf_normals = false;
-// How far into a wall the bevel reaches, in world units.
+// How far into a wall the bevel reaches, in world units: LightingTuning.wall_bevel_u, which
+// LightSurfaces sets on the bevel material.
 uniform float bevel_u = 6.0;
 // Light the surface gives off itself, added after the lighting.
 uniform float emissive = 0.0;

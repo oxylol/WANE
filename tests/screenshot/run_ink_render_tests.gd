@@ -2,9 +2,10 @@ extends SceneTree
 ## Renders the ink shaders through the game's own materials and checks what they draw
 ## (BUILD.md section 10, Style; docs/adr/0023 Decision 2 and 6): a render is deterministic for a
 ## fixed tick, the boil step changes the line and nothing else, the silhouette is the baked one at
-## every scale, the line is thin on the lit side and thick on the shadow side (flipped or not),
-## the ember is a light and carries no ink, Pitch is dark where Dusk is not and the ember is the
-## same at both, and per-instance values ride on one shared material. Needs a display:
+## every scale, the line is thin on the lit side and thick on the shadow side (flipped or not) and
+## tapers where a part thins, the ember is a light and carries no ink, Pitch is dark where Dusk is
+## not and the ember is the same at both, and per-instance values ride on one shared material.
+## Needs a display:
 ##   xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 \
 ##     --audio-driver Dummy --resolution 1920x1080 --script tests/screenshot/run_ink_render_tests.gd
 ## Exits 0 when every check passes, 1 otherwise.
@@ -40,6 +41,7 @@ func _run() -> void:
 	await _test_silhouette_is_the_bake()
 	await _test_the_wobble_is_the_two_octave_noise()
 	await _test_line_follows_the_light()
+	await _test_the_pressure_taper()
 	await _test_pitch_and_ember()
 	await _test_instance_values_on_one_material()
 	await _test_scales_agree()
@@ -260,6 +262,50 @@ func _test_line_follows_the_light() -> void:
 	var fill1: float = _lum(one.get_pixel(hx, row))
 	var darker: int = _dark_run(one, row, hx - 11, hx - 9, fill1, 0.75)
 	_check(darker >= 1, "at 1x the lit side's line is at least a pixel")
+
+
+## The pixels of the screen rectangle [param r] that differ between [param a] and [param b], and
+## how much darker [param b] is there in all (the sum of the drop in luminance).
+func _changed(a: Image, b: Image, r: Rect2i) -> Vector2:
+	var n: int = 0
+	var darker: float = 0.0
+	for y: int in range(r.position.y, r.end.y):
+		for x: int in range(r.position.x, r.end.x):
+			var ca: Color = a.get_pixel(x, y)
+			var cb: Color = b.get_pixel(x, y)
+			if ca != cb:
+				n += 1
+			darker += _lum(ca) - _lum(cb)
+	return Vector2(float(n), darker)
+
+
+## The screen rectangle of the world rectangle [param w] in a 4x shot of [method _shot_facing]
+## (centre (250, 194), 4 px a u, 640 x 360).
+func _px4(w: Rect2) -> Rect2i:
+	var o := Vector2(250.0, 194.0)
+	var p: Vector2 = (w.position - o) * 4.0 + Vector2(320.0, 180.0)
+	return Rect2i(Vector2i(p), Vector2i(w.size * 4.0))
+
+
+func _test_the_pressure_taper() -> void:
+	# BUILD.md section 10, Style: "a pressure taper at shape ends"; ADR-0023 Decision 2.1: a line's
+	# weight is mix(taper_floor, 1, taper) of its light's. The blade thins from 1.7 u to 0.25 u (its
+	# taper channel 0.68 to 0.1); the head is 11 u round (taper 1). With taper_floor 1 there is no
+	# taper: the blade's line is heavier and the head's is the same.
+	var base: Image = await _shot_facing(1, _tuning, 0)
+	var flat: InkTuning = _tuning.duplicate() as InkTuning
+	flat.taper_floor = 1.0
+	var even: Image = await _shot_facing(1, flat, 0)
+	var blade: Vector2 = _changed(base, even, _px4(Rect2(260.0, 176.0, 18.0, 22.0)))
+	var head: Vector2 = _changed(base, even, _px4(Rect2(231.0, 172.0, 18.0, 15.0)))
+	_check(
+		blade.x > 60.0 and blade.y > 0.0,
+		(
+			"the blade's line tapers: without the taper it holds more ink (%d pixels change, %.2f darker)"
+			% [int(blade.x), blade.y]
+		)
+	)
+	_check(head.x == 0.0, "a thick part has no taper (%d pixels of the head change)" % int(head.x))
 
 
 func _shot_facing(facing: int, tuning: InkTuning, tick: int) -> Image:

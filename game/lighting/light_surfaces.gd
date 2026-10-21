@@ -26,16 +26,19 @@ static func make_emissive(item: CanvasItem) -> void:
 
 
 ## Makes [param item] a lit grey-box surface (Phase 1's stand-in for sprites with normal maps).
-## [param bevel] gives it a normal from the room's distance field (tiles); otherwise it is flat.
-## [param keep_hue] is for a box whose colour says what it is (the player, an enemy): the light
-## brightens or darkens it but does not tint it.
+## [param bevel] gives it a normal from the room's distance field (tiles), as deep as
+## [member LightingTuning.wall_bevel_u]; otherwise it is flat. [param keep_hue] is for a box whose
+## colour says what it is (the player, an enemy): the light brightens or darkens it but does not
+## tint it.
 static func make_lit(item: CanvasItem, bevel: bool = false, keep_hue: bool = false) -> void:
 	if _lit_material == null:
+		var t := load(LightingTuning.PATH) as LightingTuning
 		_lit_material = ShaderMaterial.new()
 		_lit_material.shader = load(LIT_SHADER) as Shader
 		_bevel_material = ShaderMaterial.new()
 		_bevel_material.shader = _lit_material.shader
 		_bevel_material.set_shader_parameter("sdf_normals", true)
+		_bevel_material.set_shader_parameter("bevel_u", t.wall_bevel_u)
 		_function_material = ShaderMaterial.new()
 		_function_material.shader = _lit_material.shader
 		_function_material.set_shader_parameter("keep_hue", true)

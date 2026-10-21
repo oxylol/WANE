@@ -56,7 +56,7 @@ uniform vec2 frame_u = vec2(64.0, 64.0); // the frame's cell in u
 uniform float texel_u = 1.0; // u per texel at the bound scale (1 at 1x, 0.25 at 4x)
 uniform bool carries_ember = false;
 uniform int palette_row = 0; // palette variant
-uniform int mode = 0; // 0 lit, 1 silhouette, 2 visibility, 3 channel debug, 4 the wobble field
+uniform int mode = 0; // 0 lit, 1 silhouette, 2 visibility, 3 channel debug, 4 the wobble field, 5 the two values
 
 varying vec2 ink_p_u; // position in the frame, in u, in the texture's own axes
 varying vec2 ink_world; // world position
@@ -252,6 +252,11 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	float lit = wane_key_lit(world, n, screen_uv, carrier, wane_fill.x, wane_fill.y, wane_fill.z * brush);
 	if (smear) {
 		lit = 1.0;
+	}
+	if (mode == 5) {
+		// The two-value choice as a grey, 0 the shadow value and 1 the lit value: what the tests read
+		// for the key's Dark, a carrier's crescent and a smear's single value.
+		return vec4(vec3(lit), alpha);
 	}
 	vec3 base = mix(c_shadow, c_lit, lit) * (1.0 + wane_fill.w * brush);
 	vec3 rad = wane_radiance(world, n, screen_uv);
