@@ -56,7 +56,7 @@ A condition is `key op value`; keys from `core/sim/simulation.gd probe`: player 
 - Grey-box colours (legend: PROGRESS.md "For the director"): tiles are `game/rooms/room_view.gd RoomView` consts, boxes by tag `content/feedback.tres` `box_*`. Room to PNG: `tools/replay/room_shot.gd` (needs a display).
 - Contact sheet, F3 on (needs a display): `xvfb-run -a -s "-screen 0 1920x1080x24" godot --path . --rendering-driver opengl3 --audio-driver Dummy --resolution 1920x1080 --script tools/replay/film.gd -- out.png --overlay on --zoom 3 <fixture>`.
 - One gdUnit suite: `ci/unit.sh --quiet tests/unit/core/test_rng.gd` (the whole stage runs 4 processes; `UNIT_PROCESSES=1` for one); raw failures: `python3 tools/ci/unit_failures.py`.
-- Timing: each run logs to `reports/timings.jsonl`; `python3 tools/ci/timing_report.py` prints the slowest, regressions (over 25%) and totals (`tests/README.md`).
+- Timing: each run logs to reports/timings.jsonl (git-ignored); `python3 tools/ci/timing_report.py` prints the slowest, regressions (over 25%) and totals (`tests/README.md`).
 - Native: `ci/setup_godot_cpp.sh`, `ci/build_native.sh`; worktrees share one cache (`WANE_NATIVE_CACHE`, ADR-0021).
 - Lint: `ci/lint.sh` (gdlint, gdformat --check, greps; needs `tools/requirements.txt`); fix format with `gdformat <file>`.
 - Coverage (gate 85%): `python3 tools/ci/gd_coverage.py --min 85`. Python tests: `tools/ci/test_*.py`. Benches: `tools/bench/*_bench.gd`. Perf gate: `ci/perf.sh [--only stress|zone|frame]` (`PERF_LIB=release`) against `content/perf/budget.tres`; `tools/bench/stage_bench.gd` times a tick's stages.
@@ -84,4 +84,4 @@ A condition is `key op value`; keys from `core/sim/simulation.gd probe`: player 
 - `0022-native-physics-sweep` The C++ sweep and cells.
 - `0021-native-extension-toolchain` godot-cpp pin, `WANE_NATIVE`, parity rules.
 - `0018-room-editor-install` Plugin shim in `addons/room_editor/`, code in `tools/room_editor/`.
-- `0023-timing-log` What each run logs, how the report judges it.
+- `0025-timing-log` What each run logs, how the report judges it.

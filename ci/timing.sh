@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sourced by ci/test.sh, ci/unit.sh, ci/perf.sh and ci/build_native.sh (never run): the timing log's
-# writer for the shell (BUILD.md section 13, "Testing and CI"; docs/adr/0023). One line of JSON
+# writer for the shell (BUILD.md section 13, "Testing and CI"; docs/adr/0025). One line of JSON
 # per measured item is appended to reports/timings.jsonl, in the fields tools/ci/timing_log.gd
 # (the Godot side) and tools/ci/timing_report.py (the reader) use:
 #   ts run commit tool stage kind item variant seconds processors load

@@ -1,6 +1,6 @@
 class_name TimingLog
 extends RefCounted
-## The timing log (BUILD.md section 13, "Testing and CI"; docs/adr/0023): what the test run, the
+## The timing log (BUILD.md section 13, "Testing and CI"; docs/adr/0025): what the test run, the
 ## fixture runner and the film tool measure, as one JSON object per line appended to
 ## reports/timings.jsonl (git-ignored). tools/ci/timing_report.py reads it; its module docstring and
 ## tests/README.md ("Timing log") describe the fields. ci/timing.sh writes the same lines from

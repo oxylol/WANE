@@ -43,7 +43,7 @@ const TRACK_Y := Color(1.0, 0.6, 0.25)
 const BAND := Color(0.5, 0.15, 0.15, 0.5)
 const TRACK_PX_PER_TICK: int = 2
 
-## What the run measured (tools/ci/timing_log.gd, docs/adr/0023).
+## What the run measured (tools/ci/timing_log.gd, docs/adr/0025).
 var timing: TimingLog = TimingLog.new("tools/replay/film.gd")
 ## --lighting's word for the fixtures after it; "" lets the fixture's own word decide.
 var _lighting: String = ""

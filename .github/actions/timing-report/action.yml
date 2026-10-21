@@ -1,4 +1,4 @@
-# The timing log of this job (ADR-0023): the report in the job summary, the log as an artifact.
+# The timing log of this job (ADR-0025): the report in the job summary, the log as an artifact.
 #
 # ci/test.sh, ci/perf.sh, ci/build_native.sh and tools/ci/gd_coverage.py append what they measured
 # to reports/timings.jsonl. The report compares each item with the median of its last 10 runs, so

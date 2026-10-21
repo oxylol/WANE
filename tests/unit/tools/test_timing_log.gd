@@ -1,6 +1,6 @@
 extends GdUnitTestSuite
 ## The Godot side of the timing log (tools/ci/timing_log.gd, tools/ci/unit_report.gd,
-## docs/adr/0023): the line it writes (the fields tools/ci/timing_report.py reads), the floors under
+## docs/adr/0025): the line it writes (the fields tools/ci/timing_report.py reads), the floors under
 ## which a case or fixture is not logged, the switches in the environment, and the reading of
 ## gdUnit4's report.
 

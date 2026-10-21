@@ -1,4 +1,4 @@
-# ADR-0023: Log what every run measures, and report what got slower
+# ADR-0025: Log what every run measures, and report what got slower
 
 - Status: Accepted
 - Date: 2026-10-20

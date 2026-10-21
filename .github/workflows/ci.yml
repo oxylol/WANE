@@ -44,7 +44,7 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # The timing log's history from earlier runs (ADR-0025), so that the report has a median to
       # compare with: the newest cache of this job and OS is restored, this run's is saved.
       - name: Timing history
         uses: actions/cache@v4
@@ -97,7 +97,7 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # The timing log's history from earlier runs (ADR-0025), so that the report has a median to
       # compare with: the newest cache of this job and OS is restored, this run's is saved.
       - name: Timing history
         uses: actions/cache@v4
@@ -142,7 +142,7 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
-      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # The timing log's history from earlier runs (ADR-0025), so that the report has a median to
       # compare with: the newest cache of this job and OS is restored, this run's is saved.
       - name: Timing history
         uses: actions/cache@v4

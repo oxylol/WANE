@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The timing log and its report (BUILD.md section 13, "Testing and CI"; docs/adr/0023).
+"""The timing log and its report (BUILD.md section 13, "Testing and CI"; docs/adr/0025).
 
 Every run of ci/test.sh (per stage, suite, case and fixture), ci/unit.sh, ci/perf.sh (per bench),
 ci/build_native.sh, tools/ci/gd_coverage.py and tools/replay/film.gd appends one JSON line per

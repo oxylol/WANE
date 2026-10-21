@@ -139,7 +139,7 @@ func result_count() -> int:
 
 
 ## Each fixture's run time of the last [method run_all], in seconds, by name, in path order (the
-## timing log's fixture lines, docs/adr/0023).
+## timing log's fixture lines, docs/adr/0025).
 func timings() -> Dictionary[String, float]:
 	var out: Dictionary[String, float] = {}
 	for r: Result in results:
