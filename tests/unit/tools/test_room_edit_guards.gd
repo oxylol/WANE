@@ -1,4 +1,5 @@
 extends GdUnitTestSuite
+# unit-group: room-scratch
 ## The room editor's edit layer refuses what the text format cannot hold (a name with a space, an
 ## empty name, a '#' that starts a comment), so no edit can leave a room that does not parse and
 ## no undo can drop a door or a property; a no-op edit is no undo step; undo of an id change keeps

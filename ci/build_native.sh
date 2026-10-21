@@ -7,8 +7,15 @@
 #   NATIVE_PLATFORM=linux|windows|macos  override the detected platform
 #   NATIVE_ARCH=<arch>                   override the arch (macOS defaults to universal)
 #   NATIVE_JOBS=<n>                      parallel jobs (default: all cores)
+#   WANE_NATIVE_CACHE=<dir>|off          the cache shared by every worktree (ci/native_cache.sh,
+#                                        docs/adr/0021): objects another worktree built are copied
+#                                        from it, not compiled. Default: <main checkout>/.git/
+#                                        wane-native-cache; off on CI, which has its own cache.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. ci/timing.sh
+. ci/native_cache.sh
+timing_init ci/build_native.sh
 which_target="${1:-template_debug}"
 case "$which_target" in
 	template_debug|template_release) targets=("$which_target") ;;
@@ -42,14 +49,36 @@ elif [ "$platform" = macos ]; then
 fi
 jobs="${NATIVE_JOBS:-$( (nproc || getconf _NPROCESSORS_ONLN || echo 2) 2> /dev/null)}"
 ci/setup_godot_cpp.sh > /dev/null
+# godot-cpp's SConstruct turns SCONS_CACHE into SCons's CacheDir (and the MD5 decider that goes
+# with it). The folder is named for the compiler and platform so that objects made by another
+# compiler are never offered.
+cache="$(native_cache_dir)"
+if [ -n "$cache" ]; then
+	export SCONS_CACHE="$cache/scons-$(native_cache_key "$platform" "${NATIVE_ARCH:-}")"
+	mkdir -p "$SCONS_CACHE"
+fi
 log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
 start=$SECONDS
+compiled=0
+fetched=0
 for target in "${targets[@]}"; do
+	target_started="$(timing_now)"
 	if ! (cd native && "${scons[@]}" -Q -j"$jobs" "platform=$platform" "target=$target" ${arch_args[@]+"${arch_args[@]}"}) > "$log" 2>&1; then
 		tail -n 40 "$log" >&2
 		echo "build_native: $target failed" >&2
 		exit 1
 	fi
+	# A build that compiled, one that took everything from the cache, one with nothing to do:
+	# their times are not comparable, so they are three series in the timing log.
+	built_now="$(grep -c "Compiling " "$log" || true)"
+	fetched_now="$(grep -c "^Retrieved " "$log" || true)"
+	compiled=$((compiled + built_now))
+	fetched=$((fetched + fetched_now))
+	how="up-to-date"
+	if [ "$built_now" -gt 0 ]; then how="built"; elif [ "$fetched_now" -gt 0 ]; then how="cache"; fi
+	timing_log native build "$target" "$platform $how" "$(timing_since "$target_started")"
 done
-echo "native: built ${targets[*]} for $platform in $((SECONDS - start)) s -> native/bin/"
+note=""
+if [ "$((compiled + fetched))" -gt 0 ]; then note=" ($fetched objects from the cache, $compiled compiled)"; fi
+echo "native: built ${targets[*]} for $platform in $((SECONDS - start)) s$note -> native/bin/"

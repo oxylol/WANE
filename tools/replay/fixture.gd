@@ -50,6 +50,9 @@ var stick_x: PackedInt32Array = PackedInt32Array()
 var stick_y: PackedInt32Array = PackedInt32Array()
 var expectations: Array[Expectation] = []
 var errors: PackedStringArray = PackedStringArray()
+## The text the fixture was parsed from; the camera suites key their recordings by it
+## (tests/support/camera_run.gd).
+var source: String = ""
 
 var _input_lines: Array[PackedStringArray] = []
 var _input_line_numbers: PackedInt32Array = PackedInt32Array()
@@ -268,6 +271,7 @@ func _want(wanted: Dictionary[String, PackedInt32Array], key: String, span: Vect
 
 
 func _parse(text: String) -> void:
+	source = text
 	var block: String = ""
 	var line_number: int = 0
 	for raw: String in text.split("\n"):

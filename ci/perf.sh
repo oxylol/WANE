@@ -26,6 +26,8 @@
 # presentation gate or the spike line (ADR-0020 Decision 14).
 set -euo pipefail
 cd "$(dirname "$0")/.."
+. ci/timing.sh
+timing_init ci/perf.sh
 godot="${GODOT:-godot}"
 limit="${PERF_TIME_LIMIT:-900}"
 log="$(mktemp)"
@@ -74,13 +76,20 @@ fi
 # One bench: runs $1 (a script) with its report $2 and marker $3; sets status to 1 on a failure.
 status=0
 run_bench() {
-	local script="$1" report="$2" marker="$3" code=0
+	local script="$1" report="$2" marker="$3" code=0 started
 	shift 3
+	started="$(timing_now)"
 	"${run[@]}" "$godot" --headless --path . --script "$script" -- "${args[@]/reports\/perf.txt/$report}" "$@" > "$log" 2>&1 || code=$?
+	local elapsed
+	elapsed="$(timing_since "$started")"
 	grep -v -e '^Godot Engine v' -e '^$' -e '^WARNING: .* ObjectDB' -e '^ERROR: .* resources still in use' -e '^   at: ' "$log" || true
 	if [ "$code" -ne 0 ] || ! grep -q "^$marker" "$log"; then
 		echo "perf: $script FAILED (exit $code, or no pass marker; 124 or 142 means the ${limit}s limit was hit)" >&2
 		status=1
+	else
+		# The library the bench ran on, and any arguments that change its length (--repeats), are
+		# part of what the time means.
+		timing_log perf bench "$(basename "$script")" "${PERF_LIB:-debug}${*:+ $*}" "$elapsed"
 	fi
 }
 only=""

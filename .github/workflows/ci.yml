@@ -27,6 +27,8 @@ jobs:
       - run: ci/lint.sh
       - run: python3 tools/ci/test_gd_coverage.py
       - run: python3 tools/ci/test_codemap.py
+      - run: python3 tools/ci/test_timing_report.py
+      - run: python3 tools/ci/test_native_cache.py
 
   test:
     name: test (compile, content, fixtures, unit)
@@ -42,6 +44,14 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
+      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # compare with: the newest cache of this job and OS is restored, this run's is saved.
+      - name: Timing history
+        uses: actions/cache@v4
+        with:
+          path: reports/timings.jsonl
+          key: timings-test-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: timings-test-${{ runner.os }}-
       - uses: ./.github/actions/native-build
       - name: Sweep core under UBSan and ASan (ADR-0022)
         run: ci/sanitize_native.sh
@@ -66,6 +76,10 @@ jobs:
         with:
           name: unit-reports
           path: reports/
+      - uses: ./.github/actions/timing-report
+        if: always()
+        with:
+          name: test
 
   # The performance gate is two jobs so that a red one cannot hide the other (ADR-0020 Decision 14).
   # perf: the 5-minute zone 1 run (no tick above 20 ms) and the presentation (5.0 ms p99 of script
@@ -83,6 +97,14 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
+      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # compare with: the newest cache of this job and OS is restored, this run's is saved.
+      - name: Timing history
+        uses: actions/cache@v4
+        with:
+          path: reports/timings.jsonl
+          key: timings-perf-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: timings-perf-${{ runner.os }}-
       - uses: ./.github/actions/native-build
       - name: Zone 1 5-minute run
         run: ci/perf.sh --only zone
@@ -96,6 +118,10 @@ jobs:
           path: |
             reports/perf.txt
             reports/frame.txt
+      - uses: ./.github/actions/timing-report
+        if: always()
+        with:
+          name: perf
 
   # BUILD.md section 13: input + simulation step 99th percentile <= 3.0 ms in the stress room
   # (200 enemies, 40 procs), no tick above 20 ms; budgets in content/perf/budget.tres. The gated
@@ -116,6 +142,14 @@ jobs:
           godot="$(ci/setup_godot.sh linux | tail -n 1)"
           test -x "$godot"
           echo "GODOT=$godot" >> "$GITHUB_ENV"
+      # The timing log's history from earlier runs (ADR-0023), so that the report has a median to
+      # compare with: the newest cache of this job and OS is restored, this run's is saved.
+      - name: Timing history
+        uses: actions/cache@v4
+        with:
+          path: reports/timings.jsonl
+          key: timings-perf-stress-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: timings-perf-stress-${{ runner.os }}-
       - uses: ./.github/actions/native-build
       - name: Stress room
         run: ci/perf.sh --only stress
@@ -125,6 +159,10 @@ jobs:
         with:
           name: perf-stress-report
           path: reports/perf.txt
+      - uses: ./.github/actions/timing-report
+        if: always()
+        with:
+          name: perf-stress
 
   native-release:
     name: native release library (${{ matrix.os }})
@@ -202,3 +240,7 @@ jobs:
           WANE_NATIVE: "on"
           TEST_TIME_LIMIT: "1800"
         run: ci/test.sh --quiet --stage compile --stage fixtures --stage unit --unit-time-limit 1500
+      - uses: ./.github/actions/timing-report
+        if: always()
+        with:
+          name: determinism-${{ matrix.platform }}

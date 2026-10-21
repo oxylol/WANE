@@ -302,8 +302,10 @@ func test_every_fixture_keeps_the_player_clear_and_the_camera_smooth() -> void:
 	# Every fixture is checked at every screen shape, and every one that breaks a rule is
 	# reported, not just the first.
 	var problems: PackedStringArray = []
-	for view: Vector2 in VIEWS:
-		for path: String in paths:
+	# One fixture at a time through the four screen shapes: CameraRun simulates it once and shows
+	# the recording to each camera.
+	for path: String in paths:
+		for view: Vector2 in VIEWS:
 			var run: CameraRun = _play(path, view)
 			var problem: String = _first_problem(run)
 			# The backstop keeps the player clear of the margin whatever the follow does, so the
@@ -356,3 +358,77 @@ func _vertical_speed_problem(run: CameraRun, f: int, glide: bool) -> String:
 	if v < lo - 0.001 or v > hi + 0.001:
 		return "vertical speed changes from %.2f to %.2f u in a tick" % [was, v]
 	return ""
+
+
+## What [CameraRun] made before it recorded: the fixture played through a fresh simulation and
+## [param camera] in one pass, a subject at a time.
+func _played_straight(fx: Fixture, camera: CameraRig) -> CameraRun:
+	var run := CameraRun.new()
+	var sim := Simulation.new(fx.scenario)
+	var ahead: int = camera.tuning.fall_lead_frames
+	run.rig = camera
+	run.room = Rect2(
+		0, 0, sim.world.grid.width * TileGrid.TILE, sim.world.grid.height * TileGrid.TILE
+	)
+	camera.reset(CameraSubject.of(sim, ahead), run.room)
+	for f: int in range(fx.frame_total):
+		sim.step(fx.input_frame(f))
+		var s: CameraSubject = CameraSubject.of(sim, ahead)
+		if s.entered:
+			run.room = Rect2(
+				0, 0, sim.world.grid.width * TileGrid.TILE, sim.world.grid.height * TileGrid.TILE
+			)
+		camera.step(s, run.room)
+		run.subjects.append(s)
+		run.centers.append(camera.center)
+		run.previous.append(camera.previous)
+		run.looks.append(camera._look)
+		run.fall_looks.append(camera._fall_lead)
+		run.leads.append(camera._lead_dir)
+		run.supports.append(camera._support_y)
+		run.gliding.append(camera.gliding())
+		run.events.append(PackedStringArray(sim.events.kinds))
+	return run
+
+
+func test_a_recording_shown_to_a_camera_is_the_run_of_playing_the_fixture_straight() -> void:
+	# The sweeps simulate a fixture once and show the recording to a camera for each screen shape;
+	# this holds that to the one-pass answer, through doors, teleports and falls.
+	var paths: Array[String] = []
+	for dir: String in ["doors", "camera", "tech", "zone1"]:
+		var found: Array[String] = []
+		for f: String in DirAccess.get_files_at("res://tests/replay/" + dir):
+			if f.ends_with(".fixture"):
+				found.append("res://tests/replay/%s/%s" % [dir, f])
+		found.sort()
+		paths.append_array(found.slice(0, 3))
+	assert_int(paths.size()).is_greater(8)
+	for path: String in paths:
+		for view: Vector2 in [VIEWS[0], VIEWS[3]]:
+			var shown: CameraRun = _play(path, view)
+			var straight: CameraRun = _played_straight(Fixture.parse_file(path), _rig(view))
+			var label: String = "%s at %s" % [path.get_file(), view]
+			assert_array(shown.centers).override_failure_message(label).is_equal(straight.centers)
+			assert_array(shown.previous).override_failure_message(label).is_equal(straight.previous)
+			assert_array(shown.looks).override_failure_message(label).is_equal(straight.looks)
+			assert_array(shown.fall_looks).override_failure_message(label).is_equal(
+				straight.fall_looks
+			)
+			assert_array(shown.leads).override_failure_message(label).is_equal(straight.leads)
+			assert_array(shown.supports).override_failure_message(label).is_equal(straight.supports)
+			assert_array(shown.gliding).override_failure_message(label).is_equal(straight.gliding)
+			assert_array(shown.events).override_failure_message(label).is_equal(straight.events)
+			assert_object(shown.room).override_failure_message(label).is_equal(straight.room)
+			assert_int(shown.subjects.size()).is_equal(straight.subjects.size())
+			assert_int(shown.rig.follow_misses).is_equal(straight.rig.follow_misses)
+
+
+func test_playing_a_fixture_twice_gives_two_runs_that_do_not_share_a_camera() -> void:
+	var path: String = "res://tests/replay/camera/cam5_air_jump_above_floor.fixture"
+	var first: CameraRun = _play(path, VIEWS[0])
+	var second: CameraRun = _play(path, VIEWS[1])
+	assert_bool(first.rig == second.rig).is_false()
+	assert_bool(first.centers == second.centers).is_false()
+	# The first run is as it was after the second was played.
+	var again: CameraRun = _play(path, VIEWS[0])
+	assert_array(again.centers).is_equal(first.centers)

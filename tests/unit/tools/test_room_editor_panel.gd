@@ -1,4 +1,5 @@
 extends RoomEditorSuite
+# unit-group: room-scratch
 ## The room editor's panel and canvas, driven the way the mouse and the palette drive them
 ## (Phase 1 task 7; docs/adr/0018): open, create, paint every tile kind, draw boxes, place the
 ## dummy and edit its properties, resize the room, save and play, every edit undoable.

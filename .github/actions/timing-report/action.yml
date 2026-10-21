@@ -1,0 +1,32 @@
+# The timing log of this job (ADR-0023): the report in the job summary, the log as an artifact.
+#
+# ci/test.sh, ci/perf.sh, ci/build_native.sh and tools/ci/gd_coverage.py append what they measured
+# to reports/timings.jsonl. The report compares each item with the median of its last 10 runs, so
+# each job restores the log of its earlier runs from the Actions cache before it starts (the
+# "Timing history" step: key timings-<job>-<os>-<run id>, restored from the newest
+# timings-<job>-<os>-*) and the log here is that history plus this run. The report never fails a
+# job.
+name: timing-report
+description: Append the timing report to the job summary and upload reports/timings.jsonl.
+
+inputs:
+  name:
+    description: Names the artifact (timings-<name>); one per job.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Timing report (job summary)
+      shell: bash
+      run: |
+        py="$(command -v python3 || command -v python || true)"
+        if [ -n "$py" ]; then
+          "$py" tools/ci/timing_report.py --markdown >> "$GITHUB_STEP_SUMMARY" || true
+        fi
+    - name: Upload the timing log
+      uses: actions/upload-artifact@v4
+      with:
+        name: timings-${{ inputs.name }}
+        path: reports/timings.jsonl*
+        if-no-files-found: ignore

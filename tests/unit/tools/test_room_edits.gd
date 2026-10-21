@@ -1,4 +1,5 @@
 extends GdUnitTestSuite
+# unit-group: room-scratch
 ## The room editor's edits of solid boxes, entities, doors and the room's size (docs/adr/0009,
 ## 0014, 0015), through [RoomDocument]'s helpers.
 

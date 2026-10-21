@@ -19,7 +19,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
+
+import timing_report
 
 ROOT = Path(__file__).resolve().parents[2]
 PROBE_CLASS = "CoverageProbe"
@@ -156,6 +159,8 @@ def main() -> int:
     parser.add_argument("--report", default="")
     args = parser.parse_args()
 
+    timing = timing_report.Writer("tools/ci/gd_coverage.py")
+    began = time.perf_counter()
     core_files = sorted(p for p in (ROOT / "core").rglob("*.gd"))
     with tempfile.TemporaryDirectory(prefix="wane-coverage-") as tmp:
         work = Path(tmp) / "project"
@@ -164,6 +169,12 @@ def main() -> int:
             work,
             ignore=shutil.ignore_patterns(".git", ".godot", "reports", "__pycache__"),
         )
+        # The unit stage balances its processes by the suites' times in the timing log; the copy has
+        # no reports/ folder, so it is given the log (read-only: the instrumented run writes none).
+        log = ROOT / "reports" / "timings.jsonl"
+        if log.is_file():
+            (work / "reports").mkdir(exist_ok=True)
+            shutil.copy(log, work / "reports" / "timings.jsonl")
         probes: dict[int, tuple[Path, list[int]]] = {}
         for file_id, path in enumerate(core_files):
             rel = path.relative_to(ROOT)
@@ -178,6 +189,7 @@ def main() -> int:
             check=False,
             timeout=TIME_LIMIT_SECONDS,
         )
+        prepared = time.perf_counter()
         # A script that fails to compile makes Godot idle instead of exiting, so the run has a
         # time limit and must print run_tests.gd's pass marker (as in ci/test.sh).
         try:
@@ -217,6 +229,11 @@ def main() -> int:
             sys.stderr.write(run.stderr[-4000:])
             print("coverage: the instrumented test run failed", file=sys.stderr)
             return 1
+        # The instrumented run is slow on purpose, so it logs one line of its own (run_tests.gd,
+        # given --no-time-budget, logs none) and only when it passed.
+        finished = time.perf_counter()
+        timing.add("coverage", "coverage", "copy, instrument and import", prepared - began)
+        timing.add("coverage", "coverage", "instrumented test run", finished - prepared)
         hit: set[int] = set()
         hit_files = sorted((work / HITS_DIR).glob("*.txt"))
         for hits_file in hit_files:
