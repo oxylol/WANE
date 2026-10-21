@@ -36,3 +36,25 @@ The tuned values become the spec: when a number changes here, the same commit ch
 | 2026-10-20 | [Phase 2 task 1: ink and gouache shaders](2026-10-20-ink-gouache-shaders.md) | The ink line, two-value gouache, rim, brush, grain and emissive as canvas shaders on the ADR-0023 channel layout; brush_noise 0.10 to 0.05 |
 | 2026-10-20 | [Phase 2 task 1: the lighting pass](2026-10-20-lighting-pass.md) | The ember, soft shadows from the room's distance field, ambient times the Dark, emissives and bloom replace the Phase 1 stand-in |
 | 2026-10-20 | [Phase 2 task 1: the art pipeline made whole](2026-10-20-art-pipeline.md) | The three builders merged; the three-size review in the lit test room; per-action cells, pages and the blade tip; one boil rate (`boil_hz` 12, now in one file) |
+| 2026-10-19 | [camera review 7](2026-10-19-camera-review7.md) | Camera review 7: fall away, death cut, charge hold, shake margin, glide exit |
+| 2026-10-19 | [engine merge](2026-10-19-merge-engine.md) | The engine work merged: core review 2, physics 8, camera 7, presentation, procs |
+| 2026-10-19 | [physics review 8](2026-10-19-physics-r8.md) | Physics review 8: lips met down a ramp, lids over hazards |
+| 2026-10-19 | [presentation review 3](2026-10-19-presentation-review-3.md) | Presentation review 3 (task 5 round 3, task 6 round 2) |
+| 2026-10-19 | [core fixes, review round 3](2026-10-19-rr3-core-fixes.md) | Movement review 6 and task 6 core review 2: the core fixes |
+| 2026-10-19 | [task 7: doors](2026-10-19-task7-doors.md) | Task 7: doors between rooms |
+| 2026-10-19 | [task 8: procs and Votives](2026-10-19-task8-procs.md) | Task 8: the proc event bus and the first Votives |
+| 2026-10-20 | [Phase 2 task 1: design and spike](2026-10-20-art-pipeline-spike.md) | Phase 2 task 1: the art pipeline designed (ADR-0023) and its risky parts spiked |
+| 2026-10-20 | [camera glide jolt](2026-10-20-camera-glide-jolt.md) | The camera jolt from a bounce during a teleport's glide (ADR-0011) |
+| 2026-10-20 | [parry window in ticks](2026-10-20-parry-window-ticks.md) | The parry window is 8 ticks when the press connects; dash-jump audit notes |
+| 2026-10-20 | [presentation audit fixes](2026-10-20-presentation-audit-fixes.md) | Audit fixes: the door spike, tunables in content, effects through the VFX budget, the stress sheet |
+| 2026-10-20 | [squash and stretch](2026-10-20-squash-stretch.md) | Landing squash and apex stretch on the grey-box player, drawn only |
+| 2026-10-20 | [task 8: stress room and CPU budget](2026-10-20-stress-room-perf.md) | Task 8: the stress room and the CPU budget |
+| 2026-10-20 | [stress workload at the spec](2026-10-20-stress-workload-at-spec.md) | The stress room's workload at the spec, with the native sweep |
+| 2026-10-20 | [stress gate closed](2026-10-20-stress-gate-closed.md) | The stress room's simulation gate closed: p99 5.01 to 2.67 ms |
+| 2026-10-20 | [room 03: the 4-a-second pit](2026-10-20-room03-pit.md) | Room 03: the pit a 10-bounce chain at 4 a second crosses |
+| 2026-10-20 | [room 03: open pit](2026-10-20-room03-open-pit.md) | Room 03 rebuilt for the director: an open pit for the main route, the 4-a-second tunnel optional |
+| 2026-10-20 | [grey-box box colours](2026-10-20-box-colours.md) | Grey-box solid boxes coloured by function (wax, bell, smooth, plain) |
+| 2026-10-21 | [Phase 2 task 1: first review fixed](2026-10-21-art-pipeline-fixes.md) | Phase 2 task 1: the first review's findings fixed (form lighting, halos, the smear ribbon, the painted backdrop; ADR-0026) |
+| 2026-10-21 | [Phase 2 task 1: review 2, shaders and lighting](2026-10-21-review2-shaders.md) | Phase 2 task 1, second review: the shaders and the lighting (bloom in u, the hue-keeping shoulder, all four shadow channels pinned) |
+| 2026-10-21 | [Phase 2 task 1: review 2, art build](2026-10-21-review2-artbuild.md) | Phase 2 task 1, second review: the art build (a whole-root --check, strict sources, the review lights eyes as eyes) |
+| 2026-10-21 | [Phase 2 task 1: review 2, integration](2026-10-21-review2-integration.md) | Phase 2 task 1, second review: the grey boxes judged lit, pogo-able surfaces emissive, the room shot lit |
