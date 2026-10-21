@@ -37,7 +37,8 @@ var ember: WaneLight
 var ambient_colour: Color
 ## The Dark factor now (1 at Dusk, 0.15 at Pitch).
 var dark_factor: float = 1.0
-## The key light of the room: x and y toward it, z its strength. Assign the room's own.
+## The key light of the room: x and y toward it, z its strength at Dusk. Assign the room's own. The
+## shaders get it with w the share the Dark leaves of it ([method LightingTuning.key_share]).
 var key: Vector4
 ## How many rooms' fields were built, how many are baked, how many lights the table holds now,
 ## and how many dynamic occluders the shadow march got.
@@ -488,7 +489,8 @@ func _write_globals(seconds: float) -> void:
 	var amb: Color = ambient_colour * dark_factor
 	_set_global("wane_ambient", Color(amb.r, amb.g, amb.b, 1.0))
 	_set_global("wane_dark", dark_factor)
-	_set_global("wane_key", key)
+	# The key's direction and strength, and in w the share of it the Dark leaves (0 at Pitch).
+	_set_global("wane_key", Vector4(key.x, key.y, key.z, tuning.key_share(dark_factor)))
 	_set_global("wane_shape", tuning.shape_vec())
 	_set_global("wane_gate", tuning.gate_vec())
 	_set_global(

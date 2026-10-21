@@ -88,6 +88,31 @@ func test_the_dark_factor_is_one_at_dusk_and_floors_at_pitch() -> void:
 	assert_float(t.dark_factor(10.0)).is_equal(0.15)
 
 
+func test_the_key_fades_with_the_dark_to_nothing_at_pitch() -> void:
+	# BUILD.md section 8 (The Dark): at Pitch "only the ember and Beacons cast light"; section 10: "At
+	# Pitch, ambient is 0.15 and the world is the ember". The room's key is the world's light: its
+	# share of its strength is 1 at Dusk and falls to 0 at the Dark's floor, where the ambient keeps
+	# its 0.15 (the key at 0.15 of its strength gave a surface beyond every light 0.16 of its lit
+	# value at Pitch).
+	var t: LightingTuning = _tuning()
+	assert_float(t.key_share(t.dark_factor(1.0))).is_equal(1.0)
+	assert_float(t.key_share(t.dark_factor(2.6))).is_equal_approx(0.0, 0.01)
+	assert_float(t.key_share(t.dark_factor(3.0))).is_equal(0.0)
+	assert_float(t.key_share(t.dark_factor(1.6))).is_between(0.6, 0.65)
+	assert_float(t.key_share(1.2)).is_equal(1.0)
+	var f := LightField.new()
+	auto_free(f)
+	f.set_dark_level(3.0)
+	f.present(0, 0.0, Vector2.ZERO)
+	var key: Vector4 = f.globals["wane_key"]
+	assert_float(key.z).is_equal(t.key_strength)
+	assert_float(key.w).is_equal(0.0)
+	f.set_dark_level(1.0)
+	f.present(0, 0.0, Vector2.ZERO)
+	key = f.globals["wane_key"]
+	assert_float(key.w).is_equal(1.0)
+
+
 func test_a_bad_tuning_is_reported() -> void:
 	var t := LightingTuning.new()
 	t.dark_floor = 1.5

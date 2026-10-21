@@ -49,7 +49,8 @@ const PROFILE_MIN: int = 2
 ## 0.15".
 @export var dark_slope: float = 0.53
 @export var dark_floor: float = 0.15
-## The key light of a room that gives none: x and y toward the key (upper left), z its strength.
+## The key light of a room that gives none: x and y toward the key (upper left), z its strength at
+## Dusk (it fades with the Dark to nothing at Pitch: [method key_share]).
 @export var key_dir: Vector2 = Vector2(-0.6, -0.8)
 @export var key_strength: float = 0.5
 
@@ -140,6 +141,14 @@ const PROFILE_MIN: int = 2
 ## The Dark factor at Wane Clock level [param d] (docs/adr/0023 Decision 3.5).
 func dark_factor(d: float) -> float:
 	return maxf(dark_floor, 1.0 - dark_slope * (d - 1.0))
+
+
+## The share of its strength the room's key keeps at Dark factor [param factor]: 1 at Dusk, falling
+## to 0 at the Dark's floor. The key is the world's light; at Pitch "only the ember and Beacons cast
+## light" (BUILD.md section 8) while the ambient keeps its floor (section 10: "At Pitch, ambient is
+## 0.15 and the world is the ember").
+func key_share(factor: float) -> float:
+	return clampf((factor - dark_floor) / maxf(1.0 - dark_floor, 0.0001), 0.0, 1.0)
 
 
 ## The ember's energy at [param seconds] of play, with the flicker.

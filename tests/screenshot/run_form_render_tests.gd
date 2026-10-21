@@ -54,7 +54,7 @@ func _run() -> void:
 	_ink = load(InkTuning.PATH) as InkTuning
 	InkGlobals.apply(_ink)
 	await _test_two_values_follow_the_shape()
-	await _test_the_key_is_one_more_light_scaled_by_the_dark()
+	await _test_the_key_fades_with_the_dark_to_nothing_at_pitch()
 	await _test_a_wick_stays_lit_at_pitch_and_stands_off_its_ground()
 	await _test_a_carriers_crescent_comes_from_the_key()
 	await _test_the_ember()
@@ -237,10 +237,12 @@ func _test_a_wick_stays_lit_at_pitch_and_stands_off_its_ground() -> void:
 
 
 ## Beyond every light (the ember far away) the two-value choice of a surface facing the viewer is
-## the room key's gate alone: its strength times the Dark, through gate_lo to gate_hi (ADR-0026
-## Decision 1: the key is one more light, scaled by the Dark). At Dusk that is the lit value; at
-## Pitch, where "the world is the ember" (BUILD.md section 10), a fraction of it.
-func _test_the_key_is_one_more_light_scaled_by_the_dark() -> void:
+## the room key's gate alone: its strength times its share at the Dark, through gate_lo to gate_hi
+## (ADR-0026 Decision 1: the key is one more light). At Dusk that is the lit value; at Pitch,
+## where "only the ember and Beacons cast light" (BUILD.md section 8) and "the world is the ember"
+## (section 10), the key gives nothing: the surface is in its shadow value. Between, the share
+## falls from 1 at Dusk to 0 at the Dark's floor (level 2.3 is a little over a third of the way).
+func _test_the_key_fades_with_the_dark_to_nothing_at_pitch() -> void:
 	var rig: ArtRig = await _rig(null, false)
 	rig.sprite.setup(_sheet1, &"idle")
 	rig.sprite.mode = InkSprite.Mode.VALUE
@@ -248,14 +250,18 @@ func _test_the_key_is_one_more_light_scaled_by_the_dark() -> void:
 	var far: Vector2 = ArtRig.MARK + Vector2(-2000.0, 0.0)
 	var robe := Rect2(342.0, 300.0, 16.0, 14.0)
 	var t: LightingTuning = rig.tuning
-	for level: float in [1.0, 3.0]:
+	var wants: Array[float] = [1.0, -1.0, 0.0]
+	var levels: Array[float] = [1.0, 2.3, 3.0]
+	for i: int in range(levels.size()):
+		var level: float = levels[i]
 		var img: Image = await _shot(rig, 0, level, far, 1.0, centre, true)
 		var got: float = _max(img, robe)
-		var want: float = smoothstep(t.gate_lo, t.gate_hi, rig.field.key.z * t.dark_factor(level))
+		var share: float = t.key_share(t.dark_factor(level))
+		var want: float = smoothstep(t.gate_lo, t.gate_hi, rig.field.key.z * share)
 		_check(
-			absf(got - want) < 0.03,
+			absf(got - want) < 0.03 and (wants[i] < 0.0 or absf(want - wants[i]) < 0.001),
 			(
-				"beyond every light, at level %.0f, a surface has %.2f of its lit value (key x Dark: %.2f)"
+				"beyond every light, at level %.1f, a surface has %.2f of its lit value (the key's: %.2f)"
 				% [level, got, want]
 			)
 		)

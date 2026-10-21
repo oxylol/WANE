@@ -332,10 +332,11 @@ func _test_pitch_and_ember() -> void:
 	var amb_dusk: Image = await InkRender.capture(self, vp_d, true)
 	vp_d.queue_free()
 	InkRender.set_globals(_tuning, 0, far, InkRender.PITCH)
-	# Hold the key's own Dark at Dusk: at Pitch the key falls under the lit threshold and the
-	# surface drops to its shadow value (the two-value choice, checked by the lighting GPU check).
-	# This check is the ambient colour's multiplier alone.
-	RenderingServer.global_shader_parameter_set(&"wane_dark", 1.0)
+	# Hold the key at its Dusk share: at Pitch the key gives nothing and the surface drops to its
+	# shadow value (the two-value choice, checked by the form render tests). This check is the
+	# ambient colour's multiplier alone.
+	var key: Vector4 = InkRender.KEY
+	RenderingServer.global_shader_parameter_set(&"wane_key", Vector4(key.x, key.y, key.z, 1.0))
 	var vp_p: SubViewport = InkRender.viewport(
 		root, InkRender.VIEW_1X, 1.0, Vector2(InkRender.VIEW_1X) * 0.5
 	)

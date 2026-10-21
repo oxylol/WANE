@@ -142,6 +142,12 @@ vec3 wane_form_dir(vec2 to_light, float height) {
 	return vec3(dir * sqrt(max(1.0 - sin_e * sin_e, 0.0)), sin_e);
 }
 
+// The room key's strength now: its strength at Dusk (z) times the share the Dark leaves of it (w,
+// LightingTuning.key_share: 1 at Dusk, 0 at Pitch, where only the ember and Beacons cast light).
+float wane_key_strength() {
+	return wane_key.z * wane_key.w;
+}
+
 // The room key's form direction.
 vec3 wane_key_dir() {
 	return vec3(normalize(wane_key.xy + vec2(0.0001)) * cos(wane_shape.z), sin(wane_shape.z));
@@ -173,7 +179,7 @@ float wane_key_lit(vec2 world, vec3 n, vec2 screen_uv, bool carrier, float thres
 		float gate = smoothstep(wane_gate.x, wane_gate.y, presence);
 		best = max(best, gate * smoothstep(threshold - soft, threshold + soft, dot(n, l) + jitter));
 	}
-	float key_gate = smoothstep(wane_gate.x, wane_gate.y, wane_key.z * wane_dark);
+	float key_gate = smoothstep(wane_gate.x, wane_gate.y, wane_key_strength());
 	best = max(best, key_gate * smoothstep(threshold - soft, threshold + soft, dot(n, wane_key_dir()) + jitter));
 	return best;
 }
@@ -184,7 +190,7 @@ float wane_key_lit(vec2 world, vec3 n, vec2 screen_uv, bool carrier, float thres
 // 0 where no light reaches and 1 where one does in full (the gate), so that a sprite beyond every
 // light draws the heavy line all round.
 vec3 wane_line_light(vec2 world, vec2 screen_uv, bool carrier) {
-	float best = wane_key.z * wane_dark;
+	float best = wane_key_strength();
 	vec2 dir = normalize(wane_key.xy + vec2(0.0001));
 	for (int i = 0; i < WANE_MAX_LIGHTS; i++) {
 		if (i >= wane_light_count) {

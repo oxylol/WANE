@@ -145,7 +145,7 @@ wane_dark={
 }
 wane_key={
 "type": "vec4",
-"value": Vector4(-0.6, -0.8, 0.5, 0)
+"value": Vector4(-0.6, -0.8, 0.5, 1)
 }
 wane_ember={
 "type": "vec4",
