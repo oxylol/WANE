@@ -242,7 +242,7 @@ Tests: every shader compiles headless; the probe renders under xvfb match the co
 7.3 **lighting (Godot)**:
 - `game/lighting/`: `light_field.gd`, `wane_light.gd`, `room_sdf.gd`, `shadow_buffer.gd`, `shadow_twin.gd`; `lighting_tuning.gd` extended with `ember_kelvin`, `light_height_u`, `shadow_scale` per profile, `skin_u`, `light_r_u`, `max_steps`, `min_step_u`, `sdf_texel_u`, `dark_slope`, `dark_floor`, `reveal_threshold`;
 - shaders: `shaders/lighting/light_common.gdshaderinc`, `shadow_march.gdshader`, `room_sdf_bake.gdshader`; `shaders/post/post.gdshader`;
-- `project.godot` `[shader_globals]`: `wane_ambient` (color), `wane_dark` (float), `wane_key` (vec4), `wane_ember` (vec4: x, y, radius, energy), `wane_light_table` (sampler2D), `wane_light_count` (int), `wane_shadow` (sampler2D), `wane_view` (vec4: world x and y of the view's top-left, world units per pixel x and y), `wane_room_sdf` (sampler2D), `wane_room_rect` (vec4), `wane_boil` (float), `wane_time` (float, seconds from the tick).
+- `project.godot` `[shader_globals]`: `wane_ambient` (color), `wane_dark` (float), `wane_key` (vec4), `wane_ember` (vec4: x, y, radius, energy), `wane_light_table` (sampler2D), `wane_light_count` (int), `wane_shadow` (sampler2D), `wane_view` (vec4: world x and y of the view's top-left, the view's width and height in u; ADR-0026's 2026-10-21 review 2 addendum), `wane_room_sdf` (sampler2D), `wane_room_rect` (vec4), `wane_boil` (float), `wane_time` (float, seconds from the tick).
 
 It replaces `game/lighting/lighting_rig.gd` and the `LightingRig` paths in `game/main.gd`, `tools/replay/film.gd` and the frame bench. Lighting is always on; the fixture word `lighting pitch` and `--lighting=pitch` become "Dark factor 0.15".
 

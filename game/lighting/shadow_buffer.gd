@@ -24,7 +24,9 @@ func _init(tuning: LightingTuning, p_scale: float) -> void:
 	viewport = SubViewport.new()
 	viewport.name = "Buffer"
 	viewport.disable_3d = true
-	viewport.transparent_bg = false
+	# Transparent, so that the target is RGBA8: an opaque viewport's target on GL Compatibility is
+	# RGB10_A2, whose alpha (the fourth caster's channel, the Gutter Ember's) has four levels.
+	viewport.transparent_bg = true
 	viewport.use_hdr_2d = false
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_material = ShaderMaterial.new()

@@ -38,10 +38,11 @@ const int WANE_MAX_LIGHTS = 16;
 const int WANE_FLAG_SHADOW = 1;
 const int WANE_FLAG_UP_ONLY = 8;
 
-// The world position of a screen uv: wane_view is (world x, world y of the view's top left, world
-// units per screen pixel); the screen is wane_view.zw-scaled from the viewport size.
-vec2 wane_world_of(vec2 screen_uv, vec2 viewport_px) {
-	return wane_view.xy + screen_uv * viewport_px * wane_view.zw;
+// The world position of a screen uv: wane_view is (world x, world y of the view's top left, the
+// view's width and height in world units). It is in u, not in the screen's pixels, which are not
+// the world's when the window is stretched or at 4K.
+vec2 wane_world_of(vec2 screen_uv) {
+	return wane_view.xy + screen_uv * wane_view.zw;
 }
 
 float wane_visibility(vec2 screen_uv, int caster) {

@@ -495,11 +495,11 @@ func _write_globals(seconds: float) -> void:
 		"wane_ember",
 		Vector4(ember.position.x, ember.position.y, ember.radius_u, ember.energy_at(seconds))
 	)
-	var per_px := Vector2.ONE
-	if is_inside_tree():
-		var vr: Vector2 = get_viewport().get_visible_rect().size
-		per_px = Vector2(_view.size.x / maxf(vr.x, 1.0), _view.size.y / maxf(vr.y, 1.0))
-	_set_global("wane_view", Vector4(_view.position.x, _view.position.y, per_px.x, per_px.y))
+	# The view's top left and its size, in world units: what a shader needs for a reach in u (the
+	# post's bloom) at any output size, since the screen's pixels are not the world's.
+	_set_global(
+		"wane_view", Vector4(_view.position.x, _view.position.y, _view.size.x, _view.size.y)
+	)
 	_set_global("wane_boil", floorf(seconds * tuning.boil_hz))
 	_set_global("wane_time", seconds)
 

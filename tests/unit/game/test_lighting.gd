@@ -94,8 +94,9 @@ func test_a_bad_tuning_is_reported() -> void:
 	t.ember_radius_u = 0.0
 	t.max_lights = 40
 	t.sdf_texel_u = 0.1
-	# Four light kinds missing, and the four above.
-	assert_int(t.validate().size()).is_equal(8)
+	t.wall_bevel_u = 0.0
+	# Four light kinds missing, and the five above.
+	assert_int(t.validate().size()).is_equal(9)
 	var k := LightKind.new()
 	k.id = &"x"
 	k.shadow_channel = 7
@@ -270,6 +271,10 @@ func test_what_is_light_is_emissive_and_what_is_a_surface_is_lit() -> void:
 	var tm: ShaderMaterial = tiles.material as ShaderMaterial
 	var bevel: bool = tm.get_shader_parameter("sdf_normals")
 	assert_bool(bevel).is_true()
+	# The bevel's depth is content (CLAUDE.md rule 6), not the shader's default.
+	var bevel_u: float = tm.get_shader_parameter("bevel_u")
+	assert_float(bevel_u).is_equal(_tuning().wall_bevel_u)
+	assert_float(_tuning().wall_bevel_u).is_equal(6.0)
 	var player := PlayerView.new()
 	add_child(player)
 	auto_free(player)

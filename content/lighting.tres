@@ -88,6 +88,7 @@ key_dir = Vector2(-0.6, -0.8)
 key_strength = 0.5
 flat_share = 0.35
 bevel_tilt = 0.95
+wall_bevel_u = 6.0
 form_elevation_deg = 40.0
 up_only_soft_u = 8.0
 gate_lo = 0.05
