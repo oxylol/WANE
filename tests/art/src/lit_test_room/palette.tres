@@ -1,0 +1,23 @@
+[gd_resource type="Resource" format=3]
+
+[resource]
+resource_name = "lit_test_room palette"
+metadata/palette = {
+"materials": {
+"stone": {"lit": "#8a7e94", "shadow": "#2c2534", "rim": "#f4c48e", "gloss": 0.1},
+"bone": {"lit": "#c2b49c", "shadow": "#4c4238", "rim": "#ffd8a8", "gloss": 0.4},
+"far": {"lit": "#3e3550", "shadow": "#1c1724", "rim": "#d8a878", "gloss": 0.0},
+"column": {"lit": "#5a4e70", "shadow": "#241e30", "rim": "#e8b888", "gloss": 0.1},
+"timber": {"lit": "#94704e", "shadow": "#34261c", "rim": "#ffc080", "gloss": 0.15}
+},
+"parts": {
+"walls": "stone",
+"ledge": "bone",
+"crate": "timber",
+"back": "far",
+"pillar_a": "column",
+"pillar_b": "column",
+"pillar_c": "column"
+},
+"variants": {}
+}

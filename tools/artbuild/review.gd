@@ -21,6 +21,10 @@ extends SceneTree
 ## reproducible (Decision 6.3).
 
 const ROOM_PATH: String = "res://tests/screenshot/rooms/lit_test.room"
+## The room's painted shapes (tests/art/src/lit_test_room), drawn through the background shader:
+## the open, broken line, the brush and the grain, so that the review judges the backdrop too.
+const BACKDROP_DIR: String = "res://tests/art/build"
+const BACKDROP: String = "lit_test_room"
 const ROOTS: Array[String] = [
 	"res://assets/art/build", "res://tests/art/build", "res://tests/screenshot/data"
 ]
@@ -57,6 +61,10 @@ var _meta: Dictionary[String, Variant] = {}
 var _field: LightField
 var _camera: Camera2D
 var _sprite: InkSprite
+var _back: InkSprite
+var _back1: SpriteSheet
+var _back4: SpriteSheet
+var _prop_lights: Array[WaneLight] = []
 var _tuning: LightingTuning
 var _ember_at: Vector2 = Vector2.ZERO
 var _asset_height_u: float = 64.0
@@ -91,8 +99,9 @@ func _run() -> void:
 	_asset_height_u = _tallest_u(_actions)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(_out))
 	await _silhouette(sheet1)
-	await _build_room()
+	await _build_room(noise)
 	_place_ember()
+	_light_emissives(sheet1)
 	await _shot("dusk1x", sheet1, 1, &"", 0, LightWord.DUSK_LEVEL)
 	await _shot("pitch1x", sheet1, 1, &"", 0, LightWord.PITCH_LEVEL)
 	if sheet4 != null:
@@ -217,7 +226,7 @@ func _silhouette(sheet: SpriteSheet) -> void:
 # --- the lit test room ----------------------------------------------------------------------
 
 
-func _build_room() -> void:
+func _build_room(noise: Texture2D) -> void:
 	var data: RoomData = RoomData.parse(FileAccess.get_file_as_string(ROOM_PATH))
 	for e: String in data.errors:
 		printerr("%s: %s" % [ROOM_PATH, e])
@@ -228,10 +237,19 @@ func _build_room() -> void:
 	root.add_child(holder)
 	_field = LightField.new()
 	holder.add_child(_field)
-	var view := RoomView.new()
-	holder.add_child(view)
-	view.show_world(world, data.doors)
 	_field.show_world(world, data.id)
+	_back1 = SpriteSheet.open("%s/%s" % [BACKDROP_DIR, BACKDROP], BACKDROP, 1, noise)
+	_back4 = SpriteSheet.open("%s/%s" % [BACKDROP_DIR, BACKDROP], BACKDROP, 4, noise)
+	if _back1.is_valid():
+		_back = InkSprite.new()
+		_back.background = true
+		holder.add_child(_back)
+		_back.setup(_back1, &"idle")
+	else:
+		printerr("review: no painted backdrop: %s" % "; ".join(_back1.errors))
+		var view := RoomView.new()
+		holder.add_child(view)
+		view.show_world(world, data.doors)
 	_sprite = InkSprite.new()
 	_sprite.carries_ember = _carries
 	_sprite.palette_row = _palette_row
@@ -250,6 +268,35 @@ func _place_ember() -> void:
 	_ember_at = chest if _carries else chest + Vector2(EMBER_OFFSET_X, 0.0)
 
 
+## A prop's emissive parts are lights (a flame is a fire): one [member LightingTuning.fire] light
+## at each emissive region of the asset's first frame. A Wick's emissive is its ember, light 0.
+func _light_emissives(sheet: SpriteSheet) -> void:
+	if _carries:
+		return
+	var act: StringName = _actions[0] if sheet.has_action(_actions[0]) else sheet.action_names()[0]
+	var frames: Array[Variant] = _frames_of(act)
+	if frames.is_empty():
+		return
+	var regions: Array[Variant] = SpriteSheet.json_list(
+		SpriteSheet.json_dict(frames[0]).get("emissive_regions", null)
+	)
+	for r_v: Variant in regions:
+		var c: Array[Variant] = SpriteSheet.json_list(SpriteSheet.json_dict(r_v).get("centre", null))
+		if c.size() != 2:
+			continue
+		var at: Vector2 = MARK + Vector2(SpriteSheet.json_num(c[0], 0.0), SpriteSheet.json_num(c[1], 0.0))
+		_prop_lights.append(_field.spawn_light(_tuning.fire, at))
+
+
+## Draws the backdrop from the sheet at the picture's scale.
+func _bind_backdrop(detail: bool) -> void:
+	if _back == null:
+		return
+	var sheet: SpriteSheet = _back4 if detail and _back4.is_valid() else _back1
+	if _back.sheet != sheet:
+		_back.setup(sheet, &"idle")
+
+
 ## The sheet.json frames of [param action] as dictionaries.
 func _frame_meta(action: StringName) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
@@ -265,6 +312,7 @@ func _frames(n: int) -> void:
 
 ## Lights the room at [param level] on [param tick] and returns the root viewport's picture.
 func _grab(tick: int, level: float, zoom: float, centre: Vector2) -> Image:
+	_bind_backdrop(zoom > 1.0)
 	_camera.zoom = Vector2(zoom, zoom)
 	_camera.position = centre
 	_field.freeze(tick, _tuning.dark_factor(level))

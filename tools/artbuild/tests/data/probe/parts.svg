@@ -11,7 +11,7 @@
   <path id="front_arm" data-z="4" data-pivot="35 28" data-bevel-u="2.5"
     d="M35 28 C39 31 42 35 44.5 38.5 L42.6 40 C40 36.6 37 33.4 34 31 Z"/>
   <circle id="hand" data-z="5" data-pivot="44 39.6" data-bevel-u="1.8" cx="44" cy="39.6" r="2.1"/>
-  <polygon id="blade" data-z="6" data-pivot="44 39" data-tags="blade smear" data-bevel-u="1"
-    points="43.2,38.2 45.4,40.2 61.5,23.2 60.8,22.4"/>
+  <polygon id="blade" data-z="6" data-pivot="44 39" data-tags="blade smear" data-bevel-u="1.4"
+    points="42.9,38.6 45.6,41.2 62.8,23.6 62.2,22.2"/>
   <circle id="ember" data-z="7" data-pivot="31 33" data-tags="emissive" data-bevel-u="1.5" cx="31" cy="33" r="2.3"/>
 </svg>

@@ -65,6 +65,9 @@ class Piece:
 
     part: int  # index into PartLibrary.parts
     polys: list[np.ndarray]
+    # Where the piece lies along its part's smear arc: 0 at the tail, 1 at the part's own pose (and
+    # for every part that does not smear). It becomes the taper channel of a smear's edges.
+    age: float = 1.0
 
 
 @dataclass
@@ -200,8 +203,9 @@ def pose_frame(lib: PartLibrary, spec: FrameSpec) -> Posed:
         arcs = [*spec.smear.get(part.id, []), main]
         if len(arcs) > 1:
             arcs = sweep(arcs, np.concatenate(part.polys), part.pivot)
-        for m in arcs:
-            pieces.append(Piece(k, [geo.clean(geo.apply(m, p)) for p in part.polys]))
+        for i, m in enumerate(arcs):
+            age = i / (len(arcs) - 1) if len(arcs) > 1 else 1.0
+            pieces.append(Piece(k, [geo.clean(geo.apply(m, p)) for p in part.polys], age))
         if "smear" in part.tags:
             smear_flags[part.id] = part.id in spec.smear
         if "blade" in part.tags:

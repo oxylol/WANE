@@ -131,12 +131,32 @@ func test_every_global_the_shaders_read_is_declared_and_set() -> void:
 	var names: Array[String] = []
 	for m: RegExMatch in re.search_all(inc):
 		names.append(m.get_string(1))
-	assert_int(names.size()).is_equal(12)
+	assert_int(names.size()).is_equal(14)
 	for n: String in names:
 		assert_bool(ProjectSettings.has_setting("shader_globals/%s" % n)).is_true()
 	var field_src: String = FileAccess.get_file_as_string("res://game/lighting/light_field.gd")
 	for n: String in names:
 		assert_bool(field_src.contains('"%s"' % n)).is_true()
+
+
+func test_the_declared_shape_globals_equal_the_tuning() -> void:
+	# The shape of the lighting (docs/adr/0025) is content, not a literal in the shader: what
+	# project.godot declares is what content/lighting.tres says, so an unapplied render is the tuned one.
+	var t: LightingTuning = _tuning()
+	assert_array(Array(t.validate())).is_empty()
+	var shape: Dictionary = ProjectSettings.get_setting("shader_globals/wane_shape")
+	var gate: Dictionary = ProjectSettings.get_setting("shader_globals/wane_gate")
+	var want: Vector4 = t.shape_vec()
+	var have: Vector4 = shape["value"]
+	assert_float(have.x).is_equal_approx(want.x, 0.00001)
+	assert_float(have.y).is_equal_approx(want.y, 0.00001)
+	assert_float(have.z).is_equal_approx(want.z, 0.00001)
+	assert_float(have.w).is_equal_approx(want.w, 0.00001)
+	assert_vector(gate["value"]).is_equal(t.gate_vec())
+	# 40 degrees above the plane: a flat surface reads sin 40 = 0.64 of any light, above lit_threshold.
+	assert_float(rad_to_deg(want.z)).is_equal_approx(40.0, 0.0001)
+	var ink: InkTuning = load(InkTuning.PATH) as InkTuning
+	assert_float(sin(want.z)).is_greater(ink.lit_threshold + ink.terminator_soft)
 
 
 func test_no_shader_reads_a_clock_and_none_uses_godots_lights() -> void:

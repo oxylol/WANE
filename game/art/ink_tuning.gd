@@ -35,10 +35,12 @@ const PATH: String = "res://content/art/ink.tres"
 @export var edge_dark: float = 0.22
 
 @export_group("Two values (wane_fill)")
-## Irradiance the key light must reach for a surface to turn from its shadow value to its lit one.
-@export var lit_threshold: float = 0.20
-## Half-width of that turn in irradiance: the terminator's softness.
-@export var terminator_soft: float = 0.03
+## N.L (of the form direction, docs/adr/0025) a surface must reach, in a light's reach, to turn from
+## its shadow value to its lit one. A surface facing the viewer reads sin(form elevation) there, so
+## this sits below it: only a surface tilted away from the light turns to shadow.
+@export var lit_threshold: float = 0.5
+## Half-width of that turn in N.L: the terminator's softness.
+@export var terminator_soft: float = 0.04
 ## How much the brush noise moves the terminator (a brush-edged terminator).
 @export var brush_noise: float = 0.10
 ## How much the brush streaks move the value (share of it, either way).
@@ -76,6 +78,15 @@ const PATH: String = "res://content/art/ink.tres"
 @export var bg_drop_lo: float = 0.15
 ## And where it is gone.
 @export var bg_drop_hi: float = 0.55
+
+@export_group("Smear and gloss (wane_ink_extra)")
+## How opaque a smear is at the blade (1 is solid), and the power its opacity and line fall to
+## nothing at along the arc toward the tail (the age channel, 0 tail to 1 blade).
+@export var smear_opacity: float = 0.85
+@export var smear_tail_pow: float = 1.5
+## The sharpness of a glossy part's highlight (the power of N.H) and how strong it is.
+@export var gloss_power: float = 24.0
+@export var gloss_strength: float = 0.7
 
 @export_group("Background line (wane_ink_bg)")
 ## The break mask's value below which the open line is at its thinnest.
@@ -121,6 +132,11 @@ func ink_light_vec() -> Vector4:
 	return Vector4(line_light_lo, line_light_hi, bg_drop_lo, bg_drop_hi)
 
 
+## wane_ink_extra
+func extra_vec() -> Vector4:
+	return Vector4(smear_opacity, smear_tail_pow, gloss_power, gloss_strength)
+
+
 ## wane_ink_bg
 func ink_bg_vec() -> Vector4:
 	return Vector4(bg_break_lo, bg_break_hi, bg_thin, bg_mask_wave_u)
@@ -164,6 +180,10 @@ func validate() -> PackedStringArray:
 		e.append("bg_drop_lo must be below bg_drop_hi and not negative")
 	if bg_break_hi <= bg_break_lo or bg_break_lo < 0.0 or bg_break_hi > 1.0:
 		e.append("bg_break_lo must be below bg_break_hi, both within 0 to 1")
+	if smear_opacity <= 0.0 or smear_opacity > 1.0 or smear_tail_pow < 0.1 or smear_tail_pow > 8.0:
+		e.append("smear_opacity must be above 0 and at most 1, smear_tail_pow 0.1 to 8")
+	if gloss_power < 1.0 or gloss_power > 256.0 or gloss_strength < 0.0 or gloss_strength > 4.0:
+		e.append("gloss_power must be 1 to 256 and gloss_strength 0 to 4")
 	if bg_thin < 0.0 or bg_thin > 1.0 or bg_mask_wave_u < 4.0:
 		e.append("bg_thin must be 0 to 1 and bg_mask_wave_u at least 4")
 	return e

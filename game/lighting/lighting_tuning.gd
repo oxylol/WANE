@@ -53,6 +53,33 @@ const PROFILE_MIN: int = 2
 @export var key_dir: Vector2 = Vector2(-0.6, -0.8)
 @export var key_strength: float = 0.5
 
+@export_group("Shape of the light (wane_shape, wane_gate)")
+## 0.35 + 0.65 N.L: the share of a light that a surface keeps whatever way it faces.
+@export var flat_share: float = 0.35
+## How far a wall's edge normals tilt toward the open (0 flat, 1 the full bevel).
+@export var bevel_tilt: float = 0.95
+## The lowest elevation, in degrees above the picture plane, that the key and every light's form
+## direction stands at: a flat surface faces a light at this angle however far the light is, so
+## the two values follow a shape's tilt and not a ring of distance (docs/adr/0025).
+@export var form_elevation_deg: float = 40.0
+## The width, in u, of the Gutter Ember's edge between lit above it and dark below.
+@export var up_only_soft_u: float = 8.0
+## The energy of direct light (before N.L) under which a surface is in its shadow value, and over
+## which the light has reached it.
+@export var gate_lo: float = 0.05
+@export var gate_hi: float = 0.15
+## A fire's flicker phase per u of x and y, so that two fires do not flicker together.
+@export var flicker_phase_per_u: Vector2 = Vector2(0.013, 0.007)
+
+@export_group("Glow")
+## Every light draws a soft halo over the ink (the ember is a bloom, not a dot): its radius is this
+## share of the light's reach, never under glow_min_u, its strength this share of its energy, and
+## the halo falls off as a power of its distance.
+@export var glow_radius_share: float = 0.05
+@export var glow_min_u: float = 3.0
+@export var glow_strength: float = 0.5
+@export var glow_falloff: float = 2.0
+
 @export_group("Shadows")
 ## The march (section 10: 2D ray-marched soft shadows).
 @export var max_steps: int = 48
@@ -86,9 +113,19 @@ const PROFILE_MIN: int = 2
 ## Bloom above this brightness (emissives exceed 1.0 in the HDR 2D pass), its strength and reach.
 @export var bloom_threshold: float = 1.0
 @export var bloom_strength: float = 0.55
-@export var bloom_radius_px: float = 14.0
+@export var bloom_radius_u: float = 14.0
+## The weights of the bloom's centre tap and of each of its ring's eight.
+@export var bloom_core: float = 0.2
+@export var bloom_ring: float = 0.1
+## The brightness above which the shoulder rolls the top of the range off (hue kept).
+@export var shoulder_knee: float = 0.8
 @export var grain: float = 0.012
+## The vignette's darkening, where it starts and where it is whole (as the distance from the
+## screen's centre, 0 to about 0.7), and how much the screen's height counts for.
 @export var vignette: float = 0.22
+@export var vignette_start: float = 0.26
+@export var vignette_end: float = 0.74
+@export var vignette_squash: float = 0.8
 ## What the stand-in emissives (VFX, telegraphs, fire) are multiplied by to read as light.
 @export var emissive_boost: float = 1.5
 
@@ -108,6 +145,16 @@ func ember_colour() -> Color:
 	var c: Color = LightKind.kelvin_colour(ember_kelvin)
 	c.a = 1.0
 	return c
+
+
+## wane_shape: flat_share, bevel_tilt, form elevation in radians, up_only_soft_u.
+func shape_vec() -> Vector4:
+	return Vector4(flat_share, bevel_tilt, deg_to_rad(form_elevation_deg), up_only_soft_u)
+
+
+## wane_gate.
+func gate_vec() -> Vector2:
+	return Vector2(gate_lo, gate_hi)
 
 
 ## The scale of the shadow buffer on [param profile].
@@ -156,8 +203,20 @@ func validate() -> PackedStringArray:
 		e.append("reveal_threshold must be above 0 and at most 1")
 	if boil_hz <= 0.0:
 		e.append("boil_hz must be positive")
-	if bloom_strength < 0.0 or bloom_radius_px <= 0.0 or grain < 0.0 or vignette < 0.0:
+	if bloom_strength < 0.0 or bloom_radius_u <= 0.0 or grain < 0.0 or vignette < 0.0:
 		e.append("the post numbers must not be negative and the bloom radius must be positive")
+	if bloom_core < 0.0 or bloom_ring < 0.0 or shoulder_knee <= 0.0 or shoulder_knee >= 1.0:
+		e.append("bloom_core and bloom_ring must not be negative, shoulder_knee must be 0 to 1")
+	if vignette_start < 0.0 or vignette_end <= vignette_start or vignette_squash <= 0.0:
+		e.append("vignette_start must not be negative and below vignette_end, squash positive")
+	if flat_share < 0.0 or flat_share > 1.0 or bevel_tilt < 0.0 or bevel_tilt > 1.0:
+		e.append("flat_share and bevel_tilt must be 0 to 1")
+	if form_elevation_deg < 5.0 or form_elevation_deg > 85.0 or up_only_soft_u <= 0.0:
+		e.append("form_elevation_deg must be 5 to 85 and up_only_soft_u positive")
+	if gate_lo < 0.0 or gate_hi <= gate_lo:
+		e.append("gate_lo must not be negative and be below gate_hi")
+	if glow_radius_share < 0.0 or glow_min_u < 0.0 or glow_strength < 0.0 or glow_falloff < 0.5:
+		e.append("the glow numbers must not be negative and glow_falloff must be at least 0.5")
 	if emissive_boost < 1.0:
 		e.append("emissive_boost must be at least 1")
 	for k: LightKind in [beacon, fire, gutter_ember, eye]:

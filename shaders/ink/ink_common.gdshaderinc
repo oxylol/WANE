@@ -26,6 +26,7 @@ global uniform vec4 wane_fill_more; // brush_stretch, rim_u, grain_strength, bac
 global uniform vec4 wane_ink_more; // ink_value, taper_floor, ink_over_fill, emissive_gain
 global uniform vec4 wane_ink_light; // line_light_lo, line_light_hi, bg_drop_lo, bg_drop_hi
 global uniform vec4 wane_ink_bg; // bg_break_lo, bg_break_hi, bg_thin, bg_mask_wave_u
+global uniform vec4 wane_ink_extra; // smear_opacity, smear_tail_pow, gloss_power, gloss_strength
 
 // ---- The channel layout. These constants are the decode half of ADR-0023 Decision 1.3 and must
 // ---- equal tools/artbuild/channels.py (tools/ci/test_ink_layout.py checks).
@@ -35,6 +36,7 @@ const float INK_U_STEPS_PER_U = 16.0; // U: byte = 16 d
 const float INK_ANGLE_RANGE = 3.14159265; // brush angle: byte 255 is pi
 const int INK_PALETTE_ROWS = 4; // lit, shadow, rim, emissive
 const int INK_PALETTE_COLUMNS = 16;
+const int INK_FLAG_SMEAR = 8; // parts alpha, bit 3: the part is a smear (its taper channel is the arc's age)
 // Cells of the shared noise (assets/art/build/noise/noise.png, 256 x 256, Decision 1.7).
 const float INK_NOISE_PX = 256.0;
 const float INK_WOBBLE1_CELLS = 16.0; // B
@@ -129,6 +131,9 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	vec4 sh = texture(shape_tex, uv);
 	vec4 nm = texture(normal_tex, uv);
 	vec4 pt = texture(parts_tex, uv);
+	// A smear's taper channel is its age along the arc, 0 at the tail and 1 at the blade.
+	bool smear = (int(pt.a * 255.0 + 0.5) & INK_FLAG_SMEAR) != 0;
+	float age = smear ? pt.b : 1.0;
 	float s_dist = ink_decode_s(sh.r);
 	float u_dist = ink_decode_u(sh.g);
 	float side = sh.b;
@@ -141,6 +146,10 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	float alpha = (1.0 - smoothstep(-aa, aa, s_dist + wob)) * inst.a;
 	float dn = texture(noise_tex, p_u / INK_DISSOLVE_TILE_U).g;
 	alpha *= smoothstep(inst.b * 0.9, inst.b * 0.9 + 0.04, dn);
+	// A smear is a ribbon of the motion: it fades out toward the tail of its arc.
+	if (smear) {
+		alpha *= wane_ink_extra.x * pow(age, wane_ink_extra.y);
+	}
 
 	if (mode == 1) {
 		return vec4(1.0, 1.0, 1.0, alpha);
@@ -155,10 +164,10 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	vec2 axn = normalize(ax);
 	vec2 ayn = normalize(ay);
 
-	// The line light: its direction, and its strength as the length of what the lighting returns.
-	vec2 ldv = wane_line_dir(world, carrier);
-	float lstr = clamp(length(ldv), 0.0, 1.0);
-	vec2 ldir = ink_safe_normalize(ldv, vec2(0.0, -1.0));
+	// The line light: the direction toward the light that reaches the sprite, and how fully it does.
+	vec3 line_light = wane_line_light(world, screen_uv, carrier);
+	vec2 ldir = line_light.xy;
+	float lstr = line_light.z;
 
 	// The line, the rim and the edge darkening exist only near a visible edge: within the shadow
 	// side's weight (or line_min_px screen pixels when zoomed out) plus the anti-aliasing, the
@@ -167,6 +176,7 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	float reach_u = max(wane_ink.y, wane_ink.z * upp) + back_u + 2.0 * aa + wane_ink.w + wane_ink_wave.z + wane_fill_more.y;
 	float cover = 0.0;
 	float w = 0.0;
+	float em_near = sh.a;
 	// The break mask of a background's open line (sampled outside the branch below: a mipmapped
 	// fetch needs uniform control flow).
 	float bg_mask = 1.0;
@@ -188,17 +198,32 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 		// under line_min_px.
 		float lit_side = smoothstep(wane_ink_light.x, wane_ink_light.y, dot(n_edge, ldir)) * lstr;
 		w = mix(wane_ink.x, wane_ink.y, 1.0 - lit_side) * mix(wane_ink_more.y, 1.0, pt.b);
-		w = max(w, wane_ink.z * upp);
-		float line_cover_scale = 1.0;
+		// Never under line_min_px wide on the screen; a line thinner than that is drawn at the
+		// pixel's width and as light as it is thin, as a hairline is on paper.
+		float floor_u = max(wane_ink.z * upp, 0.0001);
+		float line_cover_scale = clamp(w / floor_u, 0.0, 1.0);
+		w = max(w, floor_u);
+		if (smear) {
+			// A motion ribbon: the line is the hairline, and it thins out toward the tail.
+			w = max(mix(wane_ink.x, w, age), floor_u);
+			line_cover_scale *= pow(age, wane_ink_extra.y);
+		}
 		if (background) {
 			w *= mix(wane_ink_bg.z, 1.0, smoothstep(wane_ink_bg.x, wane_ink_bg.y, bg_mask));
 			float reach = wane_light_reaching(world, screen_uv);
-			line_cover_scale = 1.0 - smoothstep(wane_ink_light.z, wane_ink_light.w, reach);
+			line_cover_scale *= 1.0 - smoothstep(wane_ink_light.z, wane_ink_light.w, reach);
 		}
 		float band = mix(back_u, w, side);
 		cover = (1.0 - smoothstep(band - aa, band + aa, u_dist + wob)) * line_cover_scale;
-		// An emissive part (the ember, an eye) is a light, not a drawn shape: it carries no ink.
-		cover *= 1.0 - sh.a;
+		// An emissive part (the ember, an eye) is a light, not a drawn shape: it carries no ink, and
+		// neither does the part around it, along its edge.
+		float em_step = (back_u + 2.0 * aa + wane_ink.w) / texel_u;
+		vec2 em_px = em_step / vec2(textureSize(shape_tex, 0));
+		em_near = max(em_near, textureLod(shape_tex, uv + vec2(em_px.x, 0.0), 0.0).a);
+		em_near = max(em_near, textureLod(shape_tex, uv - vec2(em_px.x, 0.0), 0.0).a);
+		em_near = max(em_near, textureLod(shape_tex, uv + vec2(0.0, em_px.y), 0.0).a);
+		em_near = max(em_near, textureLod(shape_tex, uv - vec2(0.0, em_px.y), 0.0).a);
+		cover *= 1.0 - em_near;
 	}
 	float band_edge = mix(back_u, w, side);
 
@@ -217,17 +242,20 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 	vec2 bc = vec2(dot(p_u, bdir) / (INK_BRUSH_TILE_U * wane_fill_more.x), dot(p_u, bperp) / INK_BRUSH_TILE_U);
 	float brush = (texture(noise_tex, bc).g - 0.5) * 2.0;
 
-	// Two values: the surface is lit where the key light's irradiance reaches the threshold, the
-	// brush noise breaking the terminator like a brush edge.
-	float irr = wane_key_irradiance(world, n, screen_uv, carrier);
-	float lit = smoothstep(wane_fill.x - wane_fill.y, wane_fill.x + wane_fill.y, irr + wane_fill.z * brush);
+	// Two values: the surface is lit where a light has reached it and it faces the light (N.L of
+	// the form direction above the threshold), the brush noise breaking the terminator like a
+	// brush edge. A smear is all one value.
+	float lit = wane_key_lit(world, n, screen_uv, carrier, wane_fill.x, wane_fill.y, wane_fill.z * brush);
+	if (smear) {
+		lit = 1.0;
+	}
 	vec3 base = mix(c_shadow, c_lit, lit) * (1.0 + wane_fill.w * brush);
 	vec3 rad = wane_radiance(world, n, screen_uv);
 	vec3 col = base * rad;
 
 	// Fill darkens where it meets the line, measured from the line's band.
 	float to_band = max(u_dist + wob - band_edge, 0.0);
-	col *= 1.0 - wane_ink_wave.w * (1.0 - smoothstep(0.0, wane_ink_wave.z, to_band));
+	col *= 1.0 - wane_ink_wave.w * (1.0 - em_near) * (1.0 - smoothstep(0.0, wane_ink_wave.z, to_band));
 
 	// Paper grain in screen space.
 	col *= 1.0 + wane_fill_more.z * (texture(noise_tex, frag / INK_NOISE_PX).r - 0.5) * 2.0;
@@ -241,14 +269,20 @@ vec4 ink_shade(vec2 uv, vec2 p_u, vec2 world, vec2 ax, vec2 ay, vec4 inst, vec2 
 		float rim_band = 1.0 - smoothstep(0.0, max(wane_fill_more.y, 0.0001), max(-s_dist - w, 0.0));
 		rim = c_rim * rad * rim_band * max(dot(n_sil, ldir), 0.0) * lstr;
 	}
-	vec3 fill = col + rim;
+	// Gloss: a highlight where the surface's tilt turns its normal toward the half vector of the
+	// light and the viewer (the ember raking along an edge of steel or wax).
+	vec3 l3 = vec3(ldir * cos(wane_shape.z), sin(wane_shape.z));
+	vec3 half_v = normalize(l3 + vec3(0.0, 0.0, 1.0));
+	float spec = nm.a * wane_ink_extra.w * pow(max(dot(n, half_v), 0.0), wane_ink_extra.z) * lstr;
+	vec3 fill = col + rim * (smear ? 0.0 : 1.0) + c_rim * rad * spec;
 
 	// Ink is never lighter than the fill it covers.
 	vec3 ink = min(c_shadow * wane_ink_more.x, fill * wane_ink_more.z);
 	vec3 outc = mix(fill, ink, cover);
 
-	// Emissive on top, untouched by ambient; the post pass blooms what exceeds 1.
-	outc += sh.a * c_em.rgb * c_em.a * wane_ink_more.w * inst.g;
+	// Emissive replaces the fill it covers and is untouched by ambient; its halo is the light's
+	// (shaders/lighting/glow.gdshader) and the post pass blooms what exceeds 1.
+	outc = outc * (1.0 - sh.a * c_em.a) + sh.a * c_em.rgb * c_em.a * wane_ink_more.w * inst.g;
 	outc = mix(outc, vec3(1.0), inst.r);
 	return vec4(outc, alpha);
 }

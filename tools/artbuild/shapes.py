@@ -34,6 +34,7 @@ class Edges:
     b: np.ndarray
     part: np.ndarray
     taper: np.ndarray  # visible edges only; zeros elsewhere
+    age: np.ndarray  # where the edge's piece lies along its smear arc, 0 tail to 1 (1 off a smear)
 
 
 @dataclass
@@ -124,7 +125,7 @@ def _ray_hits(m: np.ndarray, n: np.ndarray, a: np.ndarray, b: np.ndarray) -> np.
 def build(lib: PartLibrary, posed: Posed) -> Geometry:
     # Each polygon of each piece classifies on its own, so a part's overlapping subpaths (a drip
     # drawn over its candle) and a smear's sub-poses are unions with no interior edges.
-    pieces = [Piece(p.part, [poly]) for p in posed.pieces for poly in p.polys]
+    pieces = [Piece(p.part, [poly], p.age) for p in posed.pieces for poly in p.polys]
     segs = [geo.segments(p.polys) for p in pieces]
     boxes = [_bbox(a, b) for a, b in segs]
     # 1. Cut every piece's outline where it crosses another piece's outline.
@@ -157,7 +158,10 @@ def build(lib: PartLibrary, posed: Posed) -> Geometry:
             elif lib.parts[q.part].z > lib.parts[piece.part].z:
                 front |= hit
         for lst, keep in ((sil, ~other), (vis, ~same & ~front), (own, ~same)):
-            lst.append((pa[keep], pb[keep], np.full(int(keep.sum()), piece.part, dtype=np.int64)))
+            n_keep = int(keep.sum())
+            lst.append(
+                (pa[keep], pb[keep], np.full(n_keep, piece.part, dtype=np.int64), np.full(n_keep, piece.age))
+            )
     part_polys: list[list[np.ndarray]] = [[] for _ in range(n_parts)]
     for piece in pieces:
         part_polys[piece.part].extend(piece.polys)
@@ -167,7 +171,8 @@ def build(lib: PartLibrary, posed: Posed) -> Geometry:
         a = np.concatenate([r[0] for r in rows]) if rows else np.zeros((0, 2))
         b = np.concatenate([r[1] for r in rows]) if rows else np.zeros((0, 2))
         part = np.concatenate([r[2] for r in rows]) if rows else np.zeros(0, dtype=np.int64)
-        return Edges(a, b, part, taper if taper is not None else np.zeros(len(a)))
+        age = np.concatenate([r[3] for r in rows]) if rows else np.zeros(0)
+        return Edges(a, b, part, taper if taper is not None else np.zeros(len(a)), age)
 
     visible = pack(vis)
     own_edges = pack(own)
@@ -181,11 +186,17 @@ def _tapers(edges: Edges, part_segments, own: Edges) -> np.ndarray:
     The thickness is found by casting a ray inward from the edge's midpoint to the part's own
     outline (the spike walked 24 steps; this is exact), where "own outline" leaves out the outlines
     of a smear's sub-poses that lie inside its union. Thin at blade tips and fingers, 1 on a body.
+    A smeared part's edges carry their age along the arc instead (0 tail, 1 the blade).
     """
     taper = np.ones(len(edges.a))
     for k, (pa, pb) in enumerate(part_segments):
         sel = np.nonzero(edges.part == k)[0]
         if len(sel) == 0:
+            continue
+        if (edges.age[sel] < 1.0).any():
+            # A smear: the channel is the edge's age along the arc, so the line and the fill taper
+            # off toward the tail (the ribbon of BUILD.md section 10, Animation).
+            taper[sel] = edges.age[sel]
             continue
         a, b = edges.a[sel], edges.b[sel]
         oa, ob = own.a[own.part == k], own.b[own.part == k]

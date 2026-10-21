@@ -5,7 +5,7 @@ The shaders decode with the constants in the block below, which tests compare ag
 
 shape  (linear)  R S, G U, B side, A emissive
 normal (linear)  R nx, G ny (y down), B nz, A gloss
-parts  (nearest) R palette slot, G brush angle, B taper, A flags
+parts  (nearest) R palette slot, G brush angle, B taper (a smear: its age along the arc), A flags
 """
 
 from __future__ import annotations

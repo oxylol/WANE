@@ -24,7 +24,11 @@ from . import geometry as geo
 SVG_NS = "http://www.w3.org/2000/svg"
 TAGS = ("emissive", "blade", "eye", "pogo", "wax", "smear")
 NORMAL_PROFILES = ("bulge", "flat", "crease")
-DEFAULT_BEVEL_U = 3.0
+# A part's normal rises from the rim over this many u: deep enough that a part of a Wick's size
+# is rounded through, so the light has a form to find (docs/adr/0025). A flat tile or a thin
+# blade says its own bevel.
+DEFAULT_BEVEL_U = 8.0
+MAX_BEVEL_U = 16.0
 DEFAULT_TILT_DEG = 62.0
 SHAPES = ("path", "circle", "ellipse", "rect", "polygon")
 CONTAINERS = ("svg", "g")
@@ -188,8 +192,8 @@ def _leaf(el: ET.Element, tag: str, xf: geo.Affine, where: str) -> Part:
             raise SvgError(f"{where}: unknown tag {t!r} (allowed: {', '.join(TAGS)})")
     bevel = float(attrs.get("data-bevel-u", DEFAULT_BEVEL_U))
     tilt = float(attrs.get("data-tilt-deg", DEFAULT_TILT_DEG))
-    if not 0.25 <= bevel <= 8.0:
-        raise SvgError(f"{where}: data-bevel-u must be 0.25 to 8 (the normal band)")
+    if not 0.25 <= bevel <= MAX_BEVEL_U:
+        raise SvgError(f"{where}: data-bevel-u must be 0.25 to {MAX_BEVEL_U:g} (the normal band)")
     if not 0.0 <= tilt <= 89.0:
         raise SvgError(f"{where}: data-tilt-deg must be 0 to 89")
     profile = attrs.get("data-normal", "bulge")

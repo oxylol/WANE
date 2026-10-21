@@ -6,7 +6,7 @@ constants must be the same in both. Run: python3 tools/ci/test_ink_layout.py
 The shader half is always checked against the ADR's numbers (S: byte = 128 + 16 d, U: byte = 16 d,
 brush angle: byte 255 is pi, 16 palette columns of 4 rows). The artbuild half is checked as soon as
 tools/artbuild/channels.py exists: it must define S_ZERO, S_STEPS_PER_U, U_STEPS_PER_U,
-PALETTE_COLUMNS and PALETTE_ROWS with the same values (the names are this test's contract with
+PALETTE_COLUMNS, PALETTE_ROWS_PER_VARIANT and FLAG_SMEAR with the same values (the names are this test's contract with
 the artbuild builder; see docs/adr/0023 Decision 7.2's last test)."""
 
 import ast
@@ -25,7 +25,8 @@ PAIRS = {
     "INK_S_STEPS_PER_U": ("S_STEPS_PER_U", 16.0),
     "INK_U_STEPS_PER_U": ("U_STEPS_PER_U", 16.0),
     "INK_PALETTE_COLUMNS": ("PALETTE_COLUMNS", 16),
-    "INK_PALETTE_ROWS": ("PALETTE_ROWS", 4),
+    "INK_PALETTE_ROWS": ("PALETTE_ROWS_PER_VARIANT", 4),
+    "INK_FLAG_SMEAR": ("FLAG_SMEAR", 8),
 }
 NOISE_CELLS = {"INK_WOBBLE1_CELLS": 16.0, "INK_WOBBLE2_CELLS": 32.0}
 

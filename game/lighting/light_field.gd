@@ -67,6 +67,7 @@ var _extra_occluders: Array[Vector4] = []
 var _frozen: bool = false
 var _frozen_tick: int = 0
 var _buffer: ShadowBuffer = null
+var _glow: LightGlow = null
 var _post_layer: CanvasLayer = null
 var _post_material: ShaderMaterial = null
 var _tick: int = 0
@@ -105,6 +106,9 @@ func _enter_tree() -> void:
 		_buffer = ShadowBuffer.new(tuning, tuning.shadow_scale(profile))
 		add_child(_buffer)
 		_set_global("wane_shadow", _buffer.texture())
+	if _glow == null:
+		_glow = LightGlow.new(tuning.glow_falloff)
+		add_child(_glow)
 	if _post_layer == null:
 		_build_post()
 
@@ -152,7 +156,7 @@ func remove_light(l: WaneLight) -> void:
 ## Makes a light of [param kind] at [param at] and adds it.
 func spawn_light(kind: LightKind, at: Vector2) -> WaneLight:
 	var l := WaneLight.new(kind, at)
-	l.phase = at.x * 0.013 + at.y * 0.007
+	l.phase = at.x * tuning.flicker_phase_per_u.x + at.y * tuning.flicker_phase_per_u.y
 	add_light(l)
 	return l
 
@@ -374,11 +378,29 @@ func _fill_table(seconds: float) -> void:
 		_put(2, n, kind.falloff_power, tuning.light_r_u, 0.0, 0.0)
 		n += 1
 	lights_in_table = n
+	_set_halos(cand, seconds)
 	_table_image.set_data(
 		TABLE_COLUMNS, TABLE_ROWS, false, Image.FORMAT_RGBAF, table.to_byte_array()
 	)
 	_table_texture.update(_table_image)
 	_set_global("wane_light_count", n)
+
+
+## The halos of the lights in the table: radius the share of the light's reach (not under the
+## minimum), colour its own times its energy times the strength.
+func _set_halos(lit: Array[WaneLight], seconds: float) -> void:
+	if _glow == null:
+		return
+	var centres: Array[Vector2] = []
+	var radii: Array[float] = []
+	var colours: Array[Color] = []
+	for l: WaneLight in lit:
+		var k: float = l.energy_at(seconds) * tuning.glow_strength
+		var c: Color = l.colour()
+		centres.append(l.position)
+		radii.append(maxf(l.radius_u * tuning.glow_radius_share, tuning.glow_min_u))
+		colours.append(Color(c.r * k, c.g * k, c.b * k, 1.0))
+	_glow.set_halos(centres, radii, colours)
 
 
 func _put(row: int, col: int, a: float, b: float, c: float, d: float) -> void:
@@ -427,6 +449,8 @@ func _write_globals(seconds: float) -> void:
 	_set_global("wane_ambient", Color(amb.r, amb.g, amb.b, 1.0))
 	_set_global("wane_dark", dark_factor)
 	_set_global("wane_key", key)
+	_set_global("wane_shape", tuning.shape_vec())
+	_set_global("wane_gate", tuning.gate_vec())
 	_set_global(
 		"wane_ember",
 		Vector4(ember.position.x, ember.position.y, ember.radius_u, ember.energy_at(seconds))
@@ -448,7 +472,13 @@ func _build_post() -> void:
 	_post_material.shader = load(POST_SHADER) as Shader
 	_post_material.set_shader_parameter("bloom_threshold", tuning.bloom_threshold)
 	_post_material.set_shader_parameter("bloom_strength", tuning.bloom_strength)
-	_post_material.set_shader_parameter("bloom_radius_px", tuning.bloom_radius_px)
+	_post_material.set_shader_parameter("bloom_radius_u", tuning.bloom_radius_u)
+	_post_material.set_shader_parameter("bloom_core", tuning.bloom_core)
+	_post_material.set_shader_parameter("bloom_ring", tuning.bloom_ring)
+	_post_material.set_shader_parameter("shoulder_knee", tuning.shoulder_knee)
+	_post_material.set_shader_parameter("vignette_start", tuning.vignette_start)
+	_post_material.set_shader_parameter("vignette_end", tuning.vignette_end)
+	_post_material.set_shader_parameter("vignette_squash", tuning.vignette_squash)
 	_post_material.set_shader_parameter("grain", tuning.grain)
 	_post_material.set_shader_parameter("vignette", tuning.vignette)
 	var quad := ColorRect.new()

@@ -8,7 +8,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 godot="${GODOT:-godot}"
 asset="$1"
-python3 tools/artbuild/build.py --masters "$asset"
+python3 tools/artbuild/build.py --masters "$asset" lit_test_room
 "$godot" --headless --path . --import > /dev/null 2>&1
 xvfb-run -a -s "-screen 0 1920x1080x24" "$godot" --path . --rendering-driver opengl3 \
 	--audio-driver Dummy --resolution 1920x1080 --script tools/artbuild/review.gd -- "$@" 2>&1 \

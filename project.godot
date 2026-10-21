@@ -113,7 +113,7 @@ wane_ink_wave={
 }
 wane_fill={
 "type": "vec4",
-"value": Vector4(0.2, 0.03, 0.05, 0.12)
+"value": Vector4(0.5, 0.04, 0.05, 0.12)
 }
 wane_fill_more={
 "type": "vec4",
@@ -130,6 +130,10 @@ wane_ink_light={
 wane_ink_bg={
 "type": "vec4",
 "value": Vector4(0.42, 0.5, 0.35, 48)
+}
+wane_ink_extra={
+"type": "vec4",
+"value": Vector4(0.85, 1.5, 24, 0.7)
 }
 wane_ambient={
 "type": "color",
@@ -178,6 +182,14 @@ wane_boil={
 wane_time={
 "type": "float",
 "value": 0.0
+}
+wane_shape={
+"type": "vec4",
+"value": Vector4(0.35, 0.95, 0.698132, 8)
+}
+wane_gate={
+"type": "vec2",
+"value": Vector2(0.05, 0.15)
 }
 
 [wane]

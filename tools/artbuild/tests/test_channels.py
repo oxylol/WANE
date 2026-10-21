@@ -149,9 +149,18 @@ class VisibleEdges(unittest.TestCase):
         # The wedge's own edges are the only ones: at the same radius, in the middle of the wedge,
         # the nearest visible edge is a radial edge of the wedge, several u away, not the sub-poses'.
         self.assertGreater(float(common.decode_u(px(shape, float(mid[0]), float(mid[1]), s))), 1.5)
-        # The taper is the wedge's thickness, not 0.2 u between sub-poses.
+        # The taper channel of a smear is its age along the arc: 0 at the tail (-40 degrees), 1 at the
+        # blade (+10), about half way at -15, rising monotonically (the ribbon's fade and the line's
+        # thinning, shaders/ink/ink_common.gdshaderinc).
         parts = res.arrays[s]["parts"]
-        self.assertGreater(int(px(parts, float(mid[0]), float(mid[1]), s)[2]), 150)
+        ages = []
+        for deg in (-38.0, -27.0, -15.0, -3.0, 8.0):
+            at = geo.apply(geo.rotation_about(deg, 20, 40), np.array([[38.0, 40.0]]))[0]
+            ages.append(int(px(parts, float(at[0]), float(at[1]), s)[2]))
+        self.assertEqual(ages, sorted(ages))
+        self.assertLess(ages[0], 50)
+        self.assertGreater(ages[-1], 205)
+        self.assertAlmostEqual(ages[2], 127.5, delta=30)
 
     def test_overlapping_subpaths_of_one_part_are_a_union(self) -> None:
         body = '<path id="p" data-z="0" d="M10 10 L40 10 L40 40 L10 40 Z M20 20 L30 20 L30 30 L20 30 Z"/>'
