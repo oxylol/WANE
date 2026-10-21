@@ -80,6 +80,8 @@ def _check_material(name: str, m: dict, partial: bool, where: str) -> None:
             _hex(m[key], f"{where}: {name}.{key}")
         elif not partial and key != "emissive":
             raise PaletteError(f"{where}: material {name!r} needs {key}")
+    if not partial and "emissive_strength" in m and "emissive" not in m:
+        raise PaletteError(f"{where}: material {name!r} has an emissive_strength but no emissive colour")
     for key in ("gloss", "emissive_strength"):
         if key in m and not (
             isinstance(m[key], (int, float)) and not isinstance(m[key], bool) and 0.0 <= m[key] <= 1.0

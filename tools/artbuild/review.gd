@@ -226,7 +226,7 @@ func _silhouette(sheet: SpriteSheet) -> void:
 	sil.scale *= k
 	# Feet a margin above the bottom (more if the frame hangs below them), centred on the
 	# silhouette's horizontal middle.
-	var feet_y: float = float(size.y) - float(SIL_MARGIN_PX) - below
+	var feet_y: float = float(size.y - SIL_MARGIN_PX - ceili(below))
 	sil.position = Vector2(float(size.x) * 0.5 - box.get_center().x * k, feet_y)
 	root.add_child(vp)
 	await _frames(2)

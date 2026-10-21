@@ -22,6 +22,8 @@ from . import TOOL_VERSION
 NAME = "MANIFEST.json"
 # Godot writes these beside the imported files; they are not build output.
 IMPORT_SUFFIX = ".import"
+# What a file manager leaves behind (the repository's .gitignore lists both): never committed.
+OS_METADATA = frozenset({".DS_Store", "Thumbs.db"})
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 PNG_CHUNKS = frozenset({b"IHDR", b"IDAT", b"IEND"})
 

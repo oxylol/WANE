@@ -471,16 +471,18 @@ class CheckMode(unittest.TestCase):
               folder / "candle_stump@1x.parts.png.import"]
         bad = [folder / "stock@4x.png", folder / "candle_stump@3x.shape.png",
                folder / "elsewhere.png.import", folder / "note.uid"]
-        for f in ok + bad:
+        junk = self.out(".DS_Store")  # a file manager's own file is not a stock picture
+        for f in ok + bad + [junk]:
             f.write_bytes(b"x")
         try:
             text = " | ".join(self.problems())
             for f in ok:
                 self.assertNotIn(f.name, text)
+            self.assertNotIn(".DS_Store", text)
             for f in bad:
                 self.assertIn(f.name, text)
         finally:
-            for f in ok + bad:
+            for f in ok + bad + [junk]:
                 f.unlink()
         self.assertEqual(self.problems(), [])
 

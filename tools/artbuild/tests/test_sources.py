@@ -70,6 +70,8 @@ class Palette(unittest.TestCase):
             "overrides material 'm' with a dictionary": {"materials": {"m": MAT}, "parts": part_of,
                                                           "variants": {"v": {"m": 5}}},
             "must be 0 to 1": {"materials": {"m": {**MAT, "gloss": True}}, "parts": part_of},
+            "emissive_strength but no emissive colour": {"materials": {"m": {**MAT, "emissive_strength": 0.5}},
+                                                          "parts": part_of},
         }
         for needle, doc in cases.items():
             with self.assertRaises(palette.PaletteError, msg=needle) as cm:

@@ -18,6 +18,11 @@ decomposition about the part's pivot: the rotation angle, the stretch and the pi
 interpolated) until no vertex moves more than SMEAR_STEP_U between neighbours, so a few keys sweep
 a continuous ribbon and not a fan of copies. Actions keep the order of the file. A source without a pose file
 is one action, `idle`, of one frame.
+
+The reader is strict, because frame timing is the animation spec (CLAUDE.md rule 5): an unknown key
+(`tiks`) is an error and not a default, `key` and `loop` are booleans, `fps` (1 to 60) and `ticks` (1 or
+more) are integers, an affine is six finite numbers whose determinant is not 0, and the file may hold
+no NaN, no Infinity and no key twice (strict_json).
 """
 
 from __future__ import annotations

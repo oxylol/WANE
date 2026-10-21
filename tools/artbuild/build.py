@@ -116,8 +116,8 @@ def sources_of(root: Path, r: Root) -> set[str]:
 
 def is_build_output(rel: str, known: set[str]) -> bool:
     """Whether the file `rel` (relative to an out root) belongs there: a built file, a review
-    master, or Godot's `.import` beside one of those."""
-    if rel in known or is_master(rel):
+    master, Godot's `.import` beside one of those, or a file manager's own metadata."""
+    if rel in known or is_master(rel) or rel.rsplit("/", 1)[-1] in manifest.OS_METADATA:
         return True
     if rel.endswith(manifest.IMPORT_SUFFIX):
         base = rel[: -len(manifest.IMPORT_SUFFIX)]
